@@ -15,7 +15,7 @@ int main (void)
   wiringPiSetup () ;
   pinMode (LED, OUTPUT) ;
 
-  cout << "WiringPi initilized" << endl;
+  cout << "WiringPi initialized" << endl;
 
 
   for (int i=0; i<20; i++)

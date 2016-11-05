@@ -23,8 +23,8 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/version1)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} ${WIPI_LIB})
 
-include_directories(${CMAKE_SOURCE_DIR}/../wiringPi/wiringPi}
-   ${PROJECT_SOURCE_DIR}/pi-library/src
+include_directories(${CMAKE_SOURCE_DIR}/../wiringPi/wiringPi
+   ${PROJECT_SOURCE_DIR}/pi-library
 )
 
 

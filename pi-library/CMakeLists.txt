@@ -3,10 +3,10 @@ cmake_minimum_required(VERSION 3.0)
 #project name
 project(pi-library)
 
-include_directories(BEFORE ${CMAKE_SOURCE_DIR}/../../wiringPi/wiringPi})
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/../../wiringPi/wiringPi)
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_LIBRARY_SOURCES)
 
 add_library(pi-library SHARED ${PI_LIBRARY_SOURCES})
 
-configure_file(version.h.in ${CMAKE_SOURCE_DIR}/src/version.h)
+configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)
