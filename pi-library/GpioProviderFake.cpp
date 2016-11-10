@@ -24,10 +24,10 @@ const std::string GpioProviderFake::toString()
 	return std::string("GpioFakeProvider");
 }
 
-const int GpioProviderFake::dgtRead(int pin)
+const int GpioProviderFake::dgtRead(const int pin)
 {
 	logger::log(logger::LLOG::DEBUD, __func__, std::string(" from pin: ") + std::to_string(pin));
-	return 0;
+	return gpio::SGN_LEVEL::SGN_LOW;
 }
 
 void GpioProviderFake::dgtWrite(const int pin, const int value)
@@ -35,9 +35,14 @@ void GpioProviderFake::dgtWrite(const int pin, const int value)
 	logger::log(logger::LLOG::DEBUD, __func__, std::string(" to pin: ") + std::to_string(pin) + " value: " + std::to_string(value));
 }
 
-void GpioProviderFake::setmode(int pin, GPIO_MODE mode){
+void GpioProviderFake::setmode(const int pin, const GPIO_MODE mode){
 	logger::log(logger::LLOG::DEBUD, __func__, std::string(" for pin: ") + std::to_string(pin) + " mode: " + std::to_string(mode));
 }
+
+void GpioProviderFake::pullUpDownControl(const int pin, const PULL_MODE pumode){
+	logger::log(logger::LLOG::DEBUD, __func__, std::string(" for pin: ") + std::to_string(pin) + " UP mode: " + std::to_string(pumode));
+}
+
 
 }
 }

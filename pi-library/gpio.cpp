@@ -54,6 +54,12 @@ const int Gpio::digitalRead(){
 /*
  *
  */
+void Gpio::pullUpDnControl(PULL_MODE pumode){
+	m_prov->pullUpDownControl(m_pin, pumode);
+}
+/*
+ *
+ */
 void Gpio::digitalWrite(int value){
 	m_prov->dgtWrite(m_pin, value);
 }

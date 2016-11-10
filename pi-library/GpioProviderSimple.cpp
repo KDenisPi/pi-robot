@@ -9,6 +9,7 @@
 #include <wiringPi.h>
 
 #include "GpioProviderSimple.h"
+#include "logger.h"
 
 namespace pirobot {
 namespace gpio {
@@ -24,21 +25,28 @@ const std::string GpioProviderSimple::toString()
 	return std::string("GpioSimpleProvider");
 }
 
-const int GpioProviderSimple::dgtRead(int pin)
+const int GpioProviderSimple::dgtRead(const int pin)
 {
-	std::cout << toString() << " digitalRead from " << pin << std::endl;
+	logger::log(logger::LLOG::DEBUD, __func__, std::string(" from pin: ") + std::to_string(pin));
 	return digitalRead(pin);
 }
 
 void GpioProviderSimple::dgtWrite(const int pin, const int value)
 {
-	std::cout << toString() << " digitalWrite to: " << pin <<  " value:" << value << std::endl;
+	logger::log(logger::LLOG::DEBUD, __func__, std::string(" to pin: ") + std::to_string(pin) + " value: " + std::to_string(value));
 	digitalWrite(pin, value);
 }
 
-void GpioProviderSimple::setmode(int pin, GPIO_MODE mode){
+void GpioProviderSimple::setmode(const int pin, const GPIO_MODE mode){
+	logger::log(logger::LLOG::DEBUD, __func__, std::string(" for pin: ") + std::to_string(pin) + " mode: " + std::to_string(mode));
 	pinMode(pin, (mode == GPIO_MODE::IN ? INPUT : OUTPUT));
 }
+
+void GpioProviderSimple::pullUpDownControl(const int pin, const PULL_MODE pumode){
+	logger::log(logger::LLOG::DEBUD, __func__, std::string(" for pin: ") + std::to_string(pin) + " UP mode: " + std::to_string(pumode));
+	pullUpDnControl(pin, pumode);
+}
+
 
 }
 }

@@ -19,12 +19,12 @@ public:
 	GpioProviderSimple();
 	virtual ~GpioProviderSimple();
 
-	virtual const int dgtRead(int pin);
-	virtual void dgtWrite(int pin, int value);
-	virtual void setmode(int pin, GPIO_MODE mode);
+	virtual const int dgtRead(const int pin);
+	virtual void dgtWrite(const int pin, const int value);
+	virtual void setmode(const int pin, const GPIO_MODE mode);
+	virtual void pullUpDownControl(const int pin, const PULL_MODE pumode);
 
 	virtual const std::string toString();
-
 };
 
 }

@@ -39,10 +39,10 @@ PiRobot::~PiRobot() {
 /*
  *
  */
-const std::shared_ptr<gpio::Gpio> PiRobot::getGpio(const int id){
+const std::shared_ptr<gpio::Gpio> PiRobot::get_gpio(const int id){
 	auto pgpio = this->gpios.find(id);
 	if(pgpio == gpios.end()){
-		logger::log(logger::LLOG::ERROR, __func__, "Requested absent GPIO with ID " + std::to_string(id));
+		logger::log(logger::LLOG::ERROR, __func__, " Absent requested GPIO with ID " + std::to_string(id));
 	}
 	return pgpio->second;
 }
@@ -96,7 +96,7 @@ bool PiRobot::configure(){
 	this->gpios[2] = std::shared_ptr<gpio::Gpio>(new gpio::Gpio(2, gpio::GPIO_MODE::IN, provider));
 
 	this->items[std::string("LED_1")] = std::shared_ptr<item::Item>(new item::Led(gpios.at(1), "LED_1", "LED first"));
-//	this->items[std::string("BTN_1")] = std::shared_ptr<item::Item>(new item::Button(gpios.at(2), "BTN_1", "Button for LED_1"));
+	this->items[std::string("BTN_1")] = std::shared_ptr<item::Item>(new item::Button(gpios.at(2), "BTN_1", "Button for LED_1"));
 
 	logger::log(logger::LLOG::NECECCARY, __func__, "Robot configuration is finished");
 	return true;

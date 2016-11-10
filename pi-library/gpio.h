@@ -29,8 +29,9 @@ class Gpio
     */
    void setMode(GPIO_MODE mode);
 
-   virtual const int digitalRead();
-   virtual void digitalWrite(int value);
+   const int digitalRead();
+   void digitalWrite(int value);
+   void pullUpDnControl(PULL_MODE pumode);
 
    const std::string toString();
 

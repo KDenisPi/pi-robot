@@ -28,7 +28,7 @@ public:
 	 *
 	 * TODO: Read configuration from file
 	 */
-	virtual bool configure(); // {return true;};
+	virtual bool configure();
 
 	/*
 	 *
@@ -43,7 +43,15 @@ public:
 	/*
 	 *
 	 */
-	const std::shared_ptr<gpio::Gpio> getGpio(const int id);
+	const std::shared_ptr<gpio::Gpio> get_gpio(const int id);
+
+	void gpios_add(int idx, const std::shared_ptr<gpio::Gpio> gpio){
+		gpios[idx] = gpio;
+	}
+
+	void items_add(const std::string name, const std::shared_ptr<item::Item> item){
+		items[name] = item;
+	}
 
 private:
 	bool m_realWorld;

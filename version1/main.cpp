@@ -4,34 +4,31 @@
 
 //#include <wiringPi.h>
 #include "version.h"
-#include "PiRobot.h"
-
-using namespace std;
+#include "RealWorld.h"
 
 // LED Pin - wiringPi pin 0 is BCM_GPIO 17.
-
 #define	LED	0
+
+using namespace std;
 
 int main (void)
 {
   cout <<  "Raspberry Pi blink" << endl;
-  pirobot::PiRobot* robot = new pirobot::PiRobot();
+  realworld::RealWorld* robot = new realworld::RealWorld();
 
   robot->configure();
   robot->start();
 
-  sleep(2);
+  for(int i = 0; i < 10; i++){
+	  cout <<  "Wait loop " << i << endl;
+	  sleep(1);
+  }
 
   cout <<  "Stop robot " << endl;
   robot->stop();
 
   cout <<  "Release robot " << endl;
   delete robot;
-
-  for(int i = 0; i < 10; i++){
-	  cout <<  "Wait loop " << i << endl;
-	  sleep(1);
-  }
 
 /*
   wiringPiSetup () ;

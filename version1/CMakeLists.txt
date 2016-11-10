@@ -16,7 +16,9 @@ include_directories(${PROJECT_SOURCE_DIR}/../../wiringPi/wiringPi
 
 message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}" )
 
-add_executable(version1 ${PROJECT_SOURCE_DIR}/main.cpp)
+aux_source_directory(${PROJECT_SOURCE_DIR} VERSION1_SOURCES)
+
+add_executable(version1 ${VERSION1_SOURCES})
 
 target_link_libraries(version1 ${EXTRA_LIBS})
 
