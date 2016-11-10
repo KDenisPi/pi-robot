@@ -12,16 +12,15 @@
 #include <memory>
 #include <wiringPi.h>
 
-#include "gpio.h"
 #include "GpioProvider.h"
+#include "gpio.h"
+#include "item.h"
 
 namespace pirobot {
 
-
-
 class PiRobot {
 public:
-	PiRobot(const bool realWorld = true);
+	PiRobot(const bool realWorld = false);
 	virtual ~PiRobot();
 
 	/*
@@ -29,7 +28,22 @@ public:
 	 *
 	 * TODO: Read configuration from file
 	 */
-	virtual bool configure();
+	virtual bool configure(); // {return true;};
+
+	/*
+	 *
+	 */
+	void start();
+
+	/*
+	 *
+	 */
+	void stop();
+
+	/*
+	 *
+	 */
+	const std::shared_ptr<gpio::Gpio> getGpio(const int id);
 
 private:
 	bool m_realWorld;
@@ -38,7 +52,14 @@ private:
 		std::shared_ptr<gpio::Gpio>,
 		std::less<int>,
 		std::allocator<std::pair<const int, std::shared_ptr<gpio::Gpio>> >
-	> gpio;
+	> gpios;
+
+	std::map <std::string,
+		std::shared_ptr<item::Item>,
+		std::less<std::string>,
+		std::allocator<std::pair<const std::string, std::shared_ptr<item::Item>> >
+	> items;
+
 };
 
 } /* namespace pirobot */

@@ -10,6 +10,7 @@
 
 #include "GpioProvider.h"
 
+namespace pirobot{
 namespace gpio {
 
 class GpioProviderFake : public GpioProvider
@@ -20,9 +21,11 @@ public:
 
 	virtual const int dgtRead(int pin);
 	virtual void dgtWrite(int pin, int value);
+	virtual void setmode(int pin, GPIO_MODE mode);
 	virtual const std::string toString();
 
 };
 
+}
 }
 #endif /* PI_LIBRARY_GPIOPROVIDERFAKE_H_ */

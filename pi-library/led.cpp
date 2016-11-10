@@ -19,7 +19,7 @@ Led::Led(const std::shared_ptr<gpio::Gpio> gpio,
 	m_init_always(init_always)
 {
 	assert(m_gpio != NULL);
-	assert(m_gpio->m_mode ==  gpio::GPIO_MODE::OUT);
+	assert(m_gpio->getMode() ==  gpio::GPIO_MODE::OUT);
 
 	set_name("LED_over_" + m_gpio->toString());
 }
@@ -37,7 +37,7 @@ Led::Led(const std::shared_ptr<gpio::Gpio> gpio,
 			  m_init_always(init_always)
 {
 	assert(m_gpio != NULL);
-	assert(m_gpio->m_mode ==  gpio::GPIO_MODE::OUT);
+	assert(m_gpio->getMode() ==  gpio::GPIO_MODE::OUT);
 
 	if(name.empty())
 		set_name("LED_over_" + m_gpio->toString());
@@ -53,6 +53,7 @@ bool Led::initialize(void)
 	if((m_state != m_init_state) || m_init_always ){
 		set_state(m_init_state);
 	}
+	return true;
 }
 
 /*

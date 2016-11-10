@@ -10,6 +10,7 @@
 
 #include "GpioProviderSimple.h"
 
+namespace pirobot {
 namespace gpio {
 
 GpioProviderSimple::GpioProviderSimple() {
@@ -35,4 +36,9 @@ void GpioProviderSimple::dgtWrite(const int pin, const int value)
 	digitalWrite(pin, value);
 }
 
+void GpioProviderSimple::setmode(int pin, GPIO_MODE mode){
+	pinMode(pin, (mode == GPIO_MODE::IN ? INPUT : OUTPUT));
+}
+
+}
 }

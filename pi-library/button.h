@@ -42,14 +42,17 @@ public:
 	virtual const std::string to_string();
 
 	static void* worker(void* p);
-	void stop() { m_stop = true;}
-	bool is_stopped() { return m_stop;}
+	virtual void stop();
+
+	bool is_stopped() { return (m_pthread == 0);}
+	bool is_stopSignal() {  return m_stopSignal; }
 
 private:
 	std::shared_ptr<gpio::Gpio> m_gpio;
 	BUTTON_STATE m_state; //
 	pthread_t m_pthread;
-	bool m_stop;
+
+	bool m_stopSignal;
 };
 
 } /* namespace item */

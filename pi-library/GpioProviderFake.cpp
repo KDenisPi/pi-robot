@@ -6,8 +6,11 @@
  */
 
 #include <iostream>
-#include "GpioProviderFake.h"
 
+#include "GpioProviderFake.h"
+#include "logger.h"
+
+namespace pirobot{
 namespace gpio {
 
 GpioProviderFake::GpioProviderFake() {
@@ -23,13 +26,18 @@ const std::string GpioProviderFake::toString()
 
 const int GpioProviderFake::dgtRead(int pin)
 {
-	std::cout << toString() << " digitalRead from " << pin << std::endl;
+	logger::log(logger::LLOG::DEBUD, __func__, std::string(" from pin: ") + std::to_string(pin));
 	return 0;
 }
 
 void GpioProviderFake::dgtWrite(const int pin, const int value)
 {
-	std::cout << toString() << " digitalWrite to: " << pin <<  " value:" << value << std::endl;
+	logger::log(logger::LLOG::DEBUD, __func__, std::string(" to pin: ") + std::to_string(pin) + " value: " + std::to_string(value));
 }
 
+void GpioProviderFake::setmode(int pin, GPIO_MODE mode){
+	logger::log(logger::LLOG::DEBUD, __func__, std::string(" for pin: ") + std::to_string(pin) + " mode: " + std::to_string(mode));
+}
+
+}
 }

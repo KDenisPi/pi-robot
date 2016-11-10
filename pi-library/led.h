@@ -27,17 +27,18 @@ public:
 	/*
 s	 * Constructor
 	 */
-	Led(const std::shared_ptr<gpio::Gpio> gpio,
+	Led(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 			const LED_STATE init_state = LED_STATE::OFF,
 			const bool init_always=false);
 
-	Led(const std::shared_ptr<gpio::Gpio> gpio,
+	Led(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 			const std::string name,
 			const std::string comment,
 			const LED_STATE init_state = LED_STATE::OFF,
 			const bool init_always=false);
 
 	virtual ~Led();
+
 	virtual bool initialize();
 	virtual const std::string to_string();
 
@@ -51,7 +52,7 @@ private:
 	 */
 	void set_state(const LED_STATE state);
 
-	std::shared_ptr<gpio::Gpio> m_gpio;
+	std::shared_ptr<pirobot::gpio::Gpio> m_gpio;
 
 	bool m_init_always;
 	LED_STATE m_state; //

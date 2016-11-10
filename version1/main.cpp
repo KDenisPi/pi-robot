@@ -1,6 +1,10 @@
 #include <iostream>
-#include <wiringPi.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+//#include <wiringPi.h>
 #include "version.h"
+#include "PiRobot.h"
 
 using namespace std;
 
@@ -11,7 +15,25 @@ using namespace std;
 int main (void)
 {
   cout <<  "Raspberry Pi blink" << endl;
+  pirobot::PiRobot* robot = new pirobot::PiRobot();
 
+  robot->configure();
+  robot->start();
+
+  sleep(2);
+
+  cout <<  "Stop robot " << endl;
+  robot->stop();
+
+  cout <<  "Release robot " << endl;
+  delete robot;
+
+  for(int i = 0; i < 10; i++){
+	  cout <<  "Wait loop " << i << endl;
+	  sleep(1);
+  }
+
+/*
   wiringPiSetup () ;
   pinMode (LED, OUTPUT) ;
 
@@ -33,6 +55,6 @@ int main (void)
   }
 
   digitalWrite(LED, LOW);
-
-  return(0);
+*/
+  exit(0);
 }

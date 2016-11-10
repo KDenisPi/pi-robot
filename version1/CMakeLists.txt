@@ -6,18 +6,15 @@ project(version1)
 set(VER_MJR 0)
 set(VER_MIN 1)
 
-#C++ 11
-#add_cxx_flags( "-std=c++11" )
+find_library(PI_LIB pi-library PATH ${CMAKE_BINARY_DIR})
 
-#cmake version 3.0 and above
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
-set(EXTRA_LIBS ${EXTRA_LIBS} ${WIPI_LIB})
+set(EXTRA_LIBS ${EXTRA_LIBS} ${WIPI_LIB} pi-library)
 
 include_directories(${PROJECT_SOURCE_DIR}/../../wiringPi/wiringPi
    ${PROJECT_SOURCE_DIR}/../pi-library
 )
+
+message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}" )
 
 add_executable(version1 ${PROJECT_SOURCE_DIR}/main.cpp)
 
