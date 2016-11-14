@@ -15,6 +15,8 @@
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
+#include <math.h>
+#include <algorithm>
 #include <wiringPiI2C.h> 
 #include "Adafruit_PWMServoDriver.h"
 
@@ -68,11 +70,11 @@ void Adafruit_PWMServoDriver::setPWM(uint8_t num, uint16_t on, uint16_t off) {
   WIRE.write(off>>8);
   WIRE.endTransmission();
 */
-  write8(LED0_ON_L+4*num);
-  write8(on);
-  write8(on>>8);
-  write8(off);
-  write8(off>>8);
+  int offset = 4*num;
+  write8(LED0_ON_L + offset, on);
+  write8(LED0_ON_H + offset, on>>8);
+  write8(LED0_OFF_L + offset, off);
+  write8(LED0_OFF_H + offset, off>>8);
 }
 
 // Sets pin without having to deal with on/off tick placement and properly handles
@@ -81,22 +83,23 @@ void Adafruit_PWMServoDriver::setPWM(uint8_t num, uint16_t on, uint16_t off) {
 void Adafruit_PWMServoDriver::setPin(uint8_t num, uint16_t val, bool invert)
 {
   // Clamp value between 0 and 4095 inclusive.
-  val = min(val, 4095);
+  const uint16_t vmax = 4095;
+  val = std::min(val, vmax);
   if (invert) {
     if (val == 0) {
       // Special value for signal fully on.
       setPWM(num, 4096, 0);
     }
-    else if (val == 4095) {
+    else if (val == vmax) {
       // Special value for signal fully off.
       setPWM(num, 0, 4096);
     }
     else {
-      setPWM(num, 0, 4095-val);
+      setPWM(num, 0, vmax-val);
     }
   }
   else {
-    if (val == 4095) {
+    if (val == vmax) {
       // Special value for signal fully on.
       setPWM(num, 4096, 0);
     }
