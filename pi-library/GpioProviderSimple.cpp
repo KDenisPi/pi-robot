@@ -27,7 +27,7 @@ const std::string GpioProviderSimple::toString()
 
 const int GpioProviderSimple::dgtRead(const int pin)
 {
-	logger::log(logger::LLOG::DEBUD, __func__, std::string(" from pin: ") + std::to_string(pin));
+	//logger::log(logger::LLOG::DEBUD, __func__, std::string(" from pin: ") + std::to_string(pin));
 	return digitalRead(pin);
 }
 

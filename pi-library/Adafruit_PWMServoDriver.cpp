@@ -29,6 +29,11 @@ Adafruit_PWMServoDriver::Adafruit_PWMServoDriver(uint8_t addr) {
   m_fd = wiringPiI2CSetup(addr);
 }
 
+Adafruit_PWMServoDriver::~Adafruit_PWMServoDriver() {
+
+}
+
+
 void Adafruit_PWMServoDriver::begin(void) {
  reset();
 }

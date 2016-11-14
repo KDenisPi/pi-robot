@@ -145,6 +145,7 @@ void* Button::worker(void* p){
 		const BUTTON_STATE state = (level == gpio::SGN_LEVEL::SGN_HIGH ? BUTTON_STATE::BTN_PUSHED : BUTTON_STATE::BTN_NOT_PUSHED);
 		if(state != owner->state()){
 			owner->set_state(state);
+   	                logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " ***** State changed!!!! ");
 		}
 
 		delay(10);
