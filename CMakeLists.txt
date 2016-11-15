@@ -21,7 +21,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 add_library(libwiringPi STATIC IMPORTED)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)
-#add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smashine)
+add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smashine)
 add_subdirectory(${PROJECT_SOURCE_DIR}/version1)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} ${WIPI_LIB})

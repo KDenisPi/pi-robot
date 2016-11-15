@@ -21,6 +21,9 @@
 #include <cstdint>
 #include <wiringPi.h>
 
+namespace pirobot {
+namespace gpio {
+
 #define PCA9685_SUBADR1 0x2
 #define PCA9685_SUBADR2 0x3
 #define PCA9685_SUBADR3 0x4
@@ -38,6 +41,11 @@
 #define ALLLED_OFF_L 0xFC
 #define ALLLED_OFF_H 0xFD
 
+struct LED_DATA {
+	uint16_t on;
+	uint16_t off;
+};
+
 class Adafruit_PWMServoDriver {
  public:
   Adafruit_PWMServoDriver(uint8_t addr = 0x40);
@@ -49,6 +57,8 @@ class Adafruit_PWMServoDriver {
   void setPWM(uint8_t num, uint16_t on, uint16_t off);
   void setPin(uint8_t num, uint16_t val, bool invert=false);
 
+  void getPin(uint8_t num, LED_DATA& data);
+
  private:
   uint8_t _i2caddr;
   int m_fd;
@@ -56,5 +66,8 @@ class Adafruit_PWMServoDriver {
   uint8_t read8(uint8_t addr);
   void write8(uint8_t addr, uint8_t d);
 };
+
+} /* namespace gpio */
+} /* namespace pirobot */
 
 #endif

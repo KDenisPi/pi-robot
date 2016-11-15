@@ -30,7 +30,7 @@ int main (int argc, char* argv[])
 
   cout <<  "Parameters Freq:" << freq << " High: " << high << " Low: " << low << " Delay: " << delay  << endl;
 
-  Adafruit_PWMServoDriver* D9685 = new Adafruit_PWMServoDriver();
+  pirobot::gpio::Adafruit_PWMServoDriver* D9685 = new pirobot::gpio::Adafruit_PWMServoDriver();
   D9685->begin();
 
   D9685->setPWMFreq(freq);

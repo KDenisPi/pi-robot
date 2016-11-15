@@ -20,6 +20,9 @@
 #include <wiringPiI2C.h> 
 #include "Adafruit_PWMServoDriver.h"
 
+namespace pirobot {
+namespace gpio {
+
 
 // Set to true to print some debug messages, or false to disable them.
 #define ENABLE_DEBUG_OUTPUT false
@@ -44,8 +47,6 @@ void Adafruit_PWMServoDriver::reset(void) {
 }
 
 void Adafruit_PWMServoDriver::setPWMFreq(float freq) {
-  //Serial.print("Attempting to set freq ");
-  //Serial.println(freq);
   freq *= 0.9;  // Correct for overshoot in the frequency setting (see issue #11).
   float prescaleval = 25000000;
   prescaleval /= 4096;
@@ -61,11 +62,9 @@ void Adafruit_PWMServoDriver::setPWMFreq(float freq) {
   delay(5);
   write8(PCA9685_MODE1, oldmode | 0xa1);  //  This sets the MODE1 register to turn on auto increment.
                                           // This is why the beginTransmission below was not working.
-  //  Serial.print("Mode now 0x"); Serial.println(read8(PCA9685_MODE1), HEX);
 }
 
 void Adafruit_PWMServoDriver::setPWM(uint8_t num, uint16_t on, uint16_t off) {
-  //Serial.print("Setting PWM "); Serial.print(num); Serial.print(": "); Serial.print(on); Serial.print("->"); Serial.println(off);
 /*
   WIRE.beginTransmission(_i2caddr);
   WIRE.write(LED0_ON_L+4*num);
@@ -118,21 +117,31 @@ void Adafruit_PWMServoDriver::setPin(uint8_t num, uint16_t val, bool invert)
   }
 }
 
-uint8_t Adafruit_PWMServoDriver::read8(uint8_t addr) {
-  //WIRE.beginTransmission(_i2caddr);
-  //WIRE.write(addr);
-  //WIRE.endTransmission();
+/*
+ *
+ */
+void Adafruit_PWMServoDriver::getPin(uint8_t num, LED_DATA& data){
+	  int offset = 4*num;
+	  uint16_t low,  high;
 
-  //WIRE.requestFrom((uint8_t)_i2caddr, (uint8_t)1);
-  //return WIRE.read();
-  
+	  low = read8(LED0_ON_L + offset);
+	  high = read8(LED0_ON_H + offset);
+	  data.on = (high<<8) | low;
+
+	  low = read8(LED0_OFF_L + offset);
+	  high = read8(LED0_OFF_H + offset);
+	  data.off = (high<<8) | low;
+}
+
+
+uint8_t Adafruit_PWMServoDriver::read8(uint8_t addr) {
   return wiringPiI2CReadReg8(m_fd, addr);
 }
 
 void Adafruit_PWMServoDriver::write8(uint8_t addr, uint8_t d) {
-  //WIRE.beginTransmission(_i2caddr);
-  //WIRE.write(addr);
-  //WIRE.write(d);
-  //WIRE.endTransmission();
   wiringPiI2CWriteReg8(m_fd, addr, d);
 }
+
+} /* namespace gpio */
+} /* namespace pirobot */
+

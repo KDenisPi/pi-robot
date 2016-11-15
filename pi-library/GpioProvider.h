@@ -34,14 +34,23 @@ enum SGN_LEVEL {
 
 class GpioProvider {
 public:
-	GpioProvider() {}
+	GpioProvider(const int pstart=0) :
+		m_pstart(pstart)
+	{}
+
 	virtual ~GpioProvider() {}
+
+	const int getStartPin() { return m_pstart; }
+	const int getRealPin(const int pin) { return pin - m_pstart; }
 
 	virtual const std::string toString() = 0;
 	virtual const int dgtRead(const int pin) = 0;
 	virtual void dgtWrite(const int pin, const int value) = 0;
 	virtual void setmode(const int pin, const gpio::GPIO_MODE mode) = 0;
 	virtual void pullUpDownControl(const int pin, const gpio::PULL_MODE pumode) = 0;
+
+private:
+	int m_pstart; //number of the first GPIO pin assigned for this provider. Real pin number (pin - pstart)
 
 };
 

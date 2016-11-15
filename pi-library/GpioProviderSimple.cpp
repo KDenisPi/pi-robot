@@ -28,23 +28,23 @@ const std::string GpioProviderSimple::toString()
 const int GpioProviderSimple::dgtRead(const int pin)
 {
 	//logger::log(logger::LLOG::DEBUD, __func__, std::string(" from pin: ") + std::to_string(pin));
-	return digitalRead(pin);
+	return digitalRead(getRealPin(pin));
 }
 
 void GpioProviderSimple::dgtWrite(const int pin, const int value)
 {
 	logger::log(logger::LLOG::DEBUD, __func__, std::string(" to pin: ") + std::to_string(pin) + " value: " + std::to_string(value));
-	digitalWrite(pin, value);
+	digitalWrite(getRealPin(pin), value);
 }
 
 void GpioProviderSimple::setmode(const int pin, const GPIO_MODE mode){
 	logger::log(logger::LLOG::DEBUD, __func__, std::string(" for pin: ") + std::to_string(pin) + " mode: " + std::to_string(mode));
-	pinMode(pin, (mode == GPIO_MODE::IN ? INPUT : OUTPUT));
+	pinMode(getRealPin(pin), (mode == GPIO_MODE::IN ? INPUT : OUTPUT));
 }
 
 void GpioProviderSimple::pullUpDownControl(const int pin, const PULL_MODE pumode){
 	logger::log(logger::LLOG::DEBUD, __func__, std::string(" for pin: ") + std::to_string(pin) + " UP mode: " + std::to_string(pumode));
-	pullUpDnControl(pin, pumode);
+	pullUpDnControl(getRealPin(pin), pumode);
 }
 
 
