@@ -8,6 +8,8 @@
 #ifndef PI_LIBRARY_LOGGER_H_
 #define PI_LIBRARY_LOGGER_H_
 
+#include <string>
+
 namespace logger {
 
 enum LLOG {

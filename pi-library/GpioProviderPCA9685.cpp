@@ -13,19 +13,22 @@
 namespace pirobot {
 namespace gpio {
 
+const char TAG[] = "PCA9685";
+
 GpioProviderPCA9685::GpioProviderPCA9685(std::shared_ptr<Adafruit_PWMServoDriver> pwm) :
 		GpioProvider(30), m_pwm(pwm)
 {
 	assert(pwm != nullptr);
-
+	m_pwm->begin();
+        m_pwm->setPWMFreq(60.0);
 }
 
 GpioProviderPCA9685::~GpioProviderPCA9685() {
 	// TODO Auto-generated destructor stub
 }
 
-const std::string GpioProviderPCA9685::toString(){
-	return std::string("PCA9685");
+const std::string GpioProviderPCA9685::to_string(){
+	return std::string("PCA9685")+ " From: " + std::to_string(getStartPin());
 }
 
 /*
@@ -33,8 +36,11 @@ const std::string GpioProviderPCA9685::toString(){
  */
 const int GpioProviderPCA9685::dgtRead(const int pin){
 	struct LED_DATA data;
-
 	m_pwm->getPin(getRealPin(pin), data);
+
+        logger::log(logger::LLOG::DEBUD, TAG,
+            std::string(__func__) + " Pin:" + std::to_string(pin) + " Value:" + std::to_string(data.off));
+
 	return data.off;
 }
 
@@ -42,7 +48,11 @@ const int GpioProviderPCA9685::dgtRead(const int pin){
  *
  */
 void GpioProviderPCA9685::dgtWrite(const int pin, const int value){
-	struct LED_DATA data;
+	struct LED_DATA data = {0, 0};
+
+        logger::log(logger::LLOG::DEBUD, TAG, 
+            std::string(__func__) + " Pin:" + std::to_string(pin) + "[" + std::to_string(getRealPin(pin)) +
+		 "] Value:" + std::to_string(value));
 
 	data.off = (value==1 ? 4095 : value);
 	m_pwm->setPWM(getRealPin(pin), data.on, data.off);

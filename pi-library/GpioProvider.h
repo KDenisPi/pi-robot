@@ -43,7 +43,7 @@ public:
 	const int getStartPin() { return m_pstart; }
 	const int getRealPin(const int pin) { return pin - m_pstart; }
 
-	virtual const std::string toString() = 0;
+	virtual const std::string to_string() = 0;
 	virtual const int dgtRead(const int pin) = 0;
 	virtual void dgtWrite(const int pin, const int value) = 0;
 	virtual void setmode(const int pin, const gpio::GPIO_MODE mode) = 0;

@@ -33,7 +33,7 @@ class Gpio
    void digitalWrite(int value);
    void pullUpDnControl(PULL_MODE pumode);
 
-   const std::string toString();
+   const std::string to_string();
 
   private:
    int m_pin;

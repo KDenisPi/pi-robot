@@ -31,8 +31,8 @@ public:
 	const std::string name() { return m_name; }
 	const std::string comment() { return m_comment;}
 
-	virtual const std::string to_string() = 0;
-
+	virtual const std::string to_string() = 0; 
+	virtual const std::string printConfig() = 0; 
 private:
 	std::string m_name;
 	std::string m_comment;

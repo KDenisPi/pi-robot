@@ -6,6 +6,7 @@
  */
 
 #include <unistd.h>
+#include <iostream>
 
 #include "PiRobot.h"
 #include "logger.h"
@@ -63,6 +64,7 @@ void PiRobot::start(){
 			logger::log(logger::LLOG::ERROR, __func__, "Initialization failed " + it->first);
 			/*TODO: Throw Exception and exit? */
 		}
+                (std::dynamic_pointer_cast<item::Led>(it->second))->On();
 	}
 
 	logger::log(logger::LLOG::NECECCARY, __func__, "Robot is started ");
@@ -75,7 +77,6 @@ void PiRobot::stop(){
 	logger::log(logger::LLOG::NECECCARY, __func__, "Robot is stopping..");
 
 	std::map<const std::string, std::shared_ptr<item::Item>>::iterator it;
-
 	for(it = this->items.begin(); it != this->items.end(); ++it){
 		logger::log(logger::LLOG::NECECCARY, __func__, "Stopping " + it->first);
 		it->second->stop();
@@ -100,6 +101,14 @@ bool PiRobot::configure(){
 
 	logger::log(logger::LLOG::NECECCARY, __func__, "Robot configuration is finished");
 	return true;
+}
+
+void PiRobot::printConfig(){
+        std::map<const std::string, std::shared_ptr<item::Item>>::iterator it;
+	std::cout << "-------------- configuration ---------------------------" << std::endl;
+        for(it = this->items.begin(); it != this->items.end(); ++it){
+                std::cout << it->first << " " << it->second->printConfig() << std::endl;
+        }
 }
 
 } /* namespace pirobot */

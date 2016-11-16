@@ -42,6 +42,7 @@ public:
 	virtual ~Button();
 	virtual bool initialize();
 	virtual const std::string to_string();
+	virtual const std::string printConfig();
 
 	static void* worker(void* p);
 	virtual void stop();

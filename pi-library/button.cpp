@@ -32,7 +32,7 @@ Button::Button(const std::shared_ptr<gpio::Gpio> gpio,
 	assert(m_gpio != NULL);
 	assert(m_gpio->getMode() ==  gpio::GPIO_MODE::IN);
 
-	set_name("BTN_over_" + m_gpio->toString());
+	set_name("BTN_over_" + m_gpio->to_string());
 }
 
 /*
@@ -54,7 +54,7 @@ Button::Button(const std::shared_ptr<gpio::Gpio> gpio,
 	assert(m_gpio->getMode() ==  gpio::GPIO_MODE::IN);
 
 	if(name.empty())
-		set_name("BTN_over_" + m_gpio->toString());
+		set_name("BTN_over_" + m_gpio->to_string());
 }
 
 /*
@@ -122,6 +122,13 @@ bool Button::initialize(void)
  */
 const std::string Button::to_string(){
 	return name() + (m_state == BUTTON_STATE::BTN_PUSHED ? " state: PUSHED" : " state: NOT PUSHED");
+}
+
+/*
+*
+*/
+const std::string Button::printConfig(){
+        return name() + " GPIO: " + m_gpio->to_string();
 }
 
 /*

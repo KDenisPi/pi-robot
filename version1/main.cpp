@@ -16,10 +16,11 @@ int main (int argc, char* argv[])
 {
   cout <<  "Raspberry Pi blink Parameters:" << argc << endl;
 
+/*
   float freq = 60.0;
   uint16_t high = 4095;
   uint16_t low = 4095;
-  int delay  = 2;  
+  int delay  = 4;  
 
   if(argc == 5){
      freq = stof(argv[1]);
@@ -32,11 +33,11 @@ int main (int argc, char* argv[])
 
   pirobot::gpio::Adafruit_PWMServoDriver* D9685 = new pirobot::gpio::Adafruit_PWMServoDriver();
   D9685->begin();
-
   D9685->setPWMFreq(freq);
 
   cout <<  "Set 1 Low" << endl;
-  D9685->setPWM(3, 0, low);
+  D9685->setPWM(2, 0, low);
+  D9685->setPWM(1, 0, low);
   D9685->setPWM(0, 0, low);
   sleep(delay);
 
@@ -47,29 +48,29 @@ int main (int argc, char* argv[])
 
   cout <<  "Set 3 Off" << endl;
   D9685->setPWM(0, 0, 0);
-  D9685->setPWM(3, 0, 0);
+  D9685->setPWM(1, 0, 0);
+  D9685->setPWM(2, 0, 0);
 
   //sleep(5);
 
-  //D9685->reset(); 
+  D9685->reset(); 
+*/
 
-/*
   realworld::RealWorld* robot = new realworld::RealWorld();
 
   robot->configure();
+  robot->printConfig();
   robot->start();
 
-  for(int i = 0; i < 10; i++){
-	  cout <<  "Wait loop " << i << endl;
-	  sleep(1);
-  }
+  sleep(4);
+  cout <<  "Wait ...." << endl;
 
   cout <<  "Stop robot " << endl;
   robot->stop();
 
   cout <<  "Release robot " << endl;
   delete robot;
-*/
+
 
 /*
   wiringPiSetup () ;

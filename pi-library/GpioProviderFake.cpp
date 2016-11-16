@@ -19,7 +19,7 @@ GpioProviderFake::GpioProviderFake() {
 GpioProviderFake::~GpioProviderFake() {
 }
 
-const std::string GpioProviderFake::toString()
+const std::string GpioProviderFake::to_string()
 {
 	return std::string("GpioFakeProvider");
 }

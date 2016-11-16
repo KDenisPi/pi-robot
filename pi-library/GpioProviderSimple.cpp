@@ -20,9 +20,9 @@ GpioProviderSimple::GpioProviderSimple() {
 GpioProviderSimple::~GpioProviderSimple() {
 }
 
-const std::string GpioProviderSimple::toString()
+const std::string GpioProviderSimple::to_string()
 {
-	return std::string("GpioSimpleProvider");
+	return std::string("GpioSimpleProvider") + " From: " + std::to_string(getStartPin());
 }
 
 const int GpioProviderSimple::dgtRead(const int pin)

@@ -40,7 +40,9 @@ s	 * Constructor
 	virtual ~Led();
 
 	virtual bool initialize();
+	virtual void stop() {set_state(m_init_state);};
 	virtual const std::string to_string();
+	virtual const std::string printConfig();
 
 	void On() {set_state(LED_STATE::ON);}
 	void Off(){set_state(LED_STATE::OFF);}

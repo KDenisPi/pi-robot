@@ -53,6 +53,7 @@ public:
 		items[name] = item;
 	}
 
+        void printConfig();
 private:
 	bool m_realWorld;
 

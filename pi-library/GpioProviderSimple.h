@@ -24,7 +24,7 @@ public:
 	virtual void setmode(const int pin, const GPIO_MODE mode);
 	virtual void pullUpDownControl(const int pin, const PULL_MODE pumode);
 
-	virtual const std::string toString();
+	virtual const std::string to_string();
 };
 
 }

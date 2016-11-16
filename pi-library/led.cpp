@@ -5,10 +5,13 @@
  *      Author: denis
  */
 
+#include "logger.h"
 #include "led.h"
 
 namespace pirobot {
 namespace item {
+
+const char TAG[] = "led";
 
 Led::Led(const std::shared_ptr<gpio::Gpio> gpio,
 		const LED_STATE init_state,
@@ -21,7 +24,7 @@ Led::Led(const std::shared_ptr<gpio::Gpio> gpio,
 	assert(m_gpio != NULL);
 	assert(m_gpio->getMode() ==  gpio::GPIO_MODE::OUT);
 
-	set_name("LED_over_" + m_gpio->toString());
+	set_name("LED_over_" + m_gpio->to_string());
 }
 
 
@@ -40,7 +43,7 @@ Led::Led(const std::shared_ptr<gpio::Gpio> gpio,
 	assert(m_gpio->getMode() ==  gpio::GPIO_MODE::OUT);
 
 	if(name.empty())
-		set_name("LED_over_" + m_gpio->toString());
+		set_name("LED_over_" + m_gpio->to_string());
 }
 
 
@@ -63,12 +66,20 @@ const std::string Led::to_string(){
 	return name() + (m_state == LED_STATE::OFF ? " OFF" : " ON");
 }
 
-void Led::set_state(const LED_STATE state){
+/*
+ *
+ */
+const std::string Led::printConfig(){
+	return name() + " GPIO: " + m_gpio->to_string();
+}
 
-	if(m_state != state){
-		m_gpio->digitalWrite(state);
-		m_state = state;
-	}
+void Led::set_state(const LED_STATE state){
+  logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " State from: " + std::to_string(m_state) +
+	" to:" + std::to_string(state));
+  if(m_state != state){
+    m_gpio->digitalWrite(state);
+    m_state = state;
+  }
 }
 
 
