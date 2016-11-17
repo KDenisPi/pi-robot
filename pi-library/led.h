@@ -12,7 +12,6 @@
 #include <cassert>
 
 #include "item.h"
-#include "gpio.h"
 
 namespace pirobot {
 namespace item {
@@ -53,8 +52,6 @@ private:
 	 * Change LED state ON/OFF
 	 */
 	void set_state(const LED_STATE state);
-
-	std::shared_ptr<pirobot::gpio::Gpio> m_gpio;
 
 	bool m_init_always;
 	LED_STATE m_state; //

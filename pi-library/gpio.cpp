@@ -64,6 +64,10 @@ void Gpio::digitalWrite(int value){
 	m_prov->dgtWrite(m_pin, value);
 }
 
+void Gpio::setPulse(const uint16_t pulselen){
+	m_prov->setPulse(m_pin, pulselen);
+}
+
 
 } /*namespace gpio*/
 }

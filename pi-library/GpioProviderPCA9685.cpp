@@ -15,12 +15,12 @@ namespace gpio {
 
 const char TAG[] = "PCA9685";
 
-GpioProviderPCA9685::GpioProviderPCA9685(std::shared_ptr<Adafruit_PWMServoDriver> pwm) :
-		GpioProvider(30), m_pwm(pwm)
+GpioProviderPCA9685::GpioProviderPCA9685(std::shared_ptr<Adafruit_PWMServoDriver> pwm, const float freq) :
+		GpioProvider(30), m_pwm(pwm), m_freq(freq)
 {
 	assert(pwm != nullptr);
 	m_pwm->begin();
-        m_pwm->setPWMFreq(60.0);
+	m_pwm->setPWMFreq(m_freq);
 }
 
 GpioProviderPCA9685::~GpioProviderPCA9685() {
@@ -67,6 +67,20 @@ void GpioProviderPCA9685::pullUpDownControl(const int pin, const gpio::PULL_MODE
 	/*
 	 * TODO: It seems It is not implemented there
 	 */
+}
+
+/*
+ *
+ */
+void GpioProviderPCA9685::setPulse(const int pin, const uint16_t pulselen){
+	struct LED_DATA data = {0, 0};
+	double pulse = 1000000 / (m_freq*4096);
+	data.off =  static_cast<uint16_t>(pulselen/pulse);
+
+	logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + std::string(" to pin: ") + std::to_string(pin) +
+			" pulselen(ms): " + std::to_string(pulselen) + " pulse: " + std::to_string(data.off));
+
+	m_pwm->setPWM(getRealPin(pin), data.on, data.off);
 }
 
 

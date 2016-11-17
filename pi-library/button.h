@@ -14,7 +14,6 @@
 #include <pthread.h>
 
 #include "item.h"
-#include "gpio.h"
 
 namespace pirobot {
 namespace item {
@@ -29,11 +28,11 @@ public:
 	/*
 	 * Constructor
 	 */
-	Button(const std::shared_ptr<gpio::Gpio> gpio,
+	Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 			const BUTTON_STATE state = BUTTON_STATE::BTN_NOT_PUSHED,
 			const gpio::PULL_MODE pullmode = gpio::PULL_MODE::PULL_UP);
 
-	Button(const std::shared_ptr<gpio::Gpio> gpio,
+	Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 			const std::string name,
 			const std::string comment,
             const BUTTON_STATE state = BUTTON_STATE::BTN_NOT_PUSHED,
@@ -54,7 +53,7 @@ public:
 	const BUTTON_STATE state() { return m_state; }
 
 private:
-	std::shared_ptr<gpio::Gpio> m_gpio;
+	//std::shared_ptr<gpio::Gpio> m_gpio;
 
 	gpio::PULL_MODE m_pullmode;
 	BUTTON_STATE m_state; //

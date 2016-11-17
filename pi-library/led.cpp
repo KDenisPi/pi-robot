@@ -16,15 +16,15 @@ const char TAG[] = "led";
 Led::Led(const std::shared_ptr<gpio::Gpio> gpio,
 		const LED_STATE init_state,
 		const bool init_always) :
-	m_gpio(gpio),
+	Item(gpio),
 	m_state(LED_STATE::OFF),
 	m_init_state(init_state),
 	m_init_always(init_always)
 {
-	assert(m_gpio != NULL);
-	assert(m_gpio->getMode() ==  gpio::GPIO_MODE::OUT);
+	assert(get_gpio() != NULL);
+	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);
 
-	set_name("LED_over_" + m_gpio->to_string());
+	set_name("LED_over_" + get_gpio()->to_string());
 }
 
 
@@ -33,17 +33,16 @@ Led::Led(const std::shared_ptr<gpio::Gpio> gpio,
 		const std::string comment,
 		const LED_STATE init_state,
 		const bool init_always)
-			: Item(name, comment),
-			  m_gpio(gpio),
+			: Item(gpio, name, comment),
 			  m_init_state(init_state),
 			  m_state(LED_STATE::OFF),
 			  m_init_always(init_always)
 {
-	assert(m_gpio != NULL);
-	assert(m_gpio->getMode() ==  gpio::GPIO_MODE::OUT);
+	assert(get_gpio() != NULL);
+	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);
 
 	if(name.empty())
-		set_name("LED_over_" + m_gpio->to_string());
+		set_name("LED_over_" + get_gpio()->to_string());
 }
 
 
@@ -70,15 +69,16 @@ const std::string Led::to_string(){
  *
  */
 const std::string Led::printConfig(){
-	return name() + " GPIO: " + m_gpio->to_string();
+	return name() + " GPIO: " + get_gpio()->to_string();
 }
 
 void Led::set_state(const LED_STATE state){
   logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " State from: " + std::to_string(m_state) +
 	" to:" + std::to_string(state));
+
   if(m_state != state){
-    m_gpio->digitalWrite(state);
-    m_state = state;
+	  get_gpio()->digitalWrite(state);
+	  m_state = state;
   }
 }
 

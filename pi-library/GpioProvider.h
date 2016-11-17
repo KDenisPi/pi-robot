@@ -48,6 +48,7 @@ public:
 	virtual void dgtWrite(const int pin, const int value) = 0;
 	virtual void setmode(const int pin, const gpio::GPIO_MODE mode) = 0;
 	virtual void pullUpDownControl(const int pin, const gpio::PULL_MODE pumode) = 0;
+	virtual void setPulse(const int pin, const uint16_t pulselen) = 0;
 
 private:
 	int m_pstart; //number of the first GPIO pin assigned for this provider. Real pin number (pin - pstart)

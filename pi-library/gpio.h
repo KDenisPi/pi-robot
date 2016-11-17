@@ -32,6 +32,7 @@ class Gpio
    const int digitalRead();
    void digitalWrite(int value);
    void pullUpDnControl(PULL_MODE pumode);
+   void setPulse(const uint16_t pulselen);
 
    const std::string to_string();
 

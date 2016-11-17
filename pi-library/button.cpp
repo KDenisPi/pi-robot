@@ -20,41 +20,40 @@ const char TAG[] = "button";
 /*
  *
  */
-Button::Button(const std::shared_ptr<gpio::Gpio> gpio,
+Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
                const BUTTON_STATE state,
 			   const gpio::PULL_MODE pullmode) :
+	Item(gpio),
 	m_pullmode(pullmode),
-	m_gpio(gpio),
     m_state(state),
 	m_pthread(0),
 	m_stopSignal(false)
 {
-	assert(m_gpio != NULL);
-	assert(m_gpio->getMode() ==  gpio::GPIO_MODE::IN);
+	assert(get_gpio() != NULL);
+	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::IN);
 
-	set_name("BTN_over_" + m_gpio->to_string());
+	set_name("BTN_over_" + get_gpio()->to_string());
 }
 
 /*
  *
  */
-Button::Button(const std::shared_ptr<gpio::Gpio> gpio,
+Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 		const std::string name,
 		const std::string comment,
         const BUTTON_STATE state,
 	    const gpio::PULL_MODE pullmode) :
+           	Item(gpio, name, comment),
 			m_pullmode(pullmode),
-        	Item(name, comment),
-			m_gpio(gpio),
 			m_state(state),
 			m_pthread(0),
 			m_stopSignal(false)
 {
-	assert(m_gpio != NULL);
-	assert(m_gpio->getMode() ==  gpio::GPIO_MODE::IN);
+	assert(get_gpio() != NULL);
+	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::IN);
 
 	if(name.empty())
-		set_name("BTN_over_" + m_gpio->to_string());
+		set_name("BTN_over_" + get_gpio()->to_string());
 }
 
 /*
@@ -95,8 +94,8 @@ bool Button::initialize(void)
 	/*
 	 * Set PULL MODE
 	 */
-	m_gpio->pullUpDnControl(m_pullmode);
-	int level = m_gpio->digitalRead();
+	get_gpio()->pullUpDnControl(m_pullmode);
+	int level = get_gpio()->digitalRead();
 	set_state((level == gpio::SGN_LEVEL::SGN_HIGH ? BUTTON_STATE::BTN_PUSHED : BUTTON_STATE::BTN_NOT_PUSHED));
 
 	if(is_stopped()){
@@ -128,7 +127,7 @@ const std::string Button::to_string(){
 *
 */
 const std::string Button::printConfig(){
-        return name() + " GPIO: " + m_gpio->to_string();
+        return name() + " GPIO: " + get_gpio()->to_string();
 }
 
 /*
@@ -148,7 +147,7 @@ void* Button::worker(void* p){
 
 	Button* owner = static_cast<Button*>(p);
 	while(!owner->is_stopSignal()){
-		int level = owner->m_gpio->digitalRead();
+		int level = owner->get_gpio()->digitalRead();
 		const BUTTON_STATE state = (level == gpio::SGN_LEVEL::SGN_HIGH ? BUTTON_STATE::BTN_PUSHED : BUTTON_STATE::BTN_NOT_PUSHED);
 		if(state != owner->state()){
 			owner->set_state(state);
