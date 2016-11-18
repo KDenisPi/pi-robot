@@ -24,7 +24,7 @@ public:
 	};
 
 	/*
-s	 * Constructor
+	 * Constructor
 	 */
 	Led(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 			const LED_STATE init_state = LED_STATE::OFF,

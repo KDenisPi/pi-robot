@@ -58,8 +58,8 @@ bool RealWorld::configure(){
 	items_add(std::string("LED_2"), std::shared_ptr<pirobot::item::Item>(new pirobot::item::Led(get_gpio(31), "LED_2", "LED 9685 2")));
 	items_add(std::string("LED_3"), std::shared_ptr<pirobot::item::Item>(new pirobot::item::Led(get_gpio(32), "LED_3", "LED 9685 3")));
 
-	items_add(std::string("SMOT_1"), std::shared_ptr<pirobot::item::Item>(new pirobot::item::ServoMotor(get_gpio(34), "SMOT_1", "LED 9685 4")));
-	items_add(std::string("SMOT_2"), std::shared_ptr<pirobot::item::Item>(new pirobot::item::ServoMotor(get_gpio(35), "SMOT_2", "LED 9685 5")));
+	items_add(std::string("SMT_1"), std::shared_ptr<pirobot::item::Item>(new pirobot::item::ServoMotor(get_gpio(34), "SMT_1", "LED 9685 4")));
+	items_add(std::string("SMT_2"), std::shared_ptr<pirobot::item::Item>(new pirobot::item::ServoMotor(get_gpio(35), "SMT_2", "LED 9685 5")));
 
 
 	//logger::log(logger::LLOG::NECECCARY, __func__, "Real Robot configuration is finished");
