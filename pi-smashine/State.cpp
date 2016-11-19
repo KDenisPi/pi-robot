@@ -9,5 +9,13 @@
 
 namespace smashine {
 
+State::State(const std::shared_ptr<pirobot::PiRobot> robot) :
+		m_robot(robot){
+
+}
+
+State::~State(){
+
+}
 
 } /* namespace smashine */

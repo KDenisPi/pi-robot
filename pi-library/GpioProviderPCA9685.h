@@ -20,12 +20,12 @@ public:
 	GpioProviderPCA9685(std::shared_ptr<Adafruit_PWMServoDriver> pwm, const float freq = 60.0);
 	virtual ~GpioProviderPCA9685();
 
-	virtual const std::string to_string();
-	virtual const int dgtRead(const int pin);
-	virtual void dgtWrite(const int pin, const int value);
-	virtual void setmode(const int pin, const gpio::GPIO_MODE mode);
-	virtual void pullUpDownControl(const int pin, const gpio::PULL_MODE pumode);
-	virtual void setPulse(const int pin, const uint16_t pulselen);
+	virtual const std::string to_string() override;
+	virtual const int dgtRead(const int pin) override;
+	virtual void dgtWrite(const int pin, const int value) override;
+	virtual void setmode(const int pin, const gpio::GPIO_MODE mode) override;
+	virtual void pullUpDownControl(const int pin, const gpio::PULL_MODE pumode) override;
+	virtual void setPulse(const int pin, const uint16_t pulselen) override;
 
 private:
 	std::shared_ptr<Adafruit_PWMServoDriver> m_pwm;

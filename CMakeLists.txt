@@ -28,7 +28,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS} ${WIPI_LIB})
 
 include_directories(${CMAKE_SOURCE_DIR}/../wiringPi/wiringPi
    ${PROJECT_SOURCE_DIR}/pi-library
-   #${PROJECT_SOURCE_DIR}/pi-smashine
+   ${PROJECT_SOURCE_DIR}/pi-smashine
 )
 
 

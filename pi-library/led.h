@@ -38,10 +38,10 @@ public:
 
 	virtual ~Led();
 
-	virtual bool initialize();
-	virtual void stop() {set_state(m_init_state);};
-	virtual const std::string to_string();
-	virtual const std::string printConfig();
+	virtual bool initialize() override;
+	virtual void stop() override {set_state(m_init_state);};
+	virtual const std::string to_string() override;
+	virtual const std::string printConfig() override;
 
 	void On() {set_state(LED_STATE::ON);}
 	void Off(){set_state(LED_STATE::OFF);}

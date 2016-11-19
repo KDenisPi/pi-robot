@@ -19,13 +19,13 @@ public:
 	GpioProviderFake();
 	virtual ~GpioProviderFake();
 
-	virtual const int dgtRead(const int pin);
-	virtual void dgtWrite(const int pin, const int value);
-	virtual void setmode(const int pin, const GPIO_MODE mode);
-	virtual void pullUpDownControl(const int pin, const PULL_MODE pumode);
-	virtual void setPulse(const int pin, const uint16_t pulselen);
+	virtual const int dgtRead(const int pin) override;
+	virtual void dgtWrite(const int pin, const int value) override;
+	virtual void setmode(const int pin, const GPIO_MODE mode) override;
+	virtual void pullUpDownControl(const int pin, const PULL_MODE pumode) override;
+	virtual void setPulse(const int pin, const uint16_t pulselen) override;
 
-	virtual const std::string to_string();
+	virtual const std::string to_string() override;
 };
 
 }

@@ -11,18 +11,27 @@
 #include <memory>
 #include "Event.h"
 #include "Timer.h"
+#include "PiRobot.h"
 
 namespace smashine {
 
+/*
+ * Return true from OnEvent and OnTimer if received Event or Timer
+ * was processed inside function
+ */
+
 class State {
 public:
-	State() {}
-	virtual ~State() {}
+	State(const std::shared_ptr<pirobot::PiRobot> robot);
+	virtual ~State();
 
 	virtual void OnEntry() = 0;
-	virtual bool OnEvent(const std::shared_ptr<Event> event) = 0;
-	virtual bool OnExit() = 0;
-	virtual bool OnTimer(const std::shared_ptr<Timer> timer) = 0;
+	virtual bool OnEvent(const std::shared_ptr<Event> event) {return false;};
+	virtual void OnExit() {}
+	virtual bool OnTimer(const std::shared_ptr<Timer> timer) {return false;};
+
+private:
+	std::shared_ptr<pirobot::PiRobot> m_robot;
 };
 
 } /* namespace smashine */

@@ -10,7 +10,6 @@
 
 #include <memory>
 #include <cassert>
-
 #include <pthread.h>
 
 #include "item.h"
@@ -39,12 +38,12 @@ public:
 			const gpio::PULL_MODE pullmode = gpio::PULL_MODE::PULL_UP);
 
 	virtual ~Button();
-	virtual bool initialize();
-	virtual const std::string to_string();
-	virtual const std::string printConfig();
+	virtual bool initialize() override;
+	virtual const std::string to_string() override;
+	virtual const std::string printConfig() override;
 
 	static void* worker(void* p);
-	virtual void stop();
+	virtual void stop() override;
 
 	bool is_stopped() { return (m_pthread == 0);}
 	bool is_stopSignal() {  return m_stopSignal; }
@@ -53,8 +52,6 @@ public:
 	const BUTTON_STATE state() { return m_state; }
 
 private:
-	//std::shared_ptr<gpio::Gpio> m_gpio;
-
 	gpio::PULL_MODE m_pullmode;
 	BUTTON_STATE m_state; //
 

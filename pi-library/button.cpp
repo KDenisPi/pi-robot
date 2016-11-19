@@ -5,6 +5,7 @@
  *      Author: denis
  */
 
+#include <cassert>
 #include <unistd.h>
 #include <wiringPi.h>
 
