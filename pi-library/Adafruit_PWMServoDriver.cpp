@@ -77,15 +77,6 @@ void Adafruit_PWMServoDriver::setPWM(uint8_t num, uint16_t on, uint16_t off) {
         " On: " + std::to_string(on) +
         " Off: " + std::to_string(off));
 
-/*
-  WIRE.beginTransmission(_i2caddr);
-  WIRE.write(LED0_ON_L+4*num);
-  WIRE.write(on);
-  WIRE.write(on>>8);
-  WIRE.write(off);
-  WIRE.write(off>>8);
-  WIRE.endTransmission();
-*/
   int offset = 4*num;
   write8(LED0_ON_L + offset, on);
   write8(LED0_ON_H + offset, on>>8);

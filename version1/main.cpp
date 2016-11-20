@@ -9,6 +9,10 @@
 
 // LED Pin - wiringPi pin 0 is BCM_GPIO 17.
 #define	LED	0
+#define SERVO   7
+
+#define SERVOMIN  150 // this is the 'minimum' pulse length count (out of 4096)
+#define SERVOMAX  600 // this is the 'maximum' pulse length count (out of 4096)
 
 using namespace std;
 
@@ -16,46 +20,63 @@ int main (int argc, char* argv[])
 {
   cout <<  "Raspberry Pi blink Parameters:" << argc << endl;
 
-/*
+
   float freq = 60.0;
   uint16_t high = 4095;
   uint16_t low = 4095;
-  int delay  = 4;  
+  int delay  = 4;
+  uint16_t steps = 10;
+  int rightOnly = 0;
 
+  if(argc == 3){
+     steps = stoi(argv[1]); 
+     rightOnly = stoi(argv[2]); 
+  }
+
+/*
   if(argc == 5){
      freq = stof(argv[1]);
      high = (uint16_t)stoi(argv[2]);
      low  = (uint16_t)stoi(argv[3]);
      delay = stoi(argv[4]); 
   }
-
-  cout <<  "Parameters Freq:" << freq << " High: " << high << " Low: " << low << " Delay: " << delay  << endl;
+*/
+  //cout <<  "Parameters Freq:" << freq << " High: " << high << " Low: " << low << " Delay: " << delay  << endl;
+  cout <<  " Steps: " << steps << endl;
 
   pirobot::gpio::Adafruit_PWMServoDriver* D9685 = new pirobot::gpio::Adafruit_PWMServoDriver();
   D9685->begin();
   D9685->setPWMFreq(freq);
 
-  cout <<  "Set 1 Low" << endl;
-  D9685->setPWM(2, 0, low);
-  D9685->setPWM(1, 0, low);
-  D9685->setPWM(0, 0, low);
-  sleep(delay);
+  	
+  cout <<  "Set turn" << endl;
+  struct pirobot::gpio::LED_DATA ldata;
+  ldata = {0,0};
+  D9685->getPin(SERVO, ldata);
+  cout <<  "Start Get On: " << ldata.on << " Off: " << ldata.off << endl;
+  sleep(5);
 
-  //cout <<  "Set 2 High" << endl;
-  //D9685->setPWM(3, high, 0);
-  //D9685->setPWM(0, high, 0);
-  //sleep(delay);
+  for(uint16_t pulselen = SERVOMIN; pulselen < SERVOMIN + steps; pulselen++){
+       D9685->setPWM(SERVO, 0, SERVOMIN + pulselen);
+       ldata = {0,0};
+       D9685->getPin(SERVO, ldata);
+       cout <<  "Get On: " << ldata.on << " Off: " << ldata.off << endl;
+  }
 
-  cout <<  "Set 3 Off" << endl;
-  D9685->setPWM(0, 0, 0);
-  D9685->setPWM(1, 0, 0);
-  D9685->setPWM(2, 0, 0);
+    //D9685->setPWM(SERVO, 0, 0);
+  sleep(2);
 
-  //sleep(5);
+  D9685->getPin(SERVO, ldata);
+  cout <<  "Start back On: " << ldata.on << " Off: " << ldata.off << endl;
+  if(rightOnly == 0){
+    for(uint16_t pulselen = ldata.off; pulselen > SERVOMIN; pulselen--){
+     D9685->setPWM(SERVO, 0, pulselen);
+    }
+    //D9685->setPWM(SERVO, 0, 0);
+  }
+  //D9685->reset(); 
 
-  D9685->reset(); 
-*/
-
+/*
   realworld::RealWorld* robot = new realworld::RealWorld();
 
   robot->configure();
@@ -71,8 +92,6 @@ int main (int argc, char* argv[])
   cout <<  "Release robot " << endl;
   delete robot;
 
-
-/*
   wiringPiSetup () ;
   pinMode (LED, OUTPUT) ;
 
