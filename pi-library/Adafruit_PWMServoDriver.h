@@ -28,7 +28,9 @@ namespace gpio {
 #define PCA9685_SUBADR2 0x3
 #define PCA9685_SUBADR3 0x4
 
-#define PCA9685_MODE1 0x0
+#define PCA9685_MODE1    0x00          
+#define PCA9685_MODE2    0x01          
+#define PCA9685_ALLCALLADR     0x05   //LED All Call i2c-bus address
 #define PCA9685_PRESCALE 0xFE
 
 #define MODE1_DISABLE_RESTART        0x80 // 0 - enable restart
@@ -39,6 +41,8 @@ namespace gpio {
 #define MODE1_ALLOW_SUB_ADDR2        0x04 // 0 - allow to use sub address 2
 #define MODE1_ALLOW_SUB_ADDR3        0x02 // 0 - allow to use sub address 3
 #define MODE1_ENABLE_ALL_CALL        0x01 // 0 - disable all call
+
+#define PCA9685_MODE1_DEFAULT 0xA1          //0b10100001 - see above
 
 #define LED0_ON_L 0x6
 #define LED0_ON_H 0x7
@@ -62,10 +66,13 @@ class Adafruit_PWMServoDriver {
 
   void begin(void);
   void reset(void);
+  void sleep(void);
+  void wakeup(void);
+
   void setPWMFreq(float freq);
+
   void setPWM(uint8_t num, uint16_t on, uint16_t off);
   void setPin(uint8_t num, uint16_t val, bool invert=false);
-
   void getPin(uint8_t num, LED_DATA& data);
 
  private:

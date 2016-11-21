@@ -46,9 +46,20 @@ void Adafruit_PWMServoDriver::begin(void) {
   reset();
 }
 
-
 void Adafruit_PWMServoDriver::reset(void) {
- write8(PCA9685_MODE1, 0x0);
+ write8(PCA9685_MODE1, PCA9685_MODE1_DEFAULT);
+}
+
+void Adafruit_PWMServoDriver::wakeup(void) {
+  logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " Wake Up");
+  reset();
+}
+
+void Adafruit_PWMServoDriver::sleep(void) {
+  logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " Set sleep mode");
+  uint8_t oldmode = read8(PCA9685_MODE1);
+  uint8_t newmode = (oldmode | MODE1_ENABLE_SLEEP); // sleep
+  write8(PCA9685_MODE1, newmode); // go to sleep
 }
 
 void Adafruit_PWMServoDriver::setPWMFreq(float freq) {
@@ -62,12 +73,12 @@ void Adafruit_PWMServoDriver::setPWMFreq(float freq) {
   uint8_t prescale = floor(prescaleval + 0.5);
   
   uint8_t oldmode = read8(PCA9685_MODE1);
-  uint8_t newmode = (oldmode&0x7F) | 0x10; // sleep
+  uint8_t newmode = (oldmode & 0x7F) | MODE1_ENABLE_SLEEP; // sleep
   write8(PCA9685_MODE1, newmode); // go to sleep
   write8(PCA9685_PRESCALE, prescale); // set the prescaler
   write8(PCA9685_MODE1, oldmode);
   delay(5);
-  write8(PCA9685_MODE1, oldmode | 0xa1);  //  This sets the MODE1 register to turn on auto increment.
+  write8(PCA9685_MODE1, oldmode | PCA9685_MODE1_DEFAULT);  //  This sets the MODE1 register to turn on auto increment.
                                           // This is why the beginTransmission below was not working.
 }
 
