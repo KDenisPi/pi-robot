@@ -31,6 +31,15 @@ namespace gpio {
 #define PCA9685_MODE1 0x0
 #define PCA9685_PRESCALE 0xFE
 
+#define MODE1_DISABLE_RESTART        0x80 // 0 - enable restart
+#define MODE1_EXTERNAL_CLOCK         0x40 // 0 - use internal clock
+#define MODE1_ENABLE_AUTO_INCREMENT  0x20 // 0 - disable auto increment
+#define MODE1_ENABLE_SLEEP           0x10 // 0 - disable sleep
+#define MODE1_ALLOW_SUB_ADDR1        0x08 // 0 - allow to use sub address 1
+#define MODE1_ALLOW_SUB_ADDR2        0x04 // 0 - allow to use sub address 2
+#define MODE1_ALLOW_SUB_ADDR3        0x02 // 0 - allow to use sub address 3
+#define MODE1_ENABLE_ALL_CALL        0x01 // 0 - disable all call
+
 #define LED0_ON_L 0x6
 #define LED0_ON_H 0x7
 #define LED0_OFF_L 0x8
