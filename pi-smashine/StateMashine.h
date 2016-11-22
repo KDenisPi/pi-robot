@@ -14,7 +14,7 @@
 #include <stack>
 #include <pthread.h>
 
-
+#include "PiRobot.h"
 #include "State.h"
 #include "Event.h"
 
@@ -46,9 +46,15 @@ private:
 	static void* worker(void* p);
 	pthread_t m_pthread;
 
+	bool empty() { return m_events.empty(); }
+	const std::queue<std::shared_ptr<Event>> get_events() {return m_events;}
+	const std::stack<std::shared_ptr<state::State>> get_states() {return m_states;}
+
 	std::recursive_mutex mutex_sm;
 	std::queue<std::shared_ptr<Event>> m_events;
-	std::stack<std::shared_ptr<State>> m_states;
+	std::stack<std::shared_ptr<state::State>> m_states;
+
+	std::shared_ptr<pirobot::PiRobot> m_pirobo;
 };
 
 } /* namespace smashine */

@@ -9,11 +9,13 @@
 #define PI_SMASHINE_STATE_H_
 
 #include <memory>
+
 #include "Event.h"
 #include "Timer.h"
 #include "PiRobot.h"
 
 namespace smashine {
+namespace state {
 
 /*
  * Return true from OnEvent and OnTimer if received Event or Timer
@@ -25,7 +27,7 @@ public:
 	State(const std::shared_ptr<pirobot::PiRobot> robot);
 	virtual ~State();
 
-	virtual void OnEntry() = 0;
+	virtual void OnEntry() {}; // = 0;
 	virtual bool OnEvent(const std::shared_ptr<Event> event) {return false;};
 	virtual void OnExit() {}
 	virtual bool OnTimer(const std::shared_ptr<Timer> timer) {return false;};
@@ -34,6 +36,7 @@ private:
 	std::shared_ptr<pirobot::PiRobot> m_robot;
 };
 
+} /* namespace state */
 } /* namespace smashine */
 
 #endif /* PI_SMASHINE_STATE_H_ */

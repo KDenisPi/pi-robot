@@ -5,9 +5,11 @@
  *      Author: denis
  */
 
+#include <unistd.h>
+
 #include "logger.h"
 #include "StateMashine.h"
-
+#include "StateInit.h"
 
 namespace smashine {
 
@@ -26,15 +28,21 @@ StateMashine::StateMashine() :
 bool StateMashine::start(){
 	bool ret = true;
 	pthread_attr_t attr;
-	pthread_attr_init(&attr);
-	int result = pthread_create(&this->m_pthread, &attr, StateMashine::worker, (void*)(this));
-	if(result == 0){
-		logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " Thread created");
-	}
-	else{
-		//TODO: Exception
-		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Thread failed Res:" + std::to_string(result));
-		ret = false;
+
+	if( is_stopped() ){
+		//std::shared_ptr<smashine::State>(new state::StateInit(m_pirobo));
+		this->get_states().emplace(std::shared_ptr<smashine::state::State>(new smashine::state::StateInit(m_pirobo)));
+
+		pthread_attr_init(&attr);
+		int result = pthread_create(&this->m_pthread, &attr, StateMashine::worker, (void*)(this));
+		if(result == 0){
+			logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " Thread created");
+		}
+		else{
+			//TODO: Exception
+			logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Thread failed Res:" + std::to_string(result));
+			ret = false;
+		}
 	}
 
 	return ret;
@@ -54,7 +62,7 @@ void StateMashine::stop(){
 		/*
 		 * Generate Stop Event and push it to the events queues
 		 */
-
+		this->put_event(std::shared_ptr<Event>(new Event(EVT_FINISH)), true);
 
 		res = pthread_join(this->m_pthread, &ret);
 		if(res != 0)
@@ -82,6 +90,9 @@ const std::shared_ptr<Event> StateMashine::get_event(){
 	return event;
 }
 
+/*
+ *
+ */
 void StateMashine::put_event(const std::shared_ptr<Event> event, bool force){
 
 	mutex_sm.lock();
@@ -98,14 +109,47 @@ void StateMashine::put_event(const std::shared_ptr<Event> event, bool force){
  *
  */
 void* StateMashine::worker(void* p){
-	logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " Worker started.");
+	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker started.");
+	bool finish = false;
 
-	//Button* owner = static_cast<Button*>(p);
+	StateMashine* owner = static_cast<StateMashine*>(p);
+	const std::shared_ptr<StateMashine> stm(owner);
 
-	logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " Worker finished.");
+	for(;;){
+
+		while( !stm->empty() && !finish){
+			const std::shared_ptr<Event> event = stm->get_event();
+
+			switch(event->type()){
+			case EVT_FINISH:
+				logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Finish event detected.");
+				finish = true;
+				break;
+			case EVT_CHANGE_STATE:
+			case EVT_POP_STATE:
+			case EVT_TIMER:
+				/*
+				 * Process event
+				 */
+				break;
+			case EVT_NONE:
+				break;
+			//default:
+
+			}
+		}
+
+		if(finish){
+			break;
+		}
+		/*
+		 *
+		 */
+		sleep(1);
+	}
+
+	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker finished.");
 	return (void*) 0L;
 }
-
-
 
 } /* namespace smashine */
