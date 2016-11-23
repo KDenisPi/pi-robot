@@ -41,14 +41,14 @@ private:
 	bool start();
 	void stop();
 
-	bool is_stopped() { return (m_pthread == 0);}
+	bool is_stopped() const { return (m_pthread == 0);}
 
 	static void* worker(void* p);
 	pthread_t m_pthread;
 
-	bool empty() { return m_events.empty(); }
-	const std::queue<std::shared_ptr<Event>> get_events() {return m_events;}
-	const std::stack<std::shared_ptr<state::State>> get_states() {return m_states;}
+	bool empty() const { return m_events.empty(); }
+	std::queue<std::shared_ptr<Event>> get_events() const {return m_events;}
+	std::stack<std::shared_ptr<state::State>> get_states() const {return m_states;}
 
 	std::recursive_mutex mutex_sm;
 	std::queue<std::shared_ptr<Event>> m_events;

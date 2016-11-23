@@ -43,7 +43,7 @@ public:
 	/*
 	 *
 	 */
-	const std::shared_ptr<gpio::Gpio> get_gpio(const int id);
+	std::shared_ptr<gpio::Gpio> get_gpio(const int id) const;
 
 	void gpios_add(int idx, const std::shared_ptr<gpio::Gpio> gpio){
 		gpios[idx] = gpio;

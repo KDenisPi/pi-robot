@@ -30,8 +30,9 @@ bool StateMashine::start(){
 	pthread_attr_t attr;
 
 	if( is_stopped() ){
-		//std::shared_ptr<smashine::State>(new state::StateInit(m_pirobo));
-		this->get_states().emplace(std::shared_ptr<smashine::state::State>(new smashine::state::StateInit(m_pirobo)));
+		//std::shared_ptr<smashine::state::State> state(new state::StateInit(m_pirobo));
+		//get_states().emplace(state);
+		get_states().emplace(std::shared_ptr<smashine::state::State>(new smashine::state::StateInit(m_pirobo)));
 
 		pthread_attr_init(&attr);
 		int result = pthread_create(&this->m_pthread, &attr, StateMashine::worker, (void*)(this));

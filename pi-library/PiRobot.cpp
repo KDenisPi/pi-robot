@@ -40,7 +40,7 @@ PiRobot::~PiRobot() {
 /*
  *
  */
-const std::shared_ptr<gpio::Gpio> PiRobot::get_gpio(const int id){
+std::shared_ptr<gpio::Gpio> PiRobot::get_gpio(const int id) const{
 	auto pgpio = this->gpios.find(id);
 	if(pgpio == gpios.end()){
 		logger::log(logger::LLOG::ERROR, __func__, " Absent requested GPIO with ID " + std::to_string(id));
