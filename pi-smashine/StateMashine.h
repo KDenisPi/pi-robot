@@ -11,7 +11,7 @@
 #include <queue>
 #include <memory>
 #include <mutex>
-#include <stack>
+#include <list>
 #include <pthread.h>
 
 #include "PiRobot.h"
@@ -48,11 +48,13 @@ private:
 
 	bool empty() const { return m_events.empty(); }
 	std::queue<std::shared_ptr<Event>> get_events() const {return m_events;}
-	std::stack<std::shared_ptr<state::State>> get_states() const {return m_states;}
+	std::list<std::shared_ptr<state::State>> get_states() const {return m_states;}
+
+	void state_push(const std::shared_ptr<state::State> state);
 
 	std::recursive_mutex mutex_sm;
 	std::queue<std::shared_ptr<Event>> m_events;
-	std::stack<std::shared_ptr<state::State>> m_states;
+	std::list<std::shared_ptr<state::State>> m_states;
 
 	std::shared_ptr<pirobot::PiRobot> m_pirobo;
 };
