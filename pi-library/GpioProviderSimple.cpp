@@ -16,7 +16,9 @@ namespace gpio {
 
 const char TAG[] = "PrvSmpl";
 
-GpioProviderSimple::GpioProviderSimple() {
+GpioProviderSimple::GpioProviderSimple() :
+		GpioProvider(0, 8)
+{
 }
 
 GpioProviderSimple::~GpioProviderSimple() {

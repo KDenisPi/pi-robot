@@ -18,6 +18,7 @@
 #include <math.h>
 #include <algorithm>
 #include <wiringPiI2C.h> 
+
 #include "Adafruit_PWMServoDriver.h"
 #include "logger.h"
 
@@ -33,7 +34,6 @@ Adafruit_PWMServoDriver::Adafruit_PWMServoDriver(uint8_t addr) {
   logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " Addr: " + std::to_string(addr));
   _i2caddr = addr;
   m_fd = wiringPiI2CSetup(addr);
-
 }
 
 Adafruit_PWMServoDriver::~Adafruit_PWMServoDriver() {
@@ -47,7 +47,7 @@ void Adafruit_PWMServoDriver::begin(void) {
 }
 
 void Adafruit_PWMServoDriver::reset(void) {
- write8(PCA9685_MODE1, PCA9685_MODE1_DEFAULT);
+ write8((uint8_t)PCA9685_MODE1, (uint8_t)PCA9685_MODE1_DEFAULT);
 }
 
 void Adafruit_PWMServoDriver::wakeup(void) {

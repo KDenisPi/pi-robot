@@ -8,6 +8,7 @@
 #ifndef PI_LIBRARY_GPIOPROVIDER_H_
 #define PI_LIBRARY_GPIOPROVIDER_H_
 
+#include <cassert>
 #include <string>
 
 namespace pirobot{
@@ -34,24 +35,45 @@ enum SGN_LEVEL {
 
 class GpioProvider {
 public:
-	GpioProvider(const int pstart=0) :
-		m_pstart(pstart)
+	GpioProvider(const int pin_start=0, const int pin_count = 0) :
+		m_pstart(pin_start), m_pcount(pin_count)
 	{}
 
 	virtual ~GpioProvider() {}
 
-	const int getStartPin() { return m_pstart; }
-	const int getRealPin(const int pin) { return pin - m_pstart; }
+	int getStartPin() const {return m_pstart;}
+
+	/*
+	 *
+	 */
+	int getRealPin(const int pin) const {
+		assert((pin-m_pstart) < m_pcount);
+		return pin - m_pstart;
+	}
+
+	/*
+	 *
+	 */
+	bool validate_pin(int pin) const {
+		assert(pin >= m_pstart);
+		assert(pin < (m_pstart+m_pcount));
+
+		if((pin >= m_pstart) && (pin < (m_pstart+m_pcount)))
+			return true;
+
+		return false;
+	}
 
 	virtual const std::string to_string() = 0;
 	virtual const int dgtRead(const int pin) = 0;
 	virtual void dgtWrite(const int pin, const int value) = 0;
 	virtual void setmode(const int pin, const gpio::GPIO_MODE mode) = 0;
-	virtual void pullUpDownControl(const int pin, const gpio::PULL_MODE pumode) = 0;
-	virtual void setPulse(const int pin, const uint16_t pulselen) = 0;
+	virtual void pullUpDownControl(const int pin, const gpio::PULL_MODE pumode) {};
+	virtual void setPulse(const int pin, const uint16_t pulselen) {};
 
 private:
 	int m_pstart; //number of the first GPIO pin assigned for this provider. Real pin number (pin - pstart)
+	int m_pcount;
 
 };
 
