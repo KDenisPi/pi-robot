@@ -1,0 +1,3 @@
+#define VER_MAJOR @VER_MJR@
+#define VER_MINOR @VER_MIN@
+

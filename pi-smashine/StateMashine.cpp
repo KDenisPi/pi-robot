@@ -15,8 +15,10 @@ namespace smashine {
 
 const char TAG[] = "smash";
 
-StateMashine::StateMashine() :
-		m_pthread(0)
+StateMashine::StateMashine(const std::shared_ptr<StateFactory> factory, const std::shared_ptr<pirobot::PiRobot> pirobot) :
+		m_pthread(0),
+		m_factory(factory),
+		m_pirobo(pirobot)
 {
 	// TODO Auto-generated constructor stub
 
@@ -35,7 +37,7 @@ bool StateMashine::start(){
 	pthread_attr_t attr;
 
 	if( is_stopped() ){
-		state_push(std::shared_ptr<smashine::state::State>(new smashine::state::StateInit(m_pirobo)));
+		state_push(std::shared_ptr<smashine::state::State>(new smashine::state::StateInit(std::shared_ptr<StateMashineItf>(this), m_pirobo)));
 
 		pthread_attr_init(&attr);
 		int result = pthread_create(&this->m_pthread, &attr, StateMashine::worker, (void*)(this));

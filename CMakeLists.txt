@@ -23,6 +23,7 @@ add_library(libwiringPi STATIC IMPORTED)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smashine)
 add_subdirectory(${PROJECT_SOURCE_DIR}/version1)
+add_subdirectory(${PROJECT_SOURCE_DIR}/project1)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} ${WIPI_LIB})
 

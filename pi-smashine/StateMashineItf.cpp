@@ -1,23 +1,20 @@
 /*
- * Event.cpp
+ * StateMashineItf.cpp
  *
- *  Created on: Nov 11, 2016
+ *  Created on: Nov 24, 2016
  *      Author: denis
  */
 
-#include "Event.h"
+#include "StateMashineItf.h"
 
 namespace smashine {
 
-
-Event::Event(const EVENT_TYPE type):
-  m_type(type)
-{
+StateMashineItf::StateMashineItf() {
 	// TODO Auto-generated constructor stub
 
 }
 
-Event::~Event() {
+StateMashineItf::~StateMashineItf() {
 	// TODO Auto-generated destructor stub
 }
 

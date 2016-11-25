@@ -10,8 +10,8 @@
 namespace smashine {
 namespace state {
 
-StateInit::StateInit(const std::shared_ptr<pirobot::PiRobot> robot):
-	State(robot)
+StateInit::StateInit(const std::shared_ptr<StateMashineItf> itf, const std::shared_ptr<pirobot::PiRobot> robot):
+		state::State(itf, robot)
 {
 	// TODO Auto-generated constructor stub
 
@@ -29,7 +29,7 @@ bool StateInit::OnEvent(const std::shared_ptr<Event> event){
 	return false;
 }
 
-bool StateInit::OnTimer(const std::shared_ptr<Timer> timer){
+bool StateInit::OnTimer(const int id){
 	return false;
 }
 

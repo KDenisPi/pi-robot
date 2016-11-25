@@ -14,20 +14,22 @@
 #include <list>
 #include <pthread.h>
 
+#include "StateMashineItf.h"
 #include "PiRobot.h"
+#include "StateFactory.h"
 #include "State.h"
 #include "Event.h"
 
 namespace smashine {
 
-class StateMashine {
+class StateMashine : public StateMashineItf {
 public:
-	StateMashine();
+	StateMashine(const std::shared_ptr<StateFactory> factory, const std::shared_ptr<pirobot::PiRobot> pirobot);
 	virtual ~StateMashine();
 
-        /*
-        * Get next event to the event's quieue
-        */  
+    /*
+    * Get next event to the event's queue
+    */
 	const std::shared_ptr<Event> get_event();
 
 	/*
@@ -36,6 +38,14 @@ public:
 	 * set force to true if need to clear queue and push event
 	 */
 	void put_event(const std::shared_ptr<Event> event, bool force = false);
+
+	/*
+	 *
+	 */
+	virtual void state_change(const std::string new_state) override;
+	virtual void state_pop() override;
+	virtual void timer_start(const int timer_id, const int interval) override;
+	virtual void timer_stop(const int timer_id) override;
 
 private:
 	bool start();
@@ -57,6 +67,7 @@ private:
 	std::list<std::shared_ptr<state::State>> m_states;
 
 	std::shared_ptr<pirobot::PiRobot> m_pirobo;
+	std::shared_ptr<StateFactory> m_factory;
 };
 
 } /* namespace smashine */

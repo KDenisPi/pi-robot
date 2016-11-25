@@ -47,15 +47,16 @@ const int GpioProviderMCP23017::dgtRead(const int pin){
 	  int mask, value, gpio ;
 	  int rpin = getRealPin(pin);
 
-	  if (rpin < 8)          // Bank A
+	  if (rpin < 8){          // Bank A
 	    gpio  = MCP23x17_GPIOA ;
+	    mask  = 1 << rpin ;
+	  }
 	  else
 	  {
 	    gpio  = MCP23x17_GPIOB ;
-	    rpin  &= 0x07 ;
+	    mask = 1 << (rpin & 0x07) ;
 	  }
 
-	  mask  = 1 << pin ;
 	  value = wiringPiI2CReadReg8 (m_fd, gpio) ;
 
 	  if ((value & mask) == 0)
@@ -72,28 +73,32 @@ void GpioProviderMCP23017::dgtWrite(const int pin, const int value){
 	  int bit, current_mode ;
 	  int rpin = getRealPin(pin);	// Pin now 0-15
 
-	  bit = 1 << (rpin & 7) ;
+	  bit = 1 << (rpin & 0x07) ;
 
 	  if(rpin < 8)			// Bank A
 	  {
 		current_mode = m_OLATA;
-	    if(value == SGN_LEVEL::SGN_LOW)
+
+		if(value == SGN_LEVEL::SGN_LOW)
 	    	current_mode &= (~bit) ;
 	    else
 	    	current_mode |=   bit ;
 
-	    wiringPiI2CWriteReg8(m_fd, MCP23x17_GPIOA, current_mode) ;
+	    wiringPiI2CWriteReg8(m_fd, MCP23x17_GPIOA, current_mode);
+
 	    m_OLATA = current_mode ;
 	  }
 	  else				// Bank B
 	  {
 		current_mode = m_OLATB;
-	    if(value == SGN_LEVEL::SGN_LOW)
+
+		if(value == SGN_LEVEL::SGN_LOW)
 	    	current_mode &= (~bit) ;
 	    else
 	    	current_mode |=   bit ;
 
-	    wiringPiI2CWriteReg8 (m_fd, MCP23x17_GPIOB, current_mode) ;
+	    wiringPiI2CWriteReg8(m_fd, MCP23x17_GPIOB, current_mode);
+
 	    m_OLATB = current_mode ;
 	  }
 }
@@ -129,6 +134,9 @@ void GpioProviderMCP23017::setmode(const int pin, const gpio::GPIO_MODE mode){
  *
  */
 void GpioProviderMCP23017::pullUpDownControl(const int pin, const gpio::PULL_MODE pumode){
+	logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + std::string(" for pin: ") +
+			std::to_string(pin) + " UP mode: " + std::to_string(pumode));
+
 	int mask, current_mode, reg_addr ;
 	int rpin = getRealPin(pin);
 

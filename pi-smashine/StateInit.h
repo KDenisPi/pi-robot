@@ -15,12 +15,12 @@ namespace state {
 
 class StateInit: public State {
 public:
-	StateInit(const std::shared_ptr<pirobot::PiRobot> robot);
+	StateInit(const std::shared_ptr<StateMashineItf> itf, const std::shared_ptr<pirobot::PiRobot> robot);
 	virtual ~StateInit();
 
 	virtual void OnEntry() override;
 	virtual bool OnEvent(const std::shared_ptr<Event> event) override;
-	virtual bool OnTimer(const std::shared_ptr<Timer> timer) override;
+	virtual bool OnTimer(const int id) override;
 
 };
 
