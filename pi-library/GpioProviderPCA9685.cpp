@@ -38,7 +38,7 @@ const int GpioProviderPCA9685::dgtRead(const int pin){
 	struct LED_DATA data;
 	m_pwm->getPin(getRealPin(pin), data);
 
-        logger::log(logger::LLOG::DEBUD, TAG,
+        logger::log(logger::LLOG::DEBUG, TAG,
             std::string(__func__) + " Pin:" + std::to_string(pin) + " Value:" + std::to_string(data.off));
 
 	return data.off;
@@ -50,7 +50,7 @@ const int GpioProviderPCA9685::dgtRead(const int pin){
 void GpioProviderPCA9685::dgtWrite(const int pin, const int value){
 	struct LED_DATA data = {0, 0};
 
-        logger::log(logger::LLOG::DEBUD, TAG, 
+        logger::log(logger::LLOG::DEBUG, TAG,
             std::string(__func__) + " Pin:" + std::to_string(pin) + "[" + std::to_string(getRealPin(pin)) +
 		 "] Value:" + std::to_string(value));
 
@@ -77,7 +77,7 @@ void GpioProviderPCA9685::setPulse(const int pin, const uint16_t pulselen){
 	double pulse = 1000000 / (m_freq*4096);
 	data.off =  static_cast<uint16_t>(pulselen/pulse);
 
-	logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + std::string(" to pin: ") + std::to_string(pin) +
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" to pin: ") + std::to_string(pin) +
 			" pulselen(ms): " + std::to_string(pulselen) + " pulse: " + std::to_string(data.off));
 
 	m_pwm->setPWM(getRealPin(pin), data.on, data.off);

@@ -10,6 +10,7 @@
 #include "logger.h"
 #include "StateMashine.h"
 #include "StateInit.h"
+#include "EventChangeState.h"
 
 namespace smashine {
 
@@ -42,7 +43,7 @@ bool StateMashine::start(){
 		pthread_attr_init(&attr);
 		int result = pthread_create(&this->m_pthread, &attr, StateMashine::worker, (void*)(this));
 		if(result == 0){
-			logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " Thread created");
+			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Thread created");
 		}
 		else{
 			//TODO: Exception
@@ -61,7 +62,7 @@ void StateMashine::stop(){
 	void* ret;
 	int res = 0;
 
-	logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + std::string(" Signal sent. Wait.. thread: ") + std::to_string(this->m_pthread));
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" Signal sent. Wait.. thread: ") + std::to_string(this->m_pthread));
 
 	if( !is_stopped() ){
 
@@ -75,7 +76,7 @@ void StateMashine::stop(){
 			logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not join to thread Res:" + std::to_string(res));
 	}
 
-	logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " Finished Res:" + std::to_string((long)ret));
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished Res:" + std::to_string((long)ret));
 }
 
 /*
@@ -108,6 +109,28 @@ void StateMashine::put_event(const std::shared_ptr<Event> event, bool force){
 	}
 	m_events.push(event);
 	mutex_sm.unlock();
+}
+
+/*
+ *
+ */
+void StateMashine::state_change(const std::string new_state){
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Change state to:" + new_state);
+	std::shared_ptr<Event> event(new EventChangeState(new_state));
+	put_event(event);
+}
+
+void StateMashine::state_pop(){
+	std::shared_ptr<Event> event(new Event(EVENT_TYPE::EVT_POP_STATE));
+	put_event(event);
+}
+
+void StateMashine::timer_start(const int timer_id, const int interval){
+
+}
+
+void StateMashine::timer_stop(const int timer_id){
+
 }
 
 

@@ -31,18 +31,18 @@ const char TAG[] = "PWM";
 #define ENABLE_DEBUG_OUTPUT false
 
 Adafruit_PWMServoDriver::Adafruit_PWMServoDriver(uint8_t addr) {
-  logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " Addr: " + std::to_string(addr));
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(addr));
   _i2caddr = addr;
   m_fd = wiringPiI2CSetup(addr);
 }
 
 Adafruit_PWMServoDriver::~Adafruit_PWMServoDriver() {
-  logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
 }
 
 
 void Adafruit_PWMServoDriver::begin(void) {
-  logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__));
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
   reset();
 }
 
@@ -51,19 +51,19 @@ void Adafruit_PWMServoDriver::reset(void) {
 }
 
 void Adafruit_PWMServoDriver::wakeup(void) {
-  logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " Wake Up");
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Wake Up");
   reset();
 }
 
 void Adafruit_PWMServoDriver::sleep(void) {
-  logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " Set sleep mode");
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set sleep mode");
   uint8_t oldmode = read8(PCA9685_MODE1);
   uint8_t newmode = (oldmode | MODE1_ENABLE_SLEEP); // sleep
   write8(PCA9685_MODE1, newmode); // go to sleep
 }
 
 void Adafruit_PWMServoDriver::setPWMFreq(float freq) {
-  logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " Freq: " + std::to_string(freq));
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Freq: " + std::to_string(freq));
 
   freq *= 0.9;  // Correct for overshoot in the frequency setting (see issue #11).
   float prescaleval = 25000000;
@@ -83,7 +83,7 @@ void Adafruit_PWMServoDriver::setPWMFreq(float freq) {
 }
 
 void Adafruit_PWMServoDriver::setPWM(uint8_t num, uint16_t on, uint16_t off) {
-  logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) +
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) +
 	" Pin: " + std::to_string(num) +
         " On: " + std::to_string(on) +
         " Off: " + std::to_string(off));

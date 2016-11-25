@@ -20,7 +20,7 @@ const char TAG[] = "MCP23017";
 GpioProviderMCP23017::GpioProviderMCP23017(const uint8_t i2caddr) :
 		GpioProvider(50, 16), _i2caddr(i2caddr), m_OLATA(0), m_OLATB(0)
 {
-	  logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
+	  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
 
 	  m_fd = wiringPiI2CSetup(_i2caddr);
 	  wiringPiI2CWriteReg8(m_fd, MCP23x17_IOCON, IOCON_INIT);
@@ -134,7 +134,7 @@ void GpioProviderMCP23017::setmode(const int pin, const gpio::GPIO_MODE mode){
  *
  */
 void GpioProviderMCP23017::pullUpDownControl(const int pin, const gpio::PULL_MODE pumode){
-	logger::log(logger::LLOG::DEBUD, TAG, std::string(__func__) + std::string(" for pin: ") +
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" for pin: ") +
 			std::to_string(pin) + " UP mode: " + std::to_string(pumode));
 
 	int mask, current_mode, reg_addr ;

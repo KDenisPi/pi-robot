@@ -16,7 +16,7 @@ enum LLOG {
 	ERROR = 0,
 	NECECCARY = 1,
 	INFO = 2,
-	DEBUD = 3
+	DEBUG = 3
 };
 
 void log(const LLOG level, const std::string pattern, const std::string msg);
