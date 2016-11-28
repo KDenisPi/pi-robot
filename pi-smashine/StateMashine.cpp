@@ -62,14 +62,12 @@ void StateMashine::stop(){
 	void* ret;
 	int res = 0;
 
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" Signal sent. Wait.. thread: ") + std::to_string(this->m_pthread));
-
 	if( !is_stopped() ){
-
 		/*
 		 * Generate Stop Event and push it to the events queues
 		 */
 		this->put_event(std::shared_ptr<Event>(new Event(EVT_FINISH)), true);
+		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" Signal sent. Wait.. thread: ") + std::to_string(this->m_pthread));
 
 		res = pthread_join(this->m_pthread, &ret);
 		if(res != 0)
