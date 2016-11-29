@@ -9,6 +9,9 @@
 #define PI_SMASHINE_TIMERSITF_H_
 
 #include <stdint.h>
+#include <memory>
+
+#include "Timer.h"
 
 namespace smashine {
 
@@ -17,9 +20,9 @@ public:
 	TimersItf() {}
 	virtual ~TimersItf() {}
 
-	virtual bool create_timer(const uint16_t id) = 0;
-	virtual void cancel_timer(const uint16_t id) = 0;
-	virtual void reset_timer(const uint16_t id) = 0;
+	virtual bool create_timer(const std::shared_ptr<Timer> timer) = 0;
+	virtual void cancel_timer(const int id) = 0;
+	virtual void reset_timer(const int id) = 0;
 };
 
 } /* namespace smashine */

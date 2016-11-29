@@ -8,12 +8,27 @@
 #ifndef PI_SMASHINE_TIMER_H_
 #define PI_SMASHINE_TIMER_H_
 
+#include <time.h>
+
 namespace smashine {
 
 class Timer {
 public:
-	Timer();
+	Timer(const int id, const time_t tv_sec, const long tv_nsec = 0, const bool interval = false);
 	virtual ~Timer();
+
+	const int get_id() const { return m_id;}
+	const timer_t get_tid() const { return m_tid;}
+	void set_tid(const timer_t tid) { m_tid = tid;}
+	const struct timespec& get_time() const { return m_itime;}
+
+	bool is_interval() const {return m_interval;}
+
+private:
+	bool m_interval;
+	int m_id;
+	timer_t m_tid;
+	struct timespec m_itime;
 };
 
 } /* namespace smashine */

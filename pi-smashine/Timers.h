@@ -9,7 +9,12 @@
 #define PI_SMASHINE_TIMERS_H_
 
 #include <pthread.h>
+#include <map>
+#include <mutex>
+#include <memory>
+
 #include "TimersItf.h"
+#include "Timer.h"
 
 namespace smashine {
 
@@ -21,18 +26,20 @@ public:
 	/*
 	 *
 	 */
-	virtual bool create_timer(const uint16_t id) override;
-	virtual void cancel_timer(const uint16_t id) override;
-	virtual void reset_timer(const uint16_t id) override;
+	virtual bool create_timer(const std::shared_ptr<Timer> timer) override;
+	virtual void cancel_timer(const int id) override;
+	virtual void reset_timer(const int id) override;
 
-	bool is_stop_signal(){return m_stop;}
+	bool is_stop_signal();
 
-	void set_pid(pid_t pid) { m_pid = pid;}
+	void set_pid(pid_t pid) {m_pid = pid;}
 	const pid_t get_pid() { return m_pid;}
 
 private:
 	bool start();
 	void stop();
+
+	void set_stop_signal(const bool state=true);
 
 	bool is_stopped() const { return (m_pthread == 0);}
 
@@ -40,6 +47,10 @@ private:
 	static void* worker(void* p);
 	pthread_t m_pthread;
 	pid_t m_pid;
+
+	std::recursive_mutex mutex_tm;
+
+	std::map<int, std::shared_ptr<Timer>> m_id_to_tm;
 };
 
 } /* namespace smashine */

@@ -9,7 +9,9 @@
 
 namespace smashine {
 
-Timer::Timer() {
+Timer::	Timer(const int id, const time_t tv_sec, const long tv_nsec, const bool interval) :
+		m_id(id), m_tid(0), m_itime({tv_sec, tv_nsec}), m_interval(interval)
+{
 	// TODO Auto-generated constructor stub
 
 }
