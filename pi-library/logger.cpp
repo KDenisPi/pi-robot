@@ -6,12 +6,15 @@
  */
 
 #include <iostream>
+#include <time.h>
 #include "logger.h"
 
 namespace logger {
 
 void log(const LLOG level, const std::string pattern, const std::string message){
-	std::cout << __TIME__ << " | " << level << " | " << pattern << " | "<< message << std::endl;
+	struct timespec tm;
+	clock_gettime(CLOCK_REALTIME, &tm);
+	std::cout << __TIME__ << "." << (tm.tv_sec%60) << " | " << level << " | " << pattern << " | "<< message << std::endl;
 }
 
 

@@ -35,15 +35,16 @@ public:
 	void set_pid(pid_t pid) {m_pid = pid;}
 	const pid_t get_pid() { return m_pid;}
 
-private:
 	bool start();
 	void stop();
+private:
 
 	void set_stop_signal(const bool state=true);
 
 	bool is_stopped() const { return (m_pthread == 0);}
 
 	bool m_stop;
+
 	static void* worker(void* p);
 	pthread_t m_pthread;
 	pid_t m_pid;

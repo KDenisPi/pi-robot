@@ -4,7 +4,7 @@
  *  Created on: Nov 27, 2016
  *      Author: denis
  */
-#define _POSIX_C_SOURCE 199309
+#define _POSIX_C_SOURCE 200112L //199309
 #include <signal.h>
 #include <time.h>
 #include <sys/types.h>
@@ -21,7 +21,12 @@ const char TAG[] = "timers";
 Timers::Timers() :
 		m_pthread(0), m_stop(false), m_pid(0)
 {
-	// TODO Auto-generated constructor stub
+	sigset_t new_set;
+	sigemptyset (&new_set);
+	sigaddset (&new_set, SIGALRM);
+	if( sigprocmask(SIG_BLOCK, &new_set, NULL) < 0){
+		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not set signal mask.");
+	}
 
 }
 
@@ -102,17 +107,18 @@ void Timers::stop(){
 void* Timers::worker(void* p){
 	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker started.");
 	struct timespec timeout;
-	sigset_t new_set, old_set;
+	sigset_t new_set;
 	siginfo_t sig_info;
 	Timers* owner = static_cast<Timers*>(p);
 
 	/*
 	 * Allow Timer Signal
 	 */
+
 	sigemptyset (&new_set);
 	sigaddset (&new_set, SIGALRM);
-	if( pthread_sigmask(SIG_BLOCK, &new_set, &old_set) < 0){
-		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not create thread.");
+	if( pthread_sigmask(SIG_BLOCK, &new_set, NULL) < 0){
+		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not set thread signal mask.");
 		return (void*) 1L;
 	}
 
@@ -151,8 +157,7 @@ void* Timers::worker(void* p){
 			 */
 			const int id  = sig_info._sifields._timer.si_sigval.sival_int;
 
-			logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Detected signal ID: " + std::to_string(id) +
-					" TID: " + std::to_string(sig_info._sifields._timer.si_tid));
+			logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Detected signal ID: " + std::to_string(id));
 
 		}
 
@@ -170,7 +175,8 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
 	struct sigevent evt;
 	struct itimerspec itime;
 
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " timer ID: " + std::to_string(timer->get_id()));
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " timer ID: " + std::to_string(timer->get_id()) +
+		" Sec: " + std::to_string(timer->get_time().tv_sec) + " NSec: "+ std::to_string(timer->get_time().tv_nsec));
 
 	mutex_tm.lock();
 
@@ -183,12 +189,11 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
 		return true;
 	}
 
-	evt.sigev_notify = SIGEV_THREAD_ID;
-	evt._sigev_un._tid = get_pid();
+	evt.sigev_notify = SIGEV_SIGNAL;
 	evt.sigev_signo = SIGALRM;
 	evt.sigev_value.sival_int =  timer->get_id();	//Using for timer recognizing
-	evt.sigev_notify_function = nullptr;
-	evt.sigev_notify_attributes = nullptr;
+	evt.sigev_notify_function = NULL;
+	evt.sigev_notify_attributes = NULL;
 
 	if( timer_create(CLOCK_REALTIME, &evt, &tid) < 0){
 		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " could not create timer Error: " + std::to_string(errno));
