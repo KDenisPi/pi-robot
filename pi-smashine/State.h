@@ -12,7 +12,6 @@
 
 #include "Event.h"
 #include "Timer.h"
-#include "PiRobot.h"
 #include "StateMashineItf.h"
 
 namespace smashine {
@@ -25,7 +24,7 @@ namespace state {
 
 class State {
 public:
-	State(const std::shared_ptr<StateMashineItf> itf, const std::shared_ptr<pirobot::PiRobot> robot);
+	State(const std::shared_ptr<StateMashineItf> itf);
 	virtual ~State();
 
 	virtual void OnEntry() = 0;
@@ -34,9 +33,8 @@ public:
 	virtual bool OnTimer(const int id) {return false;};
 
 	std::shared_ptr<StateMashineItf> get_itf() const { return m_itf;}
-	std::shared_ptr<pirobot::PiRobot> get_robot() const { return m_robot;}
+	std::shared_ptr<pirobot::PiRobot> get_robot() const { return m_itf->get_robot();}
 private:
-	std::shared_ptr<pirobot::PiRobot> m_robot;
 	std::shared_ptr<StateMashineItf> m_itf;
 };
 

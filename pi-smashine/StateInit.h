@@ -15,7 +15,7 @@ namespace state {
 
 class StateInit: public State {
 public:
-	StateInit(const std::shared_ptr<StateMashineItf> itf, const std::shared_ptr<pirobot::PiRobot> robot);
+	StateInit(const std::shared_ptr<StateMashineItf> itf);
 	virtual ~StateInit();
 
 	virtual void OnEntry() override;

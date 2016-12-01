@@ -19,7 +19,7 @@ public:
 	StateFactory();
 	virtual ~StateFactory();
 
-	virtual const std::shared_ptr<state::State> get_state(const std::string state_name) = 0;
+	virtual const std::shared_ptr<smashine::state::State> get_state(const std::string state_name, const std::shared_ptr<smashine::StateMashineItf> itf) = 0;
 };
 
 } /* namespace smashine */

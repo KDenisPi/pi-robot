@@ -59,7 +59,6 @@ bool Timers::start(){
 	pthread_attr_t attr;
 
 	if( is_stopped() ){
-
 		set_stop_signal(false);
 
 		pthread_attr_init(&attr);

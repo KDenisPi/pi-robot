@@ -19,6 +19,7 @@
 #include "StateFactory.h"
 #include "State.h"
 #include "Event.h"
+#include "Timers.h"
 
 namespace smashine {
 
@@ -44,8 +45,11 @@ public:
 	 */
 	virtual void state_change(const std::string new_state) override;
 	virtual void state_pop() override;
-	virtual void timer_start(const int timer_id, const int interval) override;
-	virtual void timer_stop(const int timer_id) override;
+	virtual void timer_start(const int timer_id, const time_t interval, const bool interval_timer) override;
+	virtual void timer_cancel(const int timer_id) override;
+	virtual const std::shared_ptr<TimersItf> get_timersitf() override { return std::shared_ptr<TimersItf>(dynamic_cast<TimersItf*>(&m_timers));}
+	virtual std::shared_ptr<pirobot::PiRobot> get_robot() override {return m_pirobo;}
+
 
 private:
 	bool start();
@@ -56,7 +60,8 @@ private:
 	static void* worker(void* p);
 	pthread_t m_pthread;
 
-	bool empty() const { return m_events.empty(); }
+	bool empty() const {return m_events.empty();}
+
 	std::queue<std::shared_ptr<Event>> get_events() const {return m_events;}
 	std::list<std::shared_ptr<state::State>> get_states() const {return m_states;}
 
@@ -65,6 +70,11 @@ private:
 	std::recursive_mutex mutex_sm;
 	std::queue<std::shared_ptr<Event>> m_events;
 	std::list<std::shared_ptr<state::State>> m_states;
+
+	/*
+	 *
+	 */
+	smashine::Timers m_timers;
 
 	std::shared_ptr<pirobot::PiRobot> m_pirobo;
 	std::shared_ptr<StateFactory> m_factory;

@@ -15,7 +15,7 @@ namespace state {
 
 class StateEnvAnalize: public smashine::state::State {
 public:
-	StateEnvAnalize(const std::shared_ptr<smashine::StateMashineItf> itf, const std::shared_ptr<pirobot::PiRobot> robot);
+	StateEnvAnalize(const std::shared_ptr<smashine::StateMashineItf> itf);
 	virtual ~StateEnvAnalize();
 
 	virtual void OnEntry() override;

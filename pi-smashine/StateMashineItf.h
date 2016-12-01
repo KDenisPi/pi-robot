@@ -9,6 +9,10 @@
 #define PI_SMASHINE_STATEMASHINEITF_H_
 
 #include <string>
+#include <memory>
+
+#include "TimersItf.h"
+#include "PiRobot.h"
 
 namespace smashine {
 
@@ -19,8 +23,11 @@ public:
 
 	virtual void state_change(const std::string new_state) = 0;
 	virtual void state_pop() = 0;
-	virtual void timer_start(const int timer_id, const int interval) = 0;
-	virtual void timer_stop(const int timer_id) = 0;
+	virtual void timer_start(const int timer_id, const time_t interval, const bool interval_timer = false) = 0;
+	virtual void timer_cancel(const int timer_id) = 0;
+	virtual const std::shared_ptr<TimersItf> get_timersitf() = 0;
+	virtual std::shared_ptr<pirobot::PiRobot> get_robot() = 0;
+
 };
 
 } /* namespace smashine */

@@ -10,8 +10,8 @@
 namespace project1 {
 namespace state {
 
-StateEnvAnalize::StateEnvAnalize(const std::shared_ptr<smashine::StateMashineItf> itf, const std::shared_ptr<pirobot::PiRobot> robot) :
-		smashine::state::State(itf, robot)
+StateEnvAnalize::StateEnvAnalize(const std::shared_ptr<smashine::StateMashineItf> itf) :
+		smashine::state::State(itf)
 {
 	// TODO Auto-generated constructor stub
 

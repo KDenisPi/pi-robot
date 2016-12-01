@@ -10,8 +10,9 @@
 namespace smashine {
 namespace state {
 
-State::State(const std::shared_ptr<StateMashineItf> itf, const std::shared_ptr<pirobot::PiRobot> robot) :
-		m_itf(itf), m_robot(robot){
+State::State(const std::shared_ptr<StateMashineItf> itf) :
+		m_itf(itf)
+{
 
 }
 

@@ -37,8 +37,13 @@ bool StateMashine::start(){
 	bool ret = true;
 	pthread_attr_t attr;
 
+	/*
+	 *
+	 */
+	m_timers.start();
+
 	if( is_stopped() ){
-		state_push(std::shared_ptr<smashine::state::State>(new smashine::state::StateInit(std::shared_ptr<StateMashineItf>(this), m_pirobo)));
+		state_push(std::shared_ptr<smashine::state::State>(new smashine::state::StateInit(std::shared_ptr<StateMashineItf>(this))));
 
 		pthread_attr_init(&attr);
 		int result = pthread_create(&this->m_pthread, &attr, StateMashine::worker, (void*)(this));
@@ -123,12 +128,18 @@ void StateMashine::state_pop(){
 	put_event(event);
 }
 
-void StateMashine::timer_start(const int timer_id, const int interval){
-
+/*
+ *
+ */
+void StateMashine::timer_start(const int timer_id, const time_t interval, const bool interval_timer){
+	this->m_timers.create_timer(std::shared_ptr<Timer>(new Timer(timer_id, interval, 0, interval_timer)));
 }
 
-void StateMashine::timer_stop(const int timer_id){
-
+/*
+ *
+ */
+void StateMashine::timer_cancel(const int timer_id){
+	this->m_timers.cancel_timer(timer_id);
 }
 
 
@@ -145,8 +156,8 @@ void* StateMashine::worker(void* p){
 	for(;;){
 
 		while( !stm->empty() && !finish){
-			const std::shared_ptr<Event> event = stm->get_event();
 
+			auto event = stm->get_event();
 			switch(event->type()){
 			case EVT_FINISH:
 				logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Finish event detected.");
