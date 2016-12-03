@@ -17,8 +17,8 @@
 
 #include <math.h>
 #include <algorithm>
-#include <wiringPiI2C.h> 
 
+#include "I2CWrapper.h"
 #include "Adafruit_PWMServoDriver.h"
 #include "logger.h"
 
@@ -33,7 +33,11 @@ const char TAG[] = "PWM";
 Adafruit_PWMServoDriver::Adafruit_PWMServoDriver(uint8_t addr) {
   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(addr));
   _i2caddr = addr;
-  m_fd = wiringPiI2CSetup(addr);
+
+  I2CWrapper::lock();
+  m_fd = I2CWrapper::I2CSetup(addr);
+  I2CWrapper::unlock();
+
 }
 
 Adafruit_PWMServoDriver::~Adafruit_PWMServoDriver() {
@@ -149,11 +153,18 @@ void Adafruit_PWMServoDriver::getPin(uint8_t num, LED_DATA& data){
 
 
 uint8_t Adafruit_PWMServoDriver::read8(uint8_t addr) {
-  return wiringPiI2CReadReg8(m_fd, addr);
+
+  I2CWrapper::lock();
+  uint8_t result = I2CWrapper::I2CReadReg8(m_fd, addr);
+  I2CWrapper::unlock();
+
+  return result;
 }
 
-void Adafruit_PWMServoDriver::write8(uint8_t addr, uint8_t d) {
-  wiringPiI2CWriteReg8(m_fd, addr, d);
+void Adafruit_PWMServoDriver::write8(uint8_t addr, uint8_t d){
+  I2CWrapper::lock();
+  I2CWrapper::I2CWriteReg8(m_fd, addr, d);
+  I2CWrapper::unlock();
 }
 
 } /* namespace gpio */

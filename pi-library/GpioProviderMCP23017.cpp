@@ -5,10 +5,9 @@
  *      Author: denis
  */
 
-#include <wiringPiI2C.h>
 #include <mcp23x0817.h>
 
-
+#include "I2CWrapper.h"
 #include "GpioProviderMCP23017.h"
 #include "logger.h"
 
@@ -22,11 +21,15 @@ GpioProviderMCP23017::GpioProviderMCP23017(const uint8_t i2caddr) :
 {
 	  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
 
-	  m_fd = wiringPiI2CSetup(_i2caddr);
-	  wiringPiI2CWriteReg8(m_fd, MCP23x17_IOCON, IOCON_INIT);
+	  I2CWrapper::lock();
 
-	  m_OLATA = wiringPiI2CReadReg8 (m_fd, MCP23x17_OLATA) ;
-	  m_OLATB = wiringPiI2CReadReg8 (m_fd, MCP23x17_OLATB) ;
+	  m_fd = I2CWrapper::I2CSetup(_i2caddr);
+	  I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IOCON, IOCON_INIT);
+
+	  m_OLATA = I2CWrapper::I2CReadReg8 (m_fd, MCP23x17_OLATA) ;
+	  m_OLATB = I2CWrapper::I2CReadReg8 (m_fd, MCP23x17_OLATB) ;
+
+	  I2CWrapper::unlock();
 }
 
 GpioProviderMCP23017::~GpioProviderMCP23017() {
@@ -57,7 +60,9 @@ const int GpioProviderMCP23017::dgtRead(const int pin){
 	    mask = 1 << (rpin & 0x07) ;
 	  }
 
-	  value = wiringPiI2CReadReg8 (m_fd, gpio) ;
+	  I2CWrapper::lock();
+	  value = I2CWrapper::I2CReadReg8 (m_fd, gpio) ;
+	  I2CWrapper::unlock();
 
 	  if ((value & mask) == 0)
 	    return SGN_LEVEL::SGN_LOW ;
@@ -84,9 +89,11 @@ void GpioProviderMCP23017::dgtWrite(const int pin, const int value){
 	    else
 	    	current_mode |=   bit ;
 
-	    wiringPiI2CWriteReg8(m_fd, MCP23x17_GPIOA, current_mode);
+			I2CWrapper::lock();
+			I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_GPIOA, current_mode);
+			I2CWrapper::unlock();
 
-	    m_OLATA = current_mode ;
+			m_OLATA = current_mode ;
 	  }
 	  else				// Bank B
 	  {
@@ -97,9 +104,11 @@ void GpioProviderMCP23017::dgtWrite(const int pin, const int value){
 	    else
 	    	current_mode |=   bit ;
 
-	    wiringPiI2CWriteReg8(m_fd, MCP23x17_GPIOB, current_mode);
+		  	I2CWrapper::lock();
+		  	I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_GPIOB, current_mode);
+		  	I2CWrapper::unlock();
 
-	    m_OLATB = current_mode ;
+		  	m_OLATB = current_mode ;
 	  }
 }
 
@@ -120,14 +129,20 @@ void GpioProviderMCP23017::setmode(const int pin, const gpio::GPIO_MODE mode){
 	}
 
 	mask = 1 << rpin ;
-	current_mode  = wiringPiI2CReadReg8 (m_fd, reg_addr) ;
+
+  	I2CWrapper::lock();
+	current_mode  = I2CWrapper::I2CReadReg8 (m_fd, reg_addr);
+  	I2CWrapper::unlock();
+
 
 	if (mode == GPIO_MODE::OUT)
 		current_mode &= (~mask) ;
 	else
 		current_mode |=   mask ;
 
-	wiringPiI2CWriteReg8 (m_fd, reg_addr, current_mode) ;
+  	I2CWrapper::lock();
+	I2CWrapper::I2CWriteReg8 (m_fd, reg_addr, current_mode) ;
+  	I2CWrapper::unlock();
 }
 
 /*
