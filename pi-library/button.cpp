@@ -26,9 +26,7 @@ Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 			   const gpio::PULL_MODE pullmode) :
 	Item(gpio),
 	m_pullmode(pullmode),
-    m_state(state),
-	m_pthread(0),
-	m_stopSignal(false)
+    m_state(state)
 {
 	assert(get_gpio() != NULL);
 	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::IN);
@@ -46,9 +44,7 @@ Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 	    const gpio::PULL_MODE pullmode) :
            	Item(gpio, name, comment),
 			m_pullmode(pullmode),
-			m_state(state),
-			m_pthread(0),
-			m_stopSignal(false)
+			m_state(state)
 {
 	assert(get_gpio() != NULL);
 	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::IN);
@@ -72,11 +68,11 @@ void Button::stop(){
 	void* ret;
 	int res = 0;
 
-	m_stopSignal = true;
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" Signal sent. Wait.. thread: ") + std::to_string(this->m_pthread));
+	set_stop_signal(true);
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" Signal sent. Wait.. thread: ") + std::to_string(this->get_thread()));
 
 	if( !is_stopped() ){
-		res = pthread_join(this->m_pthread, &ret);
+		res = pthread_join(this->get_thread(), &ret);
 		if(res != 0)
 			logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not join to thread Res:" + std::to_string(res));
 	}
@@ -100,12 +96,14 @@ bool Button::initialize(void)
 	set_state((level == gpio::SGN_LEVEL::SGN_HIGH ? BUTTON_STATE::BTN_PUSHED : BUTTON_STATE::BTN_NOT_PUSHED));
 
 	if(is_stopped()){
-		m_stopSignal = false;
+		set_stop_signal(false);
 
 		pthread_attr_t attr;
 		pthread_attr_init(&attr);
-		int result = pthread_create(&this->m_pthread, &attr, Button::worker, (void*)(this));
+		pthread_t pthread;
+		int result = pthread_create(&pthread, &attr, Button::worker, (void*)(this));
 		if(result == 0){
+			set_thread(pthread);
 			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Thread created");
 		}
 		else{

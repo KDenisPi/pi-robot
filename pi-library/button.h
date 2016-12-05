@@ -10,14 +10,14 @@
 
 #include <memory>
 #include <cassert>
-#include <pthread.h>
 
 #include "item.h"
+#include "Threaded.h"
 
 namespace pirobot {
 namespace item {
 
-class Button: public Item {
+class Button: public Item, public Threaded {
 public:
 	enum BUTTON_STATE{
 		BTN_NOT_PUSHED = 0,
@@ -45,18 +45,12 @@ public:
 	static void* worker(void* p);
 	virtual void stop() override;
 
-	bool is_stopped() { return (m_pthread == 0);}
-	bool is_stopSignal() {  return m_stopSignal; }
-
 	void set_state(const BUTTON_STATE state);
 	const BUTTON_STATE state() { return m_state; }
 
 private:
 	gpio::PULL_MODE m_pullmode;
 	BUTTON_STATE m_state; //
-
-	pthread_t m_pthread;
-	bool m_stopSignal;
 };
 
 } /* namespace item */
