@@ -51,6 +51,14 @@ public:
 	virtual std::shared_ptr<pirobot::PiRobot> get_robot() override {return m_pirobo;}
 
 
+	bool process_timer_event(const std::shared_ptr<Event> event);
+	void process_pop_state();
+	void process_change_state(const std::shared_ptr<Event> event);
+
+	/*
+	 * Debug function print current stack of states
+	 */
+	const std::string print_state_stack() const;
 private:
 	bool start();
 	void stop();
@@ -62,8 +70,8 @@ private:
 
 	bool empty() const {return m_events.empty();}
 
-	std::queue<std::shared_ptr<Event>> get_events() const {return m_events;}
-	std::list<std::shared_ptr<state::State>> get_states() const {return m_states;}
+	inline std::queue<std::shared_ptr<Event>> get_events() const {return m_events;}
+	inline std::list<std::shared_ptr<state::State>> get_states() const {return m_states;}
 
 	void state_push(const std::shared_ptr<state::State> state);
 

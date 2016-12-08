@@ -34,6 +34,12 @@ public:
 
 	std::shared_ptr<StateMashineItf> get_itf() const { return m_itf;}
 	std::shared_ptr<pirobot::PiRobot> get_robot() const { return m_itf->get_robot();}
+
+	inline bool operator==(const State& state){
+		return (typeid(*this).name() == typeid(state).name());
+	}
+
+
 private:
 	std::shared_ptr<StateMashineItf> m_itf;
 };

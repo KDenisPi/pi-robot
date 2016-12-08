@@ -23,12 +23,20 @@ enum EVENT_TYPE {
 class Event {
 public:
 	Event(const EVENT_TYPE type);
+	Event(const EVENT_TYPE type, int id);
+	Event(const EVENT_TYPE type, const std::string name);
+
 	virtual ~Event();
 
-    const EVENT_TYPE type() { return m_type; }
+    inline const EVENT_TYPE type() const {return m_type;}
+    inline const int id() const {return m_id;}
+    inline const std::string id_str() const {return std::to_string(m_id);}
+    inline const std::string name() const {return m_name;}
 
 private:
        EVENT_TYPE m_type;
+       int m_id;
+       std::string m_name;
 };
 
 } /* namespace smashine */

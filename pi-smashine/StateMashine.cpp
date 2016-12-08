@@ -6,6 +6,8 @@
  */
 
 #include <unistd.h>
+#include <exception>
+#include <algorithm>
 
 #include "logger.h"
 #include "StateMashine.h"
@@ -159,17 +161,36 @@ void* StateMashine::worker(void* p){
 
 			auto event = stm->get_event();
 			switch(event->type()){
+
+			/*
+			 * Process finish event
+			 */
 			case EVT_FINISH:
 				logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Finish event detected.");
 				finish = true;
 				break;
+
+				/*
+				 * Process change state event
+				 */
 			case EVT_CHANGE_STATE:
+				stm->process_change_state(event);
+				break;
+
+				/*
+				 * Process pop state event
+				 */
 			case EVT_POP_STATE:
+				stm->process_pop_state();
+				break;
+
 			case EVT_TIMER:
 				/*
-				 * Process event
+				 * Process timer event
 				 */
+				stm->process_timer_event(event);
 				break;
+
 			case EVT_NONE:
 				break;
 			//default:
@@ -189,5 +210,114 @@ void* StateMashine::worker(void* p){
 	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker finished.");
 	return (void*) 0L;
 }
+
+/*
+ *
+ */
+bool StateMashine::process_timer_event(const std::shared_ptr<Event> event){
+	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " timer ID: " + event->id_str());
+	for (const auto& state : get_states()) {
+		bool processed = state->OnTimer(event->id());
+		if(processed){
+			logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " timer ID: " + event->id_str() +
+					" was processed by " + typeid(state).name());
+			return processed;
+		}
+	}
+
+	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " timer with ID: " + event->id_str() + " was not processed");
+	return false;
+}
+
+/*
+ *
+ */
+void StateMashine::process_pop_state(){
+	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " pop state");
+	auto state =  get_states().front();
+	try{
+		/*
+		 *
+		 */
+		state->OnExit();
+
+		/*
+		 * Remove the first element
+		 */
+		get_states().pop_front();
+
+		const std::string stack = print_state_stack();
+		logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + stack);
+	}
+	catch(std::exception& exc){
+		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + exc.what());
+	}
+}
+
+/*
+ * Change state
+ * 1. If such state is nor present in stack - just add it to the top
+ * 1.2 Call OnEnter
+ * 2. If such state is present already - delete all states before it
+ * 3. If fabric could not construct defined state do nothing
+ */
+void StateMashine::process_change_state(const std::shared_ptr<Event> event){
+	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + event->name());
+
+	try{
+		auto newstate = m_factory->get_state(event->name(), std::shared_ptr<StateMashineItf>(dynamic_cast<StateMashineItf*>(this)));
+		bool new_state = true;
+
+		for (const auto& state : get_states()) {
+			if(state == newstate){
+				new_state = false;
+				break;
+			}
+		}
+		/*
+		 *
+		 */
+		if(!new_state){
+			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " state with name present : " + event->name());
+
+			while(get_states().front() != newstate){
+				get_states().pop_front();
+			}
+			newstate.reset();
+		}
+		else{
+			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " no such state, add : " + typeid(newstate).name());
+
+			get_states().push_front(newstate);
+			get_states().front()->OnEntry();
+		}
+
+	}
+	catch(std::exception& exc){
+		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + exc.what());
+	}
+
+	const std::string stack = print_state_stack();
+	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + stack);
+
+}
+
+/*
+ * Debug function print current stack of states
+ */
+const std::string StateMashine::print_state_stack() const {
+	std::string result;
+	for (const auto& state : get_states()) {
+		if(result.empty())
+			result += typeid(state).name();
+		else{
+			result += " ---> ";
+			result += typeid(state).name();
+		}
+	}
+
+	return result;
+}
+
 
 } /* namespace smashine */
