@@ -19,6 +19,7 @@ public:
 	virtual ~StateEnvAnalize();
 
 	virtual void OnEntry() override;
+	virtual bool OnTimer(const int id) override;
 
 };
 

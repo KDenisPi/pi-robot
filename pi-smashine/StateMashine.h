@@ -43,6 +43,8 @@ public:
 	/*
 	 *
 	 */
+	// Generate finish signal
+	virtual void finish() override;
 	virtual void state_change(const std::string new_state) override;
 	virtual void state_pop() override;
 	virtual void timer_start(const int timer_id, const time_t interval, const bool interval_timer) override;
@@ -54,6 +56,11 @@ public:
 	bool process_timer_event(const std::shared_ptr<Event> event);
 	void process_pop_state();
 	void process_change_state(const std::shared_ptr<Event> event);
+
+	/*
+	 * Temporal - return thread ID
+	 */
+	inline const pthread_t get_thread() const {return m_pthread;}
 
 	/*
 	 * Debug function print current stack of states

@@ -5,6 +5,10 @@
  *      Author: denis
  */
 
+#include <exception>
+#include <stdexcept>
+
+#include "logger.h"
 #include "MyStateFactory.h"
 #include "StateEnvAnalize.h"
 
@@ -26,8 +30,7 @@ const std::shared_ptr<smashine::state::State> MyStateFactory::get_state(const st
 		return std::shared_ptr<smashine::state::State>(new project1::state::StateEnvAnalize(itf));
 	}
 
-	//TODO: Generate exception - State not found
-	return nullptr;
+	throw std::runtime_error("No such state");
 }
 
 

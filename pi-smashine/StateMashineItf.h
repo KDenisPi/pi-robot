@@ -21,10 +21,17 @@ public:
 	StateMashineItf();
 	virtual ~StateMashineItf();
 
+	// Generate finish signal
+	virtual void finish() = 0;
+	// create event for state changing
 	virtual void state_change(const std::string new_state) = 0;
+	//
 	virtual void state_pop() = 0;
+	// create timer
 	virtual void timer_start(const int timer_id, const time_t interval, const bool interval_timer = false) = 0;
+	// delete timer
 	virtual void timer_cancel(const int timer_id) = 0;
+
 	virtual const std::shared_ptr<TimersItf> get_timersitf() = 0;
 	virtual std::shared_ptr<pirobot::PiRobot> get_robot() = 0;
 

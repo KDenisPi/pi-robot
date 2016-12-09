@@ -22,7 +22,13 @@ StateInit::~StateInit() {
 }
 
 void StateInit::OnEntry(){
+	/*
+	 * Need to add hardware initialization there.
+	 * Also to check hardware state and configuration
+	 */
 
+	//temporal solution
+	get_itf()->state_change("StateEnvAnalize");
 }
 
 bool StateInit::OnEvent(const std::shared_ptr<Event> event){

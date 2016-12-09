@@ -23,13 +23,15 @@ StateMashine::StateMashine(const std::shared_ptr<StateFactory> factory, const st
 		m_factory(factory),
 		m_pirobo(pirobot)
 {
-	// TODO Auto-generated constructor stub
-
+	start();
 }
 
 
 void StateMashine::state_push(const std::shared_ptr<state::State> state){
 	get_states().emplace_back(state);
+
+	const std::string stack = print_state_stack();
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + stack);
 }
 
 /*
@@ -119,12 +121,23 @@ void StateMashine::put_event(const std::shared_ptr<Event> event, bool force){
 /*
  *
  */
+void StateMashine::finish(){
+	std::shared_ptr<Event> event(new Event(EVENT_TYPE::EVT_FINISH));
+	put_event(event);
+}
+
+/*
+ *
+ */
 void StateMashine::state_change(const std::string new_state){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Change state to:" + new_state);
 	std::shared_ptr<Event> event(new EventChangeState(new_state));
 	put_event(event);
 }
 
+/*
+ *
+ */
 void StateMashine::state_pop(){
 	std::shared_ptr<Event> event(new Event(EVENT_TYPE::EVT_POP_STATE));
 	put_event(event);
@@ -156,6 +169,7 @@ void* StateMashine::worker(void* p){
 	const std::shared_ptr<StateMashine> stm(owner);
 
 	for(;;){
+		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker check event queue");
 
 		while( !stm->empty() && !finish){
 
@@ -174,6 +188,7 @@ void* StateMashine::worker(void* p){
 				 * Process change state event
 				 */
 			case EVT_CHANGE_STATE:
+				logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Change state event detected.");
 				stm->process_change_state(event);
 				break;
 
@@ -181,6 +196,7 @@ void* StateMashine::worker(void* p){
 				 * Process pop state event
 				 */
 			case EVT_POP_STATE:
+				logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Pop state event detected.");
 				stm->process_pop_state();
 				break;
 
@@ -188,6 +204,7 @@ void* StateMashine::worker(void* p){
 				/*
 				 * Process timer event
 				 */
+				logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Timer event detected.");
 				stm->process_timer_event(event);
 				break;
 

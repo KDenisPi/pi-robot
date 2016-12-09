@@ -9,6 +9,7 @@
 #define PI_SMASHINE_STATEFACTORY_H_
 
 #include <string>
+#include <exception>
 
 #include "State.h"
 
