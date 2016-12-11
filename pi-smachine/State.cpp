@@ -7,11 +7,11 @@
 
 #include "State.h"
 
-namespace smashine {
+namespace smachine {
 namespace state {
 
-State::State(const std::shared_ptr<StateMashineItf> itf) :
-		m_itf(itf)
+State::State(const std::shared_ptr<StateMachineItf> itf, const std::string name) :
+		m_itf(itf), m_name(name)
 {
 
 }
@@ -21,4 +21,4 @@ State::~State(){
 }
 
 } /* namespace state */
-} /* namespace smashine */
+} /* namespace smachine */

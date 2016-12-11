@@ -1,11 +1,13 @@
 #include <iostream>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdexcept>
+#include <exception>
 
 //#include <wiringPi.h>
 #include "version.h"
-#include "RealWorld.h"
-#include "Adafruit_PWMServoDriver.h"
+//#include "RealWorld.h"
+//#include "Adafruit_PWMServoDriver.h"
 
 // LED Pin - wiringPi pin 0 is BCM_GPIO 17.
 #define	LED	0
@@ -20,7 +22,15 @@ int main (int argc, char* argv[])
 {
   cout <<  "Raspberry Pi blink Parameters:" << argc << endl;
 
+  try{
+		throw std::runtime_error("No such state");
 
+  }
+  catch(...){
+	  cout << "Exception!" << endl;
+  }
+
+/*
   float freq = 60.0;
   uint16_t high = 4095;
   uint16_t low = 4095;
@@ -32,7 +42,7 @@ int main (int argc, char* argv[])
      steps = stoi(argv[1]); 
      rightOnly = stoi(argv[2]); 
   }
-
+*/
 /*
   if(argc == 5){
      freq = stof(argv[1]);
@@ -42,6 +52,7 @@ int main (int argc, char* argv[])
   }
 */
   //cout <<  "Parameters Freq:" << freq << " High: " << high << " Low: " << low << " Delay: " << delay  << endl;
+/*
   cout <<  " Steps: " << steps << endl;
 
   pirobot::gpio::Adafruit_PWMServoDriver* D9685 = new pirobot::gpio::Adafruit_PWMServoDriver();
@@ -75,6 +86,8 @@ int main (int argc, char* argv[])
     //D9685->setPWM(SERVO, 0, 0);
   }
   //D9685->reset(); 
+   *
+   */
 
 /*
   realworld::RealWorld* robot = new realworld::RealWorld();

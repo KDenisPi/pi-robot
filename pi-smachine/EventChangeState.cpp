@@ -7,10 +7,10 @@
 
 #include "EventChangeState.h"
 
-namespace smashine {
+namespace smachine {
 
 EventChangeState::~EventChangeState() {
 	// TODO Auto-generated destructor stub
 }
 
-} /* namespace smashine */
+} /* namespace smachine */

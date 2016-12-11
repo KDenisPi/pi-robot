@@ -5,12 +5,12 @@
  *      Author: denis
  */
 
-#ifndef PI_SMASHINE_TIMER_H_
-#define PI_SMASHINE_TIMER_H_
+#ifndef PI_SMACHINE_TIMER_H_
+#define PI_SMACHINE_TIMER_H_
 
 #include <time.h>
 
-namespace smashine {
+namespace smachine {
 
 class Timer {
 public:
@@ -31,6 +31,6 @@ private:
 	struct timespec m_itime;
 };
 
-} /* namespace smashine */
+} /* namespace smachine */
 
-#endif /* PI_SMASHINE_TIMER_H_ */
+#endif /* PI_SMACHINE_TIMER_H_ */

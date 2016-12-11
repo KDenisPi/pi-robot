@@ -12,12 +12,12 @@
 
 namespace project1 {
 
-class MyStateFactory: public smashine::StateFactory {
+class MyStateFactory: public smachine::StateFactory {
 public:
 	MyStateFactory();
 	virtual ~MyStateFactory();
 
-	virtual const std::shared_ptr<smashine::state::State> get_state(const std::string state_name, const std::shared_ptr<smashine::StateMashineItf> itf) override;
+	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, const std::shared_ptr<smachine::StateMachineItf> itf) override;
 
 };
 

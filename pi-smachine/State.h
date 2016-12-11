@@ -5,16 +5,16 @@
  *      Author: denis
  */
 
-#ifndef PI_SMASHINE_STATE_H_
-#define PI_SMASHINE_STATE_H_
+#ifndef PI_SMACHINE_STATE_H_
+#define PI_SMACHINE_STATE_H_
 
 #include <memory>
 
 #include "Event.h"
 #include "Timer.h"
-#include "StateMashineItf.h"
+#include "StateMachineItf.h"
 
-namespace smashine {
+namespace smachine {
 namespace state {
 
 /*
@@ -24,7 +24,7 @@ namespace state {
 
 class State {
 public:
-	State(const std::shared_ptr<StateMashineItf> itf);
+	State(const std::shared_ptr<StateMachineItf> itf, const std::string name);
 	virtual ~State();
 
 	virtual void OnEntry() = 0;
@@ -32,19 +32,21 @@ public:
 	virtual void OnExit() {}
 	virtual bool OnTimer(const int id) {return false;};
 
-	std::shared_ptr<StateMashineItf> get_itf() const { return m_itf;}
+	std::shared_ptr<StateMachineItf> get_itf() const { return m_itf;}
 	std::shared_ptr<pirobot::PiRobot> get_robot() const { return m_itf->get_robot();}
 
+	inline const std::string get_name() { return m_name;}
 	inline bool operator==(const State& state){
-		return (typeid(*this).name() == typeid(state).name());
+		return (m_name == state.m_name);
 	}
 
 
 private:
-	std::shared_ptr<StateMashineItf> m_itf;
+	std::shared_ptr<StateMachineItf> m_itf;
+	std::string m_name;
 };
 
 } /* namespace state */
-} /* namespace smashine */
+} /* namespace smachine */
 
-#endif /* PI_SMASHINE_STATE_H_ */
+#endif /* PI_SMACHINE_STATE_H_ */

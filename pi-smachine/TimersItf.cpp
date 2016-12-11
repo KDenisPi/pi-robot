@@ -7,6 +7,6 @@
 
 #include "TimersItf.h"
 
-namespace smashine {
+namespace smachine {
 
-} /* namespace smashine */
+} /* namespace smachine */

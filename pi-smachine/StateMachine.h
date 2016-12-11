@@ -1,12 +1,12 @@
 /*
- * StateMashine.h
+ * StateMachine.h
  *
  *  Created on: Nov 11, 2016
  *      Author: denis
  */
 
-#ifndef PI_SMASHINE_STATEMASHINE_H_
-#define PI_SMASHINE_STATEMASHINE_H_
+#ifndef PI_SMACHINE_STATEMACHINE_H_
+#define PI_SMACHINE_STATEMACHINE_H_
 
 #include <queue>
 #include <memory>
@@ -14,19 +14,22 @@
 #include <list>
 #include <pthread.h>
 
-#include "StateMashineItf.h"
+#include "StateMachineItf.h"
 #include "PiRobot.h"
 #include "StateFactory.h"
 #include "State.h"
+#include "EventChangeState.h"
 #include "Event.h"
-#include "Timers.h"
+//#include "Timers.h"
 
-namespace smashine {
+namespace smachine {
 
-class StateMashine : public StateMashineItf {
+class Timers;
+
+class StateMachine : public StateMachineItf {
 public:
-	StateMashine(const std::shared_ptr<StateFactory> factory, const std::shared_ptr<pirobot::PiRobot> pirobot);
-	virtual ~StateMashine();
+	StateMachine(const std::shared_ptr<StateFactory> factory, const std::shared_ptr<pirobot::PiRobot> pirobot);
+	virtual ~StateMachine();
 
     /*
     * Get next event to the event's queue
@@ -49,7 +52,6 @@ public:
 	virtual void state_pop() override;
 	virtual void timer_start(const int timer_id, const time_t interval, const bool interval_timer) override;
 	virtual void timer_cancel(const int timer_id) override;
-	virtual const std::shared_ptr<TimersItf> get_timersitf() override { return std::shared_ptr<TimersItf>(dynamic_cast<TimersItf*>(&m_timers));}
 	virtual std::shared_ptr<pirobot::PiRobot> get_robot() override {return m_pirobo;}
 
 
@@ -77,24 +79,23 @@ private:
 
 	bool empty() const {return m_events.empty();}
 
-	inline std::queue<std::shared_ptr<Event>> get_events() const {return m_events;}
-	inline std::list<std::shared_ptr<state::State>> get_states() const {return m_states;}
+	inline std::shared_ptr<std::list<std::shared_ptr<state::State>>> get_states() const {return m_states;}
 
 	void state_push(const std::shared_ptr<state::State> state);
 
 	std::recursive_mutex mutex_sm;
 	std::queue<std::shared_ptr<Event>> m_events;
-	std::list<std::shared_ptr<state::State>> m_states;
+	std::shared_ptr<std::list<std::shared_ptr<state::State>>> m_states;
 
 	/*
 	 *
 	 */
-	smashine::Timers m_timers;
+	std::shared_ptr<smachine::Timers> m_timers;
 
 	std::shared_ptr<pirobot::PiRobot> m_pirobo;
 	std::shared_ptr<StateFactory> m_factory;
 };
 
-} /* namespace smashine */
+} /* namespace smachine */
 
-#endif /* PI_SMASHINE_STATEMASHINE_H_ */
+#endif /* PI_SMACHINE_STATEMACHINE_H_ */

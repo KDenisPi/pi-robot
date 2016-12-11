@@ -12,7 +12,7 @@
 //#include "Timers.h"
 
 #include "defines.h"
-#include "StateMashine.h"
+#include "StateMachine.h"
 #include "MyStateFactory.h"
 #include "PiRobot.h"
 
@@ -25,9 +25,9 @@ int main (int argc, char* argv[])
   std::shared_ptr<project1::MyStateFactory> factory(new project1::MyStateFactory());
   std::shared_ptr<pirobot::PiRobot> pirobot(new pirobot::PiRobot());
 
-  std::shared_ptr<smashine::StateMashine> stm(new smashine::StateMashine(factory, pirobot));
+  smachine::StateMachine* stm = new smachine::StateMachine(factory, pirobot);
 
-  sleep(2);
+  sleep(4);
 
   cout <<  "Wait for state machine" << endl;
   void* ret;
@@ -35,7 +35,11 @@ int main (int argc, char* argv[])
   if(res != 0)
 		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not join to thread Res:" + std::to_string(res));
 
+  cout <<  "Sleep 3 sec" << endl;
+  sleep(3);
 
+  cout <<  "Delete State Machine" << endl;
+  delete stm;
   cout <<  "Project1 finished" << endl;
   exit(0);
 }

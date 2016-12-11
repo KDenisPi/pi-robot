@@ -5,12 +5,12 @@
  *      Author: denis
  */
 
-#ifndef PI_SMASHINE_EVENT_H_
-#define PI_SMASHINE_EVENT_H_
+#ifndef PI_SMACHINE_EVENT_H_
+#define PI_SMACHINE_EVENT_H_
 
 #include <memory>
 
-namespace smashine {
+namespace smachine {
 
 enum EVENT_TYPE {
    EVT_NONE         = 0,  //Do nothing
@@ -39,6 +39,6 @@ private:
        std::string m_name;
 };
 
-} /* namespace smashine */
+} /* namespace smachine */
 
-#endif /* PI_SMASHINE_EVENT_H_ */
+#endif /* PI_SMACHINE_EVENT_H_ */

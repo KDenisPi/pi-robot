@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 #project name
-project(pi-smashine)
+project(pi-smachine)
 
 #find_library(RT_LIB rt PATH)
 
@@ -13,8 +13,8 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR}/../../wiringPi/wiringPi
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_SMASHINE_SOURCES)
 
-add_library(pi-smashine SHARED ${PI_SMASHINE_SOURCES})
+add_library(pi-smachine SHARED ${PI_SMASHINE_SOURCES})
 
-target_link_libraries(pi-smashine rt)
+target_link_libraries(pi-smachine rt)
 
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)

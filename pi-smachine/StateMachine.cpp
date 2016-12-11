@@ -1,34 +1,38 @@
 /*
- * StateMashine.cpp
+ * StateMachine.cpp
  *
  *  Created on: Nov 11, 2016
  *      Author: denis
  */
 
 #include <unistd.h>
+#include <stdexcept>
 #include <exception>
 #include <algorithm>
 
 #include "logger.h"
-#include "StateMashine.h"
+#include "StateMachine.h"
 #include "StateInit.h"
-#include "EventChangeState.h"
+#include "Timers.h"
 
-namespace smashine {
+namespace smachine {
 
 const char TAG[] = "smash";
 
-StateMashine::StateMashine(const std::shared_ptr<StateFactory> factory, const std::shared_ptr<pirobot::PiRobot> pirobot) :
+StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, const std::shared_ptr<pirobot::PiRobot> pirobot) :
 		m_pthread(0),
 		m_factory(factory),
 		m_pirobo(pirobot)
 {
+	m_timers = std::shared_ptr<Timers>(new Timers(std::shared_ptr<StateMachine>(this)));
+	m_states = std::shared_ptr<std::list<std::shared_ptr<state::State>>>(new std::list<std::shared_ptr<state::State>>);
+
 	start();
 }
 
 
-void StateMashine::state_push(const std::shared_ptr<state::State> state){
-	get_states().emplace_back(state);
+void StateMachine::state_push(const std::shared_ptr<state::State> state){
+	get_states()->push_front(state);
 
 	const std::string stack = print_state_stack();
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + stack);
@@ -37,20 +41,20 @@ void StateMashine::state_push(const std::shared_ptr<state::State> state){
 /*
  *
  */
-bool StateMashine::start(){
+bool StateMachine::start(){
 	bool ret = true;
 	pthread_attr_t attr;
 
 	/*
 	 *
 	 */
-	m_timers.start();
+	m_timers->start();
 
 	if( is_stopped() ){
-		state_push(std::shared_ptr<smashine::state::State>(new smashine::state::StateInit(std::shared_ptr<StateMashineItf>(this))));
+		state_change("StateInit");
 
 		pthread_attr_init(&attr);
-		int result = pthread_create(&this->m_pthread, &attr, StateMashine::worker, (void*)(this));
+		int result = pthread_create(&this->m_pthread, &attr, StateMachine::worker, (void*)(this));
 		if(result == 0){
 			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Thread created");
 		}
@@ -67,7 +71,7 @@ bool StateMashine::start(){
 /*
  *
  */
-void StateMashine::stop(){
+void StateMachine::stop(){
 	void* ret;
 	int res = 0;
 
@@ -89,14 +93,16 @@ void StateMashine::stop(){
 /*
  *
  */
-StateMashine::~StateMashine() {
-	// TODO Auto-generated destructor stub
+StateMachine::~StateMachine() {
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
 }
 
 /*
  *
  */
-const std::shared_ptr<Event> StateMashine::get_event(){
+const std::shared_ptr<Event> StateMachine::get_event(){
 	mutex_sm.lock();
 	std::shared_ptr<Event> event = m_events.front();
 	m_events.pop();
@@ -107,7 +113,7 @@ const std::shared_ptr<Event> StateMashine::get_event(){
 /*
  *
  */
-void StateMashine::put_event(const std::shared_ptr<Event> event, bool force){
+void StateMachine::put_event(const std::shared_ptr<Event> event, bool force){
 
 	mutex_sm.lock();
 	if(force){
@@ -121,7 +127,7 @@ void StateMashine::put_event(const std::shared_ptr<Event> event, bool force){
 /*
  *
  */
-void StateMashine::finish(){
+void StateMachine::finish(){
 	std::shared_ptr<Event> event(new Event(EVENT_TYPE::EVT_FINISH));
 	put_event(event);
 }
@@ -129,8 +135,8 @@ void StateMashine::finish(){
 /*
  *
  */
-void StateMashine::state_change(const std::string new_state){
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Change state to:" + new_state);
+void StateMachine::state_change(const std::string new_state){
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Generate event Change state to:" + new_state);
 	std::shared_ptr<Event> event(new EventChangeState(new_state));
 	put_event(event);
 }
@@ -138,7 +144,7 @@ void StateMashine::state_change(const std::string new_state){
 /*
  *
  */
-void StateMashine::state_pop(){
+void StateMachine::state_pop(){
 	std::shared_ptr<Event> event(new Event(EVENT_TYPE::EVT_POP_STATE));
 	put_event(event);
 }
@@ -146,27 +152,27 @@ void StateMashine::state_pop(){
 /*
  *
  */
-void StateMashine::timer_start(const int timer_id, const time_t interval, const bool interval_timer){
-	this->m_timers.create_timer(std::shared_ptr<Timer>(new Timer(timer_id, interval, 0, interval_timer)));
+void StateMachine::timer_start(const int timer_id, const time_t interval, const bool interval_timer){
+	this->m_timers->create_timer(std::shared_ptr<Timer>(new Timer(timer_id, interval, 0, interval_timer)));
 }
 
 /*
  *
  */
-void StateMashine::timer_cancel(const int timer_id){
-	this->m_timers.cancel_timer(timer_id);
+void StateMachine::timer_cancel(const int timer_id){
+	this->m_timers->cancel_timer(timer_id);
 }
 
 
 /*
  *
  */
-void* StateMashine::worker(void* p){
+void* StateMachine::worker(void* p){
 	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker started.");
 	bool finish = false;
 
-	StateMashine* owner = static_cast<StateMashine*>(p);
-	const std::shared_ptr<StateMashine> stm(owner);
+	StateMachine* owner = static_cast<StateMachine*>(p);
+	const std::shared_ptr<StateMachine> stm(owner);
 
 	for(;;){
 		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker check event queue");
@@ -231,13 +237,13 @@ void* StateMashine::worker(void* p){
 /*
  *
  */
-bool StateMashine::process_timer_event(const std::shared_ptr<Event> event){
+bool StateMachine::process_timer_event(const std::shared_ptr<Event> event){
 	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " timer ID: " + event->id_str());
-	for (const auto& state : get_states()) {
+	for (const auto& state : *(get_states())) {
 		bool processed = state->OnTimer(event->id());
 		if(processed){
 			logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " timer ID: " + event->id_str() +
-					" was processed by " + typeid(state).name());
+					" was processed by " + state->get_name());
 			return processed;
 		}
 	}
@@ -249,9 +255,9 @@ bool StateMashine::process_timer_event(const std::shared_ptr<Event> event){
 /*
  *
  */
-void StateMashine::process_pop_state(){
+void StateMachine::process_pop_state(){
 	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " pop state");
-	auto state =  get_states().front();
+	auto state =  get_states()->front();
 	try{
 		/*
 		 *
@@ -261,7 +267,7 @@ void StateMashine::process_pop_state(){
 		/*
 		 * Remove the first element
 		 */
-		get_states().pop_front();
+		get_states()->pop_front();
 
 		const std::string stack = print_state_stack();
 		logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + stack);
@@ -278,14 +284,20 @@ void StateMashine::process_pop_state(){
  * 2. If such state is present already - delete all states before it
  * 3. If fabric could not construct defined state do nothing
  */
-void StateMashine::process_change_state(const std::shared_ptr<Event> event){
-	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + event->name());
-
+void StateMachine::process_change_state(const std::shared_ptr<Event> event){
 	try{
-		auto newstate = m_factory->get_state(event->name(), std::shared_ptr<StateMashineItf>(dynamic_cast<StateMashineItf*>(this)));
+		std::string cname = event->name();
+		logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + cname);
+
+		auto newstate = (cname == "StateInit" ?
+				std::shared_ptr<smachine::state::State>(new smachine::state::StateInit(std::shared_ptr<StateMachineItf>(this))):
+				m_factory->get_state(cname, std::shared_ptr<StateMachineItf>(dynamic_cast<StateMachineItf*>(this))));
 		bool new_state = true;
 
-		for (const auto& state : get_states()) {
+		//throw std::runtime_error("No such state");
+
+
+		for (const auto& state : *(get_states())) {
 			if(state == newstate){
 				new_state = false;
 				break;
@@ -295,23 +307,31 @@ void StateMashine::process_change_state(const std::shared_ptr<Event> event){
 		 *
 		 */
 		if(!new_state){
-			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " state with name present : " + event->name());
+			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " state with name present : " + cname);
 
-			while(get_states().front() != newstate){
-				get_states().pop_front();
+			while(get_states()->front() != newstate){
+				get_states()->pop_front();
 			}
 			newstate.reset();
 		}
 		else{
-			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " no such state, add : " + typeid(newstate).name());
+			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " no such state, add : " + newstate->get_name());
+			get_states()->push_front(newstate);
 
-			get_states().push_front(newstate);
-			get_states().front()->OnEntry();
+			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " call OnEntry for : " + newstate->get_name());
+			auto front_state = get_states()->front();
+			front_state->OnEntry();
 		}
 
 	}
+	catch(std::runtime_error& exc){
+		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + exc.what());
+	}
 	catch(std::exception& exc){
 		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + exc.what());
+	}
+	catch(...){
+		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Unknown exception");
 	}
 
 	const std::string stack = print_state_stack();
@@ -322,14 +342,15 @@ void StateMashine::process_change_state(const std::shared_ptr<Event> event){
 /*
  * Debug function print current stack of states
  */
-const std::string StateMashine::print_state_stack() const {
+const std::string StateMachine::print_state_stack() const {
 	std::string result;
-	for (const auto& state : get_states()) {
-		if(result.empty())
-			result += typeid(state).name();
+	for (const auto& state : *(get_states())) {
+		if(result.empty()){
+			result = " " + state->get_name();
+		}
 		else{
-			result += " ---> ";
-			result += typeid(state).name();
+			result += " <-- ";
+			result += state->get_name();
 		}
 	}
 
@@ -337,4 +358,4 @@ const std::string StateMashine::print_state_stack() const {
 }
 
 
-} /* namespace smashine */
+} /* namespace smachine */

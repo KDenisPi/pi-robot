@@ -1,12 +1,12 @@
 /*
- * StateMashineItf.h
+ * StateMachineItf.h
  *
  *  Created on: Nov 24, 2016
  *      Author: denis
  */
 
-#ifndef PI_SMASHINE_STATEMASHINEITF_H_
-#define PI_SMASHINE_STATEMASHINEITF_H_
+#ifndef PI_SMACHINE_STATEMACHINEITF_H_
+#define PI_SMACHINE_STATEMACHINEITF_H_
 
 #include <string>
 #include <memory>
@@ -14,12 +14,12 @@
 #include "TimersItf.h"
 #include "PiRobot.h"
 
-namespace smashine {
+namespace smachine {
 
-class StateMashineItf {
+class StateMachineItf {
 public:
-	StateMashineItf();
-	virtual ~StateMashineItf();
+	StateMachineItf();
+	virtual ~StateMachineItf();
 
 	// Generate finish signal
 	virtual void finish() = 0;
@@ -32,11 +32,10 @@ public:
 	// delete timer
 	virtual void timer_cancel(const int timer_id) = 0;
 
-	virtual const std::shared_ptr<TimersItf> get_timersitf() = 0;
 	virtual std::shared_ptr<pirobot::PiRobot> get_robot() = 0;
 
 };
 
-} /* namespace smashine */
+} /* namespace smachine */
 
-#endif /* PI_SMASHINE_STATEMASHINEITF_H_ */
+#endif /* PI_SMACHINE_STATEMACHINEITF_H_ */

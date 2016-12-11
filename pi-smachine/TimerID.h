@@ -5,10 +5,10 @@
  *      Author: denis
  */
 
-#ifndef PI_SMASHINE_TIMERID_H_
-#define PI_SMASHINE_TIMERID_H_
+#ifndef PI_SMACHINE_TIMERID_H_
+#define PI_SMACHINE_TIMERID_H_
 
-namespace smashine {
+namespace smachine {
 namespace timer{
 
 /*
@@ -21,6 +21,6 @@ enum ID {
 };
 
 }/* namespace timer*/
-} /* namespace smashine */
+} /* namespace smachine */
 
-#endif /* PI_SMASHINE_TIMERID_H_ */
+#endif /* PI_SMACHINE_TIMERID_H_ */

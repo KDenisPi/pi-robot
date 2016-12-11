@@ -7,7 +7,7 @@
 
 #include "Event.h"
 
-namespace smashine {
+namespace smachine {
 
 
 Event::Event(const EVENT_TYPE type):
@@ -30,4 +30,4 @@ Event::~Event() {
 	// TODO Auto-generated destructor stub
 }
 
-} /* namespace smashine */
+} /* namespace smachine */

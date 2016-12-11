@@ -11,25 +11,32 @@
 #include "logger.h"
 #include "MyStateFactory.h"
 #include "StateEnvAnalize.h"
+#include "StateUpdateState.h"
+
+const char TAG[] = "myfact";
 
 namespace project1 {
 
 MyStateFactory::MyStateFactory() {
-	// TODO Auto-generated constructor stub
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
 }
 
 MyStateFactory::~MyStateFactory() {
-	// TODO Auto-generated destructor stub
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 }
 
-const std::shared_ptr<smashine::state::State> MyStateFactory::get_state(const std::string state_name,
-		const std::shared_ptr<smashine::StateMashineItf> itf)
+const std::shared_ptr<smachine::state::State> MyStateFactory::get_state(const std::string state_name,
+		const std::shared_ptr<smachine::StateMachineItf> itf)
 {
 	if(state_name.compare("StateEnvAnalize") == 0){
-		return std::shared_ptr<smashine::state::State>(new project1::state::StateEnvAnalize(itf));
+		return std::shared_ptr<smachine::state::State>(new project1::state::StateEnvAnalize(itf));
+	}
+	else if(state_name.compare("StateUpdateState") == 0){
+		return std::shared_ptr<smachine::state::State>(new project1::state::StateUpdateState(itf));
 	}
 
+	logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Generate exception no such State");
 	throw std::runtime_error("No such state");
 }
 

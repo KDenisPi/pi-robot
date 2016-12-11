@@ -10,7 +10,7 @@ set(CMAKE_BIULD_TYPE Debug)
 
 #C++ 11
 #add_cxx_flags( "-std=c++11" )
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -std=c++11 -fexceptions")
 message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
@@ -23,13 +23,13 @@ add_library(libwiringPi STATIC IMPORTED)
 set(EXTRA_LIBS ${EXTRA_LIBS} ${WIPI_LIB})
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)
-add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smashine)
+add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smachine)
 add_subdirectory(${PROJECT_SOURCE_DIR}/version1)
 add_subdirectory(${PROJECT_SOURCE_DIR}/project1)
 
 include_directories(${CMAKE_SOURCE_DIR}/../wiringPi/wiringPi
    ${PROJECT_SOURCE_DIR}/pi-library
-   ${PROJECT_SOURCE_DIR}/pi-smashine
+   ${PROJECT_SOURCE_DIR}/pi-smachine
 )
 
 

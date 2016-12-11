@@ -5,15 +5,15 @@
  *      Author: denis
  */
 
-#ifndef PI_SMASHINE_TIMERSITF_H_
-#define PI_SMASHINE_TIMERSITF_H_
+#ifndef PI_SMACHINE_TIMERSITF_H_
+#define PI_SMACHINE_TIMERSITF_H_
 
 #include <stdint.h>
 #include <memory>
 
 #include "Timer.h"
 
-namespace smashine {
+namespace smachine {
 
 class TimersItf {
 public:
@@ -25,6 +25,6 @@ public:
 	virtual void reset_timer(const int id) = 0;
 };
 
-} /* namespace smashine */
+} /* namespace smachine */
 
-#endif /* PI_SMASHINE_TIMERSITF_H_ */
+#endif /* PI_SMACHINE_TIMERSITF_H_ */

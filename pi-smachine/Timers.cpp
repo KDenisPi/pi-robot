@@ -13,13 +13,15 @@
 
 #include "logger.h"
 #include "Timers.h"
+#include "Event.h"
+#include "StateMachine.h"
 
-namespace smashine {
+namespace smachine {
 
 const char TAG[] = "timers";
 
-Timers::Timers() :
-		m_pthread(0), m_stop(false), m_pid(0)
+Timers::Timers(const std::shared_ptr<StateMachine> owner) :
+		m_pthread(0), m_stop(false), m_pid(0), m_owner(owner)
 {
 	sigset_t new_set;
 	sigemptyset (&new_set);
@@ -157,7 +159,7 @@ void* Timers::worker(void* p){
 			const int id  = sig_info._sifields._timer.si_sigval.sival_int;
 
 			logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Detected signal ID: " + std::to_string(id));
-
+			owner->get_owner()->put_event(std::shared_ptr<Event>(new Event(EVT_TIMER, id)));
 		}
 
 	}
@@ -292,4 +294,4 @@ void Timers::reset_timer(const int id){
 }
 
 
-} /* namespace smashine */
+} /* namespace smachine */

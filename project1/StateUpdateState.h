@@ -13,9 +13,9 @@
 namespace project1 {
 namespace state {
 
-class StateUpdateState: public smashine::state::State {
+class StateUpdateState: public smachine::state::State {
 public:
-	StateUpdateState();
+	StateUpdateState(const std::shared_ptr<smachine::StateMachineItf> itf);
 	virtual ~StateUpdateState();
 
 	virtual void OnEntry() override;

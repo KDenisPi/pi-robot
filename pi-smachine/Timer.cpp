@@ -7,7 +7,7 @@
 
 #include "Timer.h"
 
-namespace smashine {
+namespace smachine {
 
 Timer::	Timer(const int id, const time_t tv_sec, const long tv_nsec, const bool interval) :
 		m_id(id), m_tid(0), m_itime({tv_sec, tv_nsec}), m_interval(interval)
@@ -20,4 +20,4 @@ Timer::~Timer() {
 	// TODO Auto-generated destructor stub
 }
 
-} /* namespace smashine */
+} /* namespace smachine */

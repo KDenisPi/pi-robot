@@ -5,8 +5,8 @@
  *      Author: denis
  */
 
-#ifndef PI_SMASHINE_TIMERS_H_
-#define PI_SMASHINE_TIMERS_H_
+#ifndef PI_SMACHINE_TIMERS_H_
+#define PI_SMACHINE_TIMERS_H_
 
 #include <pthread.h>
 #include <map>
@@ -15,12 +15,15 @@
 
 #include "TimersItf.h"
 #include "Timer.h"
+//#include "StateMachine.h"
 
-namespace smashine {
+namespace smachine {
+
+class StateMachine;
 
 class Timers : public TimersItf {
 public:
-	Timers();
+	Timers(const std::shared_ptr<StateMachine> owner);
 	virtual ~Timers();
 
 	/*
@@ -32,16 +35,17 @@ public:
 
 	bool is_stop_signal();
 
-	void set_pid(pid_t pid) {m_pid = pid;}
-	const pid_t get_pid() { return m_pid;}
+	inline void set_pid(pid_t pid) {m_pid = pid;}
+	inline const pid_t get_pid() { return m_pid;}
 
 	bool start();
 	void stop();
+	inline const std::shared_ptr<StateMachine> get_owner() const { return m_owner;}
 private:
 
 	void set_stop_signal(const bool state=true);
 
-	bool is_stopped() const { return (m_pthread == 0);}
+	inline bool is_stopped() const { return (m_pthread == 0);}
 
 	bool m_stop;
 
@@ -52,8 +56,9 @@ private:
 	std::recursive_mutex mutex_tm;
 
 	std::map<int, std::shared_ptr<Timer>> m_id_to_tm;
+	std::shared_ptr<StateMachine> m_owner;
 };
 
-} /* namespace smashine */
+} /* namespace smachine */
 
-#endif /* PI_SMASHINE_TIMERS_H_ */
+#endif /* PI_SMACHINE_TIMERS_H_ */

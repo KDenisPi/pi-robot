@@ -7,7 +7,7 @@
 
 #include "StateFactory.h"
 
-namespace smashine {
+namespace smachine {
 
 StateFactory::StateFactory() {
 }
@@ -15,4 +15,4 @@ StateFactory::StateFactory() {
 StateFactory::~StateFactory() {
 }
 
-} /* namespace smashine */
+} /* namespace smachine */
