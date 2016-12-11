@@ -33,7 +33,7 @@ public:
 	/*
 	 *
 	 */
-	void start();
+	bool start();
 
 	/*
 	 *
@@ -53,7 +53,7 @@ public:
 		items[name] = item;
 	}
 
-        void printConfig();
+    void printConfig();
 private:
 	bool m_realWorld;
 

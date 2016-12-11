@@ -61,7 +61,7 @@ bool StateMachine::start(){
 		}
 		else{
 			//TODO: Exception
-			logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Thread failed Res:" + std::to_string(result));
+			logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Thread failed Res: " + std::to_string(result));
 			ret = false;
 		}
 	}
@@ -84,11 +84,16 @@ void StateMachine::stop(){
 		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" Signal sent. Wait.. thread: ") + std::to_string(this->m_pthread));
 
 		res = pthread_join(this->m_pthread, &ret);
-		if(res != 0)
-			logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not join to thread Res:" + std::to_string(res));
+		if(res != 0){
+			if(res != ESRCH)
+				logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not join to thread Res: " + std::to_string(res));
+			else{
+				logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished already. Res: " + std::to_string(res));
+			}
+		}
 	}
 
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished Res:" + std::to_string((long)ret));
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished Res: " + std::to_string((long)ret));
 }
 
 /*
@@ -97,7 +102,13 @@ void StateMachine::stop(){
 StateMachine::~StateMachine() {
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
+	//Stop main thread if it is not stopped yet
+	this->stop();
+	// Stop Equipment
+	m_pirobo->stop();
+	//Stop Timers support
 	m_timers->stop();
+	//Erase not processed states
 	m_states->erase(m_states->begin(), m_states->end());
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
@@ -118,7 +129,6 @@ const std::shared_ptr<Event> StateMachine::get_event(){
  *
  */
 void StateMachine::put_event(const std::shared_ptr<Event> event, bool force){
-
 	mutex_sm.lock();
 	if(force){
 		while(!m_events.empty())
@@ -140,7 +150,7 @@ void StateMachine::finish(){
  *
  */
 void StateMachine::state_change(const std::string new_state){
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Generate event Change state to:" + new_state);
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Generate event Change state to: " + new_state);
 	std::shared_ptr<Event> event(new EventChangeState(new_state));
 	put_event(event);
 }
@@ -149,6 +159,7 @@ void StateMachine::state_change(const std::string new_state){
  *
  */
 void StateMachine::state_pop(){
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pop State");
 	std::shared_ptr<Event> event(new Event(EVENT_TYPE::EVT_POP_STATE));
 	put_event(event);
 }
@@ -178,7 +189,7 @@ void* StateMachine::worker(void* p){
 	StateMachine* stm = static_cast<StateMachine*>(p);
 
 	for(;;){
-		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker check event queue");
+		//logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker check event queue");
 
 		while( !stm->empty() && !finish){
 
@@ -190,6 +201,7 @@ void* StateMachine::worker(void* p){
 			 */
 			case EVT_FINISH:
 				logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Finish event detected.");
+				stm->process_finish_event();
 				finish = true;
 				break;
 
@@ -235,6 +247,20 @@ void* StateMachine::worker(void* p){
 
 	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker finished.");
 	return (void*) 0L;
+}
+
+/*
+ *
+ */
+void StateMachine::process_finish_event(){
+	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Process FINISH event");
+
+	try{
+		m_pirobo->stop();
+	}
+	catch(...){
+
+	}
 }
 
 /*

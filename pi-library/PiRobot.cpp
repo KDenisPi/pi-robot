@@ -51,9 +51,8 @@ std::shared_ptr<gpio::Gpio> PiRobot::get_gpio(const int id) const{
 /*
  *
  */
-void PiRobot::start(){
+bool PiRobot::start(){
 	logger::log(logger::LLOG::NECECCARY, __func__, "Robot is starting..");
-
 	std::map<const std::string, std::shared_ptr<item::Item>>::iterator it;
 
 	for(it = this->items.begin(); it != this->items.end(); ++it){
@@ -62,12 +61,14 @@ void PiRobot::start(){
 		const bool res = it->second->initialize();
 		if(!res){
 			logger::log(logger::LLOG::ERROR, __func__, "Initialization failed " + it->first);
+			return false;
 			/*TODO: Throw Exception and exit? */
 		}
-                (std::dynamic_pointer_cast<item::Led>(it->second))->On();
+        //(std::dynamic_pointer_cast<item::Led>(it->second))->On();
 	}
 
 	logger::log(logger::LLOG::NECECCARY, __func__, "Robot is started ");
+	return true;
 }
 
 /*
@@ -91,6 +92,7 @@ void PiRobot::stop(){
 bool PiRobot::configure(){
 	logger::log(logger::LLOG::NECECCARY, __func__, "Robot configuration is starting..");
 
+	/*
 	std::shared_ptr<gpio::GpioProvider> provider(new gpio::GpioProviderFake());
 
 	this->gpios[1] = std::shared_ptr<gpio::Gpio>(new gpio::Gpio(1, gpio::GPIO_MODE::OUT, provider));
@@ -98,17 +100,18 @@ bool PiRobot::configure(){
 
 	this->items[std::string("LED_1")] = std::shared_ptr<item::Item>(new item::Led(gpios.at(1), "LED_1", "LED first"));
 	this->items[std::string("BTN_1")] = std::shared_ptr<item::Item>(new item::Button(gpios.at(2), "BTN_1", "Button for LED_1"));
+	 */
 
 	logger::log(logger::LLOG::NECECCARY, __func__, "Robot configuration is finished");
 	return true;
 }
 
 void PiRobot::printConfig(){
-        std::map<const std::string, std::shared_ptr<item::Item>>::iterator it;
+    std::map<const std::string, std::shared_ptr<item::Item>>::iterator it;
 	std::cout << "-------------- configuration ---------------------------" << std::endl;
-        for(it = this->items.begin(); it != this->items.end(); ++it){
-                std::cout << it->first << " " << it->second->printConfig() << std::endl;
-        }
+    for(it = this->items.begin(); it != this->items.end(); ++it){
+         std::cout << it->first << " " << it->second->printConfig() << std::endl;
+    }
 }
 
 } /* namespace pirobot */

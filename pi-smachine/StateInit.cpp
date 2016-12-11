@@ -26,10 +26,25 @@ StateInit::~StateInit() {
 
 void StateInit::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEntry ");
+
 	/*
 	 * Need to add hardware initialization there.
 	 * Also to check hardware state and configuration
 	 */
+	if( !get_itf()->get_robot()->configure()){
+		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Hardware configuration failed. Stop.");
+		//Generate FINISH Event
+		get_itf()->finish();
+	}
+
+	/*
+	 * Start Hardware components
+	 */
+	if( !get_itf()->get_robot()->start()){
+		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Hardware configuration failed. Stop.");
+		//Generate FINISH Event
+		get_itf()->finish();
+	}
 
 	//temporal solution
 	get_itf()->state_change("StateEnvAnalize");
