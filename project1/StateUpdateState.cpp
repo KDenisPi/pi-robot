@@ -11,7 +11,7 @@
 namespace project1 {
 namespace state {
 
-StateUpdateState::StateUpdateState(const std::shared_ptr<smachine::StateMachineItf> itf) :
+StateUpdateState::StateUpdateState(smachine::StateMachineItf* itf) :
 		smachine::state::State(itf, "StateUpdateState") {
 	// TODO Auto-generated constructor stub
 

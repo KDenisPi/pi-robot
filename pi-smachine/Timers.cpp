@@ -20,7 +20,7 @@ namespace smachine {
 
 const char TAG[] = "timers";
 
-Timers::Timers(const std::shared_ptr<StateMachine> owner) :
+Timers::Timers(StateMachine* owner) :
 		m_pthread(0), m_stop(false), m_pid(0), m_owner(owner)
 {
 	sigset_t new_set;

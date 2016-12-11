@@ -24,7 +24,7 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, const st
 		m_factory(factory),
 		m_pirobo(pirobot)
 {
-	m_timers = std::shared_ptr<Timers>(new Timers(std::shared_ptr<StateMachine>(this)));
+	m_timers = std::shared_ptr<Timers>(new Timers(this));
 	m_states = std::shared_ptr<std::list<std::shared_ptr<state::State>>>(new std::list<std::shared_ptr<state::State>>);
 
 	start();
@@ -52,6 +52,7 @@ bool StateMachine::start(){
 
 	if( is_stopped() ){
 		state_change("StateInit");
+		//this->put_event(std::shared_ptr<Event>(new Event(EVT_FINISH)), true);
 
 		pthread_attr_init(&attr);
 		int result = pthread_create(&this->m_pthread, &attr, StateMachine::worker, (void*)(this));
@@ -95,6 +96,9 @@ void StateMachine::stop(){
  */
 StateMachine::~StateMachine() {
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+
+	m_timers->stop();
+	m_states->erase(m_states->begin(), m_states->end());
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
 }
@@ -171,8 +175,7 @@ void* StateMachine::worker(void* p){
 	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker started.");
 	bool finish = false;
 
-	StateMachine* owner = static_cast<StateMachine*>(p);
-	const std::shared_ptr<StateMachine> stm(owner);
+	StateMachine* stm = static_cast<StateMachine*>(p);
 
 	for(;;){
 		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker check event queue");
@@ -290,8 +293,8 @@ void StateMachine::process_change_state(const std::shared_ptr<Event> event){
 		logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + cname);
 
 		auto newstate = (cname == "StateInit" ?
-				std::shared_ptr<smachine::state::State>(new smachine::state::StateInit(std::shared_ptr<StateMachineItf>(this))):
-				m_factory->get_state(cname, std::shared_ptr<StateMachineItf>(dynamic_cast<StateMachineItf*>(this))));
+				std::shared_ptr<smachine::state::State>(new smachine::state::StateInit(dynamic_cast<StateMachineItf*>(this))):
+				m_factory->get_state(cname, dynamic_cast<StateMachineItf*>(this)));
 		bool new_state = true;
 
 		//throw std::runtime_error("No such state");

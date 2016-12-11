@@ -27,7 +27,7 @@ MyStateFactory::~MyStateFactory() {
 }
 
 const std::shared_ptr<smachine::state::State> MyStateFactory::get_state(const std::string state_name,
-		const std::shared_ptr<smachine::StateMachineItf> itf)
+		smachine::StateMachineItf* itf)
 {
 	if(state_name.compare("StateEnvAnalize") == 0){
 		return std::shared_ptr<smachine::state::State>(new project1::state::StateEnvAnalize(itf));

@@ -23,7 +23,7 @@ class StateMachine;
 
 class Timers : public TimersItf {
 public:
-	Timers(const std::shared_ptr<StateMachine> owner);
+	Timers(StateMachine* owner);
 	virtual ~Timers();
 
 	/*
@@ -40,7 +40,7 @@ public:
 
 	bool start();
 	void stop();
-	inline const std::shared_ptr<StateMachine> get_owner() const { return m_owner;}
+	inline StateMachine* get_owner() const { return m_owner;}
 private:
 
 	void set_stop_signal(const bool state=true);
@@ -56,7 +56,7 @@ private:
 	std::recursive_mutex mutex_tm;
 
 	std::map<int, std::shared_ptr<Timer>> m_id_to_tm;
-	std::shared_ptr<StateMachine> m_owner;
+	StateMachine* m_owner;
 };
 
 } /* namespace smachine */

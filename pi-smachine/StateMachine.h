@@ -52,6 +52,7 @@ public:
 	virtual void state_pop() override;
 	virtual void timer_start(const int timer_id, const time_t interval, const bool interval_timer) override;
 	virtual void timer_cancel(const int timer_id) override;
+
 	virtual std::shared_ptr<pirobot::PiRobot> get_robot() override {return m_pirobo;}
 
 

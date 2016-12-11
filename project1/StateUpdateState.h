@@ -15,7 +15,7 @@ namespace state {
 
 class StateUpdateState: public smachine::state::State {
 public:
-	StateUpdateState(const std::shared_ptr<smachine::StateMachineItf> itf);
+	StateUpdateState(smachine::StateMachineItf* itf);
 	virtual ~StateUpdateState();
 
 	virtual void OnEntry() override;

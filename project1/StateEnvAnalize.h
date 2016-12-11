@@ -15,7 +15,7 @@ namespace state {
 
 class StateEnvAnalize: public smachine::state::State {
 public:
-	StateEnvAnalize(const std::shared_ptr<smachine::StateMachineItf> itf);
+	StateEnvAnalize(smachine::StateMachineItf* itf);
 	virtual ~StateEnvAnalize();
 
 	virtual void OnEntry() override;

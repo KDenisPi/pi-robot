@@ -10,7 +10,7 @@
 namespace smachine {
 namespace state {
 
-State::State(const std::shared_ptr<StateMachineItf> itf, const std::string name) :
+State::State(StateMachineItf* itf, const std::string name) :
 		m_itf(itf), m_name(name)
 {
 

@@ -20,7 +20,7 @@ public:
 	StateFactory();
 	virtual ~StateFactory();
 
-	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, const std::shared_ptr<smachine::StateMachineItf> itf) = 0;
+	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, smachine::StateMachineItf* itf) = 0;
 };
 
 } /* namespace smachine */

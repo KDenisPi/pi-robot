@@ -24,7 +24,7 @@ namespace state {
 
 class State {
 public:
-	State(const std::shared_ptr<StateMachineItf> itf, const std::string name);
+	State(StateMachineItf* itf, const std::string name);
 	virtual ~State();
 
 	virtual void OnEntry() = 0;
@@ -32,7 +32,7 @@ public:
 	virtual void OnExit() {}
 	virtual bool OnTimer(const int id) {return false;};
 
-	std::shared_ptr<StateMachineItf> get_itf() const { return m_itf;}
+	StateMachineItf* get_itf() const { return m_itf;}
 	std::shared_ptr<pirobot::PiRobot> get_robot() const { return m_itf->get_robot();}
 
 	inline const std::string get_name() { return m_name;}
@@ -42,7 +42,7 @@ public:
 
 
 private:
-	std::shared_ptr<StateMachineItf> m_itf;
+	StateMachineItf* m_itf;
 	std::string m_name;
 };
 

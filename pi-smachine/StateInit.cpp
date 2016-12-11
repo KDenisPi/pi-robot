@@ -13,7 +13,7 @@ namespace state {
 
 const char TAG[] = "sinit";
 
-StateInit::StateInit(const std::shared_ptr<StateMachineItf> itf):
+StateInit::StateInit(StateMachineItf* itf):
 		state::State(itf, "StateInit")
 {
 	// TODO Auto-generated constructor stub

@@ -11,7 +11,7 @@
 namespace project1 {
 namespace state {
 
-StateEnvAnalize::StateEnvAnalize(const std::shared_ptr<smachine::StateMachineItf> itf) :
+StateEnvAnalize::StateEnvAnalize(smachine::StateMachineItf* itf) :
 		smachine::state::State(itf, "StateEnvAnalize")
 {
 	// TODO Auto-generated constructor stub
