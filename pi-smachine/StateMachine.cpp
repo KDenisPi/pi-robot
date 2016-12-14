@@ -323,9 +323,6 @@ void StateMachine::process_change_state(const std::shared_ptr<Event> event){
 				m_factory->get_state(cname, dynamic_cast<StateMachineItf*>(this)));
 		bool new_state = true;
 
-		//throw std::runtime_error("No such state");
-
-
 		for (const auto& state : *(get_states())) {
 			if(state == newstate){
 				new_state = false;

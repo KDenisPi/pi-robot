@@ -13,7 +13,8 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR}/../../wiringPi/wiringPi
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_SMASHINE_SOURCES)
 
-add_library(pi-smachine SHARED ${PI_SMASHINE_SOURCES})
+#add_library(pi-smachine SHARED ${PI_SMASHINE_SOURCES})
+add_library(pi-smachine STATIC ${PI_SMASHINE_SOURCES})
 
 target_link_libraries(pi-smachine rt)
 
