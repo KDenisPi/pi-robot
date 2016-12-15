@@ -30,10 +30,7 @@ int main (int argc, char* argv[])
   sleep(4);
 
   cout <<  "Wait for state machine" << endl;
-  void* ret;
-  int res = pthread_join(stm->get_thread(), &ret);
-  if(res != 0)
-		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not join to thread Res:" + std::to_string(res));
+  stm->wait();
 
   cout <<  "Sleep 3 sec" << endl;
   sleep(3);

@@ -9,9 +9,10 @@
 #define PI_SMACHINE_STATEFACTORY_H_
 
 #include <string>
-#include <exception>
 
 #include "State.h"
+#include "Environment.h"
+
 
 namespace smachine {
 
@@ -21,6 +22,11 @@ public:
 	virtual ~StateFactory();
 
 	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, smachine::StateMachineItf* itf) = 0;
+
+	/*
+	 * Create Environment object
+	 */
+	virtual Environment* get_environment() = 0;
 };
 
 } /* namespace smachine */

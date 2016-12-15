@@ -26,6 +26,17 @@ MyStateFactory::~MyStateFactory() {
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 }
 
+/*
+ * Create Environment object
+ */
+smachine::Environment* MyStateFactory::get_environment(){
+	return new MyEnv();
+}
+
+
+/*
+ *
+ */
 const std::shared_ptr<smachine::state::State> MyStateFactory::get_state(const std::string state_name,
 		smachine::StateMachineItf* itf)
 {

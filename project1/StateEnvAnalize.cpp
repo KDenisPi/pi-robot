@@ -39,6 +39,9 @@ bool StateEnvAnalize::OnTimer(const int id){
 		 */
 		get_itf()->state_change("StateUpdateState");
 		return true;
+	case TIMER_FINISH_ROBOT:
+		get_itf()->finish();
+		return true;
 	}
 
 	return false;

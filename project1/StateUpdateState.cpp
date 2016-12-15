@@ -24,18 +24,14 @@ StateUpdateState::~StateUpdateState() {
 void StateUpdateState::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEntry started");
 
-	get_itf()->timer_start(TIMER_FINISH_ROBOT, 4);
-
+	//set finish timer
+	get_itf()->timer_start(TIMER_FINISH_ROBOT, 10);
+	//POP state
+	get_itf()->state_pop();
 }
 
 bool StateUpdateState::OnTimer(const int id){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnTimer started ID: " + std::to_string(id));
-
-	switch(id){
-	case TIMER_FINISH_ROBOT:
-		get_itf()->finish();
-		return true;
-	}
 
 	return false;
 }

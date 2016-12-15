@@ -54,6 +54,7 @@ public:
 	virtual void timer_cancel(const int timer_id) override;
 
 	virtual std::shared_ptr<pirobot::PiRobot> get_robot() override {return m_pirobo;}
+	virtual std::shared_ptr<Environment> get_env() override {return m_env; }
 
 
 	bool process_timer_event(const std::shared_ptr<Event> event);
@@ -65,6 +66,11 @@ public:
 	 * Temporal - return thread ID
 	 */
 	inline const pthread_t get_thread() const {return m_pthread;}
+
+	/*
+	 * Temporal: Wait for processing
+	 */
+	void wait();
 
 	/*
 	 * Debug function print current stack of states
@@ -96,6 +102,8 @@ private:
 
 	std::shared_ptr<pirobot::PiRobot> m_pirobo;
 	std::shared_ptr<StateFactory> m_factory;
+
+	std::shared_ptr<Environment> m_env;
 };
 
 } /* namespace smachine */

@@ -8,9 +8,16 @@
 #ifndef PROJECT1_MYSTATEFACTORY_H_
 #define PROJECT1_MYSTATEFACTORY_H_
 
+#include "Environment.h"
 #include "StateFactory.h"
 
 namespace project1 {
+
+class MyEnv : public smachine::Environment {
+public:
+	MyEnv() {}
+	virtual ~MyEnv() {}
+};
 
 class MyStateFactory: public smachine::StateFactory {
 public:
@@ -18,6 +25,11 @@ public:
 	virtual ~MyStateFactory();
 
 	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, smachine::StateMachineItf* itf) override;
+
+	/*
+	 * Create Environment object
+	 */
+	virtual smachine::Environment* get_environment() override;
 
 };
 

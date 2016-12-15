@@ -27,6 +27,8 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, const st
 	m_timers = std::shared_ptr<Timers>(new Timers(this));
 	m_states = std::shared_ptr<std::list<std::shared_ptr<state::State>>>(new std::list<std::shared_ptr<state::State>>);
 
+	m_env = std::shared_ptr<Environment>(m_factory->get_environment());
+
 	start();
 }
 
@@ -68,6 +70,27 @@ bool StateMachine::start(){
 
 	return ret;
 }
+
+/*
+ * Temporal: Wait for processing
+ */
+void StateMachine::wait(){
+	void* ret;
+	int res = 0;
+
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Trying to join and wait ");
+	res = pthread_join(this->m_pthread, &ret);
+	if(res != 0){
+		if(res != ESRCH)
+			logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not join to thread Res: " + std::to_string(res));
+		else{
+			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished already. Res: " + std::to_string(res));
+		}
+	}
+
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished Res: " + std::to_string((long)ret));
+}
+
 
 /*
  *

@@ -13,6 +13,7 @@
 
 #include "TimersItf.h"
 #include "PiRobot.h"
+#include "Environment.h"
 
 namespace smachine {
 
@@ -33,6 +34,7 @@ public:
 	virtual void timer_cancel(const int timer_id) = 0;
 
 	virtual std::shared_ptr<pirobot::PiRobot> get_robot() = 0;
+	virtual std::shared_ptr<Environment> get_env() = 0;
 
 };
 
