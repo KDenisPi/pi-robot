@@ -10,6 +10,9 @@
 
 #include <map>
 #include <memory>
+#include <functional>
+#include <vector>
+
 #include <wiringPi.h>
 
 #include "GpioProvider.h"
@@ -41,12 +44,24 @@ public:
 	void stop();
 
 	/*
-	 *
+	 * Get GPIO by ID
 	 */
 	std::shared_ptr<gpio::Gpio> get_gpio(const int id) const;
 
+	/*
+	 * Get Item by name
+	 */
+	std::shared_ptr<item::Item> get_item(const std::string& name) const;
+
 	void gpios_add(int idx, const std::shared_ptr<gpio::Gpio> gpio){
 		gpios[idx] = gpio;
+	}
+
+	inline const std::vector<int> get_gpios() const {
+		std::vector<int> keys;
+		for(auto imap: gpios)
+		    keys.push_back(imap.first);
+		return keys;
 	}
 
 	void items_add(const std::string name, const std::shared_ptr<item::Item> item){
@@ -54,6 +69,14 @@ public:
 	}
 
     void printConfig();
+
+    /*
+     *
+     */
+    void notify_stm(int itype, std::string& name, void* data);
+
+	std::function<void(int, std::string&, void*)> stm_notification;
+
 private:
 	bool m_realWorld;
 

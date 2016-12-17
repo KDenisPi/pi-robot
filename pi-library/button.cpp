@@ -24,7 +24,7 @@ const char TAG[] = "button";
 Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
                const BUTTON_STATE state,
 			   const gpio::PULL_MODE pullmode) :
-	Item(gpio),
+	Item(gpio, ItemTypes::BUTTON),
 	m_pullmode(pullmode),
     m_state(state)
 {
@@ -42,7 +42,7 @@ Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 		const std::string comment,
         const BUTTON_STATE state,
 	    const gpio::PULL_MODE pullmode) :
-           	Item(gpio, name, comment),
+           	Item(gpio, name, comment, ItemTypes::BUTTON),
 			m_pullmode(pullmode),
 			m_state(state)
 {
@@ -150,7 +150,10 @@ void* Button::worker(void* p){
 		const BUTTON_STATE state = (level == gpio::SGN_LEVEL::SGN_HIGH ? BUTTON_STATE::BTN_PUSHED : BUTTON_STATE::BTN_NOT_PUSHED);
 		if(state != owner->state()){
 			owner->set_state(state);
-   	                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ***** State changed!!!! ");
+   	                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** State changed!!!! " + owner->name());
+
+   	        std::string name = owner->name();
+   	        owner->notify(owner->type(), name, (void*)(&state));
 		}
 
 		delay(10);

@@ -13,11 +13,13 @@
 namespace smachine {
 
 enum EVENT_TYPE {
-   EVT_NONE         = 0,  //Do nothing
-   EVT_CHANGE_STATE = 1,  //Change state
-   EVT_POP_STATE    = 2,  //Move to previous state in stack
-   EVT_TIMER        = 3,  //Timer
-   EVT_FINISH       = 4
+   EVT_NONE         = 0,  	//Do nothing
+   EVT_CHANGE_STATE = 1,  	//Change state
+   EVT_POP_STATE    = 2,  	//Move to previous state in stack
+   EVT_TIMER        = 3,  	//Timer
+   EVT_BTN_UP		= 4,  	//Button UP (Released)
+   EVT_BTN_DOWN		= 5,	//Button Down (pressed)
+   EVT_FINISH       = 6		//End of work
 };   
 
 class Event {

@@ -16,7 +16,7 @@ const char TAG[] = "led";
 Led::Led(const std::shared_ptr<gpio::Gpio> gpio,
 		const LED_STATE init_state,
 		const bool init_always) :
-	Item(gpio),
+	Item(gpio, ItemTypes::LED),
 	m_state(LED_STATE::OFF),
 	m_init_state(init_state),
 	m_init_always(init_always)
@@ -33,7 +33,7 @@ Led::Led(const std::shared_ptr<gpio::Gpio> gpio,
 		const std::string comment,
 		const LED_STATE init_state,
 		const bool init_always)
-			: Item(gpio, name, comment),
+			: Item(gpio, name, comment, ItemTypes::LED),
 			  m_init_state(init_state),
 			  m_state(LED_STATE::OFF),
 			  m_init_always(init_always)

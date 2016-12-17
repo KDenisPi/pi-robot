@@ -17,12 +17,9 @@
 namespace pirobot {
 namespace item {
 
+
 class Button: public Item, public Threaded {
 public:
-	enum BUTTON_STATE{
-		BTN_NOT_PUSHED = 0,
-		BTN_PUSHED = 1
-	};
 
 	/*
 	 * Constructor

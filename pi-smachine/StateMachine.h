@@ -76,6 +76,12 @@ public:
 	 * Debug function print current stack of states
 	 */
 	const std::string print_state_stack() const;
+
+    /*
+     *
+     */
+    void process_robot_notification(int itype, std::string& name, void* data);
+
 private:
 	bool start();
 	void stop();

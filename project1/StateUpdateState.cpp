@@ -27,7 +27,7 @@ void StateUpdateState::OnEntry(){
 	//set finish timer
 	get_itf()->timer_start(TIMER_FINISH_ROBOT, 10);
 	//POP state
-	get_itf()->state_pop();
+	//get_itf()->state_pop();
 }
 
 bool StateUpdateState::OnTimer(const int id){

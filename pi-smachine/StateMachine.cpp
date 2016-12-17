@@ -29,7 +29,15 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, const st
 
 	m_env = std::shared_ptr<Environment>(m_factory->get_environment());
 
-	start();
+	if( !start()){
+		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " State machine could not start!");
+	}
+
+	//set callback function for hardware calls
+	if(pirobot.get() != nullptr){
+		pirobot->stm_notification = std::bind(&StateMachine::process_robot_notification,
+				this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+	}
 }
 
 
@@ -404,6 +412,33 @@ const std::string StateMachine::print_state_stack() const {
 	}
 
 	return result;
+}
+
+/*
+ *
+ */
+void StateMachine::process_robot_notification(int itype, std::string& name, void* data){
+	logger::log(logger::LLOG::NECECCARY, __func__, " Received notification Item Type: " + std::to_string(itype) + " Name: " + name);
+
+	try{
+		if(itype == pirobot::item::ItemTypes::BUTTON){
+			auto  state = *(static_cast<int*>(data));
+			if(pirobot::item::BUTTON_STATE::BTN_NOT_PUSHED){
+				std::shared_ptr<Event> btn_up(new Event(EVENT_TYPE::EVT_BTN_UP, name));
+				put_event(btn_up);
+			}
+			else if(pirobot::item::BUTTON_STATE::BTN_PUSHED){
+				std::shared_ptr<Event> btn_down(new Event(EVENT_TYPE::EVT_BTN_DOWN, name));
+				put_event(btn_down);
+			}
+			else
+				logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Unknown state for Item::Button");
+		}
+	}
+	catch(...){
+		logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Unknown exception detected. Notification lost");
+	}
+
 }
 
 

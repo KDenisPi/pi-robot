@@ -10,14 +10,10 @@
 
 #include "Environment.h"
 #include "StateFactory.h"
+#include "MyEnv.h"
 
 namespace project1 {
 
-class MyEnv : public smachine::Environment {
-public:
-	MyEnv() {}
-	virtual ~MyEnv() {}
-};
 
 class MyStateFactory: public smachine::StateFactory {
 public:

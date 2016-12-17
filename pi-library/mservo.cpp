@@ -16,7 +16,7 @@ namespace item {
 ServoMotor::ServoMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 	const uint16_t offset,
 	const uint16_t max) :
-	Item(gpio), m_max(max), m_offset(offset)
+	Item(gpio, ItemTypes::SERVO), m_max(max), m_offset(offset)
 {
 }
 
@@ -25,7 +25,7 @@ ServoMotor::ServoMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 		const std::string comment,
 		const uint16_t offset,
 		const uint16_t max) :
-	Item(gpio, name, comment), m_max(max), m_offset(offset)
+	Item(gpio, name, comment, ItemTypes::SERVO), m_max(max), m_offset(offset)
 {
 
 }
