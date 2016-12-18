@@ -48,7 +48,7 @@ bool PiRobotPrj1::configure(){
     //build in GPIO
 	std::shared_ptr<pirobot::gpio::GpioProvider> provider_simple(new pirobot::gpio::GpioProviderSimple());
 	//GPIO extender MCP23017
-	//std::shared_ptr<pirobot::gpio::GpioProvider> provider_mcp23017(new pirobot::gpio::GpioProviderMCP23017());
+	std::shared_ptr<pirobot::gpio::GpioProvider> provider_mcp23017(new pirobot::gpio::GpioProviderMCP23017());
 	//PCA9585
         std::shared_ptr<pirobot::gpio::Adafruit_PWMServoDriver> pwm(new pirobot::gpio::Adafruit_PWMServoDriver());
 	std::shared_ptr<pirobot::gpio::GpioProvider> provider_pca9685(new pirobot::gpio::GpioProviderPCA9685(pwm));
@@ -62,14 +62,14 @@ bool PiRobotPrj1::configure(){
 				std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(provider_simple->getStartPin()+i,
 						pirobot::gpio::GPIO_MODE::OUT, provider_simple)));
 	}
-/*
-	for(i=0; i < 3; i++){
+
+	for(i=0; i < 2; i++){
 		gpios_add(provider_mcp23017->getStartPin()+i,
 				std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(provider_mcp23017->getStartPin()+i,
 						pirobot::gpio::GPIO_MODE::OUT, provider_mcp23017)));
 	}
-*/
-	for(i=0; i < 6; i++){
+
+	for(i=0; i < 3; i++){
 		gpios_add(provider_pca9685->getStartPin()+i,
 				std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(provider_pca9685->getStartPin()+i,
 						pirobot::gpio::GPIO_MODE::OUT, provider_pca9685)));

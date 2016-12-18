@@ -77,6 +77,8 @@ void GpioProviderMCP23017::dgtWrite(const int pin, const int value){
 
 	  int bit, current_mode ;
 	  int rpin = getRealPin(pin);	// Pin now 0-15
+	  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pin: " + std::to_string(pin) + 
+			" Real: " + std::to_string(rpin) + " Value: " + std::to_string(value));
 
 	  bit = 1 << (rpin & 0x07) ;
 
@@ -116,9 +118,11 @@ void GpioProviderMCP23017::dgtWrite(const int pin, const int value){
  *
  */
 void GpioProviderMCP23017::setmode(const int pin, const gpio::GPIO_MODE mode){
-
 	int reg_addr, mask, current_mode;
 	int rpin = getRealPin(pin);
+
+  	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pin: " + std::to_string(pin) + 
+			" Real: " + std::to_string(rpin) + " Mode: " + std::to_string(mode));
 
 	if (rpin < 8)          // Bank A
 		reg_addr  = MCP23x17_IODIRA ;

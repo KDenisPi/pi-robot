@@ -64,6 +64,13 @@ public:
 		return keys;
 	}
 
+	inline const std::vector<std::string> get_items() const {
+		std::vector<std::string> keys;
+		for(auto imap: items)
+			keys.push_back(imap.first);
+		return keys;
+	}
+
 	void items_add(const std::string name, const std::shared_ptr<item::Item> item){
 		items[name] = item;
 	}

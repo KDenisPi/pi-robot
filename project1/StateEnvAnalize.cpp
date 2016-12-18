@@ -5,6 +5,8 @@
  *      Author: denis
  */
 
+#include <vector>
+
 #include "defines.h"
 #include "StateEnvAnalize.h"
 #include "MyEnv.h"
@@ -32,7 +34,9 @@ void StateEnvAnalize::OnEntry(){
 	 * Light On first LED
 	 */
 	try{
-		auto led = dynamic_cast<pirobot::item::Led*>(get_robot()->get_item("LED_0").get());
+		std::vector<std::string> items = get_robot()->get_items();
+		std::string name = items[0];
+		auto led = dynamic_cast<pirobot::item::Led*>(get_robot()->get_item(name).get());
 		led->On();
 
 		auto env = dynamic_cast<MyEnv*>(get_itf()->get_env().get());
@@ -42,7 +46,7 @@ void StateEnvAnalize::OnEntry(){
 
 	}
 
-	get_itf()->timer_start(TIMER_SWITCH_TO_SECOND, 6);
+	get_itf()->timer_start(TIMER_SWITCH_TO_SECOND, 1);
 
 }
 
@@ -59,10 +63,9 @@ bool StateEnvAnalize::OnTimer(const int id){
 
 		if(env->led_processed < env->led_max){
 			try{
-				int cur_num = (env->led_processed <= 2 ? env->led_processed-1 : env->led_processed + 27);
-				int next_num = (env->led_processed < 2 ? env->led_processed : env->led_processed + 28);
-				std::string led_name_prev = "LED_" + std::to_string(cur_num);
-				std::string led_name_next = "LED_" + std::to_string(next_num);
+				std::vector<std::string> items = get_robot()->get_items();
+				std::string led_name_prev = items[env->led_processed-1];
+				std::string led_name_next = items[env->led_processed];
 
 				logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Curr: " + led_name_prev + " Next: " + led_name_next);
 
@@ -77,12 +80,12 @@ bool StateEnvAnalize::OnTimer(const int id){
 			catch(std::runtime_error& exc){
 
 			}
-			get_itf()->timer_start(TIMER_SWITCH_TO_SECOND, 6);
+			get_itf()->timer_start(TIMER_SWITCH_TO_SECOND, 1);
 		}
 		else {
 			try{
-				int cur_num = (env->led_processed <= 2 ? env->led_processed-1 : env->led_processed + 27);
-				std::string led_name_prev = "LED_" + std::to_string(cur_num);
+				std::vector<std::string> items = get_robot()->get_items();
+				std::string led_name_prev = items[env->led_processed-1];
 
 				logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Curr: " + led_name_prev);
 
