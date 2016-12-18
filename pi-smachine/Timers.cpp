@@ -129,7 +129,7 @@ void* Timers::worker(void* p){
 	owner->set_pid(syscall(SYS_gettid));
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " PID: " + std::to_string(owner->get_pid()));
 
-	timeout.tv_sec = 1;
+	timeout.tv_sec = 5;
 	timeout.tv_nsec = 0;
 	while(!owner->is_stop_signal()){
 		/*
@@ -145,6 +145,7 @@ void* Timers::worker(void* p){
 				/*
 				 * Timeout.
 				 */
+				logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer wait timeout ");
 				continue;
 			}
 			else{
@@ -157,6 +158,9 @@ void* Timers::worker(void* p){
 			 * Timer signal is received. Process it.
 			 */
 			const int id  = sig_info._sifields._timer.si_sigval.sival_int;
+
+			// Remove timer from map
+			owner->cancel_timer(id);
 
 			logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Detected signal ID: " + std::to_string(id));
 			owner->get_owner()->put_event(std::shared_ptr<Event>(new Event(EVT_TIMER, id)));
@@ -187,6 +191,7 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
 		 * Timer with such ID is present already
 		 */
 		mutex_tm.unlock();
+		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer is present already.");
 		return true;
 	}
 
@@ -231,6 +236,8 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
 	m_id_to_tm.emplace(timer->get_id(), timer);
 
 	mutex_tm.unlock();
+
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " finished.");
 	return true;
 }
 
@@ -253,6 +260,10 @@ void Timers::cancel_timer(const int id){
 
 	timer_t tid = timer->second->get_tid();
 	if(timer_delete(tid) < 0){
+	    if(errno == EINVAL){
+		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " timer ID: " + std::to_string(id) + " is not present already");
+	    }
+	    else
 		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " could not delete timer Error: " + std::to_string(errno));
 	}
 

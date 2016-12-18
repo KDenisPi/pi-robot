@@ -32,7 +32,7 @@ void StateEnvAnalize::OnEntry(){
 	 * Light On first LED
 	 */
 	try{
-		auto led = dynamic_cast<pirobot::item::Led*>(get_robot()->get_item("LED_1").get());
+		auto led = dynamic_cast<pirobot::item::Led*>(get_robot()->get_item("LED_0").get());
 		led->On();
 
 		auto env = dynamic_cast<MyEnv*>(get_itf()->get_env().get());
@@ -42,7 +42,7 @@ void StateEnvAnalize::OnEntry(){
 
 	}
 
-	get_itf()->timer_start(TIMER_SWITCH_TO_SECOND, 2);
+	get_itf()->timer_start(TIMER_SWITCH_TO_SECOND, 6);
 
 }
 
@@ -59,27 +59,39 @@ bool StateEnvAnalize::OnTimer(const int id){
 
 		if(env->led_processed < env->led_max){
 			try{
-				std::string led_name_prev = "LED_" + std::to_string(env->led_processed);
-				std::string led_name_next = "LED_" + std::to_string(env->led_processed+1);
+				int cur_num = (env->led_processed <= 2 ? env->led_processed-1 : env->led_processed + 27);
+				int next_num = (env->led_processed < 2 ? env->led_processed : env->led_processed + 28);
+				std::string led_name_prev = "LED_" + std::to_string(cur_num);
+				std::string led_name_next = "LED_" + std::to_string(next_num);
+
+				logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Curr: " + led_name_prev + " Next: " + led_name_next);
 
 				auto led_prev = dynamic_cast<pirobot::item::Led*>(get_robot()->get_item(led_name_prev).get());
 				led_prev->Off();
 
 				auto led_next = dynamic_cast<pirobot::item::Led*>(get_robot()->get_item(led_name_next).get());
-				led_prev->On();
+				led_next->On();
 
 				env->led_processed++;
 			}
 			catch(std::runtime_error& exc){
 
 			}
-			get_itf()->timer_start(TIMER_SWITCH_TO_SECOND, 2);
+			get_itf()->timer_start(TIMER_SWITCH_TO_SECOND, 6);
 		}
 		else {
-			std::string led_name_prev = "LED_" + std::to_string(env->led_processed);
-			auto led_prev = dynamic_cast<pirobot::item::Led*>(get_robot()->get_item(led_name_prev).get());
-			led_prev->Off();
+			try{
+				int cur_num = (env->led_processed <= 2 ? env->led_processed-1 : env->led_processed + 27);
+				std::string led_name_prev = "LED_" + std::to_string(cur_num);
 
+				logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Curr: " + led_name_prev);
+
+				auto led_prev = dynamic_cast<pirobot::item::Led*>(get_robot()->get_item(led_name_prev).get());
+				led_prev->Off();
+			}
+			catch(std::runtime_error& exc){	
+			
+			}
 			/*
 			 * Switch to another state
 			 */

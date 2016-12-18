@@ -14,7 +14,7 @@
 #include "defines.h"
 #include "StateMachine.h"
 #include "MyStateFactory.h"
-#include "PiRobot.h"
+#include "PiRobotPrj1.h"
 
 using namespace std;
 
@@ -23,7 +23,7 @@ int main (int argc, char* argv[])
   cout <<  "Project1 started" << endl;
 
   std::shared_ptr<project1::MyStateFactory> factory(new project1::MyStateFactory());
-  std::shared_ptr<pirobot::PiRobot> pirobot(new pirobot::PiRobot());
+  std::shared_ptr<pirobot::PiRobot> pirobot(new project1::PiRobotPrj1());
 
   smachine::StateMachine* stm = new smachine::StateMachine(factory, pirobot);
 

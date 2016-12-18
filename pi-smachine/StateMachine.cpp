@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <exception>
 #include <algorithm>
+#include <pthread.h>
 
 #include "logger.h"
 #include "StateMachine.h"
@@ -149,6 +150,7 @@ StateMachine::~StateMachine() {
  *
  */
 const std::shared_ptr<Event> StateMachine::get_event(){
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 	mutex_sm.lock();
 	std::shared_ptr<Event> event = m_events.front();
 	m_events.pop();
@@ -160,6 +162,7 @@ const std::shared_ptr<Event> StateMachine::get_event(){
  *
  */
 void StateMachine::put_event(const std::shared_ptr<Event> event, bool force){
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 	mutex_sm.lock();
 	if(force){
 		while(!m_events.empty())
@@ -199,6 +202,7 @@ void StateMachine::state_pop(){
  *
  */
 void StateMachine::timer_start(const int timer_id, const time_t interval, const bool interval_timer){
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 	this->m_timers->create_timer(std::shared_ptr<Timer>(new Timer(timer_id, interval, 0, interval_timer)));
 }
 
@@ -206,6 +210,7 @@ void StateMachine::timer_start(const int timer_id, const time_t interval, const 
  *
  */
 void StateMachine::timer_cancel(const int timer_id){
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 	this->m_timers->cancel_timer(timer_id);
 }
 
@@ -345,6 +350,7 @@ void StateMachine::process_pop_state(){
  * 3. If fabric could not construct defined state do nothing
  */
 void StateMachine::process_change_state(const std::shared_ptr<Event> event){
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 	try{
 		std::string cname = event->name();
 		logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + cname);
