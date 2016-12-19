@@ -17,7 +17,8 @@ public:
 	MyEnv() : led_processed(0) {}
 	virtual ~MyEnv() {}
 
-	const int led_max = 8;
+	const int led_max = 7;
+	int items[7] = {0,1,30,31,32,50,51};
 	int led_processed;
 };
 

@@ -156,7 +156,7 @@ void* Button::worker(void* p){
    	        owner->notify(owner->type(), name, (void*)(&state));
 		}
 
-		delay(10);
+		delay(100);
 	}
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished.");

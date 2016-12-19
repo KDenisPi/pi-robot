@@ -56,6 +56,7 @@ bool PiRobotPrj1::configure(){
 	/*
 	* GPIOs
 	*/
+
 	int i;
 	for(i=0; i < 2; i++){
 		gpios_add(provider_simple->getStartPin()+i,
@@ -66,7 +67,7 @@ bool PiRobotPrj1::configure(){
 	for(i=0; i < 2; i++){
 		gpios_add(provider_mcp23017->getStartPin()+i,
 				std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(provider_mcp23017->getStartPin()+i,
-						pirobot::gpio::GPIO_MODE::OUT, provider_mcp23017)));
+						pirobot::gpio::GPIO_MODE::OUT,	provider_mcp23017)));
 	}
 
 	for(i=0; i < 3; i++){
@@ -75,15 +76,24 @@ bool PiRobotPrj1::configure(){
 						pirobot::gpio::GPIO_MODE::OUT, provider_pca9685)));
 	}
 
-	/*
-	* Items
-	*/
+
+	// Items
 	std::vector<int> gpios = get_gpios();
 	for(int gpio : gpios){
 		std::string name = std::string("LED_") + std::to_string(gpio);
 		items_add(name, std::shared_ptr<pirobot::item::Item>(new pirobot::item::Led(get_gpio(gpio), name, name)));
   	        logger::log(logger::LLOG::NECECCARY, __func__, "Added Item " + name);
 	}
+
+        for(i=2; i < 4; i++){
+		int pin = provider_mcp23017->getStartPin()+i;
+                gpios_add(pin, std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(pin, pirobot::gpio::GPIO_MODE::IN, 
+			provider_mcp23017)));
+
+                std::string name = std::string("BTN_") + std::to_string(pin);
+                items_add(name, std::shared_ptr<pirobot::item::Item>(new pirobot::item::Button(get_gpio(pin), name, name)));
+                logger::log(logger::LLOG::NECECCARY, __func__, "Added Item " + name);
+        }
 
 	//items_add(std::string("SMT_1"), std::shared_ptr<pirobot::item::Item>(new pirobot::item::ServoMotor(get_gpio(34), "SMT_1", "LED 9685 4")));
 	//items_add(std::string("SMT_2"), std::shared_ptr<pirobot::item::Item>(new pirobot::item::ServoMotor(get_gpio(35), "SMT_2", "LED 9685 5")));
