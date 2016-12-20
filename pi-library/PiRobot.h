@@ -46,12 +46,12 @@ public:
 	/*
 	 * Get GPIO by ID
 	 */
-	std::shared_ptr<gpio::Gpio> get_gpio(const int id) const;
+	std::shared_ptr<gpio::Gpio> get_gpio(const int id) const noexcept(false);
 
 	/*
 	 * Get Item by name
 	 */
-	std::shared_ptr<item::Item> get_item(const std::string& name) const;
+	std::shared_ptr<item::Item> get_item(const std::string& name) const noexcept(false);
 
 	void gpios_add(int idx, const std::shared_ptr<gpio::Gpio> gpio){
 		gpios[idx] = gpio;
