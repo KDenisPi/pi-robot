@@ -60,7 +60,7 @@ Mpu6050::Mpu6050(const uint8_t i2caddr, const unsigned int utime) :
 	  sleep_mode = I2CWrapper::I2CReadReg8(m_fd, MPU6050_PWR_MGMT_2);
 
 	  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " WHO_AM_I : " +
-			  std::string(buff) + "Sleep mode : " + std::to_string(sleep_mode));
+			  std::string(buff) + " Sleep mode : " + std::to_string(sleep_mode));
 
 	  // Clear the 'sleep' bit to start the sensor.
 	  I2CWrapper::I2CWriteReg8(m_fd, MPU6050_PWR_MGMT_1, 0);
@@ -283,6 +283,22 @@ void Mpu6050::update_values(){
 	  // Update the saved data with the latest values
 	  set_last_read_angle_data(t_now, angle_x, angle_y, angle_z,
 			  unfiltered_gyro_angle_x, unfiltered_gyro_angle_y, unfiltered_gyro_angle_z, temperature);
+}
+
+/*
+* Prepare current values for output
+*/
+const std::string Mpu6050::print_current(){
+  char buff[1024];
+  struct mpu6050_values val;
+  get_last_read_angle_data(val);
+
+  std::sprintf(buff, "Time:%ld Angle [X:%0.3f Y:%0.3f Z:%0.3f] Gyro [X:%0.3f Y:%0.3f Z:%0.3f] Temp:%0.2f", 
+	val.last_read_time,
+	val.last_x_angle, val.last_y_angle, val.last_z_angle,
+	val.last_gyro_x_angle, val.last_gyro_y_angle, val.last_gyro_z_angle, val.last_temperature);
+
+  return std::string(buff);
 }
 
 /*

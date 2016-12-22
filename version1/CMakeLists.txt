@@ -9,7 +9,7 @@ set(VER_MIN 1)
 find_library(PI_LIB pi-library PATH ${CMAKE_BINARY_DIR})
 
 set(CMAKE_BIULD_TYPE Debug)
-set(EXTRA_LIBS ${EXTRA_LIBS} ${WIPI_LIB} pi-library)
+set(EXTRA_LIBS ${EXTRA_LIBS} ${WIPI_LIB} pi-library pthread)
 
 include_directories(${PROJECT_SOURCE_DIR}/../../wiringPi/wiringPi
    ${PROJECT_SOURCE_DIR}/../pi-library

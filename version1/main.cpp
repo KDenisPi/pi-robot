@@ -4,10 +4,12 @@
 #include <stdexcept>
 #include <exception>
 
-//#include <wiringPi.h>
+#include "wiringPi.h"
 #include "version.h"
 //#include "RealWorld.h"
 //#include "Adafruit_PWMServoDriver.h"
+#include "Mpu6050.h"
+
 
 // LED Pin - wiringPi pin 0 is BCM_GPIO 17.
 #define	LED	0
@@ -22,13 +24,24 @@ int main (int argc, char* argv[])
 {
   cout <<  "Raspberry Pi blink Parameters:" << argc << endl;
 
-  try{
-		throw std::runtime_error("No such state");
+  pirobot::mpu6050::Mpu6050* mpu = new  pirobot::mpu6050::Mpu6050();
+  int res = wiringPiSetup();
+  cout <<  "Started wiringPi" << endl;
 
+  mpu->start();
+  cout <<  "Started MPU6050" << endl;
+  cout << mpu->print_current() << endl;
+
+  for(int i =0; i < 20; i++){
+   cout << mpu->print_current() << endl;
+   sleep(1);
   }
-  catch(...){
-	  cout << "Exception!" << endl;
-  }
+
+  cout <<  "Stop MPU6050" << endl;
+  mpu->stop();
+
+  cout <<  "Delete MPU6050" << endl;
+  delete mpu;
 
 /*
   float freq = 60.0;

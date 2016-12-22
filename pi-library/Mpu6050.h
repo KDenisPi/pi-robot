@@ -102,7 +102,7 @@ struct mpu6050_values {
 	float         last_gyro_x_angle;  // Store the gyro angles to compare drift
 	float         last_gyro_y_angle;
 	float         last_gyro_z_angle;
-	float 		  last_temperature;
+	float		last_temperature;
 };
 
 
@@ -121,6 +121,8 @@ public:
 	inline float get_last_gyro_y_angle() {return m_val.last_gyro_y_angle;}
 	inline float get_last_gyro_z_angle() {return m_val.last_gyro_z_angle;}
 
+	inline struct mpu6050_values& get_last_values() { return m_val;}
+
 	// The sensor should be motionless on a horizontal surface
 	//  while calibration is happening
 	void calibrate_sensors();
@@ -138,6 +140,7 @@ public:
 
 	inline unsigned int get_utime() { return update_interval; }
 
+	const std::string print_current();
 private:
 	uint8_t _i2caddr;
 	int m_fd;
