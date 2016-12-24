@@ -141,9 +141,13 @@ public:
 	inline unsigned int get_utime() { return update_interval; }
 
 	const std::string print_current();
+	inline uint8_t get_gyro_conf() const {return m_gyro_conf;}
+	inline uint8_t get_accel_conf() const {return m_accel_conf;}
 private:
 	uint8_t _i2caddr;
 	int m_fd;
+	uint8_t m_gyro_conf;
+	uint8_t m_accel_conf;
 
 	unsigned int update_interval; //update interval (1 second by default)
 	std::recursive_mutex data_update;

@@ -28,7 +28,8 @@ Mpu6050::Mpu6050(const uint8_t i2caddr, const unsigned int utime) :
 	base_z_accel(0.0),
 	base_x_gyro(0.0),
 	base_y_gyro(0.0),
-	base_z_gyro(0.0)
+	base_z_gyro(0.0),
+	m_gyro_conf(0), m_accel_conf(0)
 {
 	  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Address: " + std::to_string(_i2caddr));
 	  int error;
@@ -66,21 +67,29 @@ Mpu6050::Mpu6050(const uint8_t i2caddr, const unsigned int utime) :
 	  // Clear the 'sleep' bit to start the sensor.
 	  I2CWrapper::I2CWriteReg8(m_fd, MPU6050_PWR_MGMT_1, 0);
 
+
+	  I2CWrapper::I2CWriteReg8(m_fd, MPU6050_ACCEL_CONFIG, 0xE0);
+	  I2CWrapper::I2CWriteReg8(m_fd, MPU6050_GYRO_CONFIG, 0xE0);
+	  delay(500);
+	  I2CWrapper::I2CWriteReg8(m_fd, MPU6050_ACCEL_CONFIG, 0x00);
+	  I2CWrapper::I2CWriteReg8(m_fd, MPU6050_GYRO_CONFIG, 0x00);
+
 	  value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_CONFIG);
-          uint8_t gyro_conf = (value & 0x18) >> 3;
+          m_gyro_conf = (value & 0x18) >> 3;
 
 	  value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_CONFIG);
-          uint8_t accel_conf = (value & 0x18) >> 3;
+          m_accel_conf = (value & 0x18) >> 3;
 
 	  I2CWrapper::unlock();
 
 	  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " FS_SEL : " +
-			  std::to_string(gyro_conf) + " AFS_SEL : " + std::to_string(accel_conf));
+			  std::to_string(m_gyro_conf) + " AFS_SEL : " + std::to_string(m_accel_conf));
+
+	  //set_last_read_angle_data(millis(), 0, 0, 0, 0, 0, 0, 0);
 
 	  //Initialize the angles
 	  calibrate_sensors();
-	  set_last_read_angle_data(millis(), 0, 0, 0, 0, 0, 0, 0);
-
+	  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
 }
 
 Mpu6050::~Mpu6050() {
@@ -184,6 +193,8 @@ void Mpu6050::calibrate_sensors(){
   accel_t_gyro_union    accel_t_gyro;
   char buff[2048]; 
 
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+
   // Discard the first set of values read from the IMU
   read_gyro_accel_vals((uint8_t *) &accel_t_gyro);
 
@@ -227,16 +238,20 @@ void Mpu6050::calibrate_sensors(){
   base_x_gyro = x_gyro;
   base_y_gyro = y_gyro;
   base_z_gyro = z_gyro;
-/*
-  std::cout << base_x_accel << " " << base_y_accel << " " <<  base_z_accel << std::endl;
-  std::cout << base_x_gyro << " " << base_y_gyro  << " " <<  base_z_gyro << std::endl;
-*/
-  std::sprintf(buff, "Base Accel [X:%.3f Y:%.3f Z:%.3f] Gyro [X:%.3f Y:%.3f Z:%.3f]",
+
+  std::sprintf(buff, " Base Accel [X:%.3f Y:%.3f Z:%.3f] Gyro [X:%.3f Y:%.3f Z:%.3f]",
   base_x_accel, base_y_accel, base_z_accel,
   base_x_gyro, base_y_gyro, base_z_gyro);
 
   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(buff));
 
+  std::sprintf(buff, " Base Accel [X:%.3f Y:%.3f Z:%.3f] Gyro [X:%.3f Y:%.3f Z:%.3f]",
+  base_x_accel/16384, base_y_accel/16384, base_z_accel/16384,
+  base_x_gyro/131, base_y_gyro/131, base_z_gyro/131);
+
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(buff));
+
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
 }
 
 /*
@@ -345,7 +360,7 @@ const std::string Mpu6050::print_current(){
 
   std::sprintf(buff, "Time:%ld Angle [X:%0.3f Y:%0.3f Z:%0.3f] Gyro [X:%0.3f Y:%0.3f Z:%0.3f] Temp:%0.2f", 
 	val.last_read_time,
-	val.last_x_angle, val.last_y_angle, val.last_z_angle,
+	val.last_x_angle/16384, val.last_y_angle/16384, val.last_z_angle/16384,
 	val.last_gyro_x_angle, val.last_gyro_y_angle, val.last_gyro_z_angle, val.last_temperature);
 
   return std::string(buff);
