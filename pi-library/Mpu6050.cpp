@@ -7,6 +7,7 @@
 
 #include <cstdio>
 #include <cmath>
+#include <iostream>
 
 #include <wiringPi.h>
 
@@ -31,7 +32,7 @@ Mpu6050::Mpu6050(const uint8_t i2caddr, const unsigned int utime) :
 {
 	  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Address: " + std::to_string(_i2caddr));
 	  int error;
-	  uint8_t model, sleep_mode;
+	  uint8_t model, sleep_mode, value;
 	  char buff[10];
 
 	  /*
@@ -64,7 +65,17 @@ Mpu6050::Mpu6050(const uint8_t i2caddr, const unsigned int utime) :
 
 	  // Clear the 'sleep' bit to start the sensor.
 	  I2CWrapper::I2CWriteReg8(m_fd, MPU6050_PWR_MGMT_1, 0);
+
+	  value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_CONFIG);
+          uint8_t gyro_conf = (value & 0x18) >> 3;
+
+	  value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_CONFIG);
+          uint8_t accel_conf = (value & 0x18) >> 3;
+
 	  I2CWrapper::unlock();
+
+	  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " FS_SEL : " +
+			  std::to_string(gyro_conf) + " AFS_SEL : " + std::to_string(accel_conf));
 
 	  //Initialize the angles
 	  calibrate_sensors();
@@ -117,11 +128,28 @@ int Mpu6050::read_gyro_accel_vals(uint8_t* accel_t_gyro_ptr){
 	  // With the default settings of the MPU-6050,
 	  // there is no filter enabled, and the values
 	  // are not very stable.  Returns the error value
-
+	  int error = 0;
 	  accel_t_gyro_union* accel_t_gyro = (accel_t_gyro_union *) accel_t_gyro_ptr;
 
 	  I2CWrapper::lock();
-	  int error = I2CWrapper::I2CReadData(m_fd, MPU6050_ACCEL_XOUT_H, (uint8_t *) accel_t_gyro, sizeof(*accel_t_gyro));
+	  //int error = I2CWrapper::I2CReadData(m_fd, MPU6050_ACCEL_XOUT_H, (uint8_t *) accel_t_gyro, sizeof(*accel_t_gyro));
+	  accel_t_gyro->reg.x_accel_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_XOUT_H);
+	  accel_t_gyro->reg.x_accel_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_XOUT_L);
+	  accel_t_gyro->reg.y_accel_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_YOUT_H);
+	  accel_t_gyro->reg.y_accel_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_YOUT_L);
+	  accel_t_gyro->reg.z_accel_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_ZOUT_H);
+	  accel_t_gyro->reg.z_accel_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_ZOUT_L);
+
+	  accel_t_gyro->reg.x_gyro_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_XOUT_H);
+	  accel_t_gyro->reg.x_gyro_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_XOUT_L);
+	  accel_t_gyro->reg.y_gyro_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_YOUT_H);
+	  accel_t_gyro->reg.y_gyro_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_YOUT_L);
+	  accel_t_gyro->reg.z_gyro_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_ZOUT_H);
+	  accel_t_gyro->reg.z_gyro_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_ZOUT_L);
+
+	  accel_t_gyro->reg.t_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_TEMP_OUT_H);
+	  accel_t_gyro->reg.t_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_TEMP_OUT_L);
+
 	  I2CWrapper::unlock();
 
 	  // Swap all high and low bytes.
@@ -154,6 +182,7 @@ void Mpu6050::calibrate_sensors(){
   float                 y_gyro = 0;
   float                 z_gyro = 0;
   accel_t_gyro_union    accel_t_gyro;
+  char buff[2048]; 
 
   // Discard the first set of values read from the IMU
   read_gyro_accel_vals((uint8_t *) &accel_t_gyro);
@@ -162,6 +191,17 @@ void Mpu6050::calibrate_sensors(){
   for (int i = 0; i < num_readings; i++) {
 
     read_gyro_accel_vals((uint8_t *) &accel_t_gyro);
+
+    std::sprintf(buff, "---- Accel [X:%d Y:%d Z:%d] Gyro [X:%d Y:%d Z:%d] Temp [%d]",
+    	accel_t_gyro.value.x_accel,
+    	accel_t_gyro.value.y_accel,
+    	accel_t_gyro.value.z_accel,
+    	accel_t_gyro.value.x_gyro,
+    	accel_t_gyro.value.y_gyro,
+    	accel_t_gyro.value.z_gyro,
+        accel_t_gyro.value.temperature);
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(buff));
 
     x_accel += accel_t_gyro.value.x_accel;
     y_accel += accel_t_gyro.value.y_accel;
@@ -172,6 +212,7 @@ void Mpu6050::calibrate_sensors(){
 
     delay(100);
   }
+
   x_accel /= num_readings;
   y_accel /= num_readings;
   z_accel /= num_readings;
@@ -186,6 +227,16 @@ void Mpu6050::calibrate_sensors(){
   base_x_gyro = x_gyro;
   base_y_gyro = y_gyro;
   base_z_gyro = z_gyro;
+/*
+  std::cout << base_x_accel << " " << base_y_accel << " " <<  base_z_accel << std::endl;
+  std::cout << base_x_gyro << " " << base_y_gyro  << " " <<  base_z_gyro << std::endl;
+*/
+  std::sprintf(buff, "Base Accel [X:%.3f Y:%.3f Z:%.3f] Gyro [X:%.3f Y:%.3f Z:%.3f]",
+  base_x_accel, base_y_accel, base_z_accel,
+  base_x_gyro, base_y_gyro, base_z_gyro);
+
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(buff));
+
 }
 
 /*
@@ -258,7 +309,6 @@ void Mpu6050::update_values(){
 	  //float accel_vector_length = sqrt(pow(accel_x,2) + pow(accel_y,2) + pow(accel_z,2));
 	  float accel_angle_y = atan(-1*accel_x/sqrt(pow(accel_y,2) + pow(accel_z,2)))*RADIANS_TO_DEGREES;
 	  float accel_angle_x = atan(accel_y/sqrt(pow(accel_x,2) + pow(accel_z,2)))*RADIANS_TO_DEGREES;
-
 	  float accel_angle_z = atan(sqrt(pow(accel_x,2) + pow(accel_y,2))/accel_z)*RADIANS_TO_DEGREES;;
 	  //float accel_angle_z = 0;
 
@@ -367,6 +417,7 @@ void* Mpu6050::worker(void* p){
 		 *
 		 */
 		owner->update_values();
+		//logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + owner->print_current());
 
 		delay(owner->get_utime());
 	}

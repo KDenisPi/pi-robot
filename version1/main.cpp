@@ -24,7 +24,7 @@ int main (int argc, char* argv[])
 {
   cout <<  "Raspberry Pi blink Parameters:" << argc << endl;
 
-  pirobot::mpu6050::Mpu6050* mpu = new  pirobot::mpu6050::Mpu6050();
+  pirobot::mpu6050::Mpu6050* mpu = new  pirobot::mpu6050::Mpu6050(0x68, 100);
   int res = wiringPiSetup();
   cout <<  "Started wiringPi" << endl;
 
@@ -36,6 +36,9 @@ int main (int argc, char* argv[])
    cout << mpu->print_current() << endl;
    sleep(1);
   }
+
+
+ sleep(10); 
 
   cout <<  "Stop MPU6050" << endl;
   mpu->stop();
