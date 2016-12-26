@@ -105,11 +105,19 @@ struct mpu6050_values {
 	float		last_temperature;
 };
 
+#define IF_BIT(VALUE,BITN) (((VALUE>>BITN)&0x01)==1)
+#define SET_BIT(VALUE,BITN) ((0x01<<BITN)|VALUE) 
 
 class Mpu6050 : public Threaded {
 public:
 	Mpu6050(const uint8_t i2caddr = MPU6050_I2C_ADDRESS, const unsigned int utime = 1000);
 	virtual ~Mpu6050();
+
+	static float accel_LSB_Sensitivity[];
+	static float gyro_LSB_Sensitivity[];
+
+	inline float get_accel_sens() { return Mpu6050::accel_LSB_Sensitivity[m_accel_conf];}
+	inline float get_gyro_sens() { return Mpu6050::gyro_LSB_Sensitivity[m_gyro_conf];}
 
 	void get_last_read_angle_data(struct mpu6050_values& values);
 
@@ -127,6 +135,7 @@ public:
 	//  while calibration is happening
 	void calibrate_sensors();
 
+	void initialize();
 	/*
 	 * Update values - will be used in loop
 	 */
@@ -143,11 +152,24 @@ public:
 	const std::string print_current();
 	inline uint8_t get_gyro_conf() const {return m_gyro_conf;}
 	inline uint8_t get_accel_conf() const {return m_accel_conf;}
+
+	// Set device to to sleep (true) or wake up (false)
+	void set_sleep(bool sleep_mode);
+	bool get_sleep();
+
+	void self_check();
+
+	void gyro_set_full_scale_range(int range);
+        int  gyro_get_full_scale_range();
+
+        void accel_set_full_scale_range(int range);
+        int  accel_get_full_scale_range();
+
 private:
 	uint8_t _i2caddr;
 	int m_fd;
-	uint8_t m_gyro_conf;
-	uint8_t m_accel_conf;
+	int m_gyro_conf;
+	int m_accel_conf;
 
 	unsigned int update_interval; //update interval (1 second by default)
 	std::recursive_mutex data_update;
