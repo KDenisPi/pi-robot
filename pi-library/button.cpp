@@ -153,15 +153,18 @@ void* Button::worker(void* p){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker started.");
 
 	Button* owner = static_cast<Button*>(p);
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** Initial State :" + std::to_string(owner->state()));
 	while(!owner->is_stopSignal()){
 		int level = owner->get_gpio()->digitalRead();
 		const BUTTON_STATE state = (level == gpio::SGN_LEVEL::SGN_HIGH ? BUTTON_STATE::BTN_PUSHED : BUTTON_STATE::BTN_NOT_PUSHED);
+	        //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** State :" + std::to_string(state));
 		if(state != owner->state()){
 			owner->set_state(state);
    	                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** State changed!!!! " + owner->name());
 
-   	        std::string name = owner->name();
-   	        owner->notify(owner->type(), name, (void*)(&state));
+	   	        std::string name = owner->name();
+			if(owner->notify)
+	   		        owner->notify(owner->type(), name, (void*)(&state));
 		}
 
 		delay(100);

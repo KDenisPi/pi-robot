@@ -424,7 +424,7 @@ const std::string Mpu6050::print_current(){
   struct mpu6050_values val;
   get_last_read_angle_data(val);
 
-  std::sprintf(buff, "Time:%ld Angle [X:%0.3f Y:%0.3f Z:%0.3f] Gyro [X:%0.3f Y:%0.3f Z:%0.3f] Temp:%0.2f", 
+  std::sprintf(buff, "Time:%ld Angle [X:%.3f Y:%.3f Z:%.3f] Gyro [X:%.3f Y:%.3f Z:%.3f] Temp:%.2f", 
 	val.last_read_time,
 	val.last_x_angle/get_accel_sens(),
 	val.last_y_angle/get_accel_sens(),

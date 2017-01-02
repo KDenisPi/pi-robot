@@ -16,6 +16,7 @@
 #include "button.h"
 #include "mservo.h"
 #include "logger.h"
+#include "TiltSwitch.h"
 
 #include "RealWorld.h"
 
@@ -63,7 +64,7 @@ bool RealWorld::configure(){
 	* Items
 	*/
 	items_add(std::string("TILT_1"),
-			std::shared_ptr<pirobot::item::Item>(new pirobot::item::Led(get_gpio(provider_simple->getStartPin()), "TILT_1", "TILT SWITCH 1")));
+			std::shared_ptr<pirobot::item::Item>(new pirobot::item::TiltSwitch(get_gpio(provider_simple->getStartPin()), "TILT_1", "TILT SWITCH 1")));
 
 /*
 	items_add(std::string("LED_1"), std::shared_ptr<pirobot::item::Item>(new pirobot::item::Led(get_gpio(30), "LED_1", "LED 9685 1")));
