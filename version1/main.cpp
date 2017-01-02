@@ -6,9 +6,9 @@
 
 #include "wiringPi.h"
 #include "version.h"
-//#include "RealWorld.h"
+#include "RealWorld.h"
 //#include "Adafruit_PWMServoDriver.h"
-#include "Mpu6050.h"
+//#include "Mpu6050.h"
 
 
 // LED Pin - wiringPi pin 0 is BCM_GPIO 17.
@@ -24,6 +24,7 @@ int main (int argc, char* argv[])
 {
   cout <<  "Raspberry Pi blink Parameters:" << argc << endl;
 
+/*
   pirobot::mpu6050::Mpu6050* mpu = new  pirobot::mpu6050::Mpu6050(0x68, 100);
   int res = wiringPiSetup();
   cout <<  "Started wiringPi" << endl;
@@ -45,6 +46,7 @@ int main (int argc, char* argv[])
 
   cout <<  "Delete MPU6050" << endl;
   delete mpu;
+*/
 
 /*
   float freq = 60.0;
@@ -105,21 +107,22 @@ int main (int argc, char* argv[])
    *
    */
 
-/*
   realworld::RealWorld* robot = new realworld::RealWorld();
 
   robot->configure();
   robot->printConfig();
   robot->start();
 
-  sleep(4);
   cout <<  "Wait ...." << endl;
+  sleep(20);
 
   cout <<  "Stop robot " << endl;
   robot->stop();
 
   cout <<  "Release robot " << endl;
   delete robot;
+
+  /*
 
   wiringPiSetup () ;
   pinMode (LED, OUTPUT) ;

@@ -18,20 +18,25 @@ namespace item {
 
 const char TAG[] = "button";
 
+const char* Item::ItemNames[] = {"UNK", "LED", "BTN", "SERV", "TILT", "STEP"};
+
 /*
  *
  */
 Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
                const BUTTON_STATE state,
-			   const gpio::PULL_MODE pullmode) :
-	Item(gpio, ItemTypes::BUTTON),
+			   const gpio::PULL_MODE pullmode,
+			   const int itype) :
+	Item(gpio, itype),
 	m_pullmode(pullmode),
     m_state(state)
 {
 	assert(get_gpio() != NULL);
 	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::IN);
 
-	set_name("BTN_over_" + get_gpio()->to_string());
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started.");
+
+	set_name(type_name() + "_over_" + get_gpio()->to_string());
 }
 
 /*
@@ -41,16 +46,19 @@ Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 		const std::string name,
 		const std::string comment,
         const BUTTON_STATE state,
-	    const gpio::PULL_MODE pullmode) :
-           	Item(gpio, name, comment, ItemTypes::BUTTON),
+	    const gpio::PULL_MODE pullmode,
+		const int itype) :
+           	Item(gpio, name, comment, itype),
 			m_pullmode(pullmode),
 			m_state(state)
 {
 	assert(get_gpio() != NULL);
 	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::IN);
 
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started.");
+
 	if(name.empty())
-		set_name("BTN_over_" + get_gpio()->to_string());
+		set_name(type_name()  + "_over_" + get_gpio()->to_string());
 }
 
 /*

@@ -26,13 +26,15 @@ public:
 	 */
 	Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 			const BUTTON_STATE state = BUTTON_STATE::BTN_NOT_PUSHED,
-			const gpio::PULL_MODE pullmode = gpio::PULL_MODE::PULL_UP);
+			const gpio::PULL_MODE pullmode = gpio::PULL_MODE::PULL_UP,
+			const int itype = ItemTypes::BUTTON);
 
 	Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 			const std::string name,
 			const std::string comment,
             const BUTTON_STATE state = BUTTON_STATE::BTN_NOT_PUSHED,
-			const gpio::PULL_MODE pullmode = gpio::PULL_MODE::PULL_UP);
+			const gpio::PULL_MODE pullmode = gpio::PULL_MODE::PULL_UP,
+			const int itype = ItemTypes::BUTTON);
 
 	virtual ~Button();
 	virtual bool initialize() override;
