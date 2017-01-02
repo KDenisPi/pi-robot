@@ -46,7 +46,7 @@ void ServoMotor::stop(){
 } 
 
 /*
-* Get current position of servi drive
+* Get current position of servo drive
 */
 const uint16_t ServoMotor::get_curent(){
   return get_gpio()->digitalRead();
