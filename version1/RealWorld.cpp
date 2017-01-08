@@ -11,6 +11,7 @@
 #include "GpioProviderFake.h"
 #include "GpioProviderSimple.h"
 #include "GpioProviderPCA9685.h"
+#include "GpioProviderMCP23017.h"
 
 #include "led.h"
 #include "button.h"
@@ -41,17 +42,25 @@ bool RealWorld::configure(){
 	/* 
 	* Providers
 	*/
-	std::shared_ptr<pirobot::gpio::GpioProvider> provider_simple(new pirobot::gpio::GpioProviderSimple());
+	//std::shared_ptr<pirobot::gpio::GpioProvider> provider_simple(new pirobot::gpio::GpioProviderSimple());
 	//std::shared_ptr<pirobot::gpio::GpioProvider> provider(new pirobot::gpio::GpioProviderPCA9685(pwm));
+	std::shared_ptr<pirobot::gpio::GpioProvider> provider_mcp23017(new pirobot::gpio::GpioProviderMCP23017());
 
 	/*
 	* GPIOs
 	*/
 	//gpios_add(30, std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(30, pirobot::gpio::GPIO_MODE::OUT, provider_simple)));
+	int i;
+        for(i=0; i < 8; i++){
+                gpios_add(provider_mcp23017->getStartPin()+i,
+                                std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(provider_mcp23017->getStartPin()+i,
+                                                pirobot::gpio::GPIO_MODE::OUT,  provider_mcp23017)));
+        }
+/*
 	gpios_add(provider_simple->getStartPin(),
 			std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(provider_simple->getStartPin(),
 					pirobot::gpio::GPIO_MODE::IN, provider_simple)));
-
+*/
 	/*
 	gpios_add(30, std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(30, pirobot::gpio::GPIO_MODE::OUT, provider)));
 	gpios_add(31, std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(31, pirobot::gpio::GPIO_MODE::OUT, provider)));
@@ -63,8 +72,16 @@ bool RealWorld::configure(){
 	/*
 	* Items
 	*/
+/*
 	items_add(std::string("TILT_1"),
-			std::shared_ptr<pirobot::item::Item>(new pirobot::item::TiltSwitch(get_gpio(provider_simple->getStartPin()), "TILT_1", "TILT SWITCH 1")));
+			std::shared_ptr<pirobot::item::Item>(
+		new pirobot::item::TiltSwitch(get_gpio(provider_simple->getStartPin()), 
+				"TILT_1", 
+				"TILT SWITCH 1",
+				pirobot::item::BUTTON_STATE::BTN_NOT_PUSHED,
+				pirobot::gpio::PULL_MODE::PULL_UP)));
+*/
+
 
 /*
 	items_add(std::string("LED_1"), std::shared_ptr<pirobot::item::Item>(new pirobot::item::Led(get_gpio(30), "LED_1", "LED 9685 1")));
