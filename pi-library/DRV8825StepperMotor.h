@@ -46,9 +46,9 @@ enum DRV8825_MICROSTEP {
  *
  */
 enum DRV8825_DECAY {
-	SLOW = 0,
-	HIGH = 1,
-	MIXED = 2
+	DECAY_SLOW = 0,
+	DECAY_HIGH = 1,
+	DECAY_MIXED = 2
 };
 
 class DRV8825_StepperMotor: public Item {
@@ -85,6 +85,7 @@ public:
 	virtual const std::string to_string() override;
 	virtual const std::string printConfig() override;
 
+
 private:
 
 	bool m_enable;
@@ -102,7 +103,7 @@ private:
 	 */
 	std::shared_ptr<pirobot::gpio::Gpio> m_gpio_reset;  //nRESET - Reset input (pin 16)
 	std::shared_ptr<pirobot::gpio::Gpio> m_gpio_sleep;  //nSLEEP - Sleep mode input (pin 17)
-	std::shared_ptr<pirobot::gpio::Gpio> m_gpio_dir; 	//DIR - direction input (pin 20)
+	std::shared_ptr<pirobot::gpio::Gpio> m_gpio_dir;    //DIR - direction input (pin 20)
 	std::shared_ptr<pirobot::gpio::Gpio> m_gpio_enable; //nENBL - Enable input (pin 21)
 
 	std::shared_ptr<pirobot::gpio::Gpio> m_gpio_dacay; //DECAY - Decay mode (pin 19) not mandatory!

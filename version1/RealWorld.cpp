@@ -18,6 +18,7 @@
 #include "mservo.h"
 #include "logger.h"
 #include "TiltSwitch.h"
+#include "DRV8825StepperMotor.h"
 
 #include "RealWorld.h"
 
@@ -82,6 +83,31 @@ bool RealWorld::configure(){
 				pirobot::gpio::PULL_MODE::PULL_UP)));
 */
 
+	items_add(std::string("STEP_1"),
+		std::shared_ptr<pirobot::item::Item>(
+			new pirobot::item::DRV8825_StepperMotor(get_gpio(provider_mcp23017->getStartPin()),
+				"STEP_1","Stepper 28BYJ-48")));
+/*
+enum DRV8825_PIN {
+        PIN_ENABLE = 0,
+        PIN_RESET = 1,
+        PIN_SLEEP = 2,
+        PIN_DECAY = 3,
+        PIN_MODE_0 = 4,
+        PIN_MODE_1 = 5,
+        PIN_MODE_2 = 6,
+        PIN_DIR = 7
+};
+*/
+	// NOTE: We will have DECAY pin opened
+	auto stepper1 = dynamic_cast<pirobot::item::DRV8825_StepperMotor*>(get_item("STEP_1").get());
+	stepper1->set_gpio(get_gpio(provider_mcp23017->getStartPin()+1), pirobot::item::DRV8825_PIN::PIN_ENABLE);
+	stepper1->set_gpio(get_gpio(provider_mcp23017->getStartPin()+2), pirobot::item::DRV8825_PIN::PIN_RESET);
+	stepper1->set_gpio(get_gpio(provider_mcp23017->getStartPin()+3), pirobot::item::DRV8825_PIN::PIN_SLEEP);
+	stepper1->set_gpio(get_gpio(provider_mcp23017->getStartPin()+4), pirobot::item::DRV8825_PIN::PIN_MODE_0);
+	stepper1->set_gpio(get_gpio(provider_mcp23017->getStartPin()+5), pirobot::item::DRV8825_PIN::PIN_MODE_1);
+	stepper1->set_gpio(get_gpio(provider_mcp23017->getStartPin()+6), pirobot::item::DRV8825_PIN::PIN_MODE_2);
+	stepper1->set_gpio(get_gpio(provider_mcp23017->getStartPin()+7), pirobot::item::DRV8825_PIN::PIN_DIR);
 
 /*
 	items_add(std::string("LED_1"), std::shared_ptr<pirobot::item::Item>(new pirobot::item::Led(get_gpio(30), "LED_1", "LED 9685 1")));

@@ -20,7 +20,7 @@ namespace item {
  */
 DRV8825_StepperMotor::DRV8825_StepperMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio) :
 	Item(gpio, ItemTypes::STEPPER),
-	m_gpio_enable(nullptr),
+	m_gpio_enable(gpio),
 	m_gpio_reset(nullptr),
 	m_gpio_sleep(nullptr),
 	m_gpio_dacay(nullptr),
@@ -33,7 +33,7 @@ DRV8825_StepperMotor::DRV8825_StepperMotor(const std::shared_ptr<pirobot::gpio::
 	m_sleep(false),
 	m_direction(DRV8825_DIR::DIR_CLOCKWISE),
 	m_step_size(DRV8825_MICROSTEP::STEP_FULL),
-	m_decay(DRV8825_DECAY::MIXED)
+	m_decay(DRV8825_DECAY::DECAY_MIXED)
 {
 	assert(get_gpio() != NULL);
 	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);
@@ -57,7 +57,7 @@ DRV8825_StepperMotor::DRV8825_StepperMotor(const std::shared_ptr<pirobot::gpio::
 	m_sleep(false),
 	m_direction(DRV8825_DIR::DIR_CLOCKWISE),
 	m_step_size(DRV8825_MICROSTEP::STEP_FULL),
-	m_decay(DRV8825_DECAY::MIXED)
+	m_decay(DRV8825_DECAY::DECAY_MIXED)
 {
 	assert(get_gpio() != NULL);
 	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);
@@ -157,7 +157,7 @@ void DRV8825_StepperMotor::set_reset(const bool reset){
  * Logic high to enable device, logic low to enter low-power sleep mode.
  */
 void DRV8825_StepperMotor::set_sleep(const bool sleep){
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Reset: " + std::to_string(sleep));
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Sleep: " + std::to_string(sleep));
 	assert(m_gpio_sleep.get() != nullptr);
 
 	if(m_gpio_sleep.get() == nullptr)
@@ -165,7 +165,6 @@ void DRV8825_StepperMotor::set_sleep(const bool sleep){
 
 	m_gpio_sleep->digitalWrite((sleep ? gpio::SGN_LEVEL::SGN_LOW : gpio::SGN_LEVEL::SGN_HIGH));
 	m_sleep = sleep;
-
 }
 
 
@@ -204,13 +203,13 @@ void DRV8825_StepperMotor::set_step_size(const DRV8825_MICROSTEP step_size){
 void DRV8825_StepperMotor::set_decay(const DRV8825_DECAY decay){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Decay: " + std::to_string(decay));
 
-	assert( (decay == DRV8825_DECAY::MIXED) || (m_gpio_dacay.get() != nullptr) );
+	assert( (decay == DRV8825_DECAY::DECAY_MIXED) || (m_gpio_dacay.get() != nullptr) );
 
-	if((decay == DRV8825_DECAY::MIXED) || (m_gpio_dacay.get() == nullptr)){
-		m_decay = DRV8825_DECAY::MIXED; //Opened
+	if((decay == DRV8825_DECAY::DECAY_MIXED) || (m_gpio_dacay.get() == nullptr)){
+		m_decay = DRV8825_DECAY::DECAY_MIXED; //Opened
 	}
 	else{
-		m_gpio_dacay->digitalWrite((DRV8825_DECAY::SLOW == decay ? gpio::SGN_LEVEL::SGN_LOW : gpio::SGN_LEVEL::SGN_HIGH));
+		m_gpio_dacay->digitalWrite((DRV8825_DECAY::DECAY_SLOW == decay ? gpio::SGN_LEVEL::SGN_LOW : gpio::SGN_LEVEL::SGN_HIGH));
 		m_decay = decay;
 	}
 }
@@ -219,8 +218,11 @@ bool DRV8825_StepperMotor::initialize(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started ");
 
 	set_direction(m_direction);
-	set_enable(m_enable);
 	set_step_size(m_step_size);
+
+	set_enable(m_enable);
+	set_reset(m_reset);
+	set_sleep(m_sleep);
 	set_decay(m_decay);
 }
 
@@ -245,7 +247,7 @@ const std::string DRV8825_StepperMotor::to_string(){
 }
 const std::string DRV8825_StepperMotor::printConfig(){
 	std::string conf =  name() + "\n" +
-			" GPIO Step: " + get_gpio()->to_string();
+			" GPIO Step: " + get_gpio()->to_string() + "\n";
 	conf += " GPIO Reset: " + (m_gpio_reset.get() == nullptr ? "Not Defined" : m_gpio_reset->to_string()) + "\n";
 	conf += " GPIO Sleep: " + (m_gpio_sleep.get() == nullptr ? "Not Defined" : m_gpio_sleep->to_string()) + "\n";
 	conf += " GPIO Direction: " + (m_gpio_dir.get() == nullptr ? "Not Defined" : m_gpio_dir->to_string()) + "\n";
