@@ -67,9 +67,11 @@ public:
 	virtual const std::string to_string() = 0;
 	virtual const int dgtRead(const int pin) = 0;
 	virtual void dgtWrite(const int pin, const int value) = 0;
+	virtual void dgtWritePWM(const int pin, const float dutyCycle, const float phaseOffset) {};
 	virtual void setmode(const int pin, const gpio::GPIO_MODE mode) = 0;
 	virtual void pullUpDownControl(const int pin, const gpio::PULL_MODE pumode) {};
 	virtual void setPulse(const int pin, const uint16_t pulselen) {};
+
 
 private:
 	int m_pstart; //number of the first GPIO pin assigned for this provider. Real pin number (pin - pstart)

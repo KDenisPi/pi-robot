@@ -31,6 +31,7 @@ class Gpio
 
    const int digitalRead();
    void digitalWrite(int value);
+   void digitalWritePWM(float dutyCycle, float phaseOffset=0.0f);
    void pullUpDnControl(PULL_MODE pumode);
    void setPulse(const uint16_t pulselen);
 

@@ -23,6 +23,7 @@ public:
 	virtual const std::string to_string() override;
 	virtual const int dgtRead(const int pin) override;
 	virtual void dgtWrite(const int pin, const int value) override;
+	virtual void dgtWritePWM(const int pin, const float dutyCycle, const float phaseOffset) override;
 	virtual void setmode(const int pin, const gpio::GPIO_MODE mode) override;
 	virtual void pullUpDownControl(const int pin, const gpio::PULL_MODE pumode) override;
 	virtual void setPulse(const int pin, const uint16_t pulselen) override;

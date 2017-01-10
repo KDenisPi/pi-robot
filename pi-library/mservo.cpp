@@ -7,6 +7,7 @@
 
 
 #include "mservo.h"
+#include "logger.h"
 
 const char TAG[] = "Servo";
 
@@ -14,20 +15,29 @@ namespace pirobot {
 namespace item {
 
 ServoMotor::ServoMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
-	const uint16_t offset,
-	const uint16_t max) :
-	Item(gpio, ItemTypes::SERVO), m_max(max), m_offset(offset)
+	const float plusMinusRange) :
+	Item(gpio, ItemTypes::SERVO),
+	m_plusMinusRange(plusMinusRange),
+	m_minDutyCycle(0.0f),
+	m_maxDutyCycle(0.0f),
+	m_zeroDutyCycle(0.0f),
+	m_angleStepSize(0.0f)
 {
+   this->calibrate(2.85f, 11.75f); // Typical values
 }
 
 ServoMotor::ServoMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 		const std::string name,	
 		const std::string comment,
-		const uint16_t offset,
-		const uint16_t max) :
-	Item(gpio, name, comment, ItemTypes::SERVO), m_max(max), m_offset(offset)
+		const float plusMinusRange) :
+	Item(gpio, name, comment, ItemTypes::SERVO),
+	m_plusMinusRange(plusMinusRange),
+	m_minDutyCycle(0.0f),
+	m_maxDutyCycle(0.0f),
+	m_zeroDutyCycle(0.0f),
+	m_angleStepSize(0.0f)
 {
-
+   this->calibrate(2.85f, 11.75f); // Typical values
 }
 
 /*
@@ -45,32 +55,41 @@ void ServoMotor::stop(){
 
 } 
 
-/*
-* Get current position of servo drive
-*/
-const uint16_t ServoMotor::get_curent(){
-  return get_gpio()->digitalRead();
+/**
+ * A calibrate function that allows you to set the full useful range for the servo motor
+ * using the duty cycle values. This allows you to calibrate the motor using a linear scaling
+ * range.
+ * @param minDutyCycle the minimum duty cycle that represents the -range value
+ * @param maxDutyCycle the maximum duty cycle that represents the +range value
+ * @return return 0 if successful
+ */
+int ServoMotor::calibrate(float minDutyCycle, float maxDutyCycle){
+
+   if(maxDutyCycle<=minDutyCycle){
+      logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Error, there is something wrong with the duty cycle values.");
+      return -1;
+   }
+   m_minDutyCycle = minDutyCycle;
+   m_maxDutyCycle = maxDutyCycle;
+   m_zeroDutyCycle = (minDutyCycle + maxDutyCycle)/2.0f;
+   m_angleStepSize = (maxDutyCycle - minDutyCycle) / (2 * m_plusMinusRange);
+   return 0;
 }
 
-/*
-*
-*/
-const uint16_t ServoMotor::set_position(const uint16_t pos){
-  uint16_t cpos = get_gpio()->digitalRead();
-  if(pos < 0 || pos > m_max || cpos == pos){
-   return cpos;
-  }
+/**
+ * Set the servo angle using +/-angle value (zero is the center)
+ * @param angle the servo angle (value must be within +/- range)
+ * @return return 0 if successful
+ */
+void ServoMotor::setAngle(float angle){
 
-  if(pos > cpos){
-    for(uint16_t npos = cpos; npos <= pos; npos++)
-      get_gpio()->digitalWrite(npos);
-  }
-  else{
-    for(uint16_t npos = cpos; npos > pos; npos--)
-      get_gpio()->digitalWrite(npos);
-  }
+	if((angle < (-m_plusMinusRange))||(angle > (+m_plusMinusRange))){
+      logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Error, the angle selected is outsid of the servo operation range.");
+      return;
+   }
 
-  return get_gpio()->digitalRead();
+   float angleDutyCycle = m_zeroDutyCycle + (angle * m_angleStepSize);
+   get_gpio()->digitalWritePWM(angleDutyCycle);
 }
 
 /*

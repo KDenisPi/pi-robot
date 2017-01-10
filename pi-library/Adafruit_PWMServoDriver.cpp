@@ -27,17 +27,18 @@ namespace gpio {
 
 const char TAG[] = "PWM";
 
+#define CALIB_FACTOR   0.89   //the calibration factor -- manually calculated
+
 // Set to true to print some debug messages, or false to disable them.
 #define ENABLE_DEBUG_OUTPUT false
 
-Adafruit_PWMServoDriver::Adafruit_PWMServoDriver(uint8_t addr) {
+Adafruit_PWMServoDriver::Adafruit_PWMServoDriver(uint8_t addr) : m_prescale(0) {
   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(addr));
   _i2caddr = addr;
 
   I2CWrapper::lock();
   m_fd = I2CWrapper::I2CSetup(addr);
   I2CWrapper::unlock();
-
 }
 
 Adafruit_PWMServoDriver::~Adafruit_PWMServoDriver() {
@@ -66,24 +67,37 @@ void Adafruit_PWMServoDriver::sleep(void) {
   write8(PCA9685_MODE1, newmode); // go to sleep
 }
 
-void Adafruit_PWMServoDriver::setPWMFreq(float freq) {
+/**
+ * This method gets the frequency that is currently stored in the PCA9685 device
+ * @return returns the frequency that is stored (between 24Hz and 1526Hz)
+ */
+float Adafruit_PWMServoDriver::getFrequency(){
+   int value = (int) read8(PCA9685_PRESCALE); // get the prescaler
+   float frequency = (25000000.0f / (4096.0f * (value + 1)));
+   return (frequency / CALIB_FACTOR);
+}
+
+/*
+ *
+ */
+void Adafruit_PWMServoDriver::setFrequency(float freq) {
   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Freq: " + std::to_string(freq));
 
-  freq *= 0.9;  // Correct for overshoot in the frequency setting (see issue #11).
+  freq *= CALIB_FACTOR;  // Correct for overshoot in the frequency setting (see issue #11).
   float prescaleval = 25000000;
   prescaleval /= 4096;
   prescaleval /= freq;
   prescaleval -= 1;
-  uint8_t prescale = floor(prescaleval + 0.5);
+  m_prescale = floor(prescaleval + 0.5);
   
   uint8_t oldmode = read8(PCA9685_MODE1);
   uint8_t newmode = (oldmode & 0x7F) | MODE1_ENABLE_SLEEP; // sleep
   write8(PCA9685_MODE1, newmode); // go to sleep
-  write8(PCA9685_PRESCALE, prescale); // set the prescaler
+  write8(PCA9685_PRESCALE, m_prescale); // set the prescaler
   write8(PCA9685_MODE1, oldmode);
   delay(5);
-  write8(PCA9685_MODE1, oldmode | PCA9685_MODE1_DEFAULT);  //  This sets the MODE1 register to turn on auto increment.
-                                          // This is why the beginTransmission below was not working.
+  write8(PCA9685_MODE1, oldmode | PCA9685_MODE1_DEFAULT); //  This sets the MODE1 register to turn on auto increment.
+  	  	  	  	  	  	  	  	  	  	  	  	  	  	  // This is why the beginTransmission below was not working.
 }
 
 void Adafruit_PWMServoDriver::setPWM(uint8_t num, uint16_t on, uint16_t off) {

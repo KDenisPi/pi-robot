@@ -20,7 +20,7 @@ GpioProviderPCA9685::GpioProviderPCA9685(std::shared_ptr<Adafruit_PWMServoDriver
 {
 	assert(pwm != nullptr);
 	m_pwm->begin();
-	m_pwm->setPWMFreq(m_freq);
+	m_pwm->setFrequency(m_freq);
 }
 
 GpioProviderPCA9685::~GpioProviderPCA9685() {
@@ -58,11 +58,43 @@ void GpioProviderPCA9685::dgtWrite(const int pin, const int value){
 	m_pwm->setPWM(getRealPin(pin), data.on, data.off);
 }
 
+void GpioProviderPCA9685::dgtWritePWM(const int pin, const float dutyCycle, const float phaseOffset){
+	struct LED_DATA data = {0, 0};
+
+	if((dutyCycle < 0.0f)||(dutyCycle > 100.0f)){
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " The duty cycle is outside range");
+	    return;
+	}
+	if((phaseOffset < 0.0f)||(phaseOffset > 100.0f)){
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " The phase offset is outside range");
+	    return;
+	}
+	   // There are special register states for fully on and fully off -- see Table 7.
+	if (dutyCycle==100.0f){
+		   data.on = 4096;
+		   data.off = 0;
+	}
+	else if (dutyCycle==0.0f){
+		   data.on = 0;
+		   data.off = 4096;
+	}
+	else {  // Regular operation (i.e., >0.0f and <100.0f)
+		data.on  = (unsigned int)((4095 * phaseOffset) / 100.0f);
+		data.off = data.on + (unsigned int)((4095 * dutyCycle)/ 100.0f);
+	    if (data.off>4095){   // see Example 2 on pg. 17 of the datasheet
+	      data.off = data.off - 4096;
+	    }
+	}
+	m_pwm->setPWM(getRealPin(pin), data.on, data.off);
+}
+
+
 void GpioProviderPCA9685::setmode(const int pin, const gpio::GPIO_MODE mode){
 	/*
 	 * TODO: It seems INPUT/OUTPUT is not implemented there
 	 */
 }
+
 void GpioProviderPCA9685::pullUpDownControl(const int pin, const gpio::PULL_MODE pumode){
 	/*
 	 * TODO: It seems It is not implemented there

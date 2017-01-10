@@ -69,15 +69,18 @@ class Adafruit_PWMServoDriver {
   void sleep(void);
   void wakeup(void);
 
-  void setPWMFreq(float freq);
+  void setFrequency(float freq);
+  float getFrequency();
 
   void setPWM(uint8_t num, uint16_t on, uint16_t off);
   void setPin(uint8_t num, uint16_t val, bool invert=false);
   void getPin(uint8_t num, LED_DATA& data);
+  const uint8_t getPrescale() const {return m_prescale;}
 
  private:
   uint8_t _i2caddr;
   int m_fd;
+  uint8_t m_prescale;
 
   uint8_t read8(uint8_t addr);
   void write8(uint8_t addr, uint8_t d);

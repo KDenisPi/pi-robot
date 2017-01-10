@@ -64,6 +64,17 @@ void Gpio::digitalWrite(int value){
 	m_prov->dgtWrite(m_pin, value);
 }
 
+/*
+ *
+ */
+void Gpio::digitalWritePWM(float dutyCycle, float phaseOffset){
+	m_prov->dgtWritePWM(m_pin, dutyCycle, phaseOffset);
+}
+
+
+/*
+ *
+ */
 void Gpio::setPulse(const uint16_t pulselen){
 	m_prov->setPulse(m_pin, pulselen);
 }
