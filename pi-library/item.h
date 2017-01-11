@@ -20,7 +20,8 @@ enum ItemTypes{
 	BUTTON = 2,
 	SERVO = 3,
 	TILT_SWITCH = 4,
-	STEPPER = 5
+	STEPPER = 5,
+	DCMotor = 6
 };
 
 enum BUTTON_STATE{
