@@ -31,7 +31,7 @@ DRV8825_StepperMotor::DRV8825_StepperMotor(const std::shared_ptr<pirobot::gpio::
 	m_enable(true),
 	m_reset(false),
 	m_sleep(false),
-	m_direction(DRV8825_DIR::DIR_CLOCKWISE),
+	m_direction(MOTOR_DIR::DIR_CLOCKWISE),
 	m_step_size(DRV8825_MICROSTEP::STEP_FULL),
 	m_decay(DRV8825_DECAY::DECAY_MIXED)
 {
@@ -55,7 +55,7 @@ DRV8825_StepperMotor::DRV8825_StepperMotor(const std::shared_ptr<pirobot::gpio::
 	m_enable(true),
 	m_reset(false),
 	m_sleep(false),
-	m_direction(DRV8825_DIR::DIR_CLOCKWISE),
+	m_direction(MOTOR_DIR::DIR_CLOCKWISE),
 	m_step_size(DRV8825_MICROSTEP::STEP_FULL),
 	m_decay(DRV8825_DECAY::DECAY_MIXED)
 {
@@ -109,14 +109,14 @@ void DRV8825_StepperMotor::set_gpio(const std::shared_ptr<pirobot::gpio::Gpio> g
 /*
  * Set direction
  */
-void DRV8825_StepperMotor::set_direction(const DRV8825_DIR direction){
+void DRV8825_StepperMotor::set_direction(const MOTOR_DIR direction){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Direction: " + std::to_string(direction));
 	assert(m_gpio_dir.get() != nullptr);
 
 	if(m_gpio_dir.get() == nullptr)
 		return;
 
-	if(direction == DRV8825_DIR::DIR_CLOCKWISE){
+	if(direction == MOTOR_DIR::DIR_CLOCKWISE){
 		m_gpio_dir->digitalWrite(gpio::SGN_LEVEL::SGN_HIGH);
 	}
 	else{
@@ -242,9 +242,16 @@ void DRV8825_StepperMotor::step(const int num_steps /*= 1*/){
 	}
 }
 
+/*
+ *
+ */
 const std::string DRV8825_StepperMotor::to_string(){
 	return name();
 }
+
+/*
+ *
+ */
 const std::string DRV8825_StepperMotor::printConfig(){
 	std::string conf =  name() + "\n" +
 			" GPIO Step: " + get_gpio()->to_string() + "\n";
@@ -260,7 +267,7 @@ const std::string DRV8825_StepperMotor::printConfig(){
 			" Reset: " + std::to_string(m_reset) +
 			" Enable: " + std::to_string(m_enable) +
 			" Sleep: " + std::to_string(m_sleep) +
-			" Dir: " + std::to_string(m_direction) +
+			" Direction: " + std::to_string(m_direction) +
 			" Step size: " + std::to_string(m_step_size) +
 			" Decay: " + std::to_string(m_decay);
 	return conf;

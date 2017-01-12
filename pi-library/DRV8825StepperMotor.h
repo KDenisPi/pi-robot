@@ -24,11 +24,6 @@ enum DRV8825_PIN {
 	PIN_DIR = 7
 };
 
-enum DRV8825_DIR {
-	DIR_CLOCKWISE = 0,
-	DIR_COUTERCLOCKWISE = 1
-};
-
 /*
  * Step size
  * Below values for Mode2, Mode1, Mode0
@@ -63,7 +58,7 @@ public:
 	virtual ~DRV8825_StepperMotor();
 
 	void set_gpio(const std::shared_ptr<pirobot::gpio::Gpio> gpio, const DRV8825_PIN pin);
-	void set_direction(const DRV8825_DIR dir);
+	void set_direction(const MOTOR_DIR dir);
 	void set_enable(const bool enable);
 	void set_reset(const bool reset);
 	void set_sleep(const bool sleep);
@@ -77,7 +72,7 @@ public:
 	inline const bool is_reset() const {return m_reset;}
 	inline const bool is_sleep() const {return m_sleep;}
 
-	inline const DRV8825_DIR direction() const {return m_direction;}
+	inline const MOTOR_DIR direction() const {return m_direction;}
 	inline const DRV8825_MICROSTEP step_size() const {return m_step_size;}
 	inline const DRV8825_DECAY decay() const {return m_decay;}
 
@@ -91,7 +86,7 @@ private:
 	bool m_enable;
 	bool m_reset;
 	bool m_sleep;
-	DRV8825_DIR m_direction;
+	MOTOR_DIR m_direction;
 	DRV8825_MICROSTEP m_step_size;
 	DRV8825_DECAY m_decay;
 

@@ -32,6 +32,11 @@ enum SGN_LEVEL {
 	SGN_HIGH = 1
 };
 
+enum DEFAULT_PIN_START {
+	PROV_SIMPLE = 0,	// GPIO number 8
+	PROV_PCA9685 = 30,	// GPIO number 16
+	PROV_MCP2317 = 50	// GPIO number 16
+};
 
 class GpioProvider {
 public:

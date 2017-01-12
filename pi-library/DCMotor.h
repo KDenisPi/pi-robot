@@ -8,53 +8,45 @@
 #ifndef PI_LIBRARY_DCMOTOR_H_
 #define PI_LIBRARY_DCMOTOR_H_
 
-#include "item.h"
+#include "Drv8835.h"
 
 namespace pirobot {
 namespace item {
-
-enum DCMotor_MODE {
-	IN_IN = 0,
-	PH_EN = 1
-};
-
-enum DCMotor_DIR {
-	DIR_CLOCKWISE = 0,
-	DIR_COUTERCLOCKWISE = 1
-};
-
+namespace dcmotor {
 
 class DCMotor: public Item {
 public:
-	DCMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio_mode,
+	DCMotor(const std::shared_ptr<pirobot::item::Drv8835> drv8835,
 			const std::shared_ptr<pirobot::gpio::Gpio> gpio_direction,
 			const std::shared_ptr<pirobot::gpio::Gpio> gpio_pwm,
-			DCMotor_MODE mode = DCMotor_MODE::PH_EN);
+			MOTOR_DIR direction = MOTOR_DIR::DIR_CLOCKWISE);
 
-	DCMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio_mode,
+	DCMotor(const std::shared_ptr<pirobot::item::Drv8835> drv8835,
 			const std::shared_ptr<pirobot::gpio::Gpio> gpio_direction,
 			const std::shared_ptr<pirobot::gpio::Gpio> gpio_pwm,
 			const std::string name,
 			const std::string comment,
-			DCMotor_MODE mode = DCMotor_MODE::PH_EN);
+			MOTOR_DIR direction = MOTOR_DIR::DIR_CLOCKWISE);
 
 	virtual ~DCMotor();
 
-	inline const DCMotor_MODE get_mode() const {return m_mode;}
-	inline const DCMotor_DIR get_direction() const {return m_direction;}
+	inline const MOTOR_DIR get_direction() const {return m_direction;}
 
 	void set_power_level(const float level = 0.0f);
-	void set_direction(const DCMotor_DIR direction);
+	void set_direction(const MOTOR_DIR direction);
 	void stop();
 
-private:
-	std::shared_ptr<pirobot::gpio::Gpio> m_gpio_dir;
-	std::shared_ptr<pirobot::gpio::Gpio> m_gpio_pwm;
+	virtual const std::string to_string() override;
+	virtual const std::string printConfig() override;
 
-	DCMotor_MODE m_mode;
-	DCMotor_DIR m_direction;
+private:
+	std::shared_ptr<pirobot::gpio::Gpio> m_gpio_pwm;
+	std::shared_ptr<pirobot::item::Drv8835> m_drv8835;
+
+	MOTOR_DIR m_direction;
 };
 
+} /* namespace dcmotor */
 } /* namespace item */
 } /* namespace pirobot */
 

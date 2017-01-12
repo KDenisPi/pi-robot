@@ -21,7 +21,8 @@ enum ItemTypes{
 	SERVO = 3,
 	TILT_SWITCH = 4,
 	STEPPER = 5,
-	DCMotor = 6
+	DCMotor = 6,
+	DRV8835 = 7
 };
 
 enum BUTTON_STATE{
@@ -29,13 +30,18 @@ enum BUTTON_STATE{
 	BTN_PUSHED = 1
 };
 
+enum MOTOR_DIR {
+	DIR_CLOCKWISE = 0,
+	DIR_COUTERCLOCKWISE = 1
+};
+
 
 class Item {
 public:
 	Item(const std::shared_ptr<pirobot::gpio::Gpio> gpio, int itype = ItemTypes::UNKNOWN) :
 	m_gpio(gpio),
-	m_name("Item"),
-	m_comment("Comment"),
+	m_name(),
+	m_comment(),
 	m_type(itype),
 	notify(nullptr)
 	{};
