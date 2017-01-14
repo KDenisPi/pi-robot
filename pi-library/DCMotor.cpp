@@ -54,6 +54,7 @@ DCMotor::DCMotor(const std::shared_ptr<pirobot::item::Drv8835> drv8835,
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 	set_direction(m_direction);
+	stop();
 }
 
 
@@ -79,7 +80,7 @@ void DCMotor::set_power_level(const float level){
 
 	if(level > 100.0f)
 		rlevel = 100.0f;
-	else if(level < 0.0f)
+	else if(level <= 0.0f)
 		rlevel = 0.0f;
 
 	m_gpio_pwm->digitalWritePWM(rlevel);
@@ -99,6 +100,7 @@ void DCMotor::stop(){
  */
 DCMotor::~DCMotor() {
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+	stop();
 }
 
 /*

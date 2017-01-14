@@ -46,7 +46,7 @@ bool RealWorld::configure(){
 	*/
 	std::shared_ptr<pirobot::gpio::GpioProvider> provider_simple(new pirobot::gpio::GpioProviderSimple());
 	std::shared_ptr<pirobot::gpio::GpioProvider> provider_pca9685(new pirobot::gpio::GpioProviderPCA9685(pwm));
-	std::shared_ptr<pirobot::gpio::GpioProvider> provider_mcp23017(new pirobot::gpio::GpioProviderMCP23017());
+	//std::shared_ptr<pirobot::gpio::GpioProvider> provider_mcp23017(new pirobot::gpio::GpioProviderMCP23017());
 
 	/*
 	* GPIOs
@@ -62,16 +62,21 @@ bool RealWorld::configure(){
         }
 */
 
-
+/*
 	gpios_add(provider_simple->getStartPin(),
 			std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(provider_simple->getStartPin(),
 					pirobot::gpio::GPIO_MODE::OUT, provider_simple)));
 
-	gpios_add(provider_simple->getStartPin(),
+	gpios_add(provider_simple->getStartPin()+1,
 			std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(provider_simple->getStartPin()+1,
 					pirobot::gpio::GPIO_MODE::OUT, provider_simple)));
-
+*/
     for(i=0; i < 2; i++){
+
+        gpios_add(provider_simple->getStartPin()+i,
+                        std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(provider_simple->getStartPin()+i,
+                                        pirobot::gpio::GPIO_MODE::OUT, provider_simple)));
+
               gpios_add(provider_pca9685->getStartPin()+i,
                   std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(provider_pca9685->getStartPin()+i,
                   pirobot::gpio::GPIO_MODE::OUT,  provider_pca9685)));
@@ -149,20 +154,20 @@ enum DRV8825_PIN {
      * 0 - Drv8835 - mode
      * 1 - DC Motor - direction
      */
-
+        logger::log(logger::LLOG::NECECCARY, __func__, " Create STM 1");
 	items_add(std::string("SMT_1"), std::shared_ptr<pirobot::item::Item>(
 			new pirobot::item::ServoMotor(get_gpio(provider_pca9685->getStartPin()), "SMT_1", "LED 9685 4")));
 
-	items_add(std::string("Drv8835"), std::shared_ptr<pirobot::item::Item>(
-			new pirobot::item::Drv8835(get_gpio(provider_simple->getStartPin()), "Drv8835", "Drv8835")));
+        logger::log(logger::LLOG::NECECCARY, __func__, " Create Drv8835");
+	std::shared_ptr<pirobot::item::Drv8835> drv8835(
+		new pirobot::item::Drv8835(get_gpio(provider_simple->getStartPin()), "Drv8835", "Drv8835"));
+	items_add(std::string("Drv8835"), drv8835);
 
-	std::shared_ptr<pirobot::item::Drv8835> dcm(new pirobot::item::Drv8835(get_gpio(provider_simple->getStartPin()), "Drv8835", "Drv8835"));
-
-
+        logger::log(logger::LLOG::NECECCARY, __func__, " Create DCM 1");
 	items_add(std::string("DCM_1"),
 			std::shared_ptr<pirobot::item::Item>(
 					new pirobot::item::dcmotor::DCMotor(
-							dcm/*get_item("Drv8835")*/,
+							drv8835,
 							get_gpio(provider_simple->getStartPin()+1),
 							get_gpio(provider_pca9685->getStartPin()+1),
 							"DCM_1",

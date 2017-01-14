@@ -71,12 +71,12 @@ void GpioProviderPCA9685::dgtWritePWM(const int pin, const float dutyCycle, cons
 	}
 	   // There are special register states for fully on and fully off -- see Table 7.
 	if (dutyCycle==100.0f){
-		   data.on = 4096;
-		   data.off = 0;
+		   data.on = 0;
+		   data.off = 4095;
 	}
 	else if (dutyCycle==0.0f){
 		   data.on = 0;
-		   data.off = 4096;
+		   data.off = 0;
 	}
 	else {  // Regular operation (i.e., >0.0f and <100.0f)
 		data.on  = (unsigned int)((4095 * phaseOffset) / 100.0f);

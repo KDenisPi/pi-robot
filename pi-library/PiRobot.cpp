@@ -57,8 +57,8 @@ std::shared_ptr<gpio::Gpio> PiRobot::get_gpio(const int id) const{
 std::shared_ptr<item::Item> PiRobot::get_item(const std::string& name) const{
 	auto item = this->items.find(name);
 	if(item == items.end()){
-		logger::log(logger::LLOG::ERROR, __func__, " Absent requested GPIO with ID " + name);
-		throw std::runtime_error(std::string("No GPIO with ID: ") + name);
+		logger::log(logger::LLOG::ERROR, __func__, " Absent requested Item with ID " + name);
+		throw std::runtime_error(std::string("No Item with ID: ") + name);
 	}
 	return item->second;
 

@@ -9,7 +9,9 @@
 #include "RealWorld.h"
 //#include "Adafruit_PWMServoDriver.h"
 //#include "Mpu6050.h"
-
+#include "DRV8825StepperMotor.h"
+#include "mservo.h"
+#include "DCMotor.h"
 
 // LED Pin - wiringPi pin 0 is BCM_GPIO 17.
 #define	LED	0
@@ -113,8 +115,63 @@ int main (int argc, char* argv[])
   robot->printConfig();
   robot->start();
 
-  cout <<  "Wait ...." << endl;
-  sleep(20);
+  sleep(3);
+  cout <<  "Get motors ...." << endl;
+  //auto stepper1 = dynamic_cast<pirobot::item::DRV8825_StepperMotor*>(robot->get_item("STEP_1").get());
+  //stepper1->step();
+  auto stm1 = dynamic_cast<pirobot::item::ServoMotor*>(robot->get_item("SMT_1").get());
+  auto dcm1 = dynamic_cast<pirobot::item::dcmotor::DCMotor*>(robot->get_item("DCM_1").get()); 
+/*
+  cout <<  "Servo -45 ...." << endl;
+  stm1->setAngle(-45.0f);
+  sleep(3);
+
+  cout <<  "Servo 0 ...." << endl;
+  stm1->setAngle(0.0f);
+  sleep(3);
+
+  cout <<  "Servo +45 ...." << endl;
+  stm1->setAngle(45.0f);
+  sleep(3);
+
+  cout <<  "Servo 0 ...." << endl;
+  stm1->setAngle(0.0f);
+  sleep(5);
+*/
+
+  cout <<  "DC Motor 10% ...." << endl;
+  dcm1->set_power_level(10.0f);
+  sleep(5);
+
+  cout <<  "DC Motor 50% ...." << endl;
+  dcm1->set_power_level(50.0f);
+  sleep(5);
+
+  cout <<  "DC Motor 100% ...." << endl;
+  dcm1->set_power_level(100.0f);
+  sleep(5);
+
+  cout <<  "DC Motor stop ...." << endl;
+  dcm1->stop();
+  sleep(5);
+
+  cout <<  "DC Motor change direction and 50% ...." << endl;
+  dcm1->set_direction( pirobot::item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
+  dcm1->set_power_level(50.0f);
+  sleep(5);
+
+  cout <<  "DC Motor 100% ...." << endl;
+  dcm1->set_power_level(100.0f);
+  sleep(5);
+
+  cout <<  "DC Motor 10% ...." << endl;
+  dcm1->set_power_level(10.0f);
+  sleep(5);
+
+  cout <<  "DC Motor stop ...." << endl;
+  dcm1->stop();
+  sleep(5);
+
 
   cout <<  "Stop robot " << endl;
   robot->stop();
