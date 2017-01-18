@@ -62,11 +62,11 @@ void GpioProviderPCA9685::dgtWritePWM(const int pin, const float dutyCycle, cons
 	struct LED_DATA data = {0, 0};
 
 	if((dutyCycle < 0.0f)||(dutyCycle > 100.0f)){
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " The duty cycle is outside range");
+   	    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " The duty cycle is outside range " + std::to_string(dutyCycle));
 	    return;
 	}
 	if((phaseOffset < 0.0f)||(phaseOffset > 100.0f)){
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " The phase offset is outside range");
+	    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " The phase offset is outside range " + std::to_string(phaseOffset));
 	    return;
 	}
 	   // There are special register states for fully on and fully off -- see Table 7.

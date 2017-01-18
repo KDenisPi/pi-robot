@@ -23,7 +23,7 @@ ServoMotor::ServoMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 	m_zeroDutyCycle(0.0f),
 	m_angleStepSize(0.0f)
 {
-   this->calibrate(2.85f, 11.75f); // Typical values
+   this->calibrate(3.1f, 13.80f); //11.75f); // Typical values
 }
 
 ServoMotor::ServoMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
@@ -37,7 +37,7 @@ ServoMotor::ServoMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 	m_zeroDutyCycle(0.0f),
 	m_angleStepSize(0.0f)
 {
-   this->calibrate(2.85f, 11.75f); // Typical values
+   this->calibrate(3.1f, 13.80f); //11.75f); // Typical values
 }
 
 /*
@@ -52,7 +52,8 @@ bool ServoMotor::initialize(){
 }
 
 void ServoMotor::stop(){
-
+   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+   get_gpio()->digitalWritePWM(0.0f);
 } 
 
 /**
@@ -66,13 +67,18 @@ void ServoMotor::stop(){
 int ServoMotor::calibrate(float minDutyCycle, float maxDutyCycle){
 
    if(maxDutyCycle<=minDutyCycle){
-      logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Error, there is something wrong with the duty cycle values.");
+      logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Error, there is something wrong with the duty cycle values.");
       return -1;
    }
    m_minDutyCycle = minDutyCycle;
    m_maxDutyCycle = maxDutyCycle;
    m_zeroDutyCycle = (minDutyCycle + maxDutyCycle)/2.0f;
    m_angleStepSize = (maxDutyCycle - minDutyCycle) / (2 * m_plusMinusRange);
+
+   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Min: " + std::to_string(m_minDutyCycle) + 
+	" Max: " + std::to_string(m_maxDutyCycle) +  " Zero: " + std::to_string(m_zeroDutyCycle) + 
+	" Step: " + std::to_string(m_angleStepSize) + " Range: " + std::to_string(m_plusMinusRange));
+
    return 0;
 }
 
@@ -83,8 +89,8 @@ int ServoMotor::calibrate(float minDutyCycle, float maxDutyCycle){
  */
 void ServoMotor::setAngle(float angle){
 
-	if((angle < (-m_plusMinusRange))||(angle > (+m_plusMinusRange))){
-      logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Error, the angle selected is outsid of the servo operation range.");
+   if((angle < (-m_plusMinusRange))||(angle > (+m_plusMinusRange))){
+      logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Error, the angle selected is outsid of the servo operation range.");
       return;
    }
 

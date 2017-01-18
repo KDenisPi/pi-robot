@@ -158,6 +158,11 @@ enum DRV8825_PIN {
 	items_add(std::string("SMT_1"), std::shared_ptr<pirobot::item::Item>(
 			new pirobot::item::ServoMotor(get_gpio(provider_pca9685->getStartPin()), "SMT_1", "LED 9685 4")));
 
+        logger::log(logger::LLOG::NECECCARY, __func__, " Create STM 1");
+        items_add(std::string("SMT_2"), std::shared_ptr<pirobot::item::Item>(
+                        new pirobot::item::ServoMotor(get_gpio(provider_pca9685->getStartPin()+1), "SMT_2", "LED 9685 4")));
+
+/*
         logger::log(logger::LLOG::NECECCARY, __func__, " Create Drv8835");
 	std::shared_ptr<pirobot::item::Drv8835> drv8835(
 		new pirobot::item::Drv8835(get_gpio(provider_simple->getStartPin()), "Drv8835", "Drv8835"));
@@ -175,7 +180,7 @@ enum DRV8825_PIN {
 			)
 	);
 
-
+*/
 
 	logger::log(logger::LLOG::NECECCARY, __func__, "Real Robot configuration is finished");
 	return true;
