@@ -10,7 +10,7 @@
 
 #include <wiringPi.h>
 
-const char TAG[] = "Stepper";
+const char TAG[] = "ST_8825";
 
 namespace pirobot {
 namespace item {
