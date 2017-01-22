@@ -67,7 +67,20 @@ ULN2003StepperMotor::ULN2003StepperMotor(const std::shared_ptr<pirobot::gpio::Gp
  *
  */
 ULN2003StepperMotor::~ULN2003StepperMotor() {
-	// TODO Auto-generated destructor stub
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+	stop();
+}
+
+/*
+*
+*/
+void ULN2003StepperMotor::stop(){
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+	this->get_gpio()->digitalWrite( pirobot::gpio::SGN_LEVEL::SGN_LOW );
+	this->m_gpio_1->digitalWrite( pirobot::gpio::SGN_LEVEL::SGN_LOW );
+	this->m_gpio_2->digitalWrite( pirobot::gpio::SGN_LEVEL::SGN_LOW );
+	this->m_gpio_3->digitalWrite( pirobot::gpio::SGN_LEVEL::SGN_LOW );
+	delay(10);
 }
 
 /*
@@ -85,10 +98,12 @@ void ULN2003StepperMotor::step(const int num_steps){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Step: " + std::to_string(num_steps));
 
 	if(num_steps <= 0){
+		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid parameters Step: " + std::to_string(num_steps));
 		return;
 	}
 
 	auto estep = [this](const uint8_t step_cmd){
+		//logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Step command: " + std::to_string(step_cmd));
 		this->get_gpio()->digitalWrite( ((step_cmd & 0x01) == 0 ? pirobot::gpio::SGN_LEVEL::SGN_LOW : pirobot::gpio::SGN_LEVEL::SGN_HIGH) );
 		this->m_gpio_1->digitalWrite( ((step_cmd & 0x02) == 0 ? pirobot::gpio::SGN_LEVEL::SGN_LOW : pirobot::gpio::SGN_LEVEL::SGN_HIGH) );
 		this->m_gpio_2->digitalWrite( ((step_cmd & 0x04) == 0 ? pirobot::gpio::SGN_LEVEL::SGN_LOW : pirobot::gpio::SGN_LEVEL::SGN_HIGH) );
@@ -96,13 +111,16 @@ void ULN2003StepperMotor::step(const int num_steps){
 		delay(10);
 	};
 
+
 	// I am usually working with 28BYJ-48 Stepper - It has 64 step per cycle
 	// Well one cycle looks as reasonable value
-	int steps = (num_steps <= 64 ? num_steps : 64);
 	if(m_step == 10){
 		m_step = (m_direction == MOTOR_DIR::DIR_CLOCKWISE ? 0 : 7);
+		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Initialize step position: " + std::to_string(m_step));
 	}
+
 	for(int i = 0; i < num_steps; i++){
+		//logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Execute Step: " + std::to_string(m_step));
 		estep(m_cmd[m_step]);
 		m_step = get_next_step(m_step);
 	}
@@ -113,7 +131,7 @@ void ULN2003StepperMotor::step(const int num_steps){
  */
 bool ULN2003StepperMotor::initialize(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started ");
-
+	return true;
 }
 
 /*
@@ -128,7 +146,7 @@ const std::string ULN2003StepperMotor::to_string(){
  */
 const std::string ULN2003StepperMotor::printConfig(){
 	std::string conf =  name() + "\n" +
-			" GPIO Blue (1): " + get_gpio()->to_string() + "\n";
+		" GPIO Blue (1): " + get_gpio()->to_string() + "\n";
 	conf += " GPIO Pink (2): " + (m_gpio_1.get() == nullptr ? "Not Defined" : m_gpio_1->to_string()) + "\n";
 	conf += " GPIO Yell (3): " + (m_gpio_2.get() == nullptr ? "Not Defined" : m_gpio_2->to_string()) + "\n";
 	conf += " GPIO Orng (4): " + (m_gpio_3.get() == nullptr ? "Not Defined" : m_gpio_3->to_string()) + "\n";

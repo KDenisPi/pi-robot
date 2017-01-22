@@ -10,8 +10,10 @@
 //#include "Adafruit_PWMServoDriver.h"
 //#include "Mpu6050.h"
 #include "DRV8825StepperMotor.h"
+#include "DRV8834StepperMotor.h"
 #include "mservo.h"
 #include "DCMotor.h"
+#include "ULN2003StepperMotor.h"
 
 // LED Pin - wiringPi pin 0 is BCM_GPIO 17.
 #define	LED	0
@@ -119,10 +121,28 @@ int main (int argc, char* argv[])
   cout <<  "Get motors ...." << endl;
   //auto stepper1 = dynamic_cast<pirobot::item::DRV8825_StepperMotor*>(robot->get_item("STEP_1").get());
   //stepper1->step();
-  auto stm1 = dynamic_cast<pirobot::item::ServoMotor*>(robot->get_item("SMT_1").get());
-  auto stm2 = dynamic_cast<pirobot::item::ServoMotor*>(robot->get_item("SMT_2").get());
+  //auto stm1 = dynamic_cast<pirobot::item::ServoMotor*>(robot->get_item("SMT_1").get());
+  //auto stm2 = dynamic_cast<pirobot::item::ServoMotor*>(robot->get_item("SMT_2").get());
+  auto step_1 = dynamic_cast<pirobot::item::DRV8834_StepperMotor*>(robot->get_item("STEP_1").get());
+  //auto step_1 = dynamic_cast<pirobot::item::ULN2003StepperMotor*>(robot->get_item("STEP_1").get());
   //auto dcm1 = dynamic_cast<pirobot::item::dcmotor::DCMotor*>(robot->get_item("DCM_1").get()); 
 
+ step_1->set_step_size(pirobot::item::DRV8834_MICROSTEP::STEP34_1_2);
+  int i;
+  for(i = 0; i < 2; i++){
+	step_1->step(50);
+	sleep(3);
+  }
+/*
+  step_1->set_direction(pirobot::item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
+
+  for(i = 0; i < 5; i++){
+	step_1->step(100);
+	sleep(1);
+  }
+*/
+
+/*
   cout <<  "Servo 0 ...." << endl;
   stm1->setAngle(0.0f);
   stm2->setAngle(0.0f);
@@ -147,6 +167,7 @@ int main (int argc, char* argv[])
   stm1->setAngle(0.0f);
   stm2->setAngle(0.0f);
   sleep(5);
+*/
 
 /*
   cout <<  "DC Motor 10% ...." << endl;

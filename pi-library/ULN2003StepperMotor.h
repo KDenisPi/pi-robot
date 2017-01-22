@@ -38,6 +38,7 @@ public:
 	virtual const std::string to_string() override;
 	virtual const std::string printConfig() override;
 
+	virtual void stop() override;
 private:
 
 	/*
