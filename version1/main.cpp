@@ -127,11 +127,11 @@ int main (int argc, char* argv[])
   //auto step_1 = dynamic_cast<pirobot::item::ULN2003StepperMotor*>(robot->get_item("STEP_1").get());
   //auto dcm1 = dynamic_cast<pirobot::item::dcmotor::DCMotor*>(robot->get_item("DCM_1").get()); 
 
- step_1->set_step_size(pirobot::item::DRV8834_MICROSTEP::STEP34_1_2);
+  //step_1->set_step_size(pirobot::item::DRV8834_MICROSTEP::STEP34_1_2);
   int i;
-  for(i = 0; i < 2; i++){
-	step_1->step(50);
-	sleep(3);
+  for(i = 0; i < 10; i++){
+	step_1->step(1);
+	sleep(5);
   }
 /*
   step_1->set_direction(pirobot::item::MOTOR_DIR::DIR_COUTERCLOCKWISE);

@@ -24,9 +24,9 @@ const char* Item::ItemNames[] = {"UNK", "LED", "BTN", "SERV", "TILT", "STEP"};
  *
  */
 Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
-               const BUTTON_STATE state,
-			   const gpio::PULL_MODE pullmode,
-			   const int itype) :
+               	const BUTTON_STATE state,
+		const gpio::PULL_MODE pullmode,
+		const int itype) :
 	Item(gpio, itype),
 	m_pullmode(pullmode),
     m_state(state)
@@ -101,6 +101,8 @@ bool Button::initialize(void)
 	 */
 	get_gpio()->pullUpDnControl(m_pullmode);
 	int level = get_gpio()->digitalRead();
+
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Current state:" + std::to_string(level));
 	set_state((level == gpio::SGN_LEVEL::SGN_HIGH ? BUTTON_STATE::BTN_PUSHED : BUTTON_STATE::BTN_NOT_PUSHED));
 
 	if(is_stopped()){
@@ -113,6 +115,7 @@ bool Button::initialize(void)
 		if(result == 0){
 			set_thread(pthread);
 			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Thread created");
+			delay(1000);
 		}
 		else{
 			//TODO: Exception
@@ -120,6 +123,7 @@ bool Button::initialize(void)
 			ret = false;
 		}
 	}
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished...");
 	return ret;
 }
 
@@ -160,7 +164,8 @@ void* Button::worker(void* p){
 	        //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** State :" + std::to_string(state));
 		if(state != owner->state()){
 			owner->set_state(state);
-   	                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** State changed!!!! " + owner->name());
+   	                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** State changed!!!! " + owner->name() +
+				" New state:" + std::to_string(state));
 
 	   	        std::string name = owner->name();
 			if(owner->notify)

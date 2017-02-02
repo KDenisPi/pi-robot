@@ -58,6 +58,7 @@ public:
 
 
 	bool process_timer_event(const std::shared_ptr<Event> event);
+	bool process_event(const std::shared_ptr<Event> event);
 	void process_pop_state();
 	void process_change_state(const std::shared_ptr<Event> event);
 	void process_finish_event();

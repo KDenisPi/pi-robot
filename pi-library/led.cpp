@@ -76,10 +76,10 @@ void Led::set_state(const LED_STATE state){
   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " State from: " + std::to_string(m_state) +
 	" to:" + std::to_string(state));
 
-  if(m_state != state){
+  //if(m_state != state){
 	  get_gpio()->digitalWrite(state);
 	  m_state = state;
-  }
+  //}
 }
 
 

@@ -36,6 +36,7 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, const st
 
 	//set callback function for hardware calls
 	if(pirobot.get() != nullptr){
+		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Created callback notification function");
 		pirobot->stm_notification = std::bind(&StateMachine::process_robot_notification,
 				this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 	}
@@ -162,7 +163,7 @@ const std::shared_ptr<Event> StateMachine::get_event(){
  *
  */
 void StateMachine::put_event(const std::shared_ptr<Event> event, bool force){
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started:" + event->name());
 	mutex_sm.lock();
 	if(force){
 		while(!m_events.empty())
@@ -265,6 +266,12 @@ void* StateMachine::worker(void* p){
 				stm->process_timer_event(event);
 				break;
 
+			case EVT_BTN_UP:
+			case EVT_BTN_DOWN:
+				logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Button event detected: " + std::to_string(event->type()));
+				stm->process_event(event);
+				break;
+
 			case EVT_NONE:
 				break;
 			//default:
@@ -316,6 +323,25 @@ bool StateMachine::process_timer_event(const std::shared_ptr<Event> event){
 	logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " timer with ID: " + event->id_str() + " was not processed");
 	return false;
 }
+
+/*
+ *
+ */
+bool StateMachine::process_event(const std::shared_ptr<Event> event){
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Event: " + event->name());
+        for (const auto& state : *(get_states())) {
+                bool processed = state->OnEvent(event);
+                if(processed){
+                        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Event: " + event->name() +
+                                        " was processed by " + state->get_name());
+                        return processed;
+                }
+        }
+
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Event: " + event->name() + " was not processed");
+        return false;
+}
+
 
 /*
  *
@@ -429,11 +455,11 @@ void StateMachine::process_robot_notification(int itype, std::string& name, void
 	try{
 		if(itype == pirobot::item::ItemTypes::BUTTON || itype == pirobot::item::ItemTypes::TILT_SWITCH){
 			auto  state = *(static_cast<int*>(data));
-			if(pirobot::item::BUTTON_STATE::BTN_NOT_PUSHED){
+			if(state == pirobot::item::BUTTON_STATE::BTN_NOT_PUSHED){
 				std::shared_ptr<Event> btn_up(new Event(EVENT_TYPE::EVT_BTN_UP, name));
 				put_event(btn_up);
 			}
-			else if(pirobot::item::BUTTON_STATE::BTN_PUSHED){
+			else if(state == pirobot::item::BUTTON_STATE::BTN_PUSHED){
 				std::shared_ptr<Event> btn_down(new Event(EVENT_TYPE::EVT_BTN_DOWN, name));
 				put_event(btn_down);
 			}

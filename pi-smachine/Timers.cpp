@@ -145,7 +145,7 @@ void* Timers::worker(void* p){
 				/*
 				 * Timeout.
 				 */
-				logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer wait timeout ");
+				//logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer wait timeout ");
 				continue;
 			}
 			else{
