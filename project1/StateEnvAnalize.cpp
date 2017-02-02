@@ -12,6 +12,7 @@
 #include "MyEnv.h"
 
 #include "led.h"
+#include "TiltSwitch.h"
 
 namespace project1 {
 namespace state {
@@ -29,6 +30,13 @@ StateEnvAnalize::~StateEnvAnalize() {
 
 void StateEnvAnalize::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEntry started");
+
+	auto led = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_1").get());
+	auto tilt = dynamic_cast<pirobot::item::TiltSwitch*>(get_itf()->get_robot()->get_item("TILT_1").get());
+	if(tilt->state() == pirobot::item::BUTTON_STATE::BTN_NOT_PUSHED)
+		led->Off();
+	else
+		led->On();
 
 }
 
