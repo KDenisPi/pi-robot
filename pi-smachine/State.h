@@ -28,7 +28,7 @@ public:
 	virtual ~State();
 
 	virtual void OnEntry() = 0;
-	virtual bool OnEvent(const std::shared_ptr<Event> event) {return false;};
+	virtual bool OnEvent(const std::shared_ptr<smachine::Event> event) {return false;};
 	virtual void OnExit() {}
 	virtual bool OnTimer(const int id) {return false;};
 

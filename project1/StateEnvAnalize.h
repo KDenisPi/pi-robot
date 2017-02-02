@@ -8,7 +8,7 @@
 #ifndef PROJECT1_STATEENVANALIZE_H_
 #define PROJECT1_STATEENVANALIZE_H_
 
-#include <State.h>
+#include "State.h"
 
 namespace project1 {
 namespace state {
@@ -20,6 +20,7 @@ public:
 
 	virtual void OnEntry() override;
 	virtual bool OnTimer(const int id) override;
+	virtual bool OnEvent(const std::shared_ptr<smachine::Event> event) override;
 
 };
 

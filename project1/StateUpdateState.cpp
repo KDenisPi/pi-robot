@@ -23,11 +23,6 @@ StateUpdateState::~StateUpdateState() {
 
 void StateUpdateState::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEntry started");
-
-	//set finish timer
-	get_itf()->timer_start(TIMER_FINISH_ROBOT, 10);
-	//POP state
-	//get_itf()->state_pop();
 }
 
 bool StateUpdateState::OnTimer(const int id){
@@ -35,7 +30,6 @@ bool StateUpdateState::OnTimer(const int id){
 
 	return false;
 }
-
 
 } /* namespace state */
 } /* namespace project1 */

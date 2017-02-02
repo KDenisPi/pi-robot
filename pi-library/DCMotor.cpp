@@ -32,8 +32,9 @@ DCMotor::DCMotor(const std::shared_ptr<pirobot::item::Drv8835> drv8835,
 	assert(gpio_pwm->getMode() ==  gpio::GPIO_MODE::OUT);
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-
 	set_direction(m_direction);
+
+	stop();
 }
 
 DCMotor::DCMotor(const std::shared_ptr<pirobot::item::Drv8835> drv8835,
@@ -54,6 +55,7 @@ DCMotor::DCMotor(const std::shared_ptr<pirobot::item::Drv8835> drv8835,
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 	set_direction(m_direction);
+
 	stop();
 }
 

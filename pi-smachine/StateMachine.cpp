@@ -427,7 +427,7 @@ void StateMachine::process_robot_notification(int itype, std::string& name, void
 	logger::log(logger::LLOG::NECECCARY, __func__, " Received notification Item Type: " + std::to_string(itype) + " Name: " + name);
 
 	try{
-		if(itype == pirobot::item::ItemTypes::BUTTON){
+		if(itype == pirobot::item::ItemTypes::BUTTON || itype == pirobot::item::ItemTypes::TILT_SWITCH){
 			auto  state = *(static_cast<int*>(data));
 			if(pirobot::item::BUTTON_STATE::BTN_NOT_PUSHED){
 				std::shared_ptr<Event> btn_up(new Event(EVENT_TYPE::EVT_BTN_UP, name));
@@ -442,7 +442,7 @@ void StateMachine::process_robot_notification(int itype, std::string& name, void
 		}
 	}
 	catch(...){
-		logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Unknown exception detected. Notification lost");
+		logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Unknown exception has been detected. Notification was lost");
 	}
 
 }

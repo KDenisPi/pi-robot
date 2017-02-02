@@ -30,83 +30,12 @@ StateEnvAnalize::~StateEnvAnalize() {
 void StateEnvAnalize::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEntry started");
 
-	/*
-	 * Light On first LED
-	 */
-	try{
-		auto env = dynamic_cast<MyEnv*>(get_itf()->get_env().get());
-		//std::vector<std::string> items = get_robot()->get_items();
-		std::string name = "LED_" + std::to_string(env->items[0]);
-		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " First Item: " + name);
-
-		auto led = dynamic_cast<pirobot::item::Led*>(get_robot()->get_item(name).get());
-		led->On();
-
-		env->led_processed++;
-	}
-	catch(std::runtime_error& exc){
-
-	}
-
-	get_itf()->timer_start(TIMER_SWITCH_TO_SECOND, 4);
-
 }
 
 bool StateEnvAnalize::OnTimer(const int id){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnTimer started ID: " + std::to_string(id));
 
-	auto env = dynamic_cast<MyEnv*>(get_itf()->get_env().get());
-
 	switch(id){
-	case TIMER_SWITCH_TO_SECOND:
-	{
-		/*
-		 * Light On second LED
-		 */
-
-		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Processed: " + std::to_string(env->led_processed));
-
-		//std::vector<std::string> items = get_robot()->get_items();
-		if(env->led_processed < env->led_max){
-			try{
-				std::string led_name_prev = "LED_" + std::to_string(env->items[env->led_processed-1]);
-				std::string led_name_next = "LED_" + std::to_string(env->items[env->led_processed]);
-
-				logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Curr: " + led_name_prev + " Next: " + led_name_next);
-
-				auto led_prev = dynamic_cast<pirobot::item::Led*>(get_robot()->get_item(led_name_prev).get());
-				led_prev->Off();
-
-				auto led_next = dynamic_cast<pirobot::item::Led*>(get_robot()->get_item(led_name_next).get());
-				led_next->On();
-
-				env->led_processed++;
-			}
-			catch(std::runtime_error& exc){
-
-			}
-			get_itf()->timer_start(TIMER_SWITCH_TO_SECOND, 4);
-		}
-		else {
-			try{
-				std::string led_name_prev = "LED_" + std::to_string(env->items[env->led_processed-1]);
-
-				logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Curr: " + led_name_prev);
-
-				auto led_prev = dynamic_cast<pirobot::item::Led*>(get_robot()->get_item(led_name_prev).get());
-				led_prev->Off();
-			}
-			catch(std::runtime_error& exc){
-
-			}
-			/*
-			 * Switch to another state
-			 */
-			get_itf()->state_change("StateUpdateState");
-
-		}
-		return true;
-	}
 	case TIMER_FINISH_ROBOT:
 		get_itf()->finish();
 		return true;
@@ -115,6 +44,29 @@ bool StateEnvAnalize::OnTimer(const int id){
 	return false;
 }
 
+bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEvent Type: " + std::to_string(event->type()) +
+			" Name:" + event->name());
+
+	if(event->name().compare("BTN_1") == 0){
+		if(event->type() == smachine::EVENT_TYPE::EVT_BTN_DOWN){
+			get_itf()->finish();
+		}
+	}
+	else if(event->name().compare("TILT_1") == 0){
+		auto led = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_1").get());
+
+		if(event->type() == smachine::EVENT_TYPE::EVT_BTN_DOWN){
+			led->On();
+		}
+		else if(event->type() == smachine::EVENT_TYPE::EVT_BTN_UP){
+			led->Off();
+		}
+	}
+
+
+	return false;
+}
 
 } /* namespace state */
 } /* namespace project1 */
