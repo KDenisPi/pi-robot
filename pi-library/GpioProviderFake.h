@@ -2,7 +2,7 @@
  * GpioProviderFake.h
  *
  *  Created on: Nov 6, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_GPIOPROVIDERFAKE_H_

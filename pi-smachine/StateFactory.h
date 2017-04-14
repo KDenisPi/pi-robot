@@ -2,7 +2,7 @@
  * StateFactory.h
  *
  *  Created on: Nov 24, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_SMACHINE_STATEFACTORY_H_

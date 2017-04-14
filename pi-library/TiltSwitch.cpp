@@ -2,7 +2,7 @@
  * TiltSwitch.cpp
  *
  *  Created on: Jan 1, 2017
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include "TiltSwitch.h"

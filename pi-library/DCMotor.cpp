@@ -2,7 +2,7 @@
  * DCMotor.cpp
  *
  *  Created on: Jan 10, 2017
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include <cassert>

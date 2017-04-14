@@ -2,7 +2,7 @@
  * StateFactory.cpp
  *
  *  Created on: Nov 24, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include "StateFactory.h"

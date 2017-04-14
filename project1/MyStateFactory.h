@@ -2,7 +2,7 @@
  * MyStateFactory.h
  *
  *  Created on: Nov 30, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PROJECT1_MYSTATEFACTORY_H_

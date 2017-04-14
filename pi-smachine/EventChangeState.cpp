@@ -2,7 +2,7 @@
  * EventChangeState.cpp
  *
  *  Created on: Nov 25, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include "EventChangeState.h"

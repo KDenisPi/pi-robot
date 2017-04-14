@@ -2,7 +2,7 @@
  * logger.cpp
  *
  *  Created on: Nov 8, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include <iostream>

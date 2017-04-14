@@ -2,7 +2,7 @@
  * logger.h
  *
  *  Created on: Nov 8, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_LOGGER_H_

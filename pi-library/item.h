@@ -2,7 +2,7 @@
  * item.h
  *
  *  Created on: Nov 7, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_ITEM_H_

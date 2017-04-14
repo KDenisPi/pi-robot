@@ -2,7 +2,7 @@
  * GpioProviderMCP23017.h
  *
  *  Created on: Nov 23, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_GPIOPROVIDERMCP23017_H_

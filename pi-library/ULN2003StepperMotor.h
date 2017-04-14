@@ -2,7 +2,7 @@
  * ULN2003StepperMotor.h
  *
  *  Created on: Jan 18, 2017
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_ULN2003STEPPERMOTOR_H_

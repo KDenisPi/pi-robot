@@ -2,7 +2,7 @@
  * PiRobotPrj1.cpp
  *
  *  Created on: Dec 17, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include <vector>

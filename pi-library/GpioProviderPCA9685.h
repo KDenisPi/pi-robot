@@ -2,7 +2,7 @@
  * GpioProviderPCA9685.h
  *
  *  Created on: Nov 14, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_GPIOPROVIDERPCA9685_H_

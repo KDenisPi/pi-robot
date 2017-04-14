@@ -2,7 +2,7 @@
  * I2CWrapper.h
  *
  *  Created on: Dec 2, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_I2CWRAPPER_H_

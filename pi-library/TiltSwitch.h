@@ -2,7 +2,7 @@
  * TiltSwitch.h
  *
  *  Created on: Jan 1, 2017
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_TILTSWITCH_H_

@@ -2,7 +2,7 @@
  * DRV8825StepperMotor.h
  *
  *  Created on: Jan 1, 2017
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_DRV8825STEPPERMOTOR_H_

@@ -2,7 +2,7 @@
  * DRV8835.h
  *
  *  Created on: Jan 11, 2017
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_DRV8835_H_

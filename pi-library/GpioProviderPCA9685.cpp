@@ -2,7 +2,7 @@
  * GpioProviderPCA9685.cpp
  *
  *  Created on: Nov 14, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include <cassert>

@@ -2,7 +2,7 @@
  * button.h
  *
  *  Created on: Nov 7, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_BUTTON_H_

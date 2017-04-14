@@ -2,7 +2,7 @@
  * StateUpdateState.cpp
  *
  *  Created on: Dec 8, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include "defines.h"

@@ -2,7 +2,7 @@
  * ServoMotor.h
  *
  *  Created on: Nov 16, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_MSERVO_H_

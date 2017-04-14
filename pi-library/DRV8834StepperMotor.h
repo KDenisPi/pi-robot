@@ -2,7 +2,7 @@
  * DRV8834StepperMotor.h
  *
  *  Created on: Jan 20, 2017
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_DRV8834STEPPERMOTOR_H_

@@ -2,7 +2,7 @@
  * StateEnvAnalize.h
  *
  *  Created on: Nov 24, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PROJECT1_STATEENVANALIZE_H_

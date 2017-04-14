@@ -2,7 +2,7 @@
  * MyEnv.h
  *
  *  Created on: Dec 8, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PROJECT1_MYENV_H_

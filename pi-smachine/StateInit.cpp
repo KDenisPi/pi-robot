@@ -2,7 +2,7 @@
  * StateInit.cpp
  *
  *  Created on: Nov 18, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include "StateInit.h"

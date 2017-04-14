@@ -2,7 +2,7 @@
  * DCMotor.h
  *
  *  Created on: Jan 10, 2017
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_DCMOTOR_H_

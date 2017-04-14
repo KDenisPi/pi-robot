@@ -2,7 +2,7 @@
  * Mpu6050_defs.h
  *
  *  Created on: Dec 4, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_MPU6050_DEFS_H_

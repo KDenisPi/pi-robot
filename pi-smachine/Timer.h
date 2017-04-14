@@ -2,7 +2,7 @@
  * Timer.h
  *
  *  Created on: Nov 11, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_SMACHINE_TIMER_H_

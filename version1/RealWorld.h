@@ -2,7 +2,7 @@
  * RealWorld.h
  *
  *  Created on: Nov 10, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef VERSION1_REALWORLD_H_

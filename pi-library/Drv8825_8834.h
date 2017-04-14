@@ -2,7 +2,7 @@
  * Drv8825_8834.h
  *
  *  Created on: Jan 20, 2017
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_LIBRARY_DRV8825_8834_H_

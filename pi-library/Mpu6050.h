@@ -2,7 +2,7 @@
  * Mpu6050.h
  *
  *  Created on: Dec 2, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 // MPU-6050 Accelerometer + Gyro

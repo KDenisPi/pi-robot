@@ -2,7 +2,7 @@
  * Mpu6050.cpp
  *
  *  Created on: Dec 2, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include <cstdio>

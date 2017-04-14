@@ -2,7 +2,7 @@
  * Timers.cpp
  *
  *  Created on: Nov 27, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 #define _POSIX_C_SOURCE 200112L //199309
 #include <signal.h>

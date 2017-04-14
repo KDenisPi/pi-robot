@@ -2,7 +2,7 @@
  * RealWorld.cpp
  *
  *  Created on: Nov 10, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 //#include "logger.h"

@@ -2,7 +2,7 @@
  * ULN2003StepperMotor.cpp
  *
  *  Created on: Jan 18, 2017
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 const char TAG[] = "ST_U2003";

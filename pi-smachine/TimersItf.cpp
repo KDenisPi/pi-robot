@@ -2,7 +2,7 @@
  * TimersItf.cpp
  *
  *  Created on: Nov 27, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include "TimersItf.h"

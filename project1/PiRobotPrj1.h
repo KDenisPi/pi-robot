@@ -2,7 +2,7 @@
  * PiRobotPrj1.h
  *
  *  Created on: Dec 17, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PROJECT1_PIROBOTPRJ1_H_

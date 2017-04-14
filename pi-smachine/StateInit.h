@@ -2,7 +2,7 @@
  * StateInit.h
  *
  *  Created on: Nov 18, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_SMACHINE_STATEINIT_H_

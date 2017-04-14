@@ -2,7 +2,7 @@
  * PiRobot.cpp
  *
  *  Created on: Nov 6, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include <unistd.h>

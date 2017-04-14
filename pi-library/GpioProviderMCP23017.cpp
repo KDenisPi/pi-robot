@@ -2,7 +2,7 @@
  * GpioProviderMCP23017.cpp
  *
  *  Created on: Nov 23, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include <mcp23x0817.h>

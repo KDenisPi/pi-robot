@@ -2,7 +2,7 @@
  * MyStateFactory.cpp
  *
  *  Created on: Nov 30, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include <exception>

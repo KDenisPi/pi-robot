@@ -2,7 +2,7 @@
  * TimersItf.h
  *
  *  Created on: Nov 27, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_SMACHINE_TIMERSITF_H_

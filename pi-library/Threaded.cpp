@@ -2,7 +2,7 @@
  * Threaded.cpp
  *
  *  Created on: Dec 4, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include "Threaded.h"

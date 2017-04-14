@@ -2,7 +2,7 @@
  * DRV8834StepperMotor.cpp
  *
  *  Created on: Jan 20, 2017
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include "DRV8834StepperMotor.h"

@@ -2,7 +2,7 @@
  * Environment.h
  *
  *  Created on: Dec 14, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_SMACHINE_ENVIRONMENT_H_

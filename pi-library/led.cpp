@@ -2,7 +2,7 @@
  * led.cpp
  *
  *  Created on: Nov 7, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include "logger.h"

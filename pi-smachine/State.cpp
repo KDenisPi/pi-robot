@@ -2,7 +2,7 @@
  * State.cpp
  *
  *  Created on: Nov 11, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #include "State.h"

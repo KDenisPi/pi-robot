@@ -2,7 +2,7 @@
  * EventChangeState.h
  *
  *  Created on: Nov 25, 2016
- *      Author: denis
+ *      Author: Denis Kudia
  */
 
 #ifndef PI_SMACHINE_EVENTCHANGESTATE_H_
