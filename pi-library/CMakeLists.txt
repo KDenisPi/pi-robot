@@ -4,7 +4,9 @@ cmake_minimum_required(VERSION 3.0)
 project(pi-library)
 
 set(CMAKE_BIULD_TYPE Debug)
-include_directories(BEFORE ${PROJECT_SOURCE_DIR}/../../wiringPi/wiringPi)
+include_directories(BEFORE ${WIRINGPI_LIB})
+
+message( STATUS "WIRINGPI_LIB ${WIRINGPI_LIB}")
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_LIBRARY_SOURCES)
 

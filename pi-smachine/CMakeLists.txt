@@ -5,7 +5,7 @@ project(pi-smachine)
 
 #find_library(RT_LIB rt PATH)
 
-include_directories(BEFORE ${PROJECT_SOURCE_DIR}/../../wiringPi/wiringPi
+include_directories(BEFORE ${WIRINGPI_LIB}
    ${PROJECT_SOURCE_DIR}/../pi-library
 )
 
