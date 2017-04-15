@@ -33,15 +33,13 @@ add_library(libwiringPi STATIC IMPORTED)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} ${WIPI_LIB})
 
+add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smachine)
+add_subdirectory(${PROJECT_SOURCE_DIR}/pi-mqqt)
+
 add_subdirectory(${PROJECT_SOURCE_DIR}/version1)
 add_subdirectory(${PROJECT_SOURCE_DIR}/project1)
-
-include_directories(${WIRINGPI_LIB}
-   ${PROJECT_SOURCE_DIR}/pi-library
-   ${PROJECT_SOURCE_DIR}/pi-smachine
-)
 
 
 

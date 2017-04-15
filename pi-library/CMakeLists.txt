@@ -4,7 +4,9 @@ cmake_minimum_required(VERSION 3.0)
 project(pi-library)
 
 set(CMAKE_BIULD_TYPE Debug)
-include_directories(BEFORE ${WIRINGPI_LIB})
+include_directories(BEFORE ${WIRINGPI_LIB}
+   ${PROJECT_SOURCE_DIR}/../pi-utils
+)
 
 message( STATUS "WIRINGPI_LIB ${WIRINGPI_LIB}")
 

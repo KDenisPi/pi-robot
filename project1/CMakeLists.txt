@@ -6,14 +6,12 @@ project(project1)
 set(VER_MJR 0)
 set(VER_MIN 1)
 
-#find_library(PI_LIB pi-library PATH ${CMAKE_BINARY_DIR})
-#find_library(PI_MASHINE pi-machine PATH ${CMAKE_BINARY_DIR})
-
 set(CMAKE_BIULD_TYPE Debug)
-set(EXTRA_LIBS ${EXTRA_LIBS} ${WIPI_LIB} pi-library pi-smachine pthread)
+set(EXTRA_LIBS ${EXTRA_LIBS} ${WIPI_LIB} pi-library pi-smachine pi-utils pthread)
 
-include_directories(${PROJECT_SOURCE_DIR}/../../wiringPi/wiringPi
+include_directories(BEFORE ${WIRINGPI_LIB}
    ${PROJECT_SOURCE_DIR}/../pi-library
+   ${PROJECT_SOURCE_DIR}/../pi-utils
    ${PROJECT_SOURCE_DIR}/../pi-smachine
 )
 
