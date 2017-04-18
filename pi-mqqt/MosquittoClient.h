@@ -11,12 +11,10 @@
 
 namespace mqqt {
 
-
-
 class MosquittoClient : public mosqpp::mosquittopp 
 {
 public:       
-    MosquittoClient() {}
+    MosquittoClient(const char* clientID);
     virtual ~MosquittoClient() {}
 
 	virtual void on_connect(int /*rc*/);

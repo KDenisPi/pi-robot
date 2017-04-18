@@ -13,6 +13,16 @@ namespace mqqt {
 const char TAG[] = "mosqt";
 
 /*
+* Constructor
+*/
+MosquittoClient::MosquittoClient(const char* clientID) 
+    : mosquittopp(clientID, true) {
+  logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Started ");
+
+}
+
+
+/*
 * Callback for on connect
 */
 void MosquittoClient::on_connect(int rc){
@@ -68,6 +78,5 @@ void MosquittoClient::on_error(){
     return;
 }    
 
-
-}
+} // end namespace mqqt
 
