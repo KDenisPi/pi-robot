@@ -16,7 +16,8 @@ const char TAG[] = "mosqt";
 * Constructor
 */
 MosquittoClient::MosquittoClient(const char* clientID) 
-    : mosquittopp(clientID, true) {
+    : owner_notification(nullptr), 
+    mosquittopp(clientID, true) {
   logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Started ");
 
 }

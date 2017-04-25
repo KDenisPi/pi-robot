@@ -7,7 +7,10 @@
 #ifndef PI_MQQT_MOSQUITTO_CL_H_
 #define PI_MQQT_MOSQUITTO_CL_H_
 
+#include <functional>
 #include <mosquittopp.h>
+
+#include "MqqtDefines.h"
 
 namespace mqqt {
 
@@ -25,6 +28,8 @@ public:
 	virtual void on_unsubscribe(int /*mid*/);
 	virtual void on_log(int /*level*/, const char * /*str*/);
 	virtual void on_error();    
+
+	std::function<void(MQQT_CLIENT_STATE state, MQQT_CLIENT_ERROR code)> owner_notification;
 };
 
 } /*end namespace mqqt*/
