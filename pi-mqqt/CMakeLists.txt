@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.0)
 #project name
 project(pi-mqqt)
 
-include_directories(BEFORE ${MOSQUITTO_LIB}/lib/cpp
-   ${MOSQUITTO_LIB}/lib
+include_directories(BEFORE ${MOSQUITTO_HOME}/lib/cpp
+   ${MOSQUITTO_HOME}/lib
    ${PROJECT_SOURCE_DIR}/../pi-smashine
    ${PROJECT_SOURCE_DIR}/../pi-utils
 )

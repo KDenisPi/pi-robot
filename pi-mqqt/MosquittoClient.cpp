@@ -15,11 +15,37 @@ const char TAG[] = "mosqt";
 /*
 * Constructor
 */
-MosquittoClient::MosquittoClient(const char* clientID) 
-    : owner_notification(nullptr), 
-    mosquittopp(clientID, true) {
+MosquittoClient::MosquittoClient(const char* clientID) :
+    mosqpp::mosquittopp(clientID, true) {
   logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Started ");
 
+}
+
+/*
+*
+*/
+const int MosquittoClient::cl_connect(const MqqtServerInfo& conf){
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__));
+
+    reconnect_delay_set(reconnect_delay, reconnect_delay_max, false);
+    return connect_async(conf.host(), conf.port(), conf.keepalive());
+}
+
+/*
+*
+*/
+const int MosquittoClient::cl_disconnect(){
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__));
+    return disconnect();
+}
+
+/*
+*
+*/
+const std::string MosquittoClient::cl_get_version() const {
+    int mjr=0, mnr=0, rev=0;
+    mosqpp::lib_version(&mjr, &mnr, &rev);
+    return std::to_string(mjr) + "." + std::to_string(mnr) + "." + std::to_string(rev);
 }
 
 
@@ -28,6 +54,19 @@ MosquittoClient::MosquittoClient(const char* clientID)
 */
 void MosquittoClient::on_connect(int rc){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Client connected. Code: " + std::to_string(rc));
+
+    if(rc == MOSQ_ERR_SUCCESS){
+        cl_notify(MQQT_CONNECT, MQQT_ERROR_SUCCESS);
+        loop_start();
+    }
+    else{
+        cl_notify(MQQT_CONNECT, (rc == MOSQ_ERR_INVAL ? MQQT_ERROR_INVAL : MQQT_ERROR_FAILED));
+        err_conn_inc();
+        if(rc != MOSQ_ERR_INVAL && !is_max_err_conn()){
+           logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Trying to reconnect...");
+           reconnect_async();
+        }
+    }
     return;
 }
 
@@ -36,6 +75,9 @@ void MosquittoClient::on_connect(int rc){
 */
 void MosquittoClient::on_disconnect(int rc){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Client disconnected. Code: " + std::to_string(rc));
+
+    cl_notify(MQQT_DISCONNECT, (rc == MOSQ_ERR_SUCCESS ? MQQT_ERROR_SUCCESS : MQQT_ERROR_FAILED));
+    loop_stop(false);
     return;
 }
 

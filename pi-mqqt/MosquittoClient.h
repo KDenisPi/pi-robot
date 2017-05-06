@@ -11,14 +11,19 @@
 #include <mosquittopp.h>
 
 #include "MqqtDefines.h"
+#include "MqqtClient.h"
 
 namespace mqqt {
 
-class MosquittoClient : public mosqpp::mosquittopp 
+class MosquittoClient : public mosqpp::mosquittopp, public MqqtClientItf
 {
 public:       
     MosquittoClient(const char* clientID);
     virtual ~MosquittoClient() {}
+
+    virtual const int cl_connect(const MqqtServerInfo& conf);
+    virtual const int cl_disconnect();
+    virtual const std::string cl_get_version() const;
 
 	virtual void on_connect(int /*rc*/);
 	virtual void on_disconnect(int /*rc*/);
@@ -29,7 +34,8 @@ public:
 	virtual void on_log(int /*level*/, const char * /*str*/);
 	virtual void on_error();    
 
-	std::function<void(MQQT_CLIENT_STATE state, MQQT_CLIENT_ERROR code)> owner_notification;
+	unsigned int reconnect_delay = 2;
+	unsigned int reconnect_delay_max = 6;
 };
 
 } /*end namespace mqqt*/

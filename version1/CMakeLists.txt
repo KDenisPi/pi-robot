@@ -7,16 +7,20 @@ set(VER_MJR 0)
 set(VER_MIN 1)
 
 find_library(PI_LIB pi-library PATH ${CMAKE_BINARY_DIR})
+find_library(PI_MQQT pi-mqqt PATH ${CMAKE_BINARY_DIR})
 
 set(CMAKE_BIULD_TYPE Debug)
-set(EXTRA_LIBS ${EXTRA_LIBS} ${WIPI_LIB} pi-library pi-utils pthread)
+set(EXTRA_LIBS ${EXTRA_LIBS} pi-mqqt pi-library pi-utils pthread)
 
-include_directories(BEFORE ${WIRINGPI_LIB}
+include_directories(BEFORE ${MOSQUITTO_HOME}/lib/cpp
+   ${MOSQUITTO_HOME}/lib
+   ${WIRINGPI_LIB}
+   ${PROJECT_SOURCE_DIR}/../pi-mqqt
    ${PROJECT_SOURCE_DIR}/../pi-library
    ${PROJECT_SOURCE_DIR}/../pi-utils
 )
 
-message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}" )
+message( STATUS "EXTRA_LIBS (ver1):  ${EXTRA_LIBS}" )
 
 aux_source_directory(${PROJECT_SOURCE_DIR} VERSION1_SOURCES)
 

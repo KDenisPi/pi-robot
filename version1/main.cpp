@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <exception>
 
+/*
 #include "wiringPi.h"
 #include "version.h"
 #include "RealWorld.h"
@@ -21,6 +22,10 @@
 
 #define SERVOMIN  150 // this is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  600 // this is the 'maximum' pulse length count (out of 4096)
+*/
+
+#include "MosquittoClient.h"
+#include "MqqtClient.h"
 
 using namespace std;
 
@@ -28,6 +33,18 @@ int main (int argc, char* argv[])
 {
   cout <<  "Raspberry Pi blink Parameters:" << argc << endl;
 
+ mqqt::MqqtServerInfo info(mqqt::MqqtServerInfo("127.0.0.1", "pi-robot"));
+ mqqt::MosquittoClient* cl  = new mqqt::MosquittoClient("127.0.0.1");
+ //mqqt::MqqtClient<mqqt::MosquittoClient>* clMqqt = new mqqt::MqqtClient<mqqt::MosquittoClient>(info);
+
+ cout <<  "MQQT client was created" << endl;
+ sleep(2);
+
+ cout <<  "MQQT ckient is trying to connect" << endl;
+ //clMqqt->connect();
+ sleep(4);
+
+ 
 /*
   pirobot::mpu6050::Mpu6050* mpu = new  pirobot::mpu6050::Mpu6050(0x68, 100);
   int res = wiringPiSetup();
@@ -111,6 +128,7 @@ int main (int argc, char* argv[])
    *
    */
 
+/*
   realworld::RealWorld* robot = new realworld::RealWorld();
 
   robot->configure();
@@ -133,7 +151,8 @@ int main (int argc, char* argv[])
 	step_1->step(1);
 	sleep(5);
   }
-/*
+
+
   step_1->set_direction(pirobot::item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
 
   for(i = 0; i < 5; i++){
@@ -201,7 +220,7 @@ int main (int argc, char* argv[])
 
   cout <<  "DC Motor stop ...." << endl;
   dcm1->stop();
-*/
+
   sleep(5);
 
 
@@ -210,8 +229,6 @@ int main (int argc, char* argv[])
 
   cout <<  "Release robot " << endl;
   delete robot;
-
-  /*
 
   wiringPiSetup () ;
   pinMode (LED, OUTPUT) ;

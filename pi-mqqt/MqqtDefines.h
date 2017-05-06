@@ -18,7 +18,8 @@ enum MQQT_CLIENT_STATE {
 
 enum MQQT_CLIENT_ERROR {
     MQQT_ERROR_SUCCESS = 0,
-    MQQT_FAILED = 1
+    MQQT_ERROR_INVAL = 1,
+    MQQT_ERROR_FAILED = 2
 };
 
 } //end namespace mqqt

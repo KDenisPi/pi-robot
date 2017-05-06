@@ -32,19 +32,13 @@ MqqtClient<T>::MqqtClient(const MqqtServerInfo& conf) :
 */
 template<class T>
 MqqtClient<T>::~MqqtClient(){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
     if(m_mqqtCl){
-        m_mqqtCl->disconnect();
+        m_mqqtCl->cl_disconnect();
     }
     m_mqqtCl.reset();
 }
 
-/*
-*
-*/
-template<class T>
-void MqqtClient<T>::on_client(mqqt::MQQT_CLIENT_STATE state, mqqt::MQQT_CLIENT_ERROR code){
-
-}
 
 
 /*
@@ -53,17 +47,15 @@ void MqqtClient<T>::on_client(mqqt::MQQT_CLIENT_STATE state, mqqt::MQQT_CLIENT_E
 template<class T>
 const int MqqtClient<T>::connect(){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__));
-    return m_mqqtCl->connect_async(m_conf.host(), m_conf.port(), m_conf.keepalive());
+    return m_mqqtCl->cl_connect(m_conf);
 }
 
 /*
 *
 */
 template<class T>
-const std::string MqqtClient<T>::get_version() const{
-    int mjr=0, mnr=0, rev=0;
-    m_mqqtCl->lib_version(&mjr, &mnr, &rev);
-    return std::to_string(mjr) + "." + std::to_string(mnr) + "." + std::to_string(rev);
+const std::string MqqtClient<T>::get_version() const {
+    return m_mqqtCl->get_version();
 }
 
 
