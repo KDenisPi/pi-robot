@@ -34,14 +34,13 @@ int main (int argc, char* argv[])
   cout <<  "Raspberry Pi blink Parameters:" << argc << endl;
 
  mqqt::MqqtServerInfo info(mqqt::MqqtServerInfo("127.0.0.1", "pi-robot"));
- mqqt::MosquittoClient* cl  = new mqqt::MosquittoClient("127.0.0.1");
- //mqqt::MqqtClient<mqqt::MosquittoClient>* clMqqt = new mqqt::MqqtClient<mqqt::MosquittoClient>(info);
+ mqqt::MqqtClient<mqqt::MosquittoClient>* clMqqt = new mqqt::MqqtClient<mqqt::MosquittoClient>(info);
 
  cout <<  "MQQT client was created" << endl;
  sleep(2);
 
- cout <<  "MQQT ckient is trying to connect" << endl;
- //clMqqt->connect();
+ cout <<  "MQQT client is trying to connect" << endl;
+ clMqqt->connect();
  sleep(4);
 
  

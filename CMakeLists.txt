@@ -19,6 +19,7 @@ message( STATUS "MOSQUITTO_LIB ${MOSQUITTO_LIB}")
 
 find_library(WIPI_LIB wiringPi PATH ${WIRINGPI_LIB})
 find_library(MOSQT_LIB mosquitto PATH ${MOSQUITTO_LIB})
+find_library(MOSQT_LIB_CPP mosquittopp PATH ${MOSQUITTO_LIB}/cpp)
 
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_BIULD_TYPE Debug)
@@ -35,8 +36,9 @@ message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
 add_library(libwiringPi STATIC IMPORTED)
 add_library(libmosquitto STATIC IMPORTED)
+add_library(libmosquittopp STATIC IMPORTED)
 
-set(EXTRA_LIBS ${EXTRA_LIBS} ${WIPI_LIB} ${MOSQT_LIB})
+set(EXTRA_LIBS ${EXTRA_LIBS} ${WIPI_LIB} ${MOSQT_LIB} ${MOSQT_LIB_CPP})
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)

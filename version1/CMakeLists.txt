@@ -20,8 +20,6 @@ include_directories(BEFORE ${MOSQUITTO_HOME}/lib/cpp
    ${PROJECT_SOURCE_DIR}/../pi-utils
 )
 
-message( STATUS "EXTRA_LIBS (ver1):  ${EXTRA_LIBS}" )
-
 aux_source_directory(${PROJECT_SOURCE_DIR} VERSION1_SOURCES)
 
 add_executable(version1 ${VERSION1_SOURCES})

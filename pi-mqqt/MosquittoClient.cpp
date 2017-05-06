@@ -118,6 +118,7 @@ void MosquittoClient::on_log(int /*level*/, const char * str){
 */
 void MosquittoClient::on_error(){
     //TBD: Add error processing there
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
     return;
 }    
 

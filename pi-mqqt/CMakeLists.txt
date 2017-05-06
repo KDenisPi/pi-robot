@@ -10,8 +10,10 @@ include_directories(BEFORE ${MOSQUITTO_HOME}/lib/cpp
 )
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_MQQT_SOURCES)
+message( STATUS "PI_MQQT_SOURCES:  ${PI_MQQT_SOURCES}" )
+
 
 #add_library(pi-mqqt SHARED ${PI_MQQT_SOURCES})
 add_library(pi-mqqt STATIC ${PI_MQQT_SOURCES})
 
-target_link_libraries(pi-mqqt rt)
+target_link_libraries(pi-mqqt)

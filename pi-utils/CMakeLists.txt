@@ -9,3 +9,5 @@ aux_source_directory(${PROJECT_SOURCE_DIR} PI_UTILS_SOURCES)
 
 #add_library(pi-utils SHARED ${PI_UTILS_SOURCES})
 add_library(pi-utils STATIC ${PI_UTILS_SOURCES})
+
+#target_link_libraries(pi-utils)
