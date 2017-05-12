@@ -25,7 +25,7 @@ public:
     *
     */
     MqqtServerInfo(const std::string host) : 
-        m_host(host), m_clientid(""), m_port(1883), m_keepalive(60), m_qos(0) {
+        m_host(host), m_clientid(""), m_port(1883), m_keepalive(10), m_qos(0) {
 
     }
 
@@ -33,7 +33,7 @@ public:
     *
     */
     MqqtServerInfo(const std::string host, const std::string clientid) : 
-        m_host(host), m_clientid(clientid), m_port(1883), m_keepalive(60), m_qos(0) {
+        m_host(host), m_clientid(clientid), m_port(1883), m_keepalive(10), m_qos(0) {
 
     }
     
@@ -160,9 +160,22 @@ public:
     }
 
 
+    /*
+    *
+    */
     const int publish(const std::string& topic, const std::string& payload);
-    const int disconnect();
 
+    /*
+    *
+    */
+    const int disconnect(){
+        logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__));
+        return m_mqqtCl->cl_disconnect();
+    }
+
+    /*
+    *
+    */
     void on_client(mqqt::MQQT_CLIENT_STATE state, mqqt::MQQT_CLIENT_ERROR code){
         
     }

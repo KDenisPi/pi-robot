@@ -33,7 +33,7 @@ int main (int argc, char* argv[])
 {
   cout <<  "Raspberry Pi blink Parameters:" << argc << endl;
 
- mqqt::MqqtServerInfo info(mqqt::MqqtServerInfo("127.0.0.1", "pi-robot"));
+ mqqt::MqqtServerInfo info(mqqt::MqqtServerInfo("10.0.0.9", "pi-robot"));
  mqqt::MqqtClient<mqqt::MosquittoClient>* clMqqt = new mqqt::MqqtClient<mqqt::MosquittoClient>(info);
 
  cout <<  "MQQT client was created" << endl;
@@ -41,8 +41,15 @@ int main (int argc, char* argv[])
 
  cout <<  "MQQT client is trying to connect" << endl;
  clMqqt->connect();
- sleep(4);
 
+ cout <<  "MQQT client connect" << endl;
+ sleep(3);
+
+ clMqqt->disconnect();
+ cout <<  "MQQT client disconnect" << endl;
+ sleep(3);
+
+ delete clMqqt;
  
 /*
   pirobot::mpu6050::Mpu6050* mpu = new  pirobot::mpu6050::Mpu6050(0x68, 100);

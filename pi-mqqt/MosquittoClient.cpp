@@ -21,6 +21,12 @@ MosquittoClient::MosquittoClient(const char* clientID) :
 
 }
 
+MosquittoClient::~MosquittoClient(){
+  logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Started ");
+  loop_stop(true);
+}
+
+
 /*
 *
 */
@@ -28,7 +34,11 @@ const int MosquittoClient::cl_connect(const MqqtServerInfo& conf){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__));
 
     reconnect_delay_set(reconnect_delay, reconnect_delay_max, false);
-    return connect_async(conf.host(), conf.port(), conf.keepalive());
+    int res =  connect_async(conf.host(), conf.port(), conf.keepalive());
+    loop_start();
+
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Finished: " + cl_get_errname(res));
+    return res;
 }
 
 /*
@@ -53,11 +63,10 @@ const std::string MosquittoClient::cl_get_version() const {
 * Callback for on connect
 */
 void MosquittoClient::on_connect(int rc){
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Client connected. Code: " + std::to_string(rc));
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Client connected. Code: " + cl_get_errname(rc));
 
     if(rc == MOSQ_ERR_SUCCESS){
         cl_notify(MQQT_CONNECT, MQQT_ERROR_SUCCESS);
-        loop_start();
     }
     else{
         cl_notify(MQQT_CONNECT, (rc == MOSQ_ERR_INVAL ? MQQT_ERROR_INVAL : MQQT_ERROR_FAILED));
@@ -74,7 +83,7 @@ void MosquittoClient::on_connect(int rc){
 * Callback for on disconnect
 */
 void MosquittoClient::on_disconnect(int rc){
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Client disconnected. Code: " + std::to_string(rc));
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Client disconnected. Code: " + cl_get_errname(rc));
 
     cl_notify(MQQT_DISCONNECT, (rc == MOSQ_ERR_SUCCESS ? MQQT_ERROR_SUCCESS : MQQT_ERROR_FAILED));
     loop_stop(false);
