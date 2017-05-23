@@ -21,7 +21,6 @@ namespace smachine {
 const char TAG[] = "smash";
 
 StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, const std::shared_ptr<pirobot::PiRobot> pirobot) :
-		m_pthread(0),
 		m_factory(factory),
 		m_pirobo(pirobot)
 {
@@ -54,79 +53,24 @@ void StateMachine::state_push(const std::shared_ptr<state::State> state){
  *
  */
 bool StateMachine::start(){
-	bool ret = true;
-	pthread_attr_t attr;
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-	/*
-	 *
-	 */
-	m_timers->start();
-
-	if( is_stopped() ){
-		state_change("StateInit");
-		//this->put_event(std::shared_ptr<Event>(new Event(EVT_FINISH)), true);
-
-		pthread_attr_init(&attr);
-		int result = pthread_create(&this->m_pthread, &attr, StateMachine::worker, (void*)(this));
-		if(result == 0){
-			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Thread created");
-		}
-		else{
-			//TODO: Exception
-			logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Thread failed Res: " + std::to_string(result));
-			ret = false;
-		}
-	}
-
-	return ret;
+	return piutils::Threaded::start<StateMachine>(this);
 }
 
 /*
- * Temporal: Wait for processing
+ * Temporal: Wait for processing. Debug purpose only
  */
 void StateMachine::wait(){
-	void* ret;
-	int res = 0;
-
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Trying to join and wait ");
-	res = pthread_join(this->m_pthread, &ret);
-	if(res != 0){
-		if(res != ESRCH)
-			logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not join to thread Res: " + std::to_string(res));
-		else{
-			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished already. Res: " + std::to_string(res));
-		}
-	}
-
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished Res: " + std::to_string((long)ret));
+	piutils::Threaded::stop(false);
 }
-
 
 /*
  *
  */
 void StateMachine::stop(){
-	void* ret;
-	int res = 0;
-
-	if( !is_stopped() ){
-		/*
-		 * Generate Stop Event and push it to the events queues
-		 */
-		this->put_event(std::shared_ptr<Event>(new Event(EVT_FINISH)), true);
-		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" Signal sent. Wait.. thread: ") + std::to_string(this->m_pthread));
-
-		res = pthread_join(this->m_pthread, &ret);
-		if(res != 0){
-			if(res != ESRCH)
-				logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not join to thread Res: " + std::to_string(res));
-			else{
-				logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished already. Res: " + std::to_string(res));
-			}
-		}
-	}
-
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished Res: " + std::to_string((long)ret));
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started.");
+	piutils::Threaded::stop();
 }
 
 /*

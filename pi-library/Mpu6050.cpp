@@ -441,19 +441,7 @@ const std::string Mpu6050::print_current(){
  *
  */
 void Mpu6050::stop(){
-	void* ret;
-	int res = 0;
-
-	set_stop_signal(true);
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" Signal sent. Wait.. thread: ") + std::to_string(this->get_thread()));
-
-	if( !is_stopped() ){
-		res = pthread_join(this->get_thread(), &ret);
-		if(res != 0)
-			logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not join to thread Res:" + std::to_string(res));
-	}
-
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished Res:" + std::to_string((long)ret));
+	piutils::Threaded::stop();
 }
 
 /*
@@ -462,26 +450,7 @@ void Mpu6050::stop(){
 bool Mpu6050::start(void)
 {
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started...");
-	bool ret = true;
-
-	if(is_stopped()){
-		set_stop_signal(false);
-
-		pthread_attr_t attr;
-		pthread_attr_init(&attr);
-		pthread_t pthread;
-		int result = pthread_create(&pthread, &attr, Mpu6050::worker, (void*)(this));
-		if(result == 0){
-			set_thread(pthread);
-			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Thread created");
-		}
-		else{
-			//TODO: Exception
-			logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Thread failed Res:" + std::to_string(result));
-			ret = false;
-		}
-	}
-	return ret;
+	return piutils::Threaded::start<Mpu6050>(this);	
 }
 
 /*
@@ -498,14 +467,14 @@ void* Mpu6050::worker(void* p){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker started.");
 
 	Mpu6050* owner = static_cast<Mpu6050*>(p);
-	while(!owner->is_stopSignal()){
+	while(!owner->is_stop_signal()){
 		/*
 		 *
 		 */
 		owner->update_values();
 		//logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + owner->print_current());
 
-		delay(owner->get_utime());
+		delay(owner->get_loopDelay());
 	}
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished.");

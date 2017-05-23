@@ -20,13 +20,13 @@
 #include "State.h"
 #include "EventChangeState.h"
 #include "Event.h"
-//#include "Timers.h"
+#include "Threaded.h"
 
 namespace smachine {
 
 class Timers;
 
-class StateMachine : public StateMachineItf {
+class StateMachine : public StateMachineItf, public piutils::Threaded {
 public:
 	StateMachine(const std::shared_ptr<StateFactory> factory, const std::shared_ptr<pirobot::PiRobot> pirobot);
 	virtual ~StateMachine();
@@ -63,10 +63,6 @@ public:
 	void process_change_state(const std::shared_ptr<Event> event);
 	void process_finish_event();
 
-	/*
-	 * Temporal - return thread ID
-	 */
-	inline const pthread_t get_thread() const {return m_pthread;}
 
 	/*
 	 * Temporal: Wait for processing
@@ -83,14 +79,12 @@ public:
      */
     void process_robot_notification(int itype, std::string& name, void* data);
 
+	static void* worker(void* p);
+
 private:
 	bool start();
 	void stop();
 
-	bool is_stopped() const { return (m_pthread == 0);}
-
-	static void* worker(void* p);
-	pthread_t m_pthread;
 
 	bool empty() const {return m_events.empty();}
 

@@ -18,7 +18,7 @@ namespace pirobot {
 namespace item {
 
 
-class Button: public Item, public Threaded {
+class Button: public Item, public piutils::Threaded {
 public:
 
 	/*

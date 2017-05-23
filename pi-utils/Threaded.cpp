@@ -7,9 +7,9 @@
 
 #include "Threaded.h"
 
-namespace pirobot {
+namespace piutils {
 
-Threaded::Threaded() : m_pthread(0), m_stopSignal(false)
+Threaded::Threaded() : m_pid(0), m_pthread(0), m_stopSignal(false)
 {
 }
 

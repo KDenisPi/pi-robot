@@ -73,19 +73,8 @@ Button::~Button() {
  *
  */
 void Button::stop(){
-	void* ret;
-	int res = 0;
-
-	set_stop_signal(true);
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" Signal sent. Wait.. thread: ") + std::to_string(this->get_thread()));
-
-	if( !is_stopped() ){
-		res = pthread_join(this->get_thread(), &ret);
-		if(res != 0)
-			logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not join to thread Res:" + std::to_string(res));
-	}
-
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished Res:" + std::to_string((long)ret));
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started.");
+	piutils::Threaded::stop();
 }
 
 /*
@@ -94,7 +83,6 @@ void Button::stop(){
 bool Button::initialize(void)
 {
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started...");
-	bool ret = true;
 
 	/*
 	 * Set PULL MODE
@@ -104,27 +92,7 @@ bool Button::initialize(void)
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Current state:" + std::to_string(level));
 	set_state((level == gpio::SGN_LEVEL::SGN_HIGH ? BUTTON_STATE::BTN_PUSHED : BUTTON_STATE::BTN_NOT_PUSHED));
-
-	if(is_stopped()){
-		set_stop_signal(false);
-
-		pthread_attr_t attr;
-		pthread_attr_init(&attr);
-		pthread_t pthread;
-		int result = pthread_create(&pthread, &attr, Button::worker, (void*)(this));
-		if(result == 0){
-			set_thread(pthread);
-			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Thread created");
-			delay(1000);
-		}
-		else{
-			//TODO: Exception
-			logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Thread failed Res:" + std::to_string(result));
-			ret = false;
-		}
-	}
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished...");
-	return ret;
+	return piutils::Threaded::start<Button>(this);
 }
 
 /*
@@ -158,7 +126,7 @@ void* Button::worker(void* p){
 
 	Button* owner = static_cast<Button*>(p);
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** Initial State :" + std::to_string(owner->state()));
-	while(!owner->is_stopSignal()){
+	while(!owner->is_stop_signal()){
 		int level = owner->get_gpio()->digitalRead();
 		const BUTTON_STATE state = (level == gpio::SGN_LEVEL::SGN_HIGH ? BUTTON_STATE::BTN_PUSHED : BUTTON_STATE::BTN_NOT_PUSHED);
 	        //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** State :" + std::to_string(state));
@@ -172,7 +140,7 @@ void* Button::worker(void* p){
 	   		        owner->notify(owner->type(), name, (void*)(&state));
 		}
 
-		delay(100);
+		delay(owner->get_loopDelay());
 	}
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished.");

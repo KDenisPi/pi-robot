@@ -21,7 +21,7 @@ namespace smachine {
 const char TAG[] = "timers";
 
 Timers::Timers(StateMachine* owner) :
-		m_pthread(0), m_stop(false), m_pid(0), m_owner(owner)
+		 m_owner(owner)
 {
 	sigset_t new_set;
 	sigemptyset (&new_set);
@@ -36,70 +36,24 @@ Timers::~Timers() {
 	// TODO Auto-generated destructor stub
 }
 
-/*
- *
- */
-void Timers::set_stop_signal(const bool state){
-	mutex_tm.lock();
-	m_stop = state;
-	mutex_tm.unlock();
-}
-
-bool Timers::is_stop_signal()
-{
-	mutex_tm.lock();
-	bool stop = m_stop;
-	mutex_tm.unlock();
-	return stop;
-}
 
 /*
  *
  */
 bool Timers::start(){
-	bool ret = true;
-	pthread_attr_t attr;
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-	if( is_stopped() ){
-		set_stop_signal(false);
-
-		pthread_attr_init(&attr);
-		int result = pthread_create(&this->m_pthread, &attr, Timers::worker, (void*)(this));
-		if(result == 0){
-			logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Thread created");
-		}
-		else{
-			//TODO: Exception
-			logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Thread failed Res:" + std::to_string(result));
-			ret = false;
-		}
-	}
-
-	return ret;
+	return piutils::Threaded::start<Timers>(this);
 }
 
 /*
  *
  */
 void Timers::stop(){
-	void* ret;
-	int res = 0;
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" Thread: ") + std::to_string(this->m_pthread));
-
-	if( !is_stopped() ){
-
-		set_stop_signal(true);
-
-		res = pthread_join(this->m_pthread, &ret);
-		if(res != 0)
-			logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not join to thread Res:" + std::to_string(res));
-		else
-			m_pthread = 0;
-	}
-
+	piutils::Threaded::stop();
 	m_id_to_tm.clear();
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished Res:" + std::to_string((long)ret));
 }
 
 /*

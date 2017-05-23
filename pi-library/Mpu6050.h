@@ -108,7 +108,7 @@ struct mpu6050_values {
 #define IF_BIT(VALUE,BITN) (((VALUE>>BITN)&0x01)==1)
 #define SET_BIT(VALUE,BITN) ((0x01<<BITN)|VALUE) 
 
-class Mpu6050 : public Threaded {
+class Mpu6050 : public piutils::Threaded {
 public:
 	Mpu6050(const uint8_t i2caddr = MPU6050_I2C_ADDRESS, const unsigned int utime = 1000);
 	virtual ~Mpu6050();
@@ -130,6 +130,7 @@ public:
 	inline float get_last_gyro_z_angle() {return m_val.last_gyro_z_angle;}
 
 	inline struct mpu6050_values& get_last_values() { return m_val;}
+	virtual unsigned int const get_loopDelay() const {return update_interval;} //thread loop delay in ms
 
 	// The sensor should be motionless on a horizontal surface
 	//  while calibration is happening
