@@ -9,132 +9,31 @@
 
 #include <memory>
 #include <functional>
-
+#include <queue>
 
 #include <logger.h>
 #include "MqqtDefines.h"
+#include "MqqtClientItf.h"
+
+#include "Threaded.h"
 
 namespace mqqt {
 
-/*
-* MQQT server configuration information
-*/
-class MqqtServerInfo {
-public:    
-    /*
-    *
-    */
-    MqqtServerInfo(const std::string host) : 
-        m_host(host), m_clientid(""), m_port(1883), m_keepalive(10), m_qos(0) {
-
-    }
-
-    /*
-    *
-    */
-    MqqtServerInfo(const std::string host, const std::string clientid) : 
-        m_host(host), m_clientid(clientid), m_port(1883), m_keepalive(10), m_qos(0) {
-
-    }
-    
-    virtual ~MqqtServerInfo() {}
-
-    bool is_empty() const {return m_host.empty();}
-    const char* host() const {return m_host.c_str();}
-
-    const char* clientid() const {return (m_clientid.empty() ? NULL : m_clientid.c_str());}
-    
-    void set_port(const int port) {m_port = port;}
-    const int port() const { return m_port;}
-    
-    void set_keepalive(const int keepalive){ m_keepalive = keepalive;}
-    const int keepalive()const {return m_keepalive;}
-
-    const int qos() const { return m_qos;}
-    void set_qos(const int qos) {
-        if(qos>=0 && qos<=2){
-            m_qos = qos;
-        }
-    }
-
-    /*
-    *
-    */
-    MqqtServerInfo& operator=(const MqqtServerInfo& info){
-        if(this != &info){
-            this->m_host = info.m_host;
-            this->m_clientid = info.m_clientid;
-            this->m_port = info.m_port;
-            this->m_keepalive = info.m_keepalive;
-        }
-        return *this;
-    }  
-    
-    /*
-    *
-    */
-    const std::string to_string(){
-        return std::string("Host: [") + m_host + "] id: [" + m_clientid  +"] port: " + 
-            std::to_string(m_port) + " keep alive: " + std::to_string(m_keepalive);
-    }
-
-private:    
-    std::string m_clientid;
-    std::string m_host;
-    int m_port;
-    int m_keepalive;
-    int m_qos;
-
-};
-
-/*
-* Interface for parent object
-*/
-class MqqtClientItf {
-public:    
-    MqqtClientItf() : 
-        owner_notification(nullptr),
-        m_err_connect(0),
-        err_conn_max(3) {}
-
-    virtual ~MqqtClientItf() {}
-
-    virtual const int cl_connect(const MqqtServerInfo& conf) = 0;
-    virtual const int cl_disconnect() = 0;
-    virtual const std::string cl_get_version() const = 0;
-
-    virtual void cl_notify(mqqt::MQQT_CLIENT_STATE state, mqqt::MQQT_CLIENT_ERROR code) const {
-        if(owner_notification != nullptr){
-            owner_notification(state, code);
-        }
-    } 
-
-	std::function<void(MQQT_CLIENT_STATE state, MQQT_CLIENT_ERROR code)> owner_notification;
-
-    const bool is_max_err_conn() const {
-        return (m_err_connect >= err_conn_max);
-    }
-    
-    void err_conn_inc() {
-        m_err_connect++;
-    }
-
-private:    
-    int m_err_connect; //connection error counter
-    int err_conn_max;
-};
 
 const char TAG_CL[] = "mqqtcl";
+
+using pub_info = std::pair<int,std::pair<std::string, std::string>>;    
 
 /*
 * MQQT client implementation
 */
 template <class T>
-class MqqtClient {
+class MqqtClient : public piutils::Threaded{
 public:
     MqqtClient<T>(const MqqtServerInfo& conf) : 
         m_mid(0),
-        m_conf(conf)
+        m_conf(conf),
+        m_max_size(100)
     {
         logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Client ID: " + (NULL == m_conf.clientid() ? std::string("NotDefined") : m_conf.clientid()));
         m_mqqtCl = std::shared_ptr<T>(new T(m_conf.clientid()));
@@ -150,7 +49,6 @@ public:
         m_mqqtCl.reset();
     }
     
-
     /*
     *
     */
@@ -159,12 +57,40 @@ public:
         return m_mqqtCl->cl_connect(m_conf);
     }
 
+    /*
+    *
+    */
+    const MQQT_CLIENT_ERROR publish(const std::string& topic, const std::string& payload){
+        //do nothing if client stopped already 
+        if(is_stop_signal())
+            return m_mid;
+
+	    mutex_sm.lock();
+        if(m_messages.size() < m_max_size){
+            ++m_mid;
+            auto pub_item = std::make_pair<m_mid, std::make_pair<topic,payload>>;
+            m_messages.push(pub_item);
+        }
+        mutex_sm.unlock();        
+        return MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
+    }
 
     /*
     *
     */
-    const int publish(const std::string& topic, const std::string& payload);
+    const std::shared_ptr<pub_info> get(){
+	    mutex_sm.lock();
+        std::shared_ptr<pub_info> item = m_messages.front();
+        m_messages.pop();
+        mutex_sm.unlock();
+        return item;
+    }
 
+    const int put(const pub_info& item){
+        auto pub_item = item.second;
+        return m_mqqtCl->cl_publish(item.first, pub_item.first, pub_item.second);
+        
+    }
     /*
     *
     */
@@ -188,10 +114,56 @@ public:
     }
 
 
+
+    /*
+    * For Threaded 
+    */
+	static void* worker(void* p){
+    	logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Worker started.");
+
+    	MqqtClient* owner = static_cast<MqqtClient*>(p);
+        for(;;){
+            if(owner->is_stop_signal())
+                break;
+
+            while(!owner->is_empty()){
+                auto item = owner->get();
+
+            }
+    		delay(owner->get_loopDelay());
+        }
+
+    }
+
+    /*
+    *
+    */
+	void stop() {
+    	logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Started.");
+        //stop working thread - do not try to send nothing
+	    piutils::Threaded::stop();
+        //disconnect client
+        disconnect();
+        //clear the queue
+        while(!m_messages.empty()){m_messages.pop();}
+    }
+
+    /*
+    *
+    */
+    const bool is_empty() const {
+        return m_messages.empty();
+    }
+
 private:
-    int m_mid;
-    MqqtServerInfo m_conf;
-    std::shared_ptr<T> m_mqqtCl;
+    int m_mid;  // message ID
+    MqqtServerInfo m_conf;  //server configuration
+    std::shared_ptr<T> m_mqqtCl; //client implementation
+
+	std::recursive_mutex mutex_sm;
+	std::queue<std::shared_ptr<std::pair<std::string, std::string>>> m_messages;
+    int m_max_size;  
+    
 };
 
 } //end namespace mqqt

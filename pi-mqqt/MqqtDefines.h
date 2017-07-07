@@ -22,5 +22,6 @@ enum MQQT_CLIENT_ERROR {
     MQQT_ERROR_FAILED = 2
 };
 
+
 } //end namespace mqqt
 #endif

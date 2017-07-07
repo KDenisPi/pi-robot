@@ -33,6 +33,7 @@ MosquittoClient::~MosquittoClient(){
 const int MosquittoClient::cl_connect(const MqqtServerInfo& conf){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__));
 
+    m_qos = conf.qos();
     reconnect_delay_set(reconnect_delay, reconnect_delay_max, false);
     int res =  connect_async(conf.host(), conf.port(), conf.keepalive());
     loop_start();
@@ -58,6 +59,11 @@ const std::string MosquittoClient::cl_get_version() const {
     return std::to_string(mjr) + "." + std::to_string(mnr) + "." + std::to_string(rev);
 }
 
+
+const int MosquittoClient::cl_publish(int mid, std::string& topic, std::string& payload){
+    int mmid = mid;
+    return publish(&mmid, topic.c_str(), payload.length(), payload.c_str(), m_qos);
+}
 
 /*
 * Callback for on connect

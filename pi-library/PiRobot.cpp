@@ -143,7 +143,9 @@ void PiRobot::printConfig(){
  */
 void PiRobot::notify_stm(int itype, std::string& name, void* data){
 	if(stm_notification != nullptr){
+		mutex_sm.lock();
 		stm_notification(itype, name, data);
+		mutex_sm.unlock();
 	}
 	else
 		logger::log(logger::LLOG::NECECCARY, __func__, " Received notification Item Type: " + std::to_string(itype) + " Name: " + name);

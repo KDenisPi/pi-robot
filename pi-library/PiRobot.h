@@ -12,6 +12,7 @@
 #include <memory>
 #include <functional>
 #include <vector>
+#include <mutex>
 
 #include <wiringPi.h>
 
@@ -81,12 +82,13 @@ public:
      *
      */
     void notify_stm(int itype, std::string& name, void* data);
-
+	
 	std::function<void(int, std::string&, void*)> stm_notification;
 
 private:
 	bool m_realWorld;
-
+	std::recursive_mutex mutex_sm;
+	
 	std::map <int,
 		std::shared_ptr<gpio::Gpio>,
 		std::less<int>,

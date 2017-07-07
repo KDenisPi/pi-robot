@@ -11,7 +11,7 @@
 #include <mosquittopp.h>
 
 #include "MqqtDefines.h"
-#include "MqqtClient.h"
+#include "MqqtClientItf.h"
 
 namespace mqqt {
 
@@ -24,6 +24,8 @@ public:
     virtual const int cl_connect(const MqqtServerInfo& conf);
     virtual const int cl_disconnect();
     virtual const std::string cl_get_version() const;
+    virtual const int cl_publish(int mid, std::string& topic, std::string& payload) override;
+	
 
 	virtual void on_connect(int /*rc*/);
 	virtual void on_disconnect(int /*rc*/);
@@ -60,6 +62,8 @@ public:
 			default: return std::to_string(code);
 		}
 	}
+private:
+	int m_qos;
 };
 
 } /*end namespace mqqt*/
