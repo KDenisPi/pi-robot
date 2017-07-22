@@ -57,6 +57,9 @@ public:
         return m_mqqtCl->cl_connect(m_conf);
     }
 
+    const int get_next_mid(){
+        return ++m_mid;
+    }
     /*
     *
     */
@@ -65,13 +68,12 @@ public:
         if(is_stop_signal())
             return m_mid;
 
-	    mutex_sm.lock();
+	mutex_sm.lock();
         if(m_messages.size() < m_max_size){
-            ++m_mid;
-            auto pub_item = std::make_pair<m_mid, std::make_pair<topic,payload>>;
+            auto pub_item = std::make_pair<get_next_mid(), std::make_pair<topic,payload>>;
             m_messages.push(pub_item);
         }
-        mutex_sm.unlock();        
+        mutex_sm.unlock();
         return MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
     }
 
@@ -86,7 +88,7 @@ public:
         return item;
     }
 
-    const int put(const pub_info& item){
+    const int put(pub_info& item){
         auto pub_item = item.second;
         return m_mqqtCl->cl_publish(item.first, pub_item.first, pub_item.second);
         
