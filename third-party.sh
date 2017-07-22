@@ -2,6 +2,17 @@
 
 mkdir ../third-party
 cd ../third-party
+
+#
+# Open SSL needed for Mosquitto
+#
+echo Open SSL
+git clone https://github.com/openssl/openssl openssl
+cd ./openssl
+export set OPENSSL_ROOT_DIR=$PWD
+make
+#make test
+
 #
 #Mosquitto MQQT server 
 #
