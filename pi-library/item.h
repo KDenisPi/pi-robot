@@ -22,7 +22,8 @@ enum ItemTypes{
 	TILT_SWITCH = 4,
 	STEPPER = 5,
 	DCMotor = 6,
-	DRV8835 = 7
+	DRV8835 = 7,
+	BLINKER = 8
 };
 
 enum BUTTON_STATE{

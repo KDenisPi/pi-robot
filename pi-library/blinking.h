@@ -8,6 +8,7 @@
 #ifndef PI_LIBRARY_BLINKING_H_
 #define PI_LIBRARY_BLINKING_H_
 
+#include "item.h"
 #include "Threaded.h"
 #include "logger.h"
 #include <wiringPi.h>
@@ -18,23 +19,39 @@ namespace item {
 const char TAG_[] = "Blink";
 
 template<class T>
-class Blinking: public piutils::Threaded {
+class Blinking: public Item, public piutils::Threaded {
 public:
     Blinking(const T& item, 
         unsigned int tm_on=250, 
         unsigned int tm_off=500,
         unsigned int blinks = 10
         ) 
-        : m_item(item), m_tm_on(tm_on), 
+        : Item(item->get_gpio(), ItemTypes::BLINKER), 
+        m_item(item), m_tm_on(tm_on), 
         m_tm_off(tm_off),m_blinks(blinks), m_on(false){
 
     	logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Started with " + m_item.name());
+    	set_name(type_name() + "_for_" + m_item.name());
     }
 
+    /*
+    *
+    */
     virtual ~Blinking(){
 
     }
 
+	virtual const std::string to_string() override {
+        return name();
+    } 
+
+	virtual const std::string printConfig() override {
+        return name();
+    }
+
+    /*
+    *
+    */
     unsigned int get_on() { return m_tm_on; }
     unsigned int get_off() { return m_tm_off; }
     unsigned int get_blinks() { return m_blinks; }

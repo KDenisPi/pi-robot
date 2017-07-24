@@ -18,7 +18,7 @@ namespace item {
 
 const char TAG[] = "button";
 
-const char* Item::ItemNames[] = {"UNK", "LED", "BTN", "SERV", "TILT", "STEP", "DCM", "DRV8835"};
+const char* Item::ItemNames[] = {"UNK", "LED", "BTN", "SERV", "TILT", "STEP", "DCM", "DRV8835", "Blink"};
 
 /*
  *
@@ -88,9 +88,10 @@ bool Button::initialize(void)
 	 * Set PULL MODE
 	 */
 	get_gpio()->pullUpDnControl(m_pullmode);
+	
 	int level = get_gpio()->digitalRead();
-
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Current state:" + std::to_string(level));
+
 	set_state((level == gpio::SGN_LEVEL::SGN_HIGH ? BUTTON_STATE::BTN_PUSHED : BUTTON_STATE::BTN_NOT_PUSHED));
 	return piutils::Threaded::start<Button>(this);
 }
