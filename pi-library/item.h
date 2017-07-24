@@ -77,6 +77,12 @@ public:
 
 	static const char* ItemNames[];
 
+	inline bool have_notify(){
+		if(m_type == ItemTypes::BUTTON || m_type == ItemTypes::TILT_SWITCH){
+			return true;
+		}
+		return false;
+	}
 	std::function<void(int, std::string&, void*)> notify;
 private:
 	std::string m_name;

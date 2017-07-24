@@ -18,7 +18,7 @@ namespace item {
 
 const char TAG[] = "button";
 
-const char* Item::ItemNames[] = {"UNK", "LED", "BTN", "SERV", "TILT", "STEP"};
+const char* Item::ItemNames[] = {"UNK", "LED", "BTN", "SERV", "TILT", "STEP", "DCM", "DRV8835"};
 
 /*
  *

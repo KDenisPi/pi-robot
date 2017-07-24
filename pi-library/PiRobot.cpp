@@ -78,7 +78,7 @@ bool PiRobot::start(){
 		 * Set callback for Button
 		 * TODO: Add another types if needed
 		 */
-		if(it->second->type() == item::ItemTypes::BUTTON || it->second->type() == item::ItemTypes::TILT_SWITCH){
+		if(it->second->have_notify()){
 			logger::log(logger::LLOG::NECECCARY, __func__, " Add callback function " + it->first);
 			it->second->notify = std::bind(&PiRobot::notify_stm,
 					this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
