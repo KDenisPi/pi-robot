@@ -21,7 +21,7 @@ const char TAG_[] = "Blink";
 template<class T>
 class Blinking: public Item, public piutils::Threaded {
 public:
-    Blinking(const T& item, 
+    Blinking(T* item, 
         unsigned int tm_on=250, 
         unsigned int tm_off=500,
         unsigned int blinks = 10
@@ -30,8 +30,8 @@ public:
         m_item(item), m_tm_on(tm_on), 
         m_tm_off(tm_off),m_blinks(blinks), m_on(false){
 
-    	logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Started with " + m_item.name());
-    	set_name(type_name() + "_for_" + m_item.name());
+    	logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Started with " + m_item->name());
+    	set_name(type_name() + "_for_" + m_item->name());
     }
 
     /*
@@ -79,6 +79,8 @@ public:
 	    Blinking* owner = static_cast<Blinking*>(p);
 
         unsigned int loop_delay = owner->get_loopDelay();
+    	std::string name = owner->name();
+        
 	    while(!owner->is_stop_signal()){
             int blinks = (owner->get_blinks() > 0 ? owner->get_blinks() : 10);
             while(owner->is_on() && blinks > 0){
@@ -105,6 +107,12 @@ public:
                 if(blinks == 0 && owner->get_blinks() == 0){
                     blinks = 10;
                 }
+
+    			if(owner->notify){
+                    unsigned int state = GENERAL_NTFY::GN_DONE;
+	   		        owner->notify(owner->type(), name, (void*)(&state));
+                }
+                
             }
 
     		delay(loop_delay);
@@ -133,7 +141,7 @@ private:
     unsigned int m_tm_off;
     unsigned int m_blinks;
     bool m_on;
-    T m_item;
+    T* m_item;
 };
 
 } /* namespace item */

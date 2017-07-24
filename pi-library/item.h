@@ -36,6 +36,10 @@ enum MOTOR_DIR {
 	DIR_COUTERCLOCKWISE = 1
 };
 
+enum GENERAL_NTFY {
+	GN_DONE
+};
+
 
 class Item {
 public:
@@ -79,7 +83,9 @@ public:
 	static const char* ItemNames[];
 
 	inline bool have_notify(){
-		if(m_type == ItemTypes::BUTTON || m_type == ItemTypes::TILT_SWITCH){
+		if(m_type == ItemTypes::BUTTON || 
+			m_type == ItemTypes::TILT_SWITCH ||
+			m_type == ItemTypes::BLINKER){
 			return true;
 		}
 		return false;

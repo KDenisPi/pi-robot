@@ -127,6 +127,9 @@ void* Button::worker(void* p){
 
 	Button* owner = static_cast<Button*>(p);
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** Initial State :" + std::to_string(owner->state()));
+    
+	std::string name = owner->name();
+
 	while(!owner->is_stop_signal()){
 		int level = owner->get_gpio()->digitalRead();
 		const BUTTON_STATE state = (level == gpio::SGN_LEVEL::SGN_HIGH ? BUTTON_STATE::BTN_PUSHED : BUTTON_STATE::BTN_NOT_PUSHED);
@@ -136,7 +139,6 @@ void* Button::worker(void* p){
    	                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** State changed!!!! " + owner->name() +
 				" New state:" + std::to_string(state));
 
-	   	        std::string name = owner->name();
 			if(owner->notify)
 	   		        owner->notify(owner->type(), name, (void*)(&state));
 		}
