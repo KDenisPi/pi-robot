@@ -29,6 +29,9 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, const st
 
 	m_env = std::shared_ptr<Environment>(m_factory->get_environment());
 
+        //Start timers
+        m_timers->start();
+
 	if( !start()){
 		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " State machine could not start!");
 	}
@@ -39,6 +42,9 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, const st
 		pirobot->stm_notification = std::bind(&StateMachine::process_robot_notification,
 				this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 	}
+
+        //Add first event 
+        put_event(std::shared_ptr<Event>(new Event(EVT_CHANGE_STATE, "StateInit")));
 }
 
 

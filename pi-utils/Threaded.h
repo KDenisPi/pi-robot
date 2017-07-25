@@ -15,7 +15,7 @@
 
 namespace piutils {
 
-const char TAG_TR[] = "timers";
+const char TAG_TR[] = "thread";
 
 class Threaded {
 public:
@@ -23,13 +23,13 @@ public:
 	virtual ~Threaded();
 
 	inline const pthread_t get_thread() const { return m_pthread;}
-	
+
 	inline void set_thread(const pthread_t thread) { 
 		mutex_.lock();
 		m_pthread = thread;
 		mutex_.unlock();
 	}
-	
+
 	inline bool is_stopped() { return (m_pthread == 0);}
 
 /*
@@ -46,7 +46,7 @@ template<class T>
 
 			pthread_attr_init(&attr);
 			pthread_t pthread;
-		
+
 			int result = pthread_create(&pthread, &attr, T::worker, (void*)(owner));
 			if(result == 0){
 				set_thread(pthread);
