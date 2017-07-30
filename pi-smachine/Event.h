@@ -17,10 +17,11 @@ enum EVENT_TYPE {
    EVT_CHANGE_STATE = 1,  	//Change state
    EVT_POP_STATE    = 2,  	//Move to previous state in stack
    EVT_TIMER        = 3,  	//Timer
-   EVT_BTN_UP		= 4,  	//Button UP (Released)
-   EVT_BTN_DOWN		= 5,	//Button Down (pressed)
-   EVT_FINISH       = 6		//End of work
-};   
+   EVT_BTN_UP	    = 4,  	//Button UP (Released)
+   EVT_BTN_DOWN	    = 5,	//Button Down (pressed)
+   EVT_ITEM_ACTIVITY = 6,
+   EVT_FINISH       = 7		//End of work
+};
 
 class Event {
 public:
@@ -34,6 +35,7 @@ public:
     inline const int id() const {return m_id;}
     inline const std::string id_str() const {return std::to_string(m_id);}
     inline const std::string name() const {return m_name;}
+    inline const bool is_event(const std::string ename) { return (this->name().compare(ename) == 0); }
 
 private:
        EVENT_TYPE m_type;

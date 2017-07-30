@@ -21,17 +21,18 @@ const char TAG_[] = "Blink";
 template<class T>
 class Blinking: public Item, public piutils::Threaded {
 public:
-    Blinking(T* item, 
-        unsigned int tm_on=250, 
+    Blinking(T* item,
+        const std::string name,
+        const std::string comment = "",
+        unsigned int tm_on=250,
         unsigned int tm_off=500,
         unsigned int blinks = 10
-        ) 
-        : Item(item->get_gpio(), ItemTypes::BLINKER), 
-        m_item(item), m_tm_on(tm_on), 
+        )
+        : Item(item->get_gpio(), name, comment, ItemTypes::BLINKER),
+        m_item(item), m_tm_on(tm_on),
         m_tm_off(tm_off),m_blinks(blinks), m_on(false){
 
-    	logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Started with " + m_item->name());
-    	set_name(type_name() + "_for_" + m_item->name());
+    	logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " " + this->name() + " Started with " + m_item->name());
     }
 
     /*
@@ -41,11 +42,11 @@ public:
 
     }
 
-	virtual const std::string to_string() override {
+    virtual const std::string to_string() override {
         return name();
     } 
 
-	virtual const std::string printConfig() override {
+    virtual const std::string printConfig() override {
         return name();
     }
 
@@ -67,23 +68,24 @@ public:
 
     const bool is_on() const { return m_on; }
 
-	virtual bool initialize() override {
-    	logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Started.");
-
-    	return piutils::Threaded::start<Blinking>(this);
+    virtual bool initialize() override {
+       logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Started.");
+       return piutils::Threaded::start<Blinking>(this);
     }
 
-	static void* worker(void* p){
-	    logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Worker started.");
-
-	    Blinking* owner = static_cast<Blinking*>(p);
+    /*
+    * Blinking worker function
+    */
+    static void* worker(void* p){
+        Blinking* owner = static_cast<Blinking*>(p);
+        logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Worker started. " + owner->to_string());
 
         unsigned int loop_delay = owner->get_loopDelay();
     	std::string name = owner->name();
-        
-	    while(!owner->is_stop_signal()){
-            int blinks = (owner->get_blinks() > 0 ? owner->get_blinks() : 10);
-            while(owner->is_on() && blinks > 0){
+
+	while(!owner->is_stop_signal()){
+           int blinks = (owner->get_blinks() > 0 ? owner->get_blinks() : 10);
+           while(owner->is_on() && blinks > 0){
                 //Switch On
                 owner->item_on();
                 unsigned int tm_on = owner->get_on();
@@ -107,27 +109,30 @@ public:
                 if(blinks == 0 && owner->get_blinks() == 0){
                     blinks = 10;
                 }
+           }
 
-    			if(owner->notify){
-                    unsigned int state = GENERAL_NTFY::GN_DONE;
-	   		        owner->notify(owner->type(), name, (void*)(&state));
-                }
-                
-            }
+           //check if current loop is finished and send signal to parent
+           if((owner->is_on() && blinks == 0)){
+             owner->Off(); //switch status to  off
+              if(owner->notify){
+                 unsigned int state = GENERAL_NTFY::GN_DONE;
+                 owner->notify(owner->type(), name, (void*)(&state));
+              }
+           }
 
-    		delay(loop_delay);
+    	   delay(loop_delay);
     	}
 
-	    logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Worker finished.");
-	    return (void*) 0L;
+        logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Worker finished. " + owner->to_string());
+        return (void*) 0L;
     }
 
-	virtual void stop() override {
-    	logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Started.");
-        Off();
-	    piutils::Threaded::stop();
+    virtual void stop() override {
+       logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Started.");
+       Off();
+       piutils::Threaded::stop();
     }
-    
+
     void item_on(){
         m_item->On();
     }

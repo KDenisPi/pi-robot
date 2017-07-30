@@ -31,11 +31,11 @@ StateEnvAnalize::~StateEnvAnalize() {
 
 void StateEnvAnalize::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize started");
-/*
-	auto red = dynamic_cast<pirobot::item::Blinking<pirobot::item::Led>*>(get_itf()->get_robot()->get_item("BLNK_Red").get());
-	auto blue = dynamic_cast<pirobot::item::Blinking<pirobot::item::Led>*>(get_itf()->get_robot()->get_item("BLNK_Blue").get());
-	auto yellow = dynamic_cast<pirobot::item::Blinking<pirobot::item::Led>*>(get_itf()->get_robot()->get_item("BLNK_Yellow").get());
-*/
+
+	//auto red = dynamic_cast<pirobot::item::Blinking<pirobot::item::Led>*>(get_itf()->get_robot()->get_item("BLNK_Red").get());
+	auto blue = dynamic_cast<pirobot::item::Blinking<pirobot::item::Led>*>(get_itf()->get_robot()->get_item("BLINK_Blue").get());
+	//auto yellow = dynamic_cast<pirobot::item::Blinking<pirobot::item::Led>*>(get_itf()->get_robot()->get_item("BLNK_Yellow").get());
+
         auto red = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_Red").get());
         auto white = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_White").get());
 
@@ -44,7 +44,7 @@ void StateEnvAnalize::OnEntry(){
 
         white->On();
 	red->On();
-//	blue->On();
+	blue->On();
 //	yellow->On();
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize finished");
@@ -65,14 +65,23 @@ bool StateEnvAnalize::OnTimer(const int id){
 
 bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ==== OnEvent Type: " + std::to_string(event->type()) +
-			" Name:" + event->name());
+			" Name:[" + event->name() + "]");
 
-	if(event->name().compare("BTN_Stop") == 0){
+	if(event->is_event("BTN_Stop")){
 		if(event->type() == smachine::EVENT_TYPE::EVT_BTN_DOWN){
 			get_itf()->finish();
 			return true;
 		}
 	}
+
+       if(event->is_event("BLINK_Blue")){
+         auto red = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_Red").get());
+         auto white = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_White").get());
+
+         white->Off();
+         red->Off();
+         return true;
+       }
 
 	return false;
 }

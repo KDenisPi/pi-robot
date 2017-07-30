@@ -144,14 +144,17 @@ bool PiRobotPrj1::configure(){
  	items_add("LED_Yellow", std::shared_ptr<pirobot::item::Item>(new pirobot::item::Led(get_gpio(MCP23017_1+LED_Yellow), "LED_Yellow", "LED_Yellow")));
  	logger::log(logger::LLOG::NECECCARY, __func__, "Added Item LED_Yellow");
 
-/*
- 	items_add("BLNK_Red", std::shared_ptr<pirobot::item::Item>(
-		 new pirobot::item::Blinking<pirobot::item::Led>(dynamic_cast<pirobot::item::Led*>(get_item("LED_Red").get()))));
- 	items_add("BLNK_Blue", std::shared_ptr<pirobot::item::Item>(
-		 new pirobot::item::Blinking<pirobot::item::Led>(dynamic_cast<pirobot::item::Led*>(get_item("LED_Blue").get()))));
- 	items_add("BLNK_Yellow", std::shared_ptr<pirobot::item::Item>(
-		 new pirobot::item::Blinking<pirobot::item::Led>(dynamic_cast<pirobot::item::Led*>(get_item("LED_Yellow").get()))));
-*/
+
+ 	items_add("BLINK_Red", std::shared_ptr<pirobot::item::Item>(
+               new pirobot::item::Blinking<pirobot::item::Led>(dynamic_cast<pirobot::item::Led*>(get_item("LED_Red").get()),
+                                                               "BLINK_Red")));
+
+ 	items_add("BLINK_Blue", std::shared_ptr<pirobot::item::Item>(
+		 new pirobot::item::Blinking<pirobot::item::Led>(dynamic_cast<pirobot::item::Led*>(get_item("LED_Blue").get()),"BLINK_Blue")));
+
+ 	items_add("BLINK_Yellow", std::shared_ptr<pirobot::item::Item>(
+		 new pirobot::item::Blinking<pirobot::item::Led>(dynamic_cast<pirobot::item::Led*>(get_item("LED_Yellow").get()),"BLINK_Yellow","BLNK_Yellow")));
+
 
 	//items_add(std::string("SMT_1"), std::shared_ptr<pirobot::item::Item>(new pirobot::item::ServoMotor(get_gpio(34), "SMT_1", "LED 9685 4")));
 	//items_add(std::string("SMT_2"), std::shared_ptr<pirobot::item::Item>(new pirobot::item::ServoMotor(get_gpio(35), "SMT_2", "LED 9685 5")));

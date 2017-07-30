@@ -52,9 +52,9 @@ public:
 	{};
 
 	Item(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
-			const std::string name,
-			const std::string comment,
-			int itype = ItemTypes::UNKNOWN):
+          const std::string name,
+          const std::string comment = "",
+          int itype = ItemTypes::UNKNOWN):
 		m_gpio(gpio),
 		m_name(name),
 		m_comment(comment),

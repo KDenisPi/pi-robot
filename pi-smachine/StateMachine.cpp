@@ -221,7 +221,9 @@ void* StateMachine::worker(void* p){
 				logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Button event detected: " + std::to_string(event->type()));
 				stm->process_event(event);
 				break;
-
+                        case EVT_ITEM_ACTIVITY:
+                                stm->process_event(event);
+                                break;
 			case EVT_NONE:
 				break;
 			//default:
@@ -416,6 +418,10 @@ void StateMachine::process_robot_notification(int itype, std::string& name, void
 			else
 				logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Unknown state for Item::Button");
 		}
+                else {
+                   std::shared_ptr<Event> item_evt(new Event(EVENT_TYPE::EVT_ITEM_ACTIVITY, name));
+                   put_event(item_evt);
+                }
 	}
 	catch(...){
 		logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Unknown exception has been detected. Notification was lost");
