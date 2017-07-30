@@ -37,6 +37,12 @@ class Gpio
 
    const std::string to_string();
 
+   const PROVIDER_TYPE get_provider_type() const { return m_prov->get_type(); }
+
+   const gpio::SGN_LEVEL get_level() {
+      return (0 == digitalRead() ? gpio::SGN_LEVEL::SGN_LOW : gpio::SGN_LEVEL::SGN_HIGH);
+   }
+
   private:
    int m_pin;
    GPIO_MODE m_mode; //INPUT/OUTPUT

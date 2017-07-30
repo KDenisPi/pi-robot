@@ -123,31 +123,31 @@ void GpioProviderMCP23017::dgtWrite(const int pin, const int value){
 	    else
 	    	current_mode |=   bit ;
 
-			I2CWrapper::lock();
-			I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_GPIOA, current_mode);
-			I2CWrapper::unlock();
+            I2CWrapper::lock();
+            I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_GPIOA, current_mode);
+            I2CWrapper::unlock();
 
-			m_OLATA = current_mode ;
+            m_OLATA = current_mode ;
 	  }
 	  else				// Bank B
 	  {
-		current_mode = m_OLATB;
+            current_mode = m_OLATB;
 
-		if(value == SGN_LEVEL::SGN_LOW)
+            if(value == SGN_LEVEL::SGN_LOW)
 	    	current_mode &= (~bit) ;
 	    else
 	    	current_mode |=   bit ;
 
-		  	I2CWrapper::lock();
-		  	I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_GPIOB, current_mode);
-		  	I2CWrapper::unlock();
+            I2CWrapper::lock();
+            I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_GPIOB, current_mode);
+            I2CWrapper::unlock();
 
-		  	m_OLATB = current_mode ;
+            m_OLATB = current_mode ;
 	  }
-/*
+
           logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OLATA: " + std::to_string(m_OLATA) +
                         " OLATB: " = std::to_string(m_OLATB) );
-*/
+
 }
 
 /*

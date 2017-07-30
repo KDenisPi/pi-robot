@@ -26,6 +26,8 @@ public:
 	virtual void setPulse(const int pin, const uint16_t pulselen) override;
 
 	virtual const std::string to_string() override;
+        virtual const PROVIDER_TYPE get_type() const override { return PROVIDER_TYPE::PROV_FAKE; }
+
 };
 
 }

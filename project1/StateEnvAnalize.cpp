@@ -31,14 +31,21 @@ StateEnvAnalize::~StateEnvAnalize() {
 
 void StateEnvAnalize::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize started");
-
+/*
 	auto red = dynamic_cast<pirobot::item::Blinking<pirobot::item::Led>*>(get_itf()->get_robot()->get_item("BLNK_Red").get());
 	auto blue = dynamic_cast<pirobot::item::Blinking<pirobot::item::Led>*>(get_itf()->get_robot()->get_item("BLNK_Blue").get());
 	auto yellow = dynamic_cast<pirobot::item::Blinking<pirobot::item::Led>*>(get_itf()->get_robot()->get_item("BLNK_Yellow").get());
+*/
+        auto red = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_Red").get());
+        auto white = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_White").get());
 
+//        auto blue = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_Blue").get());
+//        auto yellow = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_Yellow").get());
+
+        white->On();
 	red->On();
-	blue->On();
-	yellow->On();
+//	blue->On();
+//	yellow->On();
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize finished");
 }

@@ -21,21 +21,29 @@ enum GPIO_MODE {
 
 // Pull up/down/none
 enum PULL_MODE {
-	PULL_OFF = 0,
+    PULL_OFF = 0,
     PULL_DOWN = 1,
-	PULL_UP = 2
+    PULL_UP = 2
 };
 
 // Signal level HIGH/LOW
 enum SGN_LEVEL {
-	SGN_LOW = 0,
-	SGN_HIGH = 1
+    SGN_LOW = 0,
+    SGN_HIGH = 1
 };
 
+enum PROVIDER_TYPE {
+        PROV_FAKE,     //Fake provider for test purpose only
+        PROV_SIMPLE,   // Rasberry Pi
+        PROV_PCA9685,  // PCA 9685
+        PROV_MCP23017   // MCP 2317
+};
+
+
 enum DEFAULT_PIN_START {
-	PROV_SIMPLE = 0,	// GPIO number 8
-	PROV_PCA9685 = 30,	// GPIO number 16
-	PROV_MCP2317 = 50	// GPIO number 16
+	PROV_PIN_SIMPLE = 0,	// GPIO number 8
+	PROV_PIN_PCA9685 = 30,	// GPIO number 16
+	PROV_PIN_MCP23017 = 50	// GPIO number 16
 };
 
 class GpioProvider {
@@ -46,7 +54,8 @@ public:
 
 	virtual ~GpioProvider() {}
 
-	int getStartPin() const {return m_pstart;}
+	int const getStartPin() const {return m_pstart;}
+        virtual PROVIDER_TYPE const get_type() const = 0;
 
 	/*
 	 *

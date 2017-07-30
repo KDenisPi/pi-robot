@@ -18,7 +18,7 @@ namespace gpio {
 class GpioProviderPCA9685: public GpioProvider {
 public:
 	GpioProviderPCA9685(std::shared_ptr<Adafruit_PWMServoDriver> pwm, 
-		const int pin_start=DEFAULT_PIN_START::PROV_PCA9685, const float freq = 60.0);
+		const int pin_start=DEFAULT_PIN_START::PROV_PIN_PCA9685, const float freq = 60.0);
 	virtual ~GpioProviderPCA9685();
 
 	virtual const std::string to_string() override;
@@ -28,6 +28,7 @@ public:
 	virtual void setmode(const int pin, const gpio::GPIO_MODE mode) override;
 	virtual void pullUpDownControl(const int pin, const gpio::PULL_MODE pumode) override;
 	virtual void setPulse(const int pin, const uint16_t pulselen) override;
+        virtual const PROVIDER_TYPE get_type() const override { return PROVIDER_TYPE::PROV_PCA9685; }
 
 private:
 	std::shared_ptr<Adafruit_PWMServoDriver> m_pwm;

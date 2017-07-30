@@ -44,12 +44,23 @@ public:
 	static void* worker(void* p);
 	virtual void stop() override;
 
+        /*
+        * Some providers return inverse values (for example MCP 23017)
+        */
+        const BUTTON_STATE get_state_by_level(gpio::SGN_LEVEL level)const {
+          if(inverse_value)
+            return (level == gpio::SGN_LEVEL::SGN_LOW ? BUTTON_STATE::BTN_PUSHED : BUTTON_STATE::BTN_NOT_PUSHED);
+
+          return (level == gpio::SGN_LEVEL::SGN_HIGH ? BUTTON_STATE::BTN_PUSHED : BUTTON_STATE::BTN_NOT_PUSHED);
+        }
+
 	void set_state(const BUTTON_STATE state);
 	const BUTTON_STATE state() { return m_state; }
 
 private:
 	gpio::PULL_MODE m_pullmode;
 	BUTTON_STATE m_state; //
+        bool inverse_value;
 };
 
 } /* namespace item */

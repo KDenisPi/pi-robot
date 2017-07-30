@@ -25,6 +25,7 @@ public:
 	virtual void pullUpDownControl(const int pin, const PULL_MODE pumode) override;
 	virtual void setPulse(const int pin, const uint16_t pulselen) override;
 
+        virtual const PROVIDER_TYPE get_type() const override { return PROVIDER_TYPE::PROV_SIMPLE; }
 	virtual const std::string to_string() override;
 };
 
