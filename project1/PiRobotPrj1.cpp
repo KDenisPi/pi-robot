@@ -70,11 +70,11 @@ bool PiRobotPrj1::configure(){
 	}
 */
 
-
+/*
         gpios_add(provider_simple->getStartPin(),
                                 std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(provider_simple->getStartPin(),
                                                 pirobot::gpio::GPIO_MODE::OUT, provider_simple)));
-
+*/
 	/*
 		MCP23017 (1) address 0x20, start pin 50
 
@@ -85,9 +85,9 @@ bool PiRobotPrj1::configure(){
 		pin 14 - LED Blue
 		pin 15 - LED Yellow
 	*/
-	#define MCP23017_1		50
+	#define MCP23017_1	50
 	#define LED_Red 	1
-	#define BTN_Stop 	8//2
+	#define BTN_Stop 	2
 	#define B_PHASE 	3
 	#define A_PHASE 	5
 	#define LED_Blue 	6
@@ -133,8 +133,8 @@ bool PiRobotPrj1::configure(){
                  "BTN_Stop", "BTN_Stop", pirobot::item::BUTTON_STATE::BTN_NOT_PUSHED, pirobot::gpio::PULL_MODE::PULL_UP)));
         logger::log(logger::LLOG::NECECCARY, __func__, "Added Item BTN_Stop");
 
-        items_add("LED_White", std::shared_ptr<pirobot::item::Item>(new pirobot::item::Led(get_gpio(provider_simple->getStartPin()), "LED_White", "LED_White")));
-        logger::log(logger::LLOG::NECECCARY, __func__, "Added Item LED_White");
+        //items_add("LED_White", std::shared_ptr<pirobot::item::Item>(new pirobot::item::Led(get_gpio(provider_simple->getStartPin()), "LED_White", "LED_White")));
+        //logger::log(logger::LLOG::NECECCARY, __func__, "Added Item LED_White");
 
 	//LEDs Red, Blue, Yellow
  	items_add("LED_Red", std::shared_ptr<pirobot::item::Item>(new pirobot::item::Led(get_gpio(MCP23017_1+LED_Red), "LED_Red", "LED_Red")));

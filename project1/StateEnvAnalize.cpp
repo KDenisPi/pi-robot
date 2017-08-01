@@ -37,15 +37,12 @@ void StateEnvAnalize::OnEntry(){
 	//auto yellow = dynamic_cast<pirobot::item::Blinking<pirobot::item::Led>*>(get_itf()->get_robot()->get_item("BLNK_Yellow").get());
 
         auto red = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_Red").get());
-        auto white = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_White").get());
+        //auto blue = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_Blue").get());
+        auto yellow = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_Yellow").get());
 
-//        auto blue = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_Blue").get());
-//        auto yellow = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_Yellow").get());
-
-        white->On();
 	red->On();
 	blue->On();
-//	yellow->On();
+	yellow->On();
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize finished");
 }
@@ -76,9 +73,9 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
 
        if(event->is_event("BLINK_Blue")){
          auto red = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_Red").get());
-         auto white = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_White").get());
+         auto yellow = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_Yellow").get());
 
-         white->Off();
+         yellow->Off();
          red->Off();
          return true;
        }
