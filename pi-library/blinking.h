@@ -21,7 +21,7 @@ const char TAG_[] = "Blink";
 template<class T>
 class Blinking: public Item, public piutils::Threaded {
 public:
-    Blinking(T* item,
+    Blinking(const std::shared_ptr<T>& item,
         const std::string name,
         const std::string comment = "",
         unsigned int tm_on=250,
@@ -146,7 +146,7 @@ private:
     unsigned int m_tm_off;
     unsigned int m_blinks;
     bool m_on;
-    T* m_item;
+    std::shared_ptr<T> m_item;
 };
 
 } /* namespace item */
