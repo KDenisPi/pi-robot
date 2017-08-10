@@ -29,8 +29,14 @@ public:
 
 	virtual ~ULN2003StepperMotor();
 
+        //It should be hige number  of steps  (600 less than one rotation)
 	void step(const int num_steps = 1);
 	void set_direction(const MOTOR_DIR direction);
+
+        //change direction to opposite
+        void set_revers_direction(){
+          set_direction( (m_direction == MOTOR_DIR::DIR_CLOCKWISE ? MOTOR_DIR::DIR_COUTERCLOCKWISE : MOTOR_DIR::DIR_CLOCKWISE));
+        }
 
 	inline const MOTOR_DIR direction() const {return m_direction;}
 
