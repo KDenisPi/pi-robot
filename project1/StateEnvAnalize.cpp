@@ -14,6 +14,7 @@
 #include "led.h"
 #include "blinking.h"
 #include "DCMotor.h"
+#include "ULN2003StepperMotor.h"
 //#include "TiltSwitch.h"
 
 namespace project1 {
@@ -34,20 +35,27 @@ void StateEnvAnalize::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize started");
 
 	//auto red = dynamic_cast<pirobot::item::Blinking<pirobot::item::Led>*>(get_itf()->get_robot()->get_item("BLNK_Red").get());
-	auto blue = std::static_pointer_cast<pirobot::item::Blinking<pirobot::item::Led>>(get_itf()->get_robot()->get_item("BLINK_Blue"));
+	//auto blue = std::static_pointer_cast<pirobot::item::Blinking<pirobot::item::Led>>(get_itf()->get_robot()->get_item("BLINK_Blue"));
 	//auto yellow = dynamic_cast<pirobot::item::Blinking<pirobot::item::Led>*>(get_itf()->get_robot()->get_item("BLNK_Yellow").get());
 
         auto red = std::static_pointer_cast<pirobot::item::Led>(get_itf()->get_robot()->get_item("LED_Red"));
-        //auto blue = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_Blue").get());
+        auto blue = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_Blue").get());
         auto yellow = std::static_pointer_cast<pirobot::item::Led>(get_itf()->get_robot()->get_item("LED_Yellow"));
 
         auto dcm1 = std::static_pointer_cast<pirobot::item::dcmotor::DCMotor>(get_itf()->get_robot()->get_item("DCM_1"));
+        auto step1 = std::static_pointer_cast<pirobot::item::ULN2003StepperMotor>(get_itf()->get_robot()->get_item("STEP_1"));
 
-	red->On();
-	blue->On();
-	yellow->On();
+        step1->set_direction(pirobot::item::MOTOR_DIR::DIR_CLOCKWISE);
+        step1->step(600);
+        step1->stop();
+        step1->set_direction(pirobot::item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
+        step1->step(600);
 
-        dcm1->set_power_level(30.0f);
+	//red->On();
+	//blue->On();
+	//yellow->On();
+
+        //dcm1->set_power_level(5.0f);
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize finished");
 }
@@ -83,8 +91,11 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
          yellow->Off();
          red->Off();
 
-         auto dcm1 = std::static_pointer_cast<pirobot::item::dcmotor::DCMotor>(get_itf()->get_robot()->get_item("DCM_1"));
-         dcm1->stop();
+         //auto dcm1 = std::static_pointer_cast<pirobot::item::dcmotor::DCMotor>(get_itf()->get_robot()->get_item("DCM_1"));
+         //dcm1->stop();
+
+         auto step1 = std::static_pointer_cast<pirobot::item::ULN2003StepperMotor>(get_itf()->get_robot()->get_item("STEP_1"));
+         step1->stop();
 
          return true;
        }
