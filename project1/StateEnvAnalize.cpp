@@ -34,12 +34,10 @@ StateEnvAnalize::~StateEnvAnalize() {
 void StateEnvAnalize::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize started");
 
-	//auto red = dynamic_cast<pirobot::item::Blinking<pirobot::item::Led>*>(get_itf()->get_robot()->get_item("BLNK_Red").get());
-	//auto blue = std::static_pointer_cast<pirobot::item::Blinking<pirobot::item::Led>>(get_itf()->get_robot()->get_item("BLINK_Blue"));
-	//auto yellow = dynamic_cast<pirobot::item::Blinking<pirobot::item::Led>*>(get_itf()->get_robot()->get_item("BLNK_Yellow").get());
+	auto blue = std::static_pointer_cast<pirobot::item::Blinking<pirobot::item::Led>>(get_itf()->get_robot()->get_item("BLINK_Blue"));
 
-        auto red = std::static_pointer_cast<pirobot::item::Led>(get_itf()->get_robot()->get_item("LED_Red"));
-        auto blue = dynamic_cast<pirobot::item::Led*>(get_itf()->get_robot()->get_item("LED_Blue").get());
+        auto red    = std::static_pointer_cast<pirobot::item::Led>(get_itf()->get_robot()->get_item("LED_Red"));
+        //auto blue   = std::static_pointer_cast<pirobot::item::Led>(get_itf()->get_robot()->get_item("LED_Blue"));
         auto yellow = std::static_pointer_cast<pirobot::item::Led>(get_itf()->get_robot()->get_item("LED_Yellow"));
 
         auto dcm1 = std::static_pointer_cast<pirobot::item::dcmotor::DCMotor>(get_itf()->get_robot()->get_item("DCM_1"));
@@ -51,9 +49,9 @@ void StateEnvAnalize::OnEntry(){
         step1->set_direction(pirobot::item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
         step1->step(600);
 
-	//red->On();
-	//blue->On();
-	//yellow->On();
+	red->On();
+	blue->On();
+	yellow->On();
 
         //dcm1->set_power_level(5.0f);
 
@@ -85,7 +83,7 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
 	}
 
        if(event->is_event("BLINK_Blue")){
-         auto red = std::static_pointer_cast<pirobot::item::Led>(get_itf()->get_robot()->get_item("LED_Red"));
+         auto red    = std::static_pointer_cast<pirobot::item::Led>(get_itf()->get_robot()->get_item("LED_Red"));
          auto yellow = std::static_pointer_cast<pirobot::item::Led>(get_itf()->get_robot()->get_item("LED_Yellow"));
 
          yellow->Off();
