@@ -17,7 +17,7 @@
 /*
  * I have detected that wiringPi does not implement data block read/write
  *
- * I have implemented this functionality by myself
+ * I have implemented this functionality by myself (but it seems it does not work)
  */
 
 namespace pirobot {
