@@ -76,10 +76,10 @@ ULN2003StepperMotor::~ULN2003StepperMotor() {
 */
 void ULN2003StepperMotor::stop(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-	this->get_gpio()->digitalWrite( pirobot::gpio::SGN_LEVEL::SGN_LOW );
-	this->m_gpio_1->digitalWrite( pirobot::gpio::SGN_LEVEL::SGN_LOW );
-	this->m_gpio_2->digitalWrite( pirobot::gpio::SGN_LEVEL::SGN_LOW );
-	this->m_gpio_3->digitalWrite( pirobot::gpio::SGN_LEVEL::SGN_LOW );
+	this->get_gpio()->set_level( pirobot::gpio::SGN_LEVEL::SGN_LOW );
+	this->m_gpio_1->set_level( pirobot::gpio::SGN_LEVEL::SGN_LOW );
+	this->m_gpio_2->set_level( pirobot::gpio::SGN_LEVEL::SGN_LOW );
+	this->m_gpio_3->set_level( pirobot::gpio::SGN_LEVEL::SGN_LOW );
 	delay(10);
 }
 
@@ -104,10 +104,10 @@ void ULN2003StepperMotor::step(const int num_steps){
 
 	auto estep = [this](const uint8_t step_cmd){
 		//logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Step command: " + std::to_string(step_cmd));
-		this->get_gpio()->digitalWrite( ((step_cmd & 0x01) == 0 ? pirobot::gpio::SGN_LEVEL::SGN_LOW : pirobot::gpio::SGN_LEVEL::SGN_HIGH) );
-		this->m_gpio_1->digitalWrite( ((step_cmd & 0x02) == 0 ? pirobot::gpio::SGN_LEVEL::SGN_LOW : pirobot::gpio::SGN_LEVEL::SGN_HIGH) );
-		this->m_gpio_2->digitalWrite( ((step_cmd & 0x04) == 0 ? pirobot::gpio::SGN_LEVEL::SGN_LOW : pirobot::gpio::SGN_LEVEL::SGN_HIGH) );
-		this->m_gpio_3->digitalWrite( ((step_cmd & 0x08) == 0 ? pirobot::gpio::SGN_LEVEL::SGN_LOW : pirobot::gpio::SGN_LEVEL::SGN_HIGH) );
+		this->get_gpio()->set_level( ((step_cmd & 0x01) == 0 ? pirobot::gpio::SGN_LEVEL::SGN_LOW : pirobot::gpio::SGN_LEVEL::SGN_HIGH) );
+		this->m_gpio_1->set_level( ((step_cmd & 0x02) == 0 ? pirobot::gpio::SGN_LEVEL::SGN_LOW : pirobot::gpio::SGN_LEVEL::SGN_HIGH) );
+		this->m_gpio_2->set_level( ((step_cmd & 0x04) == 0 ? pirobot::gpio::SGN_LEVEL::SGN_LOW : pirobot::gpio::SGN_LEVEL::SGN_HIGH) );
+		this->m_gpio_3->set_level( ((step_cmd & 0x08) == 0 ? pirobot::gpio::SGN_LEVEL::SGN_LOW : pirobot::gpio::SGN_LEVEL::SGN_HIGH) );
 		delay(10);
 	};
 

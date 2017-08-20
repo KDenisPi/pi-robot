@@ -16,17 +16,17 @@ namespace gpio {
 class GpioProviderSimple : public GpioProvider
 {
 public:
-	GpioProviderSimple();
-	virtual ~GpioProviderSimple();
+    GpioProviderSimple(const std::string name = "Simple");
+    virtual ~GpioProviderSimple();
 
-	virtual const int dgtRead(const int pin) override;
-	virtual void dgtWrite(const int pin, const int value) override;
-	virtual void setmode(const int pin, const GPIO_MODE mode) override;
-	virtual void pullUpDownControl(const int pin, const PULL_MODE pumode) override;
-	virtual void setPulse(const int pin, const uint16_t pulselen) override;
+    virtual const int dgtRead(const int pin) override;
+    virtual void dgtWrite(const int pin, const int value) override;
+    virtual void setmode(const int pin, const GPIO_MODE mode) override;
+    virtual void pullUpDownControl(const int pin, const PULL_MODE pumode) override;
+    virtual void setPulse(const int pin, const uint16_t pulselen) override;
 
-        virtual const PROVIDER_TYPE get_type() const override { return PROVIDER_TYPE::PROV_SIMPLE; }
-	virtual const std::string to_string() override;
+    virtual const GPIO_PROVIDER_TYPE get_type() const override { return GPIO_PROVIDER_TYPE::PROV_SIMPLE; }
+    virtual const std::string to_string() override;
 };
 
 }

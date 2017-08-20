@@ -30,7 +30,7 @@ Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 	assert(get_gpio() != NULL);
 	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::IN);
 
-        if( get_gpio()->get_provider_type() == gpio::PROVIDER_TYPE::PROV_MCP23017)
+        if( get_gpio()->get_provider_type() == gpio::GPIO_PROVIDER_TYPE::PROV_MCP23017)
           inverse_value = true;
 
 	set_name(type_name() + "_over_" + get_gpio()->to_string());
@@ -48,7 +48,7 @@ Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 	assert(get_gpio() != NULL);
 	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::IN);
 
-        if( get_gpio()->get_provider_type() == gpio::PROVIDER_TYPE::PROV_MCP23017)
+        if( get_gpio()->get_provider_type() == gpio::GPIO_PROVIDER_TYPE::PROV_MCP23017)
           inverse_value = true;
 
 	if(name.empty())

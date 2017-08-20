@@ -11,6 +11,8 @@
 #include <cassert>
 #include <string>
 
+#include "provider.h"
+
 namespace pirobot{
 namespace gpio {
 
@@ -32,13 +34,12 @@ enum SGN_LEVEL {
     SGN_HIGH = 1
 };
 
-enum PROVIDER_TYPE {
+enum GPIO_PROVIDER_TYPE {
         PROV_FAKE,     //Fake provider for test purpose only
         PROV_SIMPLE,   // Rasberry Pi
         PROV_PCA9685,  // PCA 9685
         PROV_MCP23017   // MCP 2317
 };
-
 
 enum DEFAULT_PIN_START {
 	PROV_PIN_SIMPLE = 0,	// GPIO number 8
@@ -46,16 +47,17 @@ enum DEFAULT_PIN_START {
 	PROV_PIN_MCP23017 = 50	// GPIO number 16
 };
 
-class GpioProvider {
+class GpioProvider : public pirobot::provider::Provider {
 public:
-	GpioProvider(const int pin_start=0, const int pin_count = 0) :
+	GpioProvider(const std::string name, const int pin_start=0, const int pin_count = 0) :
+		Provider(pirobot::provider::PROVIDER_TYPE::PROV_GPIO, name),
 		m_pstart(pin_start), m_pcount(pin_count)
 	{}
 
 	virtual ~GpioProvider() {}
 
 	int const getStartPin() const {return m_pstart;}
-        virtual PROVIDER_TYPE const get_type() const = 0;
+    virtual GPIO_PROVIDER_TYPE const get_type() const = 0;
 
 	/*
 	 *
@@ -68,7 +70,7 @@ public:
 	/*
 	 *
 	 */
-	bool validate_pin(int pin) const {
+	bool is_valid_pin(int pin) const {
 		assert(pin >= m_pstart);
 		assert(pin < (m_pstart+m_pcount));
 

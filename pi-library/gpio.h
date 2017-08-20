@@ -37,10 +37,20 @@ class Gpio
 
    const std::string to_string();
 
-   const PROVIDER_TYPE get_provider_type() const { return m_prov->get_type(); }
+   const GPIO_PROVIDER_TYPE get_provider_type() const { return m_prov->get_type(); }
 
+  /*
+  * Get GPIO level
+  */
    const gpio::SGN_LEVEL get_level() {
       return (0 == digitalRead() ? gpio::SGN_LEVEL::SGN_LOW : gpio::SGN_LEVEL::SGN_HIGH);
+   }
+
+  /*
+  * Set GPIO level
+  */
+   void set_level(const gpio::SGN_LEVEL level){
+     digitalWrite(level);
    }
 
   private:
