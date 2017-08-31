@@ -120,7 +120,7 @@ void PiRobot::add_provider(const std::string& type, const std::string& name){
             throw std::runtime_error(std::string("SPI bus provider can be used with real hardware only"));
         }
         pirobot::spi::SPI_config spi_config;
-        providers[name] = std::shared_ptr<pirobot::provider::Provider>(new pirobot::gpio::GpioProviderMCP23017(name));
+        providers[name] = std::shared_ptr<pirobot::provider::Provider>(new pirobot::spi::SPI(name, spi_config));
     }
     else{
         logger::log(logger::LLOG::ERROR, __func__, " Unknown provider type");

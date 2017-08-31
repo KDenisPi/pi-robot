@@ -24,64 +24,67 @@ float Mpu6050::accel_LSB_Sensitivity[] = {16384, 8192, 4096, 2048};
 float Mpu6050::gyro_LSB_Sensitivity[] = {131.0, 65.5, 32.8, 16.4};
 
 Mpu6050::Mpu6050(const uint8_t i2caddr, const unsigned int utime) :
-	_i2caddr(i2caddr), m_fd(0), update_interval(utime),
-	m_val({0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}),
-	base_x_accel(0.0),
-	base_y_accel(0.0),
-	base_z_accel(0.0),
-	base_x_gyro(0.0),
-	base_y_gyro(0.0),
-	base_z_gyro(0.0),
-	m_gyro_conf(0), m_accel_conf(0)
+    _i2caddr(i2caddr), m_fd(0), update_interval(utime),
+    m_val({0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}),
+    base_x_accel(0.0),
+    base_y_accel(0.0),
+    base_z_accel(0.0),
+    base_x_gyro(0.0),
+    base_y_gyro(0.0),
+    base_z_gyro(0.0),
+    m_gyro_conf(0), m_accel_conf(0)
 {
-	  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Address: " + std::to_string(_i2caddr));
-	  int error;
-	  uint8_t model, value;
-	  bool sleep_mode;
-	  char buff[10];
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Address: " + std::to_string(_i2caddr));
 
-	  /*
-	   * I do not want to ask bus to quickly
-	   */
-	  if(update_interval < 100)
-		  update_interval = 100;
+    set_loop_delay(10);
+    
+    int error;
+    uint8_t model, value;
+    bool sleep_mode;
+    char buff[10];
 
-	  I2CWrapper::lock();
-	  m_fd = I2CWrapper::I2CSetup(_i2caddr);
+    /*
+     * I do not want to ask bus to quickly
+     */
+    if(update_interval < 100)
+        update_interval = 100;
 
-	  // default at power-up:
-	  //    Gyro at 250 degrees second
-	  //    Acceleration at 2g
-	  //    Clock source at internal 8MHz
-	  //    The device is in sleep mode.
-	  //
-	  model = I2CWrapper::I2CReadReg8(m_fd, MPU6050_WHO_AM_I);
-	  std::sprintf(buff, "0x%X", model);
+    I2CWrapper::lock();
+    m_fd = I2CWrapper::I2CSetup(_i2caddr);
 
-	  sleep_mode = get_sleep();
+    // default at power-up:
+    //    Gyro at 250 degrees second
+    //    Acceleration at 2g
+    //    Clock source at internal 8MHz
+    //    The device is in sleep mode.
+    //
+    model = I2CWrapper::I2CReadReg8(m_fd, MPU6050_WHO_AM_I);
+    std::sprintf(buff, "0x%X", model);
 
-          m_gyro_conf = gyro_get_full_scale_range();
-          m_accel_conf = accel_get_full_scale_range();
+    sleep_mode = get_sleep();
 
-	  initialize();
+    m_gyro_conf = gyro_get_full_scale_range();
+    m_accel_conf = accel_get_full_scale_range();
 
-	  if(sleep_mode)
-		set_sleep(false);
+    initialize();
 
-	  sleep_mode = get_sleep();
+    if(sleep_mode)
+      set_sleep(false);
 
-	  I2CWrapper::unlock();
+    sleep_mode = get_sleep();
 
-          logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " WHO_AM_I : " +
-                          std::string(buff) + " Sleep mode : " + std::to_string(sleep_mode));
+    I2CWrapper::unlock();
 
-	  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " FS_SEL : " +
-			  std::to_string(m_gyro_conf) + " AFS_SEL : " + std::to_string(m_accel_conf));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " WHO_AM_I : " +
+                        std::string(buff) + " Sleep mode : " + std::to_string(sleep_mode));
 
-	  //Initialize the angles
-	  calibrate_sensors();
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " FS_SEL : " +
+            std::to_string(m_gyro_conf) + " AFS_SEL : " + std::to_string(m_accel_conf));
 
-	  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
+    //Initialize the angles
+    calibrate_sensors();
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
 }
 
 Mpu6050::~Mpu6050() {
@@ -91,24 +94,24 @@ Mpu6050::~Mpu6050() {
 
 void Mpu6050::initialize(){
         I2CWrapper::I2CWriteReg8(m_fd, MPU6050_USER_CTRL, 0x07);
-	delay(200);
+    delay(200);
 }
 
 void Mpu6050::gyro_set_full_scale_range(int range){
         uint8_t value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_CONFIG);
-	switch(range){
-	  case 0:
-		value &= 0xE7;
-	  case 1:
-	  case 2:
-		value = SET_BIT(value, range);
-	  case 3:
-		value |= 0x18;
-	 default:
-		return;
-	}
-	I2CWrapper::I2CWriteReg8(m_fd, MPU6050_GYRO_CONFIG, value);
-	m_gyro_conf = range;
+    switch(range){
+      case 0:
+        value &= 0xE7;
+      case 1:
+      case 2:
+        value = SET_BIT(value, range);
+      case 3:
+        value |= 0x18;
+     default:
+        return;
+    }
+    I2CWrapper::I2CWriteReg8(m_fd, MPU6050_GYRO_CONFIG, value);
+    m_gyro_conf = range;
 }
 
 int  Mpu6050::gyro_get_full_scale_range(){
@@ -117,132 +120,134 @@ int  Mpu6050::gyro_get_full_scale_range(){
 }
 
 void Mpu6050::accel_set_full_scale_range(int range){
-        uint8_t value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_CONFIG);
-        switch(range){
-          case 0:
-                value &= 0xE7;
-          case 1:
-          case 2:
-                value = SET_BIT(value, range);
-          case 3:
-                value |= 0x18;
-         default:
-                return;
-        }
-        I2CWrapper::I2CWriteReg8(m_fd, MPU6050_ACCEL_CONFIG, value);
-	m_accel_conf = range;
+    uint8_t value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_CONFIG);
+    switch(range){
+      case 0:
+            value &= 0xE7;
+      case 1:
+      case 2:
+            value = SET_BIT(value, range);
+      case 3:
+            value |= 0x18;
+     default:
+            return;
+    }
+    
+    I2CWrapper::I2CWriteReg8(m_fd, MPU6050_ACCEL_CONFIG, value);
+    m_accel_conf = range;
 }
 
 int  Mpu6050::accel_get_full_scale_range(){
-          uint8_t value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_CONFIG);
-          return (value & 0x18) >> 3;
+    uint8_t value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_CONFIG);
+    return (value & 0x18) >> 3;
 }
 
 // Set device to to sleep (true) or wake up (false)
 void Mpu6050::set_sleep(bool sleep_mode){
-	uint8_t value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_PWR_MGMT_1);
-	value = (sleep_mode ? SET_BIT(value, MPU6050_D6) : (value&0xBF));
-	I2CWrapper::I2CWriteReg8(m_fd, MPU6050_PWR_MGMT_1, value);
-	delay(100);
+    uint8_t value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_PWR_MGMT_1);
+    value = (sleep_mode ? SET_BIT(value, MPU6050_D6) : (value&0xBF));
+    I2CWrapper::I2CWriteReg8(m_fd, MPU6050_PWR_MGMT_1, value);
+    delay(100);
 }
 
 bool Mpu6050::get_sleep(){
-	uint8_t value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_PWR_MGMT_1);
-	return IF_BIT(value, MPU6050_D6);
+    uint8_t value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_PWR_MGMT_1);
+    return IF_BIT(value, MPU6050_D6);
 }
 
 /*
 * Run self check procedure
 */
 void Mpu6050::self_check(){
-        I2CWrapper::I2CWriteReg8(m_fd, MPU6050_ACCEL_CONFIG, 0xE0);
-        I2CWrapper::I2CWriteReg8(m_fd, MPU6050_GYRO_CONFIG, 0xE0);
-        delay(500);
-        I2CWrapper::I2CWriteReg8(m_fd, MPU6050_ACCEL_CONFIG, 0x00);
-        I2CWrapper::I2CWriteReg8(m_fd, MPU6050_GYRO_CONFIG, 0x00);
-	delay(100);
+    I2CWrapper::I2CWriteReg8(m_fd, MPU6050_ACCEL_CONFIG, 0xE0);
+    I2CWrapper::I2CWriteReg8(m_fd, MPU6050_GYRO_CONFIG, 0xE0);
+    delay(500);
+
+    I2CWrapper::I2CWriteReg8(m_fd, MPU6050_ACCEL_CONFIG, 0x00);
+    I2CWrapper::I2CWriteReg8(m_fd, MPU6050_GYRO_CONFIG, 0x00);
+    delay(100);
 }
 
 /*
  *
  */
 void Mpu6050::set_last_read_angle_data(unsigned long time,
-		float x, float y, float z, float x_gyro, float y_gyro, float z_gyro, float temperature)
+        float x, float y, float z, float x_gyro, float y_gyro, float z_gyro, float temperature)
 {
-	data_update.lock();
-	m_val.last_read_time = time;
-	m_val.last_x_angle = x;
-	m_val.last_y_angle = y;
-	m_val.last_z_angle = z;
-	m_val.last_gyro_x_angle = x_gyro;
-	m_val.last_gyro_y_angle = y_gyro;
-	m_val.last_gyro_z_angle = z_gyro;
-	m_val.last_temperature = temperature;
-	data_update.unlock();
+    data_update.lock();
+    m_val.last_read_time = time;
+    m_val.last_x_angle = x;
+    m_val.last_y_angle = y;
+    m_val.last_z_angle = z;
+    m_val.last_gyro_x_angle = x_gyro;
+    m_val.last_gyro_y_angle = y_gyro;
+    m_val.last_gyro_z_angle = z_gyro;
+    m_val.last_temperature = temperature;
+    data_update.unlock();
 }
 
 void Mpu6050::get_last_read_angle_data(struct mpu6050_values& values){
-	data_update.lock();
-	values.last_read_time = m_val.last_read_time;
-	values.last_x_angle = m_val.last_x_angle;
-	values.last_y_angle = m_val.last_y_angle;
-	values.last_z_angle = m_val.last_z_angle;
-	values.last_gyro_x_angle= m_val.last_gyro_x_angle;
-	values.last_gyro_y_angle = m_val.last_gyro_y_angle;
-	values.last_gyro_z_angle = m_val.last_gyro_z_angle;
-	values.last_temperature = m_val.last_temperature;
-	data_update.unlock();
+    data_update.lock();
+    values.last_read_time = m_val.last_read_time;
+    values.last_x_angle = m_val.last_x_angle;
+    values.last_y_angle = m_val.last_y_angle;
+    values.last_z_angle = m_val.last_z_angle;
+    values.last_gyro_x_angle= m_val.last_gyro_x_angle;
+    values.last_gyro_y_angle = m_val.last_gyro_y_angle;
+    values.last_gyro_z_angle = m_val.last_gyro_z_angle;
+    values.last_temperature = m_val.last_temperature;
+    data_update.unlock();
 }
 /*
  *
  */
 int Mpu6050::read_gyro_accel_vals(uint8_t* accel_t_gyro_ptr){
-	  // Read the raw values.
-	  // Read 14 bytes at once,
-	  // containing acceleration, temperature and gyro.
-	  // With the default settings of the MPU-6050,
-	  // there is no filter enabled, and the values
-	  // are not very stable.  Returns the error value
-	  int error = 0;
-	  accel_t_gyro_union* accel_t_gyro = (accel_t_gyro_union *) accel_t_gyro_ptr;
+    // Read the raw values.
+    // Read 14 bytes at once,
+    // containing acceleration, temperature and gyro.
+    // With the default settings of the MPU-6050,
+    // there is no filter enabled, and the values
+    // are not very stable.  Returns the error value
+    int error = 0;
+    accel_t_gyro_union* accel_t_gyro = (accel_t_gyro_union *) accel_t_gyro_ptr;
 
-	  I2CWrapper::lock();
-	  //int error = I2CWrapper::I2CReadData(m_fd, MPU6050_ACCEL_XOUT_H, (uint8_t *) accel_t_gyro, sizeof(*accel_t_gyro));
-	  accel_t_gyro->reg.x_accel_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_XOUT_H);
-	  accel_t_gyro->reg.x_accel_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_XOUT_L);
-	  accel_t_gyro->reg.y_accel_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_YOUT_H);
-	  accel_t_gyro->reg.y_accel_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_YOUT_L);
-	  accel_t_gyro->reg.z_accel_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_ZOUT_H);
-	  accel_t_gyro->reg.z_accel_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_ZOUT_L);
+    I2CWrapper::lock();
+    //int error = I2CWrapper::I2CReadData(m_fd, MPU6050_ACCEL_XOUT_H, (uint8_t *) accel_t_gyro, sizeof(*accel_t_gyro));
+    accel_t_gyro->reg.x_accel_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_XOUT_H);
+    accel_t_gyro->reg.x_accel_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_XOUT_L);
+    accel_t_gyro->reg.y_accel_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_YOUT_H);
+    accel_t_gyro->reg.y_accel_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_YOUT_L);
+    accel_t_gyro->reg.z_accel_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_ZOUT_H);
+    accel_t_gyro->reg.z_accel_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_ZOUT_L);
 
-	  accel_t_gyro->reg.x_gyro_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_XOUT_H);
-	  accel_t_gyro->reg.x_gyro_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_XOUT_L);
-	  accel_t_gyro->reg.y_gyro_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_YOUT_H);
-	  accel_t_gyro->reg.y_gyro_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_YOUT_L);
-	  accel_t_gyro->reg.z_gyro_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_ZOUT_H);
-	  accel_t_gyro->reg.z_gyro_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_ZOUT_L);
+    accel_t_gyro->reg.x_gyro_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_XOUT_H);
+    accel_t_gyro->reg.x_gyro_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_XOUT_L);
+    accel_t_gyro->reg.y_gyro_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_YOUT_H);
+    accel_t_gyro->reg.y_gyro_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_YOUT_L);
+    accel_t_gyro->reg.z_gyro_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_ZOUT_H);
+    accel_t_gyro->reg.z_gyro_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_ZOUT_L);
 
-	  accel_t_gyro->reg.t_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_TEMP_OUT_H);
-	  accel_t_gyro->reg.t_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_TEMP_OUT_L);
+    accel_t_gyro->reg.t_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_TEMP_OUT_H);
+    accel_t_gyro->reg.t_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_TEMP_OUT_L);
 
-	  I2CWrapper::unlock();
+    I2CWrapper::unlock();
 
-	  // Swap all high and low bytes.
-	  // After this, the registers values are swapped,
-	  // so the structure name like x_accel_l does no
-	  // longer contain the lower byte.
-	  uint8_t swap;
-	  #define SWAP(x,y) swap = x; x = y; y = swap
+    // Swap all high and low bytes.
+    // After this, the registers values are swapped,
+    // so the structure name like x_accel_l does no
+    // longer contain the lower byte.
+    uint8_t swap;
+    #define SWAP(x,y) swap = x; x = y; y = swap
 
-	  SWAP ((*accel_t_gyro).reg.x_accel_h, (*accel_t_gyro).reg.x_accel_l);
-	  SWAP ((*accel_t_gyro).reg.y_accel_h, (*accel_t_gyro).reg.y_accel_l);
-	  SWAP ((*accel_t_gyro).reg.z_accel_h, (*accel_t_gyro).reg.z_accel_l);
-	  SWAP ((*accel_t_gyro).reg.t_h, (*accel_t_gyro).reg.t_l);
-	  SWAP ((*accel_t_gyro).reg.x_gyro_h, (*accel_t_gyro).reg.x_gyro_l);
-	  SWAP ((*accel_t_gyro).reg.y_gyro_h, (*accel_t_gyro).reg.y_gyro_l);
-	  SWAP ((*accel_t_gyro).reg.z_gyro_h, (*accel_t_gyro).reg.z_gyro_l);
+    SWAP ((*accel_t_gyro).reg.x_accel_h, (*accel_t_gyro).reg.x_accel_l);
+    SWAP ((*accel_t_gyro).reg.y_accel_h, (*accel_t_gyro).reg.y_accel_l);
+    SWAP ((*accel_t_gyro).reg.z_accel_h, (*accel_t_gyro).reg.z_accel_l);
+    SWAP ((*accel_t_gyro).reg.t_h, (*accel_t_gyro).reg.t_l);
+    SWAP ((*accel_t_gyro).reg.x_gyro_h, (*accel_t_gyro).reg.x_gyro_l);
+    SWAP ((*accel_t_gyro).reg.y_gyro_h, (*accel_t_gyro).reg.y_gyro_l);
+    SWAP ((*accel_t_gyro).reg.z_gyro_h, (*accel_t_gyro).reg.z_gyro_l);
 
-	  return error;
+    return error;
 }
 
 // The sensor should be motionless on a horizontal surface
@@ -270,12 +275,12 @@ void Mpu6050::calibrate_sensors(){
     read_gyro_accel_vals((uint8_t *) &accel_t_gyro);
 /*
     std::sprintf(buff, "---- Accel [X:%d Y:%d Z:%d] Gyro [X:%d Y:%d Z:%d] Temp [%d]",
-    	accel_t_gyro.value.x_accel,
-    	accel_t_gyro.value.y_accel,
-    	accel_t_gyro.value.z_accel,
-    	accel_t_gyro.value.x_gyro,
-    	accel_t_gyro.value.y_gyro,
-    	accel_t_gyro.value.z_gyro,
+        accel_t_gyro.value.x_accel,
+        accel_t_gyro.value.y_accel,
+        accel_t_gyro.value.z_accel,
+        accel_t_gyro.value.x_gyro,
+        accel_t_gyro.value.y_gyro,
+        accel_t_gyro.value.z_gyro,
         accel_t_gyro.value.temperature);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(buff));
@@ -324,124 +329,124 @@ void Mpu6050::calibrate_sensors(){
  * Update values - will be used in loop
  */
 void Mpu6050::update_values(){
-	  int error;
-	  double dT;
-	  float temperature;
-	  accel_t_gyro_union accel_t_gyro;
+    int error;
+    double dT;
+    float temperature;
+    accel_t_gyro_union accel_t_gyro;
 
-	  // Read the raw values.
-	  error = read_gyro_accel_vals((uint8_t*) &accel_t_gyro);
+    // Read the raw values.
+    error = read_gyro_accel_vals((uint8_t*) &accel_t_gyro);
 
-	  // Get the time of reading for rotation computations
-	  unsigned long t_now = millis();
+    // Get the time of reading for rotation computations
+    unsigned long t_now = millis();
 
-	/*
-	  Serial.print(F("Read accel, temp and gyro, error = "));
-	  Serial.println(error,DEC);
+    /*
+      Serial.print(F("Read accel, temp and gyro, error = "));
+      Serial.println(error,DEC);
 
-	  // Print the raw acceleration values
-	  Serial.print(F("accel x,y,z: "));
-	  Serial.print(accel_t_gyro.value.x_accel, DEC);
-	  Serial.print(F(", "));
-	  Serial.print(accel_t_gyro.value.y_accel, DEC);
-	  Serial.print(F(", "));
-	  Serial.print(accel_t_gyro.value.z_accel, DEC);
-	  Serial.println(F(""));
-	*/
+      // Print the raw acceleration values
+      Serial.print(F("accel x,y,z: "));
+      Serial.print(accel_t_gyro.value.x_accel, DEC);
+      Serial.print(F(", "));
+      Serial.print(accel_t_gyro.value.y_accel, DEC);
+      Serial.print(F(", "));
+      Serial.print(accel_t_gyro.value.z_accel, DEC);
+      Serial.println(F(""));
+    */
 
-	  // The temperature sensor is -40 to +85 degrees Celsius.
-	  // It is a signed integer.
-	  // According to the datasheet:
-	  //   340 per degrees Celsius, -512 at 35 degrees.
-	  // At 0 degrees: -512 - (340 * 35) = -12412
-	  temperature = ( (double) accel_t_gyro.value.temperature + 12412.0) / 340.0;
-	/*
-	  Serial.print(F("temperature: "));
-	  dT = ( (double) accel_t_gyro.value.temperature + 12412.0) / 340.0;
-	  Serial.print(dT, 3);
-	  Serial.print(F(" degrees Celsius"));
-	  Serial.println(F(""));
+      // The temperature sensor is -40 to +85 degrees Celsius.
+      // It is a signed integer.
+      // According to the datasheet:
+      //   340 per degrees Celsius, -512 at 35 degrees.
+      // At 0 degrees: -512 - (340 * 35) = -12412
+    temperature = ( (double) accel_t_gyro.value.temperature + 12412.0) / 340.0;
+    /*
+      Serial.print(F("temperature: "));
+      dT = ( (double) accel_t_gyro.value.temperature + 12412.0) / 340.0;
+      Serial.print(dT, 3);
+      Serial.print(F(" degrees Celsius"));
+      Serial.println(F(""));
 
-	  // Print the raw gyro values.
-	  Serial.print(F("raw gyro x,y,z : "));
-	  Serial.print(accel_t_gyro.value.x_gyro, DEC);
-	  Serial.print(F(", "));
-	  Serial.print(accel_t_gyro.value.y_gyro, DEC);
-	  Serial.print(F(", "));
-	  Serial.print(accel_t_gyro.value.z_gyro, DEC);
-	  Serial.print(F(", "));
-	  Serial.println(F(""));
-	*/
+      // Print the raw gyro values.
+      Serial.print(F("raw gyro x,y,z : "));
+      Serial.print(accel_t_gyro.value.x_gyro, DEC);
+      Serial.print(F(", "));
+      Serial.print(accel_t_gyro.value.y_gyro, DEC);
+      Serial.print(F(", "));
+      Serial.print(accel_t_gyro.value.z_gyro, DEC);
+      Serial.print(F(", "));
+      Serial.println(F(""));
+    */
 
-	  // Convert gyro values to degrees/sec
-	  float FS_SEL = get_gyro_sens();
-	  float gyro_x = (accel_t_gyro.value.x_gyro - base_x_gyro)/FS_SEL;
-	  float gyro_y = (accel_t_gyro.value.y_gyro - base_y_gyro)/FS_SEL;
-	  float gyro_z = (accel_t_gyro.value.z_gyro - base_z_gyro)/FS_SEL;
+    // Convert gyro values to degrees/sec
+    float FS_SEL = get_gyro_sens();
+    float gyro_x = (accel_t_gyro.value.x_gyro - base_x_gyro)/FS_SEL;
+    float gyro_y = (accel_t_gyro.value.y_gyro - base_y_gyro)/FS_SEL;
+    float gyro_z = (accel_t_gyro.value.z_gyro - base_z_gyro)/FS_SEL;
 
-	  // Get raw acceleration values
-	  //float G_CONVERT = 16384;
-	  float accel_x = accel_t_gyro.value.x_accel;
-	  float accel_y = accel_t_gyro.value.y_accel;
-	  float accel_z = accel_t_gyro.value.z_accel;
+    // Get raw acceleration values
+    //float G_CONVERT = 16384;
+    float accel_x = accel_t_gyro.value.x_accel;
+    float accel_y = accel_t_gyro.value.y_accel;
+    float accel_z = accel_t_gyro.value.z_accel;
 
-	  // Get angle values from accelerometer
-	  float RADIANS_TO_DEGREES = 180/3.14159;
-	  //float accel_vector_length = sqrt(pow(accel_x,2) + pow(accel_y,2) + pow(accel_z,2));
-	  float accel_angle_y = atan(-1*accel_x/sqrt(pow(accel_y,2) + pow(accel_z,2)))*RADIANS_TO_DEGREES;
-	  float accel_angle_x = atan(accel_y/sqrt(pow(accel_x,2) + pow(accel_z,2)))*RADIANS_TO_DEGREES;
-	  float accel_angle_z = atan(sqrt(pow(accel_x,2) + pow(accel_y,2))/accel_z)*RADIANS_TO_DEGREES;;
-	  //float accel_angle_z = 0;
+    // Get angle values from accelerometer
+    float RADIANS_TO_DEGREES = 180/3.14159;
+    //float accel_vector_length = sqrt(pow(accel_x,2) + pow(accel_y,2) + pow(accel_z,2));
+    float accel_angle_y = atan(-1*accel_x/sqrt(pow(accel_y,2) + pow(accel_z,2)))*RADIANS_TO_DEGREES;
+    float accel_angle_x = atan(accel_y/sqrt(pow(accel_x,2) + pow(accel_z,2)))*RADIANS_TO_DEGREES;
+    float accel_angle_z = atan(sqrt(pow(accel_x,2) + pow(accel_y,2))/accel_z)*RADIANS_TO_DEGREES;;
+    //float accel_angle_z = 0;
 
-	  // Compute the (filtered) gyro angles
-	  float dt =(t_now - get_last_time())/1000.0;
-	  float gyro_angle_x = gyro_x*dt + get_last_x_angle();
-	  float gyro_angle_y = gyro_y*dt + get_last_y_angle();
-	  float gyro_angle_z = gyro_z*dt + get_last_z_angle();
+    // Compute the (filtered) gyro angles
+    float dt =(t_now - get_last_time())/1000.0;
+    float gyro_angle_x = gyro_x*dt + get_last_x_angle();
+    float gyro_angle_y = gyro_y*dt + get_last_y_angle();
+    float gyro_angle_z = gyro_z*dt + get_last_z_angle();
 
-	  // Compute the drifting gyro angles
-	  float unfiltered_gyro_angle_x = gyro_x*dt + get_last_gyro_x_angle();
-	  float unfiltered_gyro_angle_y = gyro_y*dt + get_last_gyro_y_angle();
-	  float unfiltered_gyro_angle_z = gyro_z*dt + get_last_gyro_z_angle();
+    // Compute the drifting gyro angles
+    float unfiltered_gyro_angle_x = gyro_x*dt + get_last_gyro_x_angle();
+    float unfiltered_gyro_angle_y = gyro_y*dt + get_last_gyro_y_angle();
+    float unfiltered_gyro_angle_z = gyro_z*dt + get_last_gyro_z_angle();
 
-	  // Apply the complementary filter to figure out the change in angle - choice of alpha is
-	  // estimated now.  Alpha depends on the sampling rate...
-	  float alpha = 0.96;
-	  float angle_x = alpha*gyro_angle_x + (1.0 - alpha)*accel_angle_x;
-	  float angle_y = alpha*gyro_angle_y + (1.0 - alpha)*accel_angle_y;
-	  float angle_z = gyro_angle_z;  //Accelerometer doesn't give z-angle
+    // Apply the complementary filter to figure out the change in angle - choice of alpha is
+    // estimated now.  Alpha depends on the sampling rate...
+    float alpha = 0.96;
+    float angle_x = alpha*gyro_angle_x + (1.0 - alpha)*accel_angle_x;
+    float angle_y = alpha*gyro_angle_y + (1.0 - alpha)*accel_angle_y;
+    float angle_z = gyro_angle_z;  //Accelerometer doesn't give z-angle
 
-	  // Update the saved data with the latest values
-	  set_last_read_angle_data(t_now, angle_x, angle_y, angle_z,
-			  unfiltered_gyro_angle_x, unfiltered_gyro_angle_y, unfiltered_gyro_angle_z, temperature);
+    // Update the saved data with the latest values
+    set_last_read_angle_data(t_now, angle_x, angle_y, angle_z,
+            unfiltered_gyro_angle_x, unfiltered_gyro_angle_y, unfiltered_gyro_angle_z, temperature);
 }
 
 /*
 * Prepare current values for output
 */
 const std::string Mpu6050::print_current(){
-  char buff[1024];
-  struct mpu6050_values val;
-  get_last_read_angle_data(val);
+    char buff[1024];
+    struct mpu6050_values val;
+    get_last_read_angle_data(val);
 
-  std::sprintf(buff, "Time:%ld Angle [X:%.3f Y:%.3f Z:%.3f] Gyro [X:%.3f Y:%.3f Z:%.3f] Temp:%.2f", 
-	val.last_read_time,
-	val.last_x_angle/get_accel_sens(),
-	val.last_y_angle/get_accel_sens(),
-	val.last_z_angle/get_accel_sens(),
-	val.last_gyro_x_angle/get_gyro_sens(),
-	val.last_gyro_y_angle/get_gyro_sens(), 
-	val.last_gyro_z_angle/get_gyro_sens(), 
-	val.last_temperature);
+    std::sprintf(buff, "Time:%ld Angle [X:%.3f Y:%.3f Z:%.3f] Gyro [X:%.3f Y:%.3f Z:%.3f] Temp:%.2f", 
+    val.last_read_time,
+    val.last_x_angle/get_accel_sens(),
+    val.last_y_angle/get_accel_sens(),
+    val.last_z_angle/get_accel_sens(),
+    val.last_gyro_x_angle/get_gyro_sens(),
+    val.last_gyro_y_angle/get_gyro_sens(), 
+    val.last_gyro_z_angle/get_gyro_sens(), 
+    val.last_temperature);
 
-  return std::string(buff);
+    return std::string(buff);
 }
 
 /*
  *
  */
 void Mpu6050::stop(){
-	piutils::Threaded::stop();
+    piutils::Threaded::stop();
 }
 
 /*
@@ -449,36 +454,34 @@ void Mpu6050::stop(){
  */
 bool Mpu6050::start(void)
 {
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started...");
-	return piutils::Threaded::start<Mpu6050>(this);	
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started...");
+    return piutils::Threaded::start<Mpu6050>(this);	
 }
 
 /*
  *
  */
 const std::string Mpu6050::to_string(){
-	return "MPU6050 Over : " + std::to_string(_i2caddr);
+    return "MPU6050 Over : " + std::to_string(_i2caddr);
 }
 
 /*
  *
  */
-void* Mpu6050::worker(void* p){
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker started.");
+void Mpu6050::worker(Mpu6050* owner){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker started.");
+    while(!owner->is_stop_signal()){
+        /*
+         *
+         */
+        owner->update_values();
+        //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + owner->print_current());
 
-	Mpu6050* owner = static_cast<Mpu6050*>(p);
-	while(!owner->is_stop_signal()){
-		/*
-		 *
-		 */
-		owner->update_values();
-		//logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + owner->print_current());
+        //delay(owner->get_loop_delay());
+        std::this_thread::sleep_for(std::chrono::milliseconds(owner->get_loop_delay()));
+    }
 
-		delay(owner->get_loopDelay());
-	}
-
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished.");
-	return (void*) 0L;
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished.");
 }
 
 

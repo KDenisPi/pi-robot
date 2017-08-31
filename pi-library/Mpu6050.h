@@ -95,14 +95,14 @@ union accel_t_gyro_union
 };
 
 struct mpu6050_values {
-	unsigned long last_read_time;
-	float         last_x_angle;  // These are the filtered angles
-	float         last_y_angle;
-	float         last_z_angle;
-	float         last_gyro_x_angle;  // Store the gyro angles to compare drift
-	float         last_gyro_y_angle;
-	float         last_gyro_z_angle;
-	float		last_temperature;
+    unsigned long last_read_time;
+    float         last_x_angle;  // These are the filtered angles
+    float         last_y_angle;
+    float         last_z_angle;
+    float         last_gyro_x_angle;  // Store the gyro angles to compare drift
+    float         last_gyro_y_angle;
+    float         last_gyro_z_angle;
+    float		last_temperature;
 };
 
 #define IF_BIT(VALUE,BITN) (((VALUE>>BITN)&0x01)==1)
@@ -110,87 +110,87 @@ struct mpu6050_values {
 
 class Mpu6050 : public piutils::Threaded {
 public:
-	Mpu6050(const uint8_t i2caddr = MPU6050_I2C_ADDRESS, const unsigned int utime = 1000);
-	virtual ~Mpu6050();
+    Mpu6050(const uint8_t i2caddr = MPU6050_I2C_ADDRESS, const unsigned int utime = 1000);
+    virtual ~Mpu6050();
 
-	static float accel_LSB_Sensitivity[];
-	static float gyro_LSB_Sensitivity[];
+    static float accel_LSB_Sensitivity[];
+    static float gyro_LSB_Sensitivity[];
 
-	inline float get_accel_sens() { return Mpu6050::accel_LSB_Sensitivity[m_accel_conf];}
-	inline float get_gyro_sens() { return Mpu6050::gyro_LSB_Sensitivity[m_gyro_conf];}
+    inline float get_accel_sens() { return Mpu6050::accel_LSB_Sensitivity[m_accel_conf];}
+    inline float get_gyro_sens() { return Mpu6050::gyro_LSB_Sensitivity[m_gyro_conf];}
 
-	void get_last_read_angle_data(struct mpu6050_values& values);
+    void get_last_read_angle_data(struct mpu6050_values& values);
 
-	inline unsigned long get_last_time() {return m_val.last_read_time;}
-	inline float get_last_x_angle() {return m_val.last_x_angle;}
-	inline float get_last_y_angle() {return m_val.last_y_angle;}
-	inline float get_last_z_angle() {return m_val.last_z_angle;}
-	inline float get_last_gyro_x_angle() {return m_val.last_gyro_x_angle;}
-	inline float get_last_gyro_y_angle() {return m_val.last_gyro_y_angle;}
-	inline float get_last_gyro_z_angle() {return m_val.last_gyro_z_angle;}
+    inline unsigned long get_last_time() {return m_val.last_read_time;}
+    inline float get_last_x_angle() {return m_val.last_x_angle;}
+    inline float get_last_y_angle() {return m_val.last_y_angle;}
+    inline float get_last_z_angle() {return m_val.last_z_angle;}
+    inline float get_last_gyro_x_angle() {return m_val.last_gyro_x_angle;}
+    inline float get_last_gyro_y_angle() {return m_val.last_gyro_y_angle;}
+    inline float get_last_gyro_z_angle() {return m_val.last_gyro_z_angle;}
 
-	inline struct mpu6050_values& get_last_values() { return m_val;}
-	virtual unsigned int const get_loopDelay() const {return update_interval;} //thread loop delay in ms
+    inline struct mpu6050_values& get_last_values() { return m_val;}
+    virtual unsigned int const get_loop_delay() const {return update_interval;} //thread loop delay in ms
 
-	// The sensor should be motionless on a horizontal surface
-	//  while calibration is happening
-	void calibrate_sensors();
+    // The sensor should be motionless on a horizontal surface
+    //  while calibration is happening
+    void calibrate_sensors();
 
-	void initialize();
-	/*
-	 * Update values - will be used in loop
-	 */
-	void update_values();
+    void initialize();
+    /*
+     * Update values - will be used in loop
+     */
+    void update_values();
 
-	virtual bool start();
-	virtual const std::string to_string();
+    virtual bool start();
+    virtual const std::string to_string();
 
-	static void* worker(void* p);
-	virtual void stop();
+    static void worker(Mpu6050* owner);
+    virtual void stop();
 
-	inline unsigned int get_utime() { return update_interval; }
+    inline unsigned int get_utime() { return update_interval; }
 
-	const std::string print_current();
-	inline uint8_t get_gyro_conf() const {return m_gyro_conf;}
-	inline uint8_t get_accel_conf() const {return m_accel_conf;}
+    const std::string print_current();
+    inline uint8_t get_gyro_conf() const {return m_gyro_conf;}
+    inline uint8_t get_accel_conf() const {return m_accel_conf;}
 
-	// Set device to to sleep (true) or wake up (false)
-	void set_sleep(bool sleep_mode);
-	bool get_sleep();
+    // Set device to to sleep (true) or wake up (false)
+    void set_sleep(bool sleep_mode);
+    bool get_sleep();
 
-	void self_check();
+    void self_check();
 
-	void gyro_set_full_scale_range(int range);
+    void gyro_set_full_scale_range(int range);
         int  gyro_get_full_scale_range();
 
         void accel_set_full_scale_range(int range);
         int  accel_get_full_scale_range();
 
 private:
-	uint8_t _i2caddr;
-	int m_fd;
-	int m_gyro_conf;
-	int m_accel_conf;
+    uint8_t _i2caddr;
+    int m_fd;
+    int m_gyro_conf;
+    int m_accel_conf;
 
-	unsigned int update_interval; //update interval (1 second by default)
-	std::recursive_mutex data_update;
+    unsigned int update_interval; //update interval (1 second by default)
+    std::recursive_mutex data_update;
 
-	// Use the following global variables and access functions to help store the overall
-	// rotation angle of the sensor
-	struct mpu6050_values m_val;
+    // Use the following global variables and access functions to help store the overall
+    // rotation angle of the sensor
+    struct mpu6050_values m_val;
 
-	void set_last_read_angle_data(unsigned long time, float x, float y, float z, float x_gyro, float y_gyro, float z_gyro, float temperature);
-	int read_gyro_accel_vals(uint8_t* accel_t_gyro_ptr);
+    void set_last_read_angle_data(unsigned long time, float x, float y, float z, float x_gyro, float y_gyro, float z_gyro, float temperature);
+    int read_gyro_accel_vals(uint8_t* accel_t_gyro_ptr);
 
-	//  Use the following global variables and access functions
-	//  to calibrate the acceleration sensor
-	float    base_x_accel;
-	float    base_y_accel;
-	float    base_z_accel;
+    //  Use the following global variables and access functions
+    //  to calibrate the acceleration sensor
+    float    base_x_accel;
+    float    base_y_accel;
+    float    base_z_accel;
 
-	float    base_x_gyro;
-	float    base_y_gyro;
-	float    base_z_gyro;
+    float    base_x_gyro;
+    float    base_y_gyro;
+    float    base_z_gyro;
 };
 
 } /* namespace mpu6050 */

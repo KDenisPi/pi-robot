@@ -85,7 +85,8 @@ public:
 	inline bool have_notify(){
 		if(m_type == ItemTypes::BUTTON || 
 			m_type == ItemTypes::TILT_SWITCH ||
-			m_type == ItemTypes::BLINKER){
+			m_type == ItemTypes::BLINKER ||
+			m_type == ItemTypes::STEPPER) {
 			return true;
 		}
 		return false;

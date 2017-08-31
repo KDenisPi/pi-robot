@@ -82,11 +82,12 @@ public:
     *
     */
     void add_provider(const std::string& type, const std::string& name) noexcept(false);
-
+    std::shared_ptr<provider::Provider> get_provider(const std::string& name) const noexcept(false);
+    
     /*
     * Create GPIO for the provider. Provider should created before using add_provider function
     */
-    inline void add_gpio(const std::string& provider_name, 
+    void add_gpio(const std::string& provider_name, 
         const pirobot::gpio::GPIO_MODE gpio_mode, const int pin) noexcept(false);
 
     void printConfig();
@@ -121,8 +122,6 @@ private:
         std::less<std::string>,
         std::allocator<std::pair<const std::string, std::shared_ptr<provider::Provider>> >
     > providers;
-
-    std::shared_ptr<provider::Provider> get_provider(const std::string& name) const noexcept(false);
 
 };
 

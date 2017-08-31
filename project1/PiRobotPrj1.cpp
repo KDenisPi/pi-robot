@@ -136,7 +136,7 @@ bool PiRobotPrj1::configure(){
     items_add("DCM_1", std::shared_ptr<pirobot::item::Item>(new pirobot::item::dcmotor::DCMotor(
                                  std::static_pointer_cast<pirobot::item::Drv8835>(get_item("DRV_8835")),
                                  get_gpio(MCP23017_1+A_PHASE),
-                                 get_gpio(provider_pca9685->getStartPin()+A_ENABLE),
+                                 get_gpio((std::static_pointer_cast<pirobot::gpio::GpioProvider>(get_provider("PCA9685")))->getStartPin()+A_ENABLE),
                                  "DCM_1",
                                  "DCM_1")));
 

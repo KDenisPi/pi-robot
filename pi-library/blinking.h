@@ -32,7 +32,7 @@ public:
         m_item(item), m_tm_on(tm_on),
         m_tm_off(tm_off),m_blinks(blinks), m_on(false){
 
-    	logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " " + this->name() + " Started with " + m_item->name());
+        logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " " + this->name() + " Started with " + m_item->name());
     }
 
     /*
@@ -76,14 +76,13 @@ public:
     /*
     * Blinking worker function
     */
-    static void* worker(void* p){
-        Blinking* owner = static_cast<Blinking*>(p);
+    static void worker(Blinking* owner){
         logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Worker started. " + owner->to_string());
 
-        unsigned int loop_delay = owner->get_loopDelay();
-    	std::string name = owner->name();
+        unsigned int loop_delay = owner->get_loop_delay();
+        std::string name = owner->name();
 
-	while(!owner->is_stop_signal()){
+        while(!owner->is_stop_signal()){
            int blinks = (owner->get_blinks() > 0 ? owner->get_blinks() : 10);
            while(owner->is_on() && blinks > 0){
                 //Switch On
@@ -93,7 +92,8 @@ public:
                 while(owner->is_on() && tm_on > 0){
                     unsigned int tm_delay = (loop_delay > tm_on ? loop_delay : tm_on);
                     tm_on -= tm_delay;
-                    delay(tm_delay);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(tm_delay));
+                    //delay(tm_delay);
                 }
                 //Switch Off
                 owner->item_off();
@@ -102,7 +102,8 @@ public:
                 while(owner->is_on() && tm_off > 0){
                     unsigned int tm_delay = (loop_delay > tm_off ? loop_delay : tm_off);
                     tm_off -= tm_delay;
-                    delay(tm_delay);
+                    //delay(tm_delay);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(tm_delay));
                 }
 
                 blinks--;
@@ -120,11 +121,11 @@ public:
               }
            }
 
-    	   delay(loop_delay);
-    	}
+           std::this_thread::sleep_for(std::chrono::milliseconds(loop_delay));
+           //delay(loop_delay);
+        }
 
         logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Worker finished. " + owner->to_string());
-        return (void*) 0L;
     }
 
     virtual void stop() override {

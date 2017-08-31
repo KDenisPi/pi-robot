@@ -68,7 +68,7 @@ public:
         if(is_stop_signal())
             return m_mid;
 
-	mutex_sm.lock();
+    mutex_sm.lock();
         if(m_messages.size() < m_max_size){
             auto pub_item = std::make_pair<get_next_mid(), std::make_pair<topic,payload>>;
             m_messages.push(pub_item);
@@ -81,7 +81,7 @@ public:
     *
     */
     const std::shared_ptr<pub_info> get(){
-	    mutex_sm.lock();
+        mutex_sm.lock();
         std::shared_ptr<pub_info> item = m_messages.front();
         m_messages.pop();
         mutex_sm.unlock();
@@ -120,30 +120,28 @@ public:
     /*
     * For Threaded 
     */
-	static void* worker(void* p){
-    	logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Worker started.");
-
-    	MqqtClient* owner = static_cast<MqqtClient*>(p);
-        for(;;){
-            if(owner->is_stop_signal())
-                break;
-
+    static void worker(MqqtClient* owner){
+        logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Worker started.");
+        
+        while(!owner->is_stop_signal()){
             while(!owner->is_empty()){
                 auto item = owner->get();
 
+                if(owner->is_stop_signal())
+                    break;
             }
-    		delay(owner->get_loopDelay());
+            //delay(owner->get_loop_delay());
+            std::this_thread::sleep_for(std::chrono::milliseconds(owner->get_loop_delay()));
         }
-
     }
 
     /*
     *
     */
-	void stop() {
-    	logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Started.");
+    void stop() {
+        logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Started.");
         //stop working thread - do not try to send nothing
-	    piutils::Threaded::stop();
+        piutils::Threaded::stop();
         //disconnect client
         disconnect();
         //clear the queue
@@ -162,8 +160,8 @@ private:
     MqqtServerInfo m_conf;  //server configuration
     std::shared_ptr<T> m_mqqtCl; //client implementation
 
-	std::recursive_mutex mutex_sm;
-	std::queue<std::shared_ptr<std::pair<std::string, std::string>>> m_messages;
+    std::recursive_mutex mutex_sm;
+    std::queue<std::shared_ptr<std::pair<std::string, std::string>>> m_messages;
     int m_max_size;  
     
 };

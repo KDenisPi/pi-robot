@@ -9,12 +9,12 @@
 
 namespace piutils {
 
-Threaded::Threaded() : m_pid(0), m_pthread(0), m_stopSignal(false)
+Threaded::Threaded() : m_stopSignal(false), m_loop_delay(100)
 {
 }
 
 Threaded::~Threaded() {
-	// TODO Auto-generated destructor stub
+    // TODO Auto-generated destructor stub
 }
 
 } /* namespace pirobot */

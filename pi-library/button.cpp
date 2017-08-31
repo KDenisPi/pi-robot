@@ -27,13 +27,13 @@ Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
    const BUTTON_STATE state, const gpio::PULL_MODE pullmode, const int itype) :
    Item(gpio, itype), m_pullmode(pullmode), m_state(state)
 {
-	assert(get_gpio() != NULL);
-	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::IN);
+    assert(get_gpio() != NULL);
+    assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::IN);
 
         if( get_gpio()->get_provider_type() == gpio::GPIO_PROVIDER_TYPE::PROV_MCP23017)
           inverse_value = true;
 
-	set_name(type_name() + "_over_" + get_gpio()->to_string());
+    set_name(type_name() + "_over_" + get_gpio()->to_string());
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started. " + to_string() + " Inverse:" + std::to_string(inverse_value));
 }
 
@@ -45,14 +45,14 @@ Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
         const BUTTON_STATE state, const gpio::PULL_MODE pullmode, const int itype) :
           Item(gpio, name, comment, itype),m_pullmode(pullmode),m_state(state)
 {
-	assert(get_gpio() != NULL);
-	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::IN);
+    assert(get_gpio() != NULL);
+    assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::IN);
 
         if( get_gpio()->get_provider_type() == gpio::GPIO_PROVIDER_TYPE::PROV_MCP23017)
           inverse_value = true;
 
-	if(name.empty())
-		set_name(type_name()  + "_over_" + get_gpio()->to_string());
+    if(name.empty())
+        set_name(type_name()  + "_over_" + get_gpio()->to_string());
 
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started. " + to_string() + " Inverse:" + std::to_string(inverse_value));
 }
@@ -61,7 +61,7 @@ Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
  *
  */
 Button::~Button() {
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started.");
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started.");
 
 }
 
@@ -69,8 +69,8 @@ Button::~Button() {
  *
  */
 void Button::stop(){
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started.");
-	piutils::Threaded::stop();
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started.");
+    piutils::Threaded::stop();
 }
 
 /*
@@ -78,26 +78,26 @@ void Button::stop(){
  */
 bool Button::initialize(void)
 {
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started... PullMode: " + std::to_string(m_pullmode));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started... PullMode: " + std::to_string(m_pullmode));
 
-	/*
-	 * Set PULL MODE
-	 */
-	get_gpio()->pullUpDnControl(m_pullmode);
+    /*
+     * Set PULL MODE
+     */
+    get_gpio()->pullUpDnControl(m_pullmode);
 
-	gpio::SGN_LEVEL level = get_gpio()->get_level();
-	set_state(get_state_by_level(level));
+    gpio::SGN_LEVEL level = get_gpio()->get_level();
+    set_state(get_state_by_level(level));
 
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + this->to_string() + " Current level:" + std::to_string(level));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + this->to_string() + " Current level:" + std::to_string(level));
 
-	return piutils::Threaded::start<Button>(this);
+    return piutils::Threaded::start<Button>(this);
 }
 
 /*
  *
  */
 const std::string Button::to_string(){
-	return name() + (m_state == BUTTON_STATE::BTN_PUSHED ? " state: PUSHED" : " state: NOT PUSHED");
+    return name() + (m_state == BUTTON_STATE::BTN_PUSHED ? " state: PUSHED" : " state: NOT PUSHED");
 }
 
 /*
@@ -111,46 +111,44 @@ const std::string Button::printConfig(){
  *
  */
 void Button::set_state(const BUTTON_STATE state){
-	logger::log(logger::LLOG::DEBUG, TAG, " State changed from: " + std::to_string(m_state) + " to: " + std::to_string(state));
-	m_state = state;
+    logger::log(logger::LLOG::DEBUG, TAG, " State changed from: " + std::to_string(m_state) + " to: " + std::to_string(state));
+    m_state = state;
 }
 
 
 /*
  *
  */
-void* Button::worker(void* p){
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker started.");
+void Button::worker(Button* owner){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "Worker started. Initial State :" + std::to_string(owner->state()));
 
-	Button* owner = static_cast<Button*>(p);
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "  Initial State :" + std::to_string(owner->state()));
+    std::string name = owner->name();
 
-	std::string name = owner->name();
+    int level = owner->get_gpio()->digitalRead();
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Current level:" + std::to_string(level));
 
-        int level = owner->get_gpio()->digitalRead();
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Current level:" + std::to_string(level));
+    while(!owner->is_stop_signal()){
+        gpio::SGN_LEVEL level = owner->get_gpio()->get_level();
+        const BUTTON_STATE state = owner->get_state_by_level(level);
 
-	while(!owner->is_stop_signal()){
-		gpio::SGN_LEVEL level = owner->get_gpio()->get_level();
-		const BUTTON_STATE state = owner->get_state_by_level(level);
+         if(state != owner->state()){
+            owner->set_state(state);
 
- 		if(state != owner->state()){
-			owner->set_state(state);
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** State changed!!!! " + owner->name() +
+                " New state:" + std::to_string(state));
 
-   	                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** State changed!!!! " + owner->name() +
-				" New state:" + std::to_string(state));
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " New level:" + std::to_string(level) + " " + 
+                    owner->to_string());
 
-                        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " New level:" + std::to_string(level) + " " + owner->to_string());
+            if(owner->notify)
+                       owner->notify(owner->type(), name, (void*)(&state));
+        }
 
-			if(owner->notify)
-	   		        owner->notify(owner->type(), name, (void*)(&state));
-		}
+        std::this_thread::sleep_for(std::chrono::milliseconds(owner->get_loop_delay()));
+        //delay(owner->get_loop_delay());
+    }
 
-		delay(owner->get_loopDelay());
-	}
-
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished.");
-	return (void*) 0L;
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished.");
 }
 
 } /* namespace item */

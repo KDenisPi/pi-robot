@@ -8,8 +8,10 @@
 #ifndef PI_LIBRARY_THREADED_H_
 #define PI_LIBRARY_THREADED_H_
 
-#include <pthread.h>
+#include <condition_variable>
+#include <thread>
 #include <mutex>
+#include <sstream>
 
 #include "logger.h"
 
@@ -19,108 +21,102 @@ const char TAG_TR[] = "thread";
 
 class Threaded {
 public:
-	Threaded();
-	virtual ~Threaded();
+    Threaded();
+    virtual ~Threaded();
 
-	inline const pthread_t get_thread() const { return m_pthread;}
+    inline const std::thread::id get_thread_id() const {
+        return m_thread.get_id();
+    }
 
-	inline void set_thread(const pthread_t thread) { 
-		mutex_.lock();
-		m_pthread = thread;
-		mutex_.unlock();
-	}
-
-	inline bool is_stopped() { return (m_pthread == 0);}
+    const std::string get_thread_id_str(){
+        if(m_thread_id_str.empty()){
+            std::ostringstream ss;
+            ss << m_thread.get_id();
+            m_thread_id_str =  ss.str();
+        }
+        return m_thread_id_str;
+    }
+/*
+*
+*/
+    inline bool is_stopped(){ 
+        bool joinable = m_thread.joinable();
+        return !joinable;
+    }
 
 /*
 *
 */
 template<class T>
-	bool start(T* owner){
-		logger::log(logger::LLOG::DEBUG, TAG_TR, std::string(__func__) + " Started");
-		bool ret = true;
-		pthread_attr_t attr;
+    bool start(T* owner){
+        logger::log(logger::LLOG::DEBUG, TAG_TR, std::string(__func__) + " Started");
+        bool ret = true;
 
-		if( is_stopped() ){
-			set_stop_signal(false);
+        if( is_stopped() ){
+            //set_stop_signal(false); (?)
 
-			pthread_attr_init(&attr);
-			pthread_t pthread;
+            m_thread = std::thread(T::worker, owner);
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            logger::log(logger::LLOG::DEBUG, TAG_TR, std::string(__func__) + " Thread created. " + get_thread_id_str());
+        }
 
-			int result = pthread_create(&pthread, &attr, T::worker, (void*)(owner));
-			if(result == 0){
-				set_thread(pthread);
-				logger::log(logger::LLOG::DEBUG, TAG_TR, std::string(__func__) + " Thread created");
-			}
-			else{
-				//TODO: Exception
-				logger::log(logger::LLOG::ERROR, TAG_TR, std::string(__func__) + " Thread failed Res:" + std::to_string(result));
-				ret = false;
-			}
-		}
-
-		return ret;
-	}
+        return ret;
+    }
 
 /*
 *
 */
-	void stop (const bool set_stop=true){
-		void* ret;
-		int res = 0;
+    void stop (const bool set_stop=true){
 
-		if(set_stop)
-			set_stop_signal(true);
+        if(set_stop && !is_stopped()){
+            logger::log(logger::LLOG::DEBUG, TAG_TR, std::string(__func__) + std::string(" Stop signal sent. Thread:") + get_thread_id_str());
+            set_stop_signal(true);
+        }
 
-		logger::log(logger::LLOG::DEBUG, TAG_TR, std::string(__func__) + std::string(" Signal sent. Wait.. thread: ") + std::to_string(this->get_thread()));
+        if( !is_stopped() ){
+            logger::log(logger::LLOG::DEBUG, TAG_TR, std::string(__func__) + std::string(" Wait.. Thread: ") + get_thread_id_str());
+            this->m_thread.join();
+        }
+        else{
+            logger::log(logger::LLOG::DEBUG, TAG_TR, std::string(__func__) + std::string(" Finished already. Thread: ") + get_thread_id_str());
+        }
 
-		if( !is_stopped() ){
-			res = pthread_join(this->get_thread(), &ret);
-			if(res != ESRCH)
-				logger::log(logger::LLOG::ERROR, TAG_TR, std::string(__func__) + " Could not join to thread Res: " + std::to_string(res));
-			else{
-				logger::log(logger::LLOG::DEBUG, TAG_TR, std::string(__func__) + " Finished already. Res: " + std::to_string(res));
-			}
-		}
-
-		logger::log(logger::LLOG::DEBUG, TAG_TR, std::string(__func__) + " Finished Res:" + std::to_string((long)ret));
-	}
+        logger::log(logger::LLOG::DEBUG, TAG_TR, std::string(__func__) + " Finished Thread:" + get_thread_id_str());
+    }
 
 /*
 *
 */
-	inline const bool is_stop_signal(){
-		mutex_.lock();
-		bool stop = m_stopSignal;
-		mutex_.unlock();
-		return stop;
-	}
+    inline const bool is_stop_signal(){
+        return m_stopSignal;
+    }
 
 /*
 *
 */
-	inline void set_stop_signal(const bool signal){ 
-		mutex_.lock();
-		m_stopSignal = signal;
-		mutex_.unlock();
-	}
+    inline void set_stop_signal(const bool signal){ 
+        std::lock_guard<std::mutex> lk(cv_m);
+        m_stopSignal = signal;
+        cv.notify_one();
+    }
 
-	inline void set_pid(pid_t pid) {
-		mutex_.lock();
-		m_pid = pid;
-		mutex_.unlock();
-	}
+    virtual unsigned int const get_loop_delay() const {
+        return m_loop_delay;
+    } //thread loop delay in ms
 
-	inline const pid_t get_pid() const { 
-		return m_pid;
-	}
+    void set_loop_delay(const unsigned int loop_delay){
+        m_loop_delay = loop_delay;
+    }
 
-	virtual unsigned int  const get_loopDelay() const {return 100;} //thread loop delay in ms
 private:
-	pthread_t m_pthread;
-	pid_t m_pid;
-	bool m_stopSignal;
-	std::recursive_mutex mutex_;
+    std::thread m_thread;
+    bool m_stopSignal;
+    std::string m_thread_id_str;
+    unsigned int m_loop_delay;
+
+public:	
+    std::condition_variable cv;
+    std::mutex cv_m;	
 };
 
 } /* namespace pirobot */
