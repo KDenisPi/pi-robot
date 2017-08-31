@@ -10,11 +10,12 @@
 
 #include "Threaded.h"
 #include "item.h"
+#include "motor.h"
 
 namespace pirobot {
 namespace item {
 
-class ULN2003StepperMotor: public Item, public piutils::Threaded {
+class ULN2003StepperMotor: public Item, public piutils::Threaded, public Motor {
 public:
     ULN2003StepperMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio_0,
             const std::shared_ptr<pirobot::gpio::Gpio> gpio_1,
@@ -64,20 +65,8 @@ public:
     void set_steps(const int num_steps){
 		std::lock_guard<std::mutex> lk(cv_m);
         m_num_steps = num_steps;
-        m_stop_rotation = (m_num_steps <= 0);
+        set_rotation( (m_num_steps <= 0)  );
         cv.notify_one();
-    }
-
-    const bool is_stop_rotation() const{
-        return m_stop_rotation;
-    }
-
-    void stop_rotation(){
-        if(m_stop_rotation)
-            return;
-
-        std::lock_guard<std::mutex> lk(cv_m);
-        m_stop_rotation = true;
     }
 
     const uint8_t get_current_step() const {
@@ -92,7 +81,6 @@ private:
     int m_num_steps;
     uint8_t m_step;
     MOTOR_DIR m_direction;
-    bool m_stop_rotation;
 
     uint8_t m_cmd[8]  = {0x08, 0x0C, 0x04, 0x06, 0x02, 0x03, 0x01, 0x01};
     

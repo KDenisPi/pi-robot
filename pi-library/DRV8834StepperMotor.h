@@ -9,12 +9,13 @@
 #define PI_LIBRARY_DRV8834STEPPERMOTOR_H_
 
 #include "item.h"
+#include "motor.h"
 #include "Drv8825_8834.h"
 
 namespace pirobot {
 namespace item {
 
-class DRV8834_StepperMotor: public Item {
+class DRV8834_StepperMotor: public Item, public Motor {
 public:
 	DRV8834_StepperMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio);
 

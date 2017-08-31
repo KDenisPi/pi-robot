@@ -9,6 +9,7 @@
 #define PI_LIBRARY_DRV8825STEPPERMOTOR_H_
 
 #include "item.h"
+#include "motor.h"
 #include "Drv8825_8834.h"
 
 namespace pirobot {
@@ -24,7 +25,7 @@ enum DRV8825_DECAY {
 	DECAY_MIXED = 2
 };
 
-class DRV8825_StepperMotor: public Item {
+class DRV8825_StepperMotor: public Item, public Motor {
 public:
 	// GPIO on constructor is used for STEP command (pin 22)
 	DRV8825_StepperMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio);

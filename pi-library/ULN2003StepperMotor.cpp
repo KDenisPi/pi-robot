@@ -121,7 +121,7 @@ void ULN2003StepperMotor::set_direction(const MOTOR_DIR direction){
 
         int steps = owner->get_steps();
         uint8_t step = owner->get_current_step();
-        for(int i = 0; i < steps && !owner->is_stop_signal() && !owner->is_stop_rotation(); i++){
+        for(int i = 0; i < steps && !owner->is_stop_signal() && owner->is_rotate(); i++){
             fstep(owner, step);
             step = owner->get_next_step(step);
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -130,7 +130,7 @@ void ULN2003StepperMotor::set_direction(const MOTOR_DIR direction){
         /*
         * If there was not stop by external reason send notification - Done
         */
-        bool external_stop = (owner->is_stop_signal() || owner->is_stop_rotation());
+        bool external_stop = (owner->is_stop_signal() || !owner->is_rotate());
         if(!external_stop && owner->notify){
             unsigned int state = GENERAL_NTFY::GN_DONE;
             owner->notify(owner->type(), name, (void*)(&state));

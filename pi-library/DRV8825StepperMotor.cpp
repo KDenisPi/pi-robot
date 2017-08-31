@@ -5,6 +5,8 @@
  *      Author: Denis Kudia
  */
 
+#include <thread>
+
 #include "DRV8825StepperMotor.h"
 #include "logger.h"
 
@@ -236,12 +238,27 @@ void DRV8825_StepperMotor::step(const int num_steps /*= 1*/){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Move on step: " + std::to_string(num_steps));
 
 	int steps = (num_steps > 10 ? 10 : num_steps);
-	for(int i = 0; i < num_steps; i++){
-		get_gpio()->digitalWrite(gpio::SGN_LEVEL::SGN_HIGH);
-		delay(50);
-		get_gpio()->digitalWrite(gpio::SGN_LEVEL::SGN_LOW);
-		delay(50);
-	}
+	auto fsteps = [this](int steps, std::string& name) -> void {
+		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Thread started for: " + name);
+		for(int i = 0; i < steps && this->is_rotate(); i++){
+			this->get_gpio()->digitalWrite(gpio::SGN_LEVEL::SGN_HIGH);
+			delay(50);
+			this->get_gpio()->digitalWrite(gpio::SGN_LEVEL::SGN_LOW);
+			delay(50);
+
+			//if rotation have not finished by external reason - send message
+			if(this->is_rotate()){
+				unsigned int state = GENERAL_NTFY::GN_DONE;
+				this->notify(this->type(), name, (void*)(&state));
+			}
+		}
+		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Thread finished for: " + name);
+	};
+
+	std::string name = this->name();
+	std::thread t(fsteps, steps, std::ref(name));
+	t.detach();
+	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished ");
 }
 
 /*
