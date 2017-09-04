@@ -42,10 +42,8 @@ struct SPI_config {
 };
 
 /*
-    Add GPIOs for channels
+* Add GPIOs for channels
 */
-
-
 class SPI :  public pirobot::provider::Provider{
 public:
     //

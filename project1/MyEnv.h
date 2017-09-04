@@ -14,12 +14,10 @@ namespace project1 {
 
 class MyEnv : public smachine::Environment {
 public:
-	MyEnv() : led_processed(0) {}
+	MyEnv() : m_finish(false) {}
 	virtual ~MyEnv() {}
 
-	const int led_max = 7;
-	int items[7] = {0,1,30,31,32,50,51};
-	int led_processed;
+	bool m_finish;
 };
 
 }
