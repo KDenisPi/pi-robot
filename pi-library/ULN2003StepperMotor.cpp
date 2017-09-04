@@ -99,8 +99,9 @@ void ULN2003StepperMotor::set_direction(const MOTOR_DIR direction){
  *
  */
  void ULN2003StepperMotor::worker(ULN2003StepperMotor* owner){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker started.");
     std::string name = owner->name();
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker started. Name: " + name);
+
     while(!owner->is_stop_signal()){
         //wait until stop signal will be received or we will have steps for processing
         {
