@@ -154,7 +154,7 @@ void ULN2003StepperMotor::set_direction(const MOTOR_DIR direction){
 bool ULN2003StepperMotor::initialize(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started ");
     m_step = (m_direction == MOTOR_DIR::DIR_CLOCKWISE ? 0 : 7);
-    return true;
+    return piutils::Threaded::start<ULN2003StepperMotor>(this);
 }
 
 /*
