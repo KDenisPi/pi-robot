@@ -141,12 +141,15 @@ void PiRobot::add_provider(const std::string& type, const std::string& name){
         }
 
         auto gpio_provider = std::static_pointer_cast<pirobot::gpio::GpioProvider>(provider);
+        int global_pin = gpio_provider->getStartPin() + pin;
+
+        logger::log(logger::LLOG::DEBUG, __func__, " Provider: " + provider_name + 
+                            " trying to add pin: " + std::to_string(pin));
         // Validate pin number
-        if(!gpio_provider->is_valid_pin(pin)){
+        if(!gpio_provider->is_valid_pin(global_pin)){
             logger::log(logger::LLOG::ERROR, __func__, " Invalid pin number: " + std::to_string(pin));
             throw std::runtime_error(std::string(" Invalid pin number: ") + std::to_string(pin));
         }
-        int global_pin = gpio_provider->getStartPin() + pin;
 
         gpios_add(global_pin,
                 std::shared_ptr<pirobot::gpio::Gpio>(
