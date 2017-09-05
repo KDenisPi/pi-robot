@@ -23,11 +23,6 @@ public:
         return m_rotate;
     }
 
-    void set_rotation(const bool rotation){
-        std::lock_guard<std::mutex> lk(cv_motor);
-        m_rotate = false;
-    }
-
     void stop_rotation(){
         if(!m_rotate)
             return;
@@ -36,9 +31,14 @@ public:
         m_rotate = false;
     }
 
+    void set_rotation(const bool rotation){
+        m_rotate = false;
+    }
+    
 private:
     std::mutex cv_motor;	
     bool m_rotate;
+
 }; 
         
 }

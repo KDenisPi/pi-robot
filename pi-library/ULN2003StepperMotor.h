@@ -62,12 +62,7 @@ public:
         return piutils::Threaded::start<pirobot::item::ULN2003StepperMotor>(this);
     }
     
-    void set_steps(const int num_steps){
-		std::lock_guard<std::mutex> lk(cv_m);
-        m_num_steps = num_steps;
-        set_rotation( (m_num_steps <= 0)  );
-        cv.notify_one();
-    }
+    void set_steps(const int num_steps);
 
     const uint8_t get_current_step() const {
         return m_step;

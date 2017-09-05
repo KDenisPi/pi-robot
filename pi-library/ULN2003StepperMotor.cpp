@@ -177,7 +177,14 @@ const std::string ULN2003StepperMotor::printConfig(){
     return conf;
 }
 
+void ULN2003StepperMotor::set_steps(const int num_steps){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Steps: " + std::to_string(num_steps));
 
+    std::lock_guard<std::mutex> lk(cv_m);
+    m_num_steps = num_steps;
+    set_rotation((m_num_steps <= 0));
+    cv.notify_one();
+}
 
 } /* namespace item */
 } /* namespace pirobot */
