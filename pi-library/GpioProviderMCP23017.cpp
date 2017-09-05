@@ -93,8 +93,10 @@ const int GpioProviderMCP23017::dgtRead(const int pin){
 void GpioProviderMCP23017::dgtWrite(const int pin, const int value){
     int bit, current_mode ;
     int rpin = getRealPin(pin);     // Pin now 0-15
+    /*
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pin: " + std::to_string(pin) + 
             " Real: " + std::to_string(rpin) + " Value: " + std::to_string(value));
+    */
     bit = 1 << (rpin & 0x07) ;
     if(rpin < 8)               // Bank A
     {

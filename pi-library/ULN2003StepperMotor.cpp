@@ -126,6 +126,8 @@ void ULN2003StepperMotor::set_direction(const MOTOR_DIR direction){
             fstep(owner, step);
             step = owner->get_next_step(step);
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Step: " + std::to_string(i));
         }
 
         /*
