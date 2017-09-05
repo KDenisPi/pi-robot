@@ -51,7 +51,6 @@ bool PiRobotPrj1::configure(){
 	*/
 	add_provider("MCP23017", "MCP23017_1");
 	add_provider("PCA9685", "PCA9685");
-	
 
 	/*
 	* GPIOs

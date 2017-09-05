@@ -61,7 +61,7 @@ public:
     bool start(){
         return piutils::Threaded::start<pirobot::item::ULN2003StepperMotor>(this);
     }
-    
+
     void set_steps(const int num_steps);
 
     const uint8_t get_current_step() const {
@@ -78,12 +78,12 @@ private:
     MOTOR_DIR m_direction;
 
     uint8_t m_cmd[8]  = {0x08, 0x0C, 0x04, 0x06, 0x02, 0x03, 0x01, 0x01};
-    
+
     std::shared_ptr<pirobot::gpio::Gpio> m_gpio_1;
     std::shared_ptr<pirobot::gpio::Gpio> m_gpio_2;
     std::shared_ptr<pirobot::gpio::Gpio> m_gpio_3;
 
-public:    
+public:
     /*
      *
      */
@@ -92,6 +92,10 @@ public:
             return (step == 7 ? 0 : step+1);
 
         return (step == 0 ? 7 : step-1);
+    }
+
+    inline const uint8_t get_cmd(const uint8_t idx) const {
+     return m_cmd[idx];
     }
 };
 

@@ -41,7 +41,7 @@ public:
 
     const std::string get_name() const {return m_name;}
     const PROVIDER_TYPE get_ptype() const {return m_type;}
-    
+
 private:
     PROVIDER_TYPE m_type;
     std::string m_name;

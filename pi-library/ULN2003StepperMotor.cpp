@@ -80,7 +80,7 @@ void ULN2003StepperMotor::stop(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
     piutils::Threaded::stop();
-    
+
     this->get_gpio()->set_level( pirobot::gpio::SGN_LEVEL::SGN_LOW );
     this->m_gpio_1->set_level( pirobot::gpio::SGN_LEVEL::SGN_LOW );
     this->m_gpio_2->set_level( pirobot::gpio::SGN_LEVEL::SGN_LOW );
@@ -122,13 +122,18 @@ void ULN2003StepperMotor::set_direction(const MOTOR_DIR direction){
 
         int steps = owner->get_steps();
         uint8_t step = owner->get_current_step();
-        for(int i = 0; i < steps && !owner->is_stop_signal() && owner->is_rotate(); i++){
-            fstep(owner, step);
+
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ******* Steps: " + std::to_string(steps) +
+             " is_rotate: " + std::to_string(owner->is_rotate()) + " is_stop_signal: " + std::to_string(owner->is_stop_signal())  );
+
+        int i;
+        for(i = 0; i < steps && !owner->is_stop_signal() && owner->is_rotate(); i++){
+            fstep(owner, owner->get_cmd(step));
             step = owner->get_next_step(step);
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Step: " + std::to_string(i));
         }
+
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ******* finished *******");
 
         /*
         * If there was not stop by external reason send notification - Done
@@ -138,13 +143,12 @@ void ULN2003StepperMotor::set_direction(const MOTOR_DIR direction){
             unsigned int state = GENERAL_NTFY::GN_DONE;
             owner->notify(owner->type(), name, (void*)(&state));
          }
-   
+
         owner->save_current_step(step);
 
         /*
         *TODO: Send notification that cycle finished
         */
-    
         owner->set_steps(0);
     }
 
@@ -184,7 +188,7 @@ void ULN2003StepperMotor::set_steps(const int num_steps){
 
     std::lock_guard<std::mutex> lk(cv_m);
     m_num_steps = num_steps;
-    set_rotation((m_num_steps <= 0));
+    set_rotation((m_num_steps > 0));
     cv.notify_one();
 }
 

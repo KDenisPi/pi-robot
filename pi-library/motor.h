@@ -1,7 +1,7 @@
 /*
  * Motor.h
  * Some common functionality for different types of motors
- * 
+ *
  *  Created on: Aug 31, 2017
  *      Author: Denis Kudia
  */
@@ -32,15 +32,15 @@ public:
     }
 
     void set_rotation(const bool rotation){
-        m_rotate = false;
+        m_rotate = rotation;
     }
-    
+
 private:
-    std::mutex cv_motor;	
+    std::mutex cv_motor;
     bool m_rotate;
 
-}; 
-        
+};
+
 }
 }
 

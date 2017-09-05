@@ -94,7 +94,7 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
         yellow->Off();
         return true;
     }
-        
+
     if(event->is_event("BLINK_Blue")){
       auto red    = std::static_pointer_cast<pirobot::item::Led>(get_itf()->get_robot()->get_item("LED_Red"));
       red->Off();
