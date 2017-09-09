@@ -23,7 +23,8 @@ enum ItemTypes{
 	STEPPER = 5,
 	DCMotor = 6,
 	DRV8835 = 7,
-	BLINKER = 8
+	BLINKER = 8,
+	AnlgDgtConvertor = 9
 };
 
 enum BUTTON_STATE{
@@ -73,13 +74,16 @@ public:
 	inline const std::string name() const { return m_name; }
 	inline const std::string comment() const { return m_comment;}
 	inline const int type() const { return m_type;}
-	inline const std::string type_name() { return std::string(ItemNames[type()]); }
 
-	virtual const std::string to_string() = 0; 
+	virtual const std::string to_string(){
+		return name();
+	}
+
 	virtual const std::string printConfig() = 0;
 
 	const std::shared_ptr<pirobot::gpio::Gpio> get_gpio() {return m_gpio;}
 
+	static const std::string type_name(int typen) { return std::string(ItemNames[typen]); }
 	static const char* ItemNames[];
 
 	inline bool have_notify(){
@@ -91,7 +95,9 @@ public:
 		}
 		return false;
 	}
+
 	std::function<void(int, std::string&, void*)> notify;
+
 private:
 	std::string m_name;
 	std::string m_comment;

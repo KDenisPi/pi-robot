@@ -18,7 +18,17 @@ namespace item {
 
 const char TAG[] = "button";
 
-const char* Item::ItemNames[] = {"UNK", "LED", "BTN", "SERV", "TILT", "STEP", "DCM", "DRV8835", "Blink"};
+const char* Item::ItemNames[] = {"Unknown", 
+    "Led", 
+    "Button", 
+    "Servo", 
+    "Tilt Switch", 
+    "Stepper", 
+    "DC Motor", 
+    "DRV8835", 
+    "Blink",
+    "A/D Convertor"
+};
 
 /*
  *
@@ -33,7 +43,7 @@ Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
         if( get_gpio()->get_provider_type() == gpio::GPIO_PROVIDER_TYPE::PROV_MCP23017)
           inverse_value = true;
 
-    set_name(type_name() + "_over_" + get_gpio()->to_string());
+    set_name(type_name(type()) + "_over_" + get_gpio()->to_string());
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started. " + to_string() + " Inverse:" + std::to_string(inverse_value));
 }
 
@@ -52,7 +62,7 @@ Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
           inverse_value = true;
 
     if(name.empty())
-        set_name(type_name()  + "_over_" + get_gpio()->to_string());
+        set_name(type_name(type())  + "_over_" + get_gpio()->to_string());
 
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started. " + to_string() + " Inverse:" + std::to_string(inverse_value));
 }

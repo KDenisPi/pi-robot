@@ -166,13 +166,6 @@ bool ULN2003StepperMotor::initialize(){
 /*
  *
  */
-const std::string ULN2003StepperMotor::to_string(){
-    return name();
-}
-
-/*
- *
- */
 const std::string ULN2003StepperMotor::printConfig(){
     std::string conf =  name() + "\n" +
         " GPIO Blue (1): " + get_gpio()->to_string() + "\n";

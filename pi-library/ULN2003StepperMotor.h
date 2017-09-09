@@ -43,7 +43,6 @@ public:
     }
 
     virtual bool initialize() override;
-    virtual const std::string to_string() override;
     virtual const std::string printConfig() override;
 
     virtual void stop() override;
@@ -57,11 +56,7 @@ public:
     const int get_steps() const {
         return m_num_steps;
     }
-
-    bool start(){
-        return piutils::Threaded::start<pirobot::item::ULN2003StepperMotor>(this);
-    }
-
+   
     void set_steps(const int num_steps);
 
     const uint8_t get_current_step() const {

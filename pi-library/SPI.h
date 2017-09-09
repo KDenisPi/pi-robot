@@ -1,7 +1,7 @@
 /*
  * SPI.h
  *
- *  Created on: Aug 17, 2016
+ *  Created on: Aug 17, 2017
  *      Author: Denis Kudia
  */
 
@@ -29,7 +29,12 @@ enum SPI_MODE{
     MODE_3 = 3
 };
 
-#define SPI_SpeedDefault 1000000
+enum SPI_CHANNELS {
+    SPI_0 = 0,
+    SPI_1 = 1
+};
+
+#define SPI_SpeedDefault 1000000 //1Mhz
 
 struct SPI_config {
     int channels;
@@ -47,10 +52,17 @@ struct SPI_config {
 class SPI :  public pirobot::provider::Provider{
 public:
     //
-    SPI(const std::string& name, const struct SPI_config& config) :
+    SPI(const std::string& name, const struct SPI_config& config,
+        std::shared_ptr<pirobot::gpio::Gpio> ce0,
+        std::shared_ptr<pirobot::gpio::Gpio> ce1) :
         Provider(pirobot::provider::PROVIDER_TYPE::PROV_SPI, name), 
         m_channel(-1), m_channels(config.channels)
     {
+        assert((m_channels <= 2) && (m_channels > 0));
+
+        m_gpio[0] = ce0;
+        m_gpio[1] = ce1;
+
         //Initilalize channels
         for(int i = 0; i < m_channels; i++){
             m_mode[i] = config.mode[i];
@@ -59,6 +71,8 @@ public:
             //TODO: Check result and generate exception if needed
         }
 
+        //switch OFF by default
+        Off();
     }
 
     //
@@ -70,11 +84,23 @@ public:
         }
     }
 
-    void lock() { spi.lock(); }
-    void unlock() { spi.unlock(); }
+    inline void lock() { spi_mtx.lock(); }
+    inline void unlock() {spi_mtx.unlock(); }
+
+    /*
+    *
+    */
+    inline void Off(){
+        for(int i = 0; i < m_channels; i++)
+            set_channel_off(i);
+    }
 
     //
-    bool set_channel_on(const int channel){
+    bool set_channel_on(const int channel) noexcept(false){
+        if(channel >= m_channels){
+            throw std::runtime_error(std::string("Invalid channel number"));
+        }
+
         if(channel == m_channel)
             return true;
 
@@ -83,33 +109,40 @@ public:
             set_channel_off((channel == 0 ? 1 : 0));
         }
 
-        lock();
         //switch GPIO for channel to LOW
-        if(m_gpio[channel]){
-            m_gpio[channel]->set_level(gpio::SGN_LEVEL::SGN_LOW);
-        }
+        if(!m_gpio[channel])
+            return false;
+
+        lock();
+        m_gpio[channel]->Low();
         unlock();
 
         return true;
     }
 
     //
-    bool set_channel_off(const int channel){
+    bool set_channel_off(const int channel) noexcept(false){
+
         if(m_channel < 0)
             return true;
 
-        lock();
-        //set GPIO for this channel to HIGH
-        if(m_gpio[channel]){
-            m_gpio[channel]->set_level(gpio::SGN_LEVEL::SGN_HIGH);
+        if(channel >= m_channels){
+            throw std::runtime_error(std::string("Invalid channel number"));
         }
+
+        //set GPIO for this channel to HIGH
+        if(m_gpio[channel])
+            return false;
+
+        lock();
+        m_gpio[channel]->High();
         unlock();
 
         return true;
     }
 
 private:
-    std::recursive_mutex spi;
+    std::recursive_mutex spi_mtx;
 
     SPI_MODE m_mode[2]; //SPI bus mode  
     int m_channel;      //current active channel

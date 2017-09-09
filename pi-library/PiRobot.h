@@ -46,18 +46,18 @@ public:
     void stop();
 
     /*
-     * Get GPIO by ID
+     * Get GPIO by absolute ID
+     * Get GPIO by provider name and ID
      */
     std::shared_ptr<gpio::Gpio> get_gpio(const int id) const noexcept(false);
+    std::shared_ptr<gpio::Gpio> get_gpio(const std::string provider, const int id)  const noexcept(false);
 
     /*
      * Get Item by name
      */
     std::shared_ptr<item::Item> get_item(const std::string& name) const noexcept(false);
 
-    void gpios_add(int idx, const std::shared_ptr<gpio::Gpio> gpio){
-        gpios[idx] = gpio;
-    }
+/*    
 
     inline const std::vector<int> get_gpios() const {
         std::vector<int> keys;
@@ -65,7 +65,7 @@ public:
             keys.push_back(imap.first);
         return keys;
     }
-
+*/
     inline const std::vector<std::string> get_items() const {
         std::vector<std::string> keys;
         for(auto imap: items)
@@ -98,6 +98,11 @@ public:
     void notify_stm(int itype, std::string& name, void* data);
     
     std::function<void(int, std::string&, void*)> stm_notification;
+
+private:
+    void gpios_add(int idx, const std::shared_ptr<gpio::Gpio> gpio){
+        gpios[idx] = gpio;
+    }
 
 private:
     bool m_realWorld;

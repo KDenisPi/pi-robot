@@ -21,43 +21,48 @@ class Gpio
     Gpio(int pin, GPIO_MODE mode, const std::shared_ptr<gpio::GpioProvider> provider);
     virtual ~Gpio();
 
-   const int getPin() const {return m_pin;};
-   const GPIO_MODE getMode() const {return m_mode;};
+    const int getPin() const {return m_pin;};
+    const GPIO_MODE getMode() const {return m_mode;};
 
    /*
     * Probably not all providers allow change mode (?)
     */
-   void setMode(GPIO_MODE mode);
+    void setMode(GPIO_MODE mode);
 
-   const int digitalRead();
-   void digitalWrite(int value);
-   void digitalWritePWM(float dutyCycle, float phaseOffset=0.0f);
-   void pullUpDnControl(PULL_MODE pumode);
-   void setPulse(const uint16_t pulselen);
+    const int digitalRead();
+    void digitalWrite(int value);
+    void digitalWritePWM(float dutyCycle, float phaseOffset=0.0f);
+    void pullUpDnControl(PULL_MODE pumode);
+    void setPulse(const uint16_t pulselen);
 
-   const std::string to_string();
+    const std::string to_string();
 
-   const GPIO_PROVIDER_TYPE get_provider_type() const { return m_prov->get_type(); }
+    const GPIO_PROVIDER_TYPE get_provider_type() const { return m_prov->get_type(); }
 
+  /*
+  * Change GPIO state 
+  */  
+    inline void High() { set_level(gpio::SGN_LEVEL::SGN_HIGH);}
+    inline void Low() { set_level(gpio::SGN_LEVEL::SGN_LOW);}
   /*
   * Get GPIO level
   */
-   const gpio::SGN_LEVEL get_level() {
+    const gpio::SGN_LEVEL get_level() {
       return (0 == digitalRead() ? gpio::SGN_LEVEL::SGN_LOW : gpio::SGN_LEVEL::SGN_HIGH);
-   }
+    }
 
   /*
   * Set GPIO level
   */
-   void set_level(const gpio::SGN_LEVEL level){
+    inline void set_level(const gpio::SGN_LEVEL level){
      digitalWrite(level);
-   }
+    }
 
   private:
-   int m_pin;
-   GPIO_MODE m_mode; //INPUT/OUTPUT
+    int m_pin;
+    GPIO_MODE m_mode; //INPUT/OUTPUT
 
-   std::shared_ptr<gpio::GpioProvider> m_prov;
+    std::shared_ptr<gpio::GpioProvider> m_prov;
 };
 
 }

@@ -119,10 +119,10 @@ void DRV8825_StepperMotor::set_direction(const MOTOR_DIR direction){
 		return;
 
 	if(direction == MOTOR_DIR::DIR_CLOCKWISE){
-		m_gpio_dir->digitalWrite(gpio::SGN_LEVEL::SGN_HIGH);
+		m_gpio_dir->High();
 	}
 	else{
-		m_gpio_dir->digitalWrite(gpio::SGN_LEVEL::SGN_LOW);
+		m_gpio_dir->Low();
 	}
 	m_direction = direction;
 }
