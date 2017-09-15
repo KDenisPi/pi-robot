@@ -89,6 +89,11 @@ public:
     */
     void add_gpio(const std::string& provider_name, 
         const pirobot::gpio::GPIO_MODE gpio_mode, const int pin) noexcept(false);
+    
+    /*
+    *
+    */
+    void add_item(const pirobot::item::ItemConfig& iconfig)  noexcept(false);   
 
     void printConfig();
 

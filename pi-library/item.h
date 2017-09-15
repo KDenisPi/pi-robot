@@ -9,6 +9,9 @@
 #define PI_LIBRARY_ITEM_H_
 
 #include <functional>
+#include <array>
+
+
 #include "gpio.h"
 
 namespace pirobot {
@@ -24,7 +27,8 @@ enum ItemTypes{
 	DCMotor = 6,
 	DRV8835 = 7,
 	BLINKER = 8,
-	AnlgDgtConvertor = 9
+	AnlgDgtConvertor = 9,
+	AnalogMeter = 10
 };
 
 enum BUTTON_STATE{
@@ -41,10 +45,23 @@ enum GENERAL_NTFY {
 	GN_DONE
 };
 
+struct ItemConfig{
+	ItemTypes type;
+	std::string name;
+	std::string comment;
+	
+	std::array<std::pair<std::string, int>,5> gpios;
+	/*
+	std::string provider;
+	int gpio_pin;
+	*/
+	std::string sub_item;
+
+};
 
 class Item {
 public:
-	Item(const std::shared_ptr<pirobot::gpio::Gpio> gpio, int itype = ItemTypes::UNKNOWN) :
+	Item(const std::shared_ptr<pirobot::gpio::Gpio> gpio, int itype) :
 	m_gpio(gpio),
 	m_name(),
 	m_comment(),
@@ -52,10 +69,20 @@ public:
 	notify(nullptr)
 	{};
 
+	Item( const std::string name,
+		  const std::string comment,
+	      int itype) :
+	m_name(),
+	m_comment(),
+	m_type(itype),
+	notify(nullptr)
+	{};
+	
 	Item(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
-          const std::string name,
-          const std::string comment = "",
-          int itype = ItemTypes::UNKNOWN):
+		  const std::string name,
+		  const std::string comment,
+		  int itype
+		):
 		m_gpio(gpio),
 		m_name(name),
 		m_comment(comment),

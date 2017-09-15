@@ -67,11 +67,33 @@ void MCP320X::stop(){
         //switch device On    
         owner->On();
         
+
+        auto fn = [owner](unsigned char* buff, const unsigned char in_pin) -> unsigned short {
+            buff[0] = (Control_Start_Bit | Control_SinDiff_Single | (in_pin >> 2));
+            buff[1] = (in_pin << 6);
+            buff[2] = 0x00;
+
+            //request data from device
+            int res = owner->data_rw(buff, 3);
+            //conver result to 12-bit  unsigned value
+            return (unsigned short)((((buff[1] & 0x0F) << 8) | buff[2]));
+        };
+
+        unsigned short value;
+        unsigned char buff[3];
         while(fn_read()){
 
             /*
             * Main loop - read analog inputs through SPI
             */
+
+            unsigned char input_num = 0;
+            for(int i = 0; i < owner->inputs(); i++){
+                if(owner->m_receivers[i]){
+                    value = fn(buff, (unsigned char)i);
+                    owner->m_receivers[i]->data(value);                    
+                }
+            }
 
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }

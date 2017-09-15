@@ -27,7 +27,8 @@ const char* Item::ItemNames[] = {"Unknown",
     "DC Motor", 
     "DRV8835", 
     "Blink",
-    "A/D Convertor"
+    "A/D Convertor",
+    "Analog Meter"
 };
 
 /*

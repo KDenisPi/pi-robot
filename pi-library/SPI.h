@@ -141,6 +141,14 @@ public:
         return true;
     }
 
+    /*
+    * Read data from device over SPI bus
+    */
+    bool data_rw(unsigned char* data, int len){
+        int ret = wiringPiSPIDataRW(m_channel, data, len);
+        return true;
+    }
+
 private:
     std::recursive_mutex spi_mtx;
 

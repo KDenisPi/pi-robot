@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <functional>
+#include <iterator>
 
 #include "PiRobot.h"
 #include "logger.h"
@@ -21,6 +22,8 @@
 #include "item.h"
 #include "led.h"
 #include "button.h"
+#include "blinking.h"
+#include "Drv8835.h"
 
 namespace pirobot {
 
@@ -179,7 +182,102 @@ void PiRobot::add_provider(const std::string& type, const std::string& name){
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Provider: " + provider_name + ". Added PIN: " + std::to_string(pin));
 }
 
+/*
+*
+*/
+void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
+    
+    auto f_gpio_validation = [](const pirobot::item::ItemConfig& iconfig)->bool {
+        if(iconfig.type == item::ItemTypes::UNKNOWN || iconfig.name.empty())
+            return false;
 
+        if(iconfig.gpios.size() == 0)
+            return false;
+        
+        for(auto gpio : iconfig.gpios){
+            if(gpio.first.empty() || gpio.second < 0)
+                return false;
+        }    
+
+        return true;
+    };
+
+    auto f_general_validation = [](const pirobot::item::ItemConfig& iconfig)->bool {
+        if(iconfig.type == item::ItemTypes::UNKNOWN || iconfig.name.empty())
+            return false;
+
+        return true;    
+    };
+
+    auto f_get_gpio_provider_abs_pin = [this](const pirobot::item::ItemConfig& iconfig, int idx) -> int{
+        const auto gpio = iconfig.gpios[idx];
+        const auto provider = get_provider(gpio.first);
+        if(provider->get_ptype() != provider::PROVIDER_TYPE::PROV_GPIO){
+            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid provider type");
+            throw std::runtime_error(std::string("Invalid provider type"));
+        }
+
+        auto gpio_provider = std::static_pointer_cast<pirobot::gpio::GpioProvider>(provider);
+        return gpio_provider->getStartPin() + gpio.second;
+    };
+
+    switch(iconfig.type){
+        case item::ItemTypes::LED:
+        case item::ItemTypes::BUTTON:
+        case item::ItemTypes::DRV8835:
+        {
+                /*
+                * LED, BUTTON parameters: Name, GPIO, Pin, GPIO provider
+                */
+                if(!f_gpio_validation(iconfig)){
+                    logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid configuration");
+                    throw std::runtime_error(std::string(" Invalid configuration"));
+                }
+
+                const int pin = f_get_gpio_provider_abs_pin(iconfig,0);
+                
+                if(iconfig.type==item::ItemTypes::LED){
+                    items_add(iconfig.name, 
+                        std::shared_ptr<pirobot::item::Item>(
+                            new pirobot::item::Led(get_gpio(pin), iconfig.name, iconfig.comment)));
+                }
+                else if(iconfig.type==item::ItemTypes::BUTTON){
+                    items_add(iconfig.name, 
+                        std::shared_ptr<pirobot::item::Item>(
+                            new pirobot::item::Button(
+                                get_gpio(pin), 
+                                iconfig.name, iconfig.comment, 
+                                pirobot::item::BUTTON_STATE::BTN_NOT_PUSHED, 
+                                pirobot::gpio::PULL_MODE::PULL_UP)));
+                }
+                else if(iconfig.type==item::ItemTypes::DRV8835){
+                    items_add(iconfig.name, 
+                        std::shared_ptr<pirobot::item::Item>(
+                            new pirobot::item::Drv8835(get_gpio(pin), iconfig.name, iconfig.comment)));
+                }
+                    
+            }
+            break;
+
+        case item::ItemTypes::BLINKER:
+            /*
+            * BLINKER parameters: Name, Sub item (Led)
+            */
+        
+            if(!f_general_validation(iconfig) || iconfig.sub_item.empty()){
+                logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid configuration");
+                throw std::runtime_error(std::string(" Invalid configuration"));
+            }
+    
+            items_add(iconfig.name, std::shared_ptr<pirobot::item::Item>(
+                new pirobot::item::Blinking<pirobot::item::Led>(
+                    std::static_pointer_cast<pirobot::item::Led>(get_item(iconfig.sub_item)),iconfig.name)));
+             
+            break;
+    }
+    logger::log(logger::LLOG::NECECCARY, __func__, "Added Item: " + iconfig.name);
+}   
+    
 /*
  *
  */
