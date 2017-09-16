@@ -21,7 +21,7 @@ ULN2003StepperMotor::ULN2003StepperMotor(const std::shared_ptr<pirobot::gpio::Gp
         const std::shared_ptr<pirobot::gpio::Gpio> gpio_1,
         const std::shared_ptr<pirobot::gpio::Gpio> gpio_2,
         const std::shared_ptr<pirobot::gpio::Gpio> gpio_3) :
-            Item(gpio_0, ItemTypes::STEPPER),
+            Item(gpio_0, ItemTypes::ULN2003Stepper),
             m_gpio_1(gpio_1),
             m_gpio_2(gpio_2),
             m_gpio_3(gpio_3),
@@ -46,7 +46,7 @@ ULN2003StepperMotor::ULN2003StepperMotor(const std::shared_ptr<pirobot::gpio::Gp
         const std::shared_ptr<pirobot::gpio::Gpio> gpio_3,
         const std::string name,
         const std::string comment)	:
-            Item(gpio_0, name, comment, ItemTypes::STEPPER),
+            Item(gpio_0, name, comment, ItemTypes::ULN2003Stepper),
             m_gpio_1(gpio_1),
             m_gpio_2(gpio_2),
             m_gpio_3(gpio_3),

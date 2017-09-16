@@ -20,7 +20,10 @@ const char TAG[] = "MCP320x";
 MCP320X::~MCP320X() {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
 
+    //switch device off
     get_gpio()->High();
+
+    stop();
 }
 
 void MCP320X::stop(){
@@ -114,6 +117,30 @@ void MCP320X::start_read(){
     std::lock_guard<std::mutex> lk(cv_m);
     m_read_flag = true;
     cv.notify_one();
+}
+
+/*
+* Register data receiver 
+*/
+bool MCP320X::register_data_receiver(const int input_idx, 
+    const std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> receiver){
+
+    if(input_idx >= m_anlg_inputs){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + 
+                " Invalid channel number Idx: " + std::to_string(input_idx));
+        throw std::runtime_error(std::string("Invalid channel number"));
+    }
+
+    if(!receiver){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid receiver object");
+        throw std::runtime_error(std::string("Invalid receiver object"));
+    }
+             
+    m_receivers[input_idx] = receiver;
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + 
+            " Added data received " + receiver->pname() + " for input: " + std::to_string(input_idx));
+    return true;
 }
 
 

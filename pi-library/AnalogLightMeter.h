@@ -18,41 +18,76 @@
 namespace pirobot {
 namespace anlglightmeter {
 
-class AnalogLightMeter : public item::Item, public piutils::Threaded, public AnalogDataReceiverItf{
+class AnalogLightMeter : public item::Item, public piutils::Threaded, public analogdata::AnalogDataReceiverItf{
 public:
-    AnalogLightMeter(const std::shared_ptr<pirobot::AnalogDataProviderItf> provider, 
-        const std::string name):
-        item::Item(name, "Analog Light Meter", item::ItemTypes::AnalogMeter), m_provider(provider),
-        m_values({0,0}), m_idx(0)
+    AnalogLightMeter(
+        const std::shared_ptr<pirobot::analogdata::AnalogDataProviderItf> provider,
+        const std::string name,
+        const std::string comment = "Analog Light Meter",
+        const int analog_input_index=0
+        ):
+        item::Item(name, comment, item::ItemTypes::AnalogMeter), 
+        m_provider(provider),
+        m_idx(analog_input_index)
     {
+        assert(provider);
+        
+        m_values[0] = 0; 
+        m_values[1] = 0; 
 
+        if(m_provider){
+            m_provider->register_data_receiver(m_idx, std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf>(this));
+        }
     }
-    virtual ~AnalogLightMeter() {}
+
+    virtual ~AnalogLightMeter(){
+        stop();
+    }
 
     /*
     * Provide callback for receiving data from analog provider
     * Free this call as quick as you can otherwise you will block next data reading 
     */
-    virtual void data(const unsigned short value) override{
-        unsigned short diff;
-        if(m_idx==0){
-            m_values[++m_idx] = value;
-            diff = m_values[m_idx] - m_values[0];
-        }
-        else{
-            m_values[--m_idx] = value;
-            diff = m_values[m_idx] - m_values[1];
-        }
+    virtual void data(const unsigned short value) override;
 
-        if(diff > 10){
-            std::out << " Lights Metters Was: " << m_values[(m_idx == 0 ?1:0)] " New: " << m_values[m_idx] << std::endl;    
-        }
+    /*
+    *
+    */    
+    virtual const std::string pname() const override{
+        return name();
+    }
+    
+    /*
+    *
+    */
+	virtual const std::string printConfig() override{
+        if(m_provider)
+            return name() + " Provider: " + m_provider->pname() + " Index: " + std::to_string(m_idx);
+
+        return name();
+    }        
+
+    /*
+    *
+    */
+    virtual bool initialize() override{
+        return piutils::Threaded::start<AnalogLightMeter>(this);
     }
 
+    virtual void stop() override;
+    
+    /*
+    * Worker function
+    */
+    static void worker(AnalogLightMeter* p);
+    
+
 private:
-    std::shared_ptr<pirobot::AnalogDataProviderItf> m_provider;
+    std::shared_ptr<pirobot::analogdata::AnalogDataProviderItf> m_provider;
 
     unsigned short m_values[2];
+
+    //Analog Input assigned for this device
     int m_idx;
 };
 

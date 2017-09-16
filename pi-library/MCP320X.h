@@ -28,7 +28,7 @@ enum MCP320X_INPUTS {
 #define Control_SinDiff_Single 0x02
 #define Control_SinDiff_Diff 0x00
 
-class MCP320X : public item::Item, public piutils::Threaded, public AnalogDataProviderItf {
+class MCP320X : public item::Item, public piutils::Threaded, public analogdata::AnalogDataProviderItf {
 
 public:
 
@@ -39,9 +39,9 @@ public:
     MCP320X(const std::shared_ptr<pirobot::spi::SPI> spi, 
         const std::shared_ptr<pirobot::gpio::Gpio> gpio, 
         const std::string name,
+        const std::string comment = "",
         MCP320X_INPUTS anlg_inputs = MCP320X_INPUTS::MCP3208,
-        spi::SPI_CHANNELS channel = spi::SPI_CHANNELS::SPI_0,
-        const std::string comment = "") : 
+        spi::SPI_CHANNELS channel = spi::SPI_CHANNELS::SPI_0) : 
             item::Item(gpio, name, comment, item::ItemTypes::AnlgDgtConvertor),
             m_spi(spi),
             m_anlg_inputs((int)anlg_inputs),
@@ -52,7 +52,8 @@ public:
         assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);
         assert(spi);
         assert(!name.empty());
-    
+        
+        //switch device off
         get_gpio()->High();
     }
 
@@ -81,18 +82,16 @@ public:
     /*
     * Register data receiver 
     */
-    bool register_data_receiver(const int input_idx, 
-        const std::shared_ptr<pirobot::AnalogDataReceiverItf> receiver) noexcept(false) override{
+    virtual bool register_data_receiver(const int input_idx, 
+        const std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> receiver) noexcept(false) override;
 
-        if(input_idx >= m_anlg_inputs){
-            throw std::runtime_error(std::string("Invalid channel number"));
-        }
-                 
-        m_receivers[input_idx] = receiver;
-
-        return true;
+    /*
+    *
+    */    
+    virtual const std::string pname() const override{
+        return name();
     }
-
+    
 
     inline virtual void stop() override;
 
@@ -114,6 +113,7 @@ public:
     void activate_spi_channel(){
         m_spi->set_channel_on(m_channel);
     }
+
     /*
     * Worker function
     */
@@ -134,7 +134,7 @@ private:
     bool m_read_flag;
 
 public:
-    std::shared_ptr<pirobot::AnalogDataReceiverItf> m_receivers[MAX_NUMBER_ANALOG_INPUTS];
+    std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> m_receivers[MAX_NUMBER_ANALOG_INPUTS];
 };
 
 } //namespace mcp320x

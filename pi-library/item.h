@@ -28,7 +28,8 @@ enum ItemTypes{
 	DRV8835 = 7,
 	BLINKER = 8,
 	AnlgDgtConvertor = 9,
-	AnalogMeter = 10
+	AnalogMeter = 10,
+	ULN2003Stepper = 11
 };
 
 enum BUTTON_STATE{
@@ -50,13 +51,14 @@ struct ItemConfig{
 	std::string name;
 	std::string comment;
 	
-	std::array<std::pair<std::string, int>,5> gpios;
 	/*
 	std::string provider;
-	int gpio_pin;
+	int pin;
 	*/
-	std::string sub_item;
+	std::array<std::pair<std::string, int>,5> gpios;
 
+	std::string sub_item;
+	int index;
 };
 
 class Item {

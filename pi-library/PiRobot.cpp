@@ -24,6 +24,10 @@
 #include "button.h"
 #include "blinking.h"
 #include "Drv8835.h"
+#include "DCMotor.h"
+#include "ULN2003StepperMotor.h"
+#include "MCP320X.h"
+#include "AnalogLightMeter.h"
 
 namespace pirobot {
 
@@ -147,39 +151,34 @@ void PiRobot::add_provider(const std::string& type, const std::string& name){
     }
 }
 
-    /*
-    * Create GPIO for the provider. Provider should created before using add_provider function
-    */
-    void PiRobot::add_gpio(const std::string& provider_name, 
-        const pirobot::gpio::GPIO_MODE gpio_mode, const int pin) noexcept(false){
-
-        const auto provider = get_provider(provider_name);
-        if(provider->get_ptype() != provider::PROVIDER_TYPE::PROV_GPIO){
-            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid provider type");
-            throw std::runtime_error(std::string("Invalid provider type"));
-        }
-
-        auto gpio_provider = std::static_pointer_cast<pirobot::gpio::GpioProvider>(provider);
-        int global_pin = gpio_provider->getStartPin() + pin;
-
-        // Validate pin number
-        if(!gpio_provider->is_valid_pin(global_pin)){
-            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid pin number: " + std::to_string(pin));
-            throw std::runtime_error(std::string(" Invalid pin number: ") + std::to_string(pin));
-        }
-
-        auto pgpio = this->gpios.find(global_pin);
-        if(pgpio != gpios.end()){
-            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " GPIO with such PIN is present already PIN: " + std::to_string(pin));
-            return;
-        }
-            
-        gpios_add(global_pin,
-                std::shared_ptr<pirobot::gpio::Gpio>(
-                    new pirobot::gpio::Gpio(global_pin,	gpio_mode, gpio_provider)
-                ));
-
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Provider: " + provider_name + ". Added PIN: " + std::to_string(pin));
+/*
+* Create GPIO for the provider. Provider should created before using add_provider function
+*/
+void PiRobot::add_gpio(const std::string& provider_name, 
+    const pirobot::gpio::GPIO_MODE gpio_mode, const int pin) noexcept(false){
+    const auto provider = get_provider(provider_name);
+    if(provider->get_ptype() != provider::PROVIDER_TYPE::PROV_GPIO){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid provider type");
+        throw std::runtime_error(std::string("Invalid provider type"));
+    }
+    auto gpio_provider = std::static_pointer_cast<pirobot::gpio::GpioProvider>(provider);
+    int global_pin = gpio_provider->getStartPin() + pin;
+    // Validate pin number
+    if(!gpio_provider->is_valid_pin(global_pin)){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid pin number: " + std::to_string(pin));
+        throw std::runtime_error(std::string(" Invalid pin number: ") + std::to_string(pin));
+    }
+    auto pgpio = this->gpios.find(global_pin);
+    if(pgpio != gpios.end()){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " GPIO with such PIN is present already PIN: " + std::to_string(pin));
+        return;
+    }
+        
+    gpios_add(global_pin,
+            std::shared_ptr<pirobot::gpio::Gpio>(
+                new pirobot::gpio::Gpio(global_pin,	gpio_mode, gpio_provider)
+            ));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Provider: " + provider_name + ". Added PIN: " + std::to_string(pin));
 }
 
 /*
@@ -225,10 +224,10 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
         case item::ItemTypes::LED:
         case item::ItemTypes::BUTTON:
         case item::ItemTypes::DRV8835:
+        case item::ItemTypes::DCMotor:
+        case item::ItemTypes::ULN2003Stepper:
+        case item::ItemTypes::AnlgDgtConvertor:
         {
-                /*
-                * LED, BUTTON parameters: Name, GPIO, Pin, GPIO provider
-                */
                 if(!f_gpio_validation(iconfig)){
                     logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid configuration");
                     throw std::runtime_error(std::string(" Invalid configuration"));
@@ -236,11 +235,17 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
 
                 const int pin = f_get_gpio_provider_abs_pin(iconfig,0);
                 
+                /*
+                * LED parameters: Name, Comment, [GPIO provider, PIN]
+                */
                 if(iconfig.type==item::ItemTypes::LED){
                     items_add(iconfig.name, 
                         std::shared_ptr<pirobot::item::Item>(
                             new pirobot::item::Led(get_gpio(pin), iconfig.name, iconfig.comment)));
                 }
+                /*
+                * BUTTON parameters: Name, Comment, [GPIO provider, PIN]
+                */
                 else if(iconfig.type==item::ItemTypes::BUTTON){
                     items_add(iconfig.name, 
                         std::shared_ptr<pirobot::item::Item>(
@@ -250,18 +255,72 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
                                 pirobot::item::BUTTON_STATE::BTN_NOT_PUSHED, 
                                 pirobot::gpio::PULL_MODE::PULL_UP)));
                 }
+                /*
+                * DRV8835 parameters: Name, Comment, [GPIO provider, PIN]
+                */
                 else if(iconfig.type==item::ItemTypes::DRV8835){
                     items_add(iconfig.name, 
                         std::shared_ptr<pirobot::item::Item>(
                             new pirobot::item::Drv8835(get_gpio(pin), iconfig.name, iconfig.comment)));
                 }
+                else if(iconfig.type==item::ItemTypes::DCMotor){
+                /*
+                * DCMotor parameters: Name, Comment, [GPIO provider, PIN] [0]=A_PHASE, [1]=A_ENABLE, SUB.ITEM=DRV8835
+                */
                     
+                    const int pin_a_enable = f_get_gpio_provider_abs_pin(iconfig,1);
+
+                    items_add(iconfig.name, 
+                        std::shared_ptr<pirobot::item::Item>(
+                            new pirobot::item::dcmotor::DCMotor(
+                                std::static_pointer_cast<pirobot::item::Drv8835>(get_item(iconfig.sub_item)),
+                                get_gpio(pin),
+                                get_gpio(pin_a_enable), iconfig.name, iconfig.comment)
+                            )
+                        );
+                }
+                else if(iconfig.type==item::ItemTypes::ULN2003Stepper){
+                    /*
+                    * DCMotor parameters: Name, Comment, [GPIO provider, PIN] 
+                        [0]=PHASE_0, 
+                        [1]=PHASE_1, 
+                        [2]=PHASE_2, 
+                        [3]=PHASE_3
+                    */
+                        
+                    const int pin_pb_1 = f_get_gpio_provider_abs_pin(iconfig,1);
+                    const int pin_pb_2 = f_get_gpio_provider_abs_pin(iconfig,2);
+                    const int pin_pb_3 = f_get_gpio_provider_abs_pin(iconfig,3);
+
+                    items_add(iconfig.name, 
+                        std::shared_ptr<pirobot::item::Item>(new pirobot::item::ULN2003StepperMotor(
+                            get_gpio(pin),
+                            get_gpio(pin_pb_1),
+                            get_gpio(pin_pb_2),
+                            get_gpio(pin_pb_3),
+                            iconfig.name, iconfig.comment)));
+                
+                }
+                /*
+                * AnlgDgtConvertor parameters: Name, Comment, 
+                * [GPIO provider, PIN] GPIO is used for switch ON/OFF (CS/SHDN)
+                *
+                * TODO: Add support for: 
+                    NUmber of Analog Inputs 4/8 (default 8)
+                    SPI bus (0/1) (default 0)
+                */
+                else if(iconfig.type==item::ItemTypes::AnlgDgtConvertor){
+                    items_add(iconfig.name, std::shared_ptr<pirobot::item::Item>(new pirobot::mcp320x::MCP320X(
+                        std::static_pointer_cast<pirobot::spi::SPI>(get_provider("SPI")),
+                        get_gpio(pin),
+                        iconfig.name, iconfig.comment)));
+                }                        
             }
             break;
 
         case item::ItemTypes::BLINKER:
             /*
-            * BLINKER parameters: Name, Sub item (Led)
+            * BLINKER parameters: Name, SUB.ITEM=LED
             */
         
             if(!f_general_validation(iconfig) || iconfig.sub_item.empty()){
@@ -273,6 +332,19 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
                 new pirobot::item::Blinking<pirobot::item::Led>(
                     std::static_pointer_cast<pirobot::item::Led>(get_item(iconfig.sub_item)),iconfig.name)));
              
+            break;
+        case item::ItemTypes::AnalogMeter:
+            /*
+            * Analod light meter.
+            */
+            items_add(iconfig.name, std::shared_ptr<pirobot::item::Item>(
+                new pirobot::anlglightmeter::AnalogLightMeter(
+                    std::static_pointer_cast<pirobot::analogdata::AnalogDataProviderItf>(
+                        std::static_pointer_cast<pirobot::mcp320x::MCP320X>(get_item(iconfig.sub_item))
+                    ),
+                    iconfig.name, iconfig.comment,
+                    iconfig.index
+                )));
             break;
     }
     logger::log(logger::LLOG::NECECCARY, __func__, "Added Item: " + iconfig.name);

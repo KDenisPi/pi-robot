@@ -6,12 +6,13 @@
  *      Author: Denis Kudia
  */
 
- #ifndef PI_LIBRARY_AnalogDataReceiverItf_H_
- #define PI_LIBRARY_AnalogDataReceiverItf_H_
+#ifndef PI_LIBRARY_AnalogDataReceiverItf_H_
+#define PI_LIBRARY_AnalogDataReceiverItf_H_
 
 namespace pirobot {
+namespace analogdata {
 
-class AnalogDataReceiverItf{
+class AnalogDataReceiverItf {
 public:
     AnalogDataReceiverItf() {}
     virtual ~AnalogDataReceiverItf() {}
@@ -21,7 +22,10 @@ public:
     * Free this call as quick as you can otherwise you will block next data reading 
     */
     virtual void data(const unsigned short) = 0;
-}; 
 
+    virtual const std::string pname() const = 0;
+};
+
+}
 }
 #endif

@@ -12,8 +12,9 @@
  #include "AnalogDataReceiverItf.h"
 
 namespace pirobot {
+namespace analogdata {
 
-class AnalogDataProviderItf{
+class AnalogDataProviderItf {
 public:
     AnalogDataProviderItf() {}
     virtual ~AnalogDataProviderItf() {}
@@ -22,8 +23,11 @@ public:
     * Link data receiver and data provider
     */
     virtual bool register_data_receiver(const int input_idx, 
-        const std::shared_ptr<pirobot::AnalogDataReceiverItf> receiver) noexcept(false) = 0;
-}; 
+        const std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> receiver) noexcept(false) = 0;
 
+    virtual const std::string pname() const = 0;
+};
+
+}
 }
 #endif

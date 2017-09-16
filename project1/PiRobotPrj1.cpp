@@ -59,8 +59,6 @@ bool PiRobotPrj1::configure(){
     * GPIOs
     */
 
-    int i;
-
     /*
         MCP23017 (1) address 0x20, start pin 50
 
@@ -111,21 +109,21 @@ bool PiRobotPrj1::configure(){
     
     // ****************** Items ****************
 
-    items_add("MCP3208", std::shared_ptr<pirobot::item::Item>(new pirobot::mcp320x::MCP320X(
-        std::static_pointer_cast<pirobot::spi::SPI>(get_provider("SPI")),
-        get_gpio(0),
-        "MCP3208"
-    )));
+    //Analog/Digatal converter MCP320X
+    pirobot::item::ItemConfig mcp_3208 = {pirobot::item::ItemTypes::AnlgDgtConvertor, 
+        "MCP3208", "MCP3208", 
+        {
+            std::make_pair("SIMPLE", 0)
+        }
+    };
+    add_item(mcp_3208);
+
+    pirobot::item::ItemConfig light_meter = {pirobot::item::ItemTypes::AnalogMeter, "LightMeter", "LightMeter", {}, "MCP3208", 0};
+    add_item(light_meter);
 
     //BTN Stop
     pirobot::item::ItemConfig btn_stop = {pirobot::item::ItemTypes::BUTTON, "BTN_Stop", "BTN_Stop", {std::make_pair("MCP23017_1", BTN_Stop)}};
-
     add_item(btn_stop);
-    /*
-       items_add("BTN_Stop", std::shared_ptr<pirobot::item::Item>(new pirobot::item::Button(get_gpio(MCP23017_1+BTN_Stop), 
-                 "BTN_Stop", "BTN_Stop", pirobot::item::BUTTON_STATE::BTN_NOT_PUSHED, pirobot::gpio::PULL_MODE::PULL_UP)));
-    logger::log(logger::LLOG::NECECCARY, __func__, "Added Item BTN_Stop");
-    */
 
     //LEDs Red, Blue, Yellow
     pirobot::item::ItemConfig led_red = {pirobot::item::ItemTypes::LED, "LED_Red", "LED_Red", {std::make_pair("MCP23017_1", LED_Red)}};
@@ -135,16 +133,8 @@ bool PiRobotPrj1::configure(){
     add_item(led_red);
     add_item(led_blue);
     add_item(led_yellow);
-    /*
-    items_add("LED_Red", std::shared_ptr<pirobot::item::Item>(new pirobot::item::Led(get_gpio(MCP23017_1+LED_Red), "LED_Red", "LED_Red")));
-     logger::log(logger::LLOG::NECECCARY, __func__, "Added Item LED_Red");
-     items_add("LED_Blue", std::shared_ptr<pirobot::item::Item>(new pirobot::item::Led(get_gpio(MCP23017_1+LED_Blue), "LED_Blue", "LED_Blue")));
-     logger::log(logger::LLOG::NECECCARY, __func__, "Added Item LED_Blue");
-     items_add("LED_Yellow", std::shared_ptr<pirobot::item::Item>(new pirobot::item::Led(get_gpio(MCP23017_1+LED_Yellow), "LED_Yellow", "LED_Yellow")));
-     logger::log(logger::LLOG::NECECCARY, __func__, "Added Item LED_Yellow");
-     */
 
-     pirobot::item::ItemConfig blinker_red = {pirobot::item::ItemTypes::BLINKER, "BLINK_Red", "BLINK_Red", {}, "LED_Red"};
+    pirobot::item::ItemConfig blinker_red = {pirobot::item::ItemTypes::BLINKER, "BLINK_Red", "BLINK_Red", {}, "LED_Red"};
     pirobot::item::ItemConfig blinker_blue = {pirobot::item::ItemTypes::BLINKER, "BLINK_Blue", "BLINK_Blue", {}, "LED_Blue"};
     pirobot::item::ItemConfig blinker_yellow = {pirobot::item::ItemTypes::BLINKER, "BLINK_Yellow", "BLINK_Yellow", {}, "LED_Yellow"};
     
@@ -152,45 +142,31 @@ bool PiRobotPrj1::configure(){
     add_item(blinker_blue);
     add_item(blinker_yellow);
 
-//	std::pair<std::string, std::string> pairs[] = { std::make_pair("BLINK_Yellow", "BLINK_Yellow")};
-    
-    /*
-     items_add("BLINK_Red", std::shared_ptr<pirobot::item::Item>(
-               new pirobot::item::Blinking<pirobot::item::Led>(std::static_pointer_cast<pirobot::item::Led>(get_item("LED_Red")),"BLINK_Red")));
-
-     items_add("BLINK_Blue", std::shared_ptr<pirobot::item::Item>(
-         new pirobot::item::Blinking<pirobot::item::Led>(std::static_pointer_cast<pirobot::item::Led>(get_item("LED_Blue")),"BLINK_Blue")));
-
-     items_add("BLINK_Yellow", std::shared_ptr<pirobot::item::Item>(
-         new pirobot::item::Blinking<pirobot::item::Led>(std::static_pointer_cast<pirobot::item::Led>(get_item("LED_Yellow")),"BLINK_Yellow","BLNK_Yellow")));
-    */	 
-
     // Add DRV 8835
-    //items_add("DRV_8835", std::shared_ptr<pirobot::item::Item>(new pirobot::item::Drv8835(get_gpio(MCP23017_1+FAKE_Mode), "DRV_8835", "DRV_8835")));
-
-    pirobot::item::ItemConfig drv_8835 = {pirobot::item::ItemTypes::DRV8835, "DRV_8835", "DRV_8835", {std::make_pair("MCP23017_1", FAKE_Mode)}};
+    pirobot::item::ItemConfig drv_8835 = {pirobot::item::ItemTypes::DRV8835, 
+        "DRV_8835", "DRV_8835", 
+        {
+            std::make_pair("MCP23017_1", FAKE_Mode)
+        }
+    };
     add_item(drv_8835);
     
-
     //Add DC motor
-    items_add("DCM_1", std::shared_ptr<pirobot::item::Item>(new pirobot::item::dcmotor::DCMotor(
-                                 std::static_pointer_cast<pirobot::item::Drv8835>(get_item("DRV_8835")),
-                                 get_gpio(MCP23017_1+A_PHASE),
-                                 get_gpio((std::static_pointer_cast<pirobot::gpio::GpioProvider>(get_provider("PCA9685")))->getStartPin()+A_ENABLE),
-                                 "DCM_1",
-                                 "DCM_1")));
-
     pirobot::item::ItemConfig dcm_1 = {pirobot::item::ItemTypes::DCMotor, "DCM_1", "DCM_1", 
-            {std::make_pair("MCP23017_1", A_PHASE), std::make_pair("PCA9685", A_ENABLE)}};
+            {std::make_pair("MCP23017_1", A_PHASE), std::make_pair("PCA9685", A_ENABLE)}, "DRV_8835"};
+    add_item(dcm_1);
                                  
-
-    items_add("STEP_1", std::shared_ptr<pirobot::item::Item>(new pirobot::item::ULN2003StepperMotor(
-                            get_gpio(MCP23017_1+STEP_PB0),
-                            get_gpio(MCP23017_1+STEP_PB1),
-                            get_gpio(MCP23017_1+STEP_PB2),
-                            get_gpio(MCP23017_1+STEP_PB3),
-                            "STEP_1", "STEP_1")));
-
+    //Add Stepper ULN2003Stepper
+    pirobot::item::ItemConfig step_1 = {pirobot::item::ItemTypes::ULN2003Stepper, "STEP_1", "STEP_1", 
+        {
+            std::make_pair("MCP23017_1", STEP_PB0), 
+            std::make_pair("MCP23017_1", STEP_PB1), 
+            std::make_pair("MCP23017_1", STEP_PB2), 
+            std::make_pair("MCP23017_1", STEP_PB3)
+        }
+    };
+    add_item(dcm_1);
+                        
     //items_add(std::string("SMT_1"), std::shared_ptr<pirobot::item::Item>(new pirobot::item::ServoMotor(get_gpio(34), "SMT_1", "LED 9685 4")));
     //items_add(std::string("SMT_2"), std::shared_ptr<pirobot::item::Item>(new pirobot::item::ServoMotor(get_gpio(35), "SMT_2", "LED 9685 5")));
 
