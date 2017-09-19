@@ -15,6 +15,8 @@
 #include "AnalogDataReceiverItf.h"
 #include "AnalogDataProviderItf.h"
 
+#include "CircularBuffer.h"
+
 namespace pirobot {
 namespace anlglightmeter {
 
