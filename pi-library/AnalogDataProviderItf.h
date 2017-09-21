@@ -25,6 +25,7 @@ public:
     virtual bool register_data_receiver(const int input_idx, 
         const std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> receiver) noexcept(false) = 0;
 
+    virtual void activate_data_receiver(const int input_idx) = 0;
     virtual const std::string pname() const = 0;
 };
 

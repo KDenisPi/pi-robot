@@ -38,14 +38,14 @@ void MCP320X::stop(){
     std::string name = owner->name();
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker started. Name: " + name);
 
-    auto fn = [owner]{return (owner->is_stop_signal() || owner->is_read());};
-    auto fn_read = [owner]{return (!owner->is_stop_signal() && owner->is_read());};
+    auto fn_start = [owner]{return (owner->is_stop_signal() || owner->is_active_agents());};
+    auto fn_read = [owner]{return (!owner->is_stop_signal() && owner->is_active_agents());};
     
     while(!owner->is_stop_signal()){
         //wait until stop signal will be received or we will have steps for processing
         {
             std::unique_lock<std::mutex> lk(owner->cv_m);
-            owner->cv.wait(lk, fn);
+            owner->cv.wait(lk, fn_start);
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker. Signal detected.");
         }
 
@@ -71,7 +71,7 @@ void MCP320X::stop(){
         owner->On();
         
 
-        auto fn = [owner](unsigned char* buff, const unsigned char in_pin) -> unsigned short {
+        auto fn_read_data = [owner](unsigned char* buff, const unsigned char in_pin) -> unsigned short {
             buff[0] = (Control_Start_Bit | Control_SinDiff_Single | (in_pin >> 2));
             buff[1] = (in_pin << 6);
             buff[2] = 0x00;
@@ -82,6 +82,10 @@ void MCP320X::stop(){
             return (unsigned short)((((buff[1] & 0x0F) << 8) | buff[2]));
         };
 
+        auto fn_is_active_agent = [owner](const int idx) -> bool {
+            return (owner->m_receivers[idx] && owner->m_receivers[idx]->is_active());
+        };
+
         unsigned short value;
         unsigned char buff[3];
         while(fn_read()){
@@ -89,11 +93,10 @@ void MCP320X::stop(){
             /*
             * Main loop - read analog inputs through SPI
             */
-
             unsigned char input_num = 0;
             for(int i = 0; i < owner->inputs(); i++){
-                if(owner->m_receivers[i]){
-                    value = fn(buff, (unsigned char)i);
+                if(fn_is_active_agent(i)){
+                    value = fn_read_data(buff, (unsigned char)i);
                     owner->m_receivers[i]->data(value);                    
                 }
             }
@@ -106,16 +109,9 @@ void MCP320X::stop(){
     }
 }
 
-void MCP320X::stop_read(){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
-    std::lock_guard<std::mutex> lk(cv_m);
-    m_read_flag = false;
-}
-
-void MCP320X::start_read(){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
-    std::lock_guard<std::mutex> lk(cv_m);
-    m_read_flag = true;
+void MCP320X::activate_data_receiver(const int input_idx){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Received activate signal from: " + 
+                        std::to_string(input_idx));
     cv.notify_one();
 }
 

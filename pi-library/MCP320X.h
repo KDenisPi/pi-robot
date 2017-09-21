@@ -45,8 +45,7 @@ public:
             item::Item(gpio, name, comment, item::ItemTypes::AnlgDgtConvertor),
             m_spi(spi),
             m_anlg_inputs((int)anlg_inputs),
-            m_channel((int)channel),
-            m_read_flag(false)
+            m_channel((int)channel)
     {
         assert(get_gpio() != NULL);
         assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);
@@ -95,13 +94,6 @@ public:
 
     inline virtual void stop() override;
 
-    inline void stop_read();
-    inline void start_read();
-    
-    const bool is_read() const{
-        return m_read_flag;
-    }
-
     void On() {
         get_gpio()->Low();
     }
@@ -112,6 +104,14 @@ public:
 
     void activate_spi_channel(){
         m_spi->set_channel_on(m_channel);
+    }
+
+    const bool is_active_agents() const {
+        for(int i = 0; i < inputs(); i++){
+            if(m_receivers[i] && m_receivers[i]->is_active())
+                return true;
+        }
+        return false;
     }
 
     /*
@@ -127,11 +127,13 @@ public:
     }
 
     const int inputs() const {return m_anlg_inputs;}
+    virtual void activate_data_receiver(const int input_idx) override;
+    
+
 private:
     std::shared_ptr<pirobot::spi::SPI> m_spi;
     int m_anlg_inputs;
     int m_channel;
-    bool m_read_flag;
 
 public:
     std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> m_receivers[MAX_NUMBER_ANALOG_INPUTS];

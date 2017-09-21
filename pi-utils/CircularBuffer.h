@@ -54,6 +54,10 @@ public:
         return m_last_value;
     }
 
+    const bool is_empty() const{
+        return buffer.empty();
+    }
+
 private:
     std::vector<T> buffer;
     T m_last_value;

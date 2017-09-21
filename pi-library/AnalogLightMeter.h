@@ -29,17 +29,18 @@ public:
         const int analog_input_index=0
         ):
         item::Item(name, comment, item::ItemTypes::AnalogMeter), 
-        m_provider(provider),
-        m_idx(analog_input_index)
+        m_provider(provider)
     {
         assert(provider);
-        
-        m_values[0] = 0; 
-        m_values[1] = 0; 
+
+        set_idx(analog_input_index);
+        m_buff = std::shared_ptr<putils::circbuff::CircularBuffer<unsigned short>>(new putils::circbuff::CircularBuffer<unsigned short>(20));
 
         if(m_provider){
-            m_provider->register_data_receiver(m_idx, std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf>(this));
+            m_provider->register_data_receiver(get_idx(), std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf>(this));
         }
+
+
     }
 
     virtual ~AnalogLightMeter(){
@@ -59,12 +60,18 @@ public:
         return name();
     }
     
+    virtual void activate() override{
+        analogdata::AnalogDataReceiverItf::activate();
+        m_provider->activate_data_receiver(get_idx());
+    }
+
+
     /*
     *
     */
 	virtual const std::string printConfig() override{
         if(m_provider)
-            return name() + " Provider: " + m_provider->pname() + " Index: " + std::to_string(m_idx);
+            return name() + " Provider: " + m_provider->pname() + " Index: " + std::to_string(get_idx());
 
         return name();
     }        
@@ -83,14 +90,17 @@ public:
     */
     static void worker(AnalogLightMeter* p);
     
+    const bool data_present() const {
+        return !m_buff->is_empty();
+    }
+
+    const unsigned short get(){
+        return m_buff->get();
+    }
 
 private:
+    std::shared_ptr<putils::circbuff::CircularBuffer<unsigned short>> m_buff;
     std::shared_ptr<pirobot::analogdata::AnalogDataProviderItf> m_provider;
-
-    unsigned short m_values[2];
-
-    //Analog Input assigned for this device
-    int m_idx;
 };
 
 }
