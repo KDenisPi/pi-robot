@@ -15,8 +15,9 @@ namespace gpio {
 
 const char TAG[] = "PrvFake";
 
-GpioProviderFake::GpioProviderFake(const std::string name) :
-		GpioProvider(name, 10, 16)
+GpioProviderFake::GpioProviderFake(const std::string name, 
+	const int pin_start, const int pins) :
+		GpioProvider(name, pin_start, pins)
 {
 }
 
@@ -51,7 +52,6 @@ void GpioProviderFake::setPulse(const int pin, const uint16_t pulselen){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" to pin: ") + std::to_string(pin) +
 			" pulselen: " + std::to_string(pulselen));
 }
-
 
 }
 }

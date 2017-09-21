@@ -40,6 +40,7 @@ struct SPI_config {
     int channels;
     int speed[2] = {SPI_SpeedDefault, SPI_SpeedDefault};
     SPI_MODE mode[2] = {SPI_MODE::MODE_0, SPI_MODE::MODE_0};
+    bool real_world = true;
 
     SPI_config(){
         channels = 1;
@@ -56,7 +57,7 @@ public:
         std::shared_ptr<pirobot::gpio::Gpio> ce0,
         std::shared_ptr<pirobot::gpio::Gpio> ce1) :
         Provider(pirobot::provider::PROVIDER_TYPE::PROV_SPI, name), 
-        m_channel(-1), m_channels(config.channels)
+        m_channel(-1), m_channels(config.channels), m_real_world(config.real_world)
     {
         assert((m_channels <= 2) && (m_channels > 0));
 
@@ -145,7 +146,11 @@ public:
     * Read data from device over SPI bus
     */
     bool data_rw(unsigned char* data, int len){
-        int ret = wiringPiSPIDataRW(m_channel, data, len);
+        if(m_real_world)
+            int ret = wiringPiSPIDataRW(m_channel, data, len);
+        else{
+            data_rw_emulate(m_channel, data, len);
+        }
         return true;
     }
 
@@ -157,6 +162,27 @@ private:
     int m_channels;     //number of channels
     int m_speed[2];     //speed
     std::shared_ptr<pirobot::gpio::Gpio> m_gpio[2];
+    bool m_real_world;
+
+private:
+    /*
+    *
+    */
+    unsigned short m_test_value = 0;
+    void data_rw_emulate(int channel, unsigned char* data, int len){
+        /*
+        *Emulate some data from hardware level
+        */
+        if(len == 3){ //Analog Light. Construct 12-bit value
+            data[2] = (unsigned char)(m_test_value & 0x00FF);
+            data[1] = (unsigned char)((m_test_value >> 8) & 0x0F);
+            
+            m_test_value += 16;
+
+            if(m_test_value>= 4096)
+                m_test_value = 0;
+        }
+    }    
 };
 
 } //namespace spi

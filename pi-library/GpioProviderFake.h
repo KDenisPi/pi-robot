@@ -16,7 +16,7 @@ namespace gpio {
 class GpioProviderFake : public GpioProvider
 {
 public:
-	GpioProviderFake(const std::string name = "Fake");
+	GpioProviderFake(const std::string name = "Fake", const int pin_start=0, const int pins=16);
 	virtual ~GpioProviderFake();
 
 	virtual const int dgtRead(const int pin) override;

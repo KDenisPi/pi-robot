@@ -46,6 +46,9 @@ PiRobot::PiRobot(const bool realWorld)
         //Rasbery based GPIO provider present always
         providers["SIMPLE"] = std::shared_ptr<pirobot::gpio::GpioProvider>(new pirobot::gpio::GpioProviderSimple());
     }
+    else{
+        providers["SIMPLE"] = std::shared_ptr<pirobot::gpio::GpioProvider>(new pirobot::gpio::GpioProviderFake());
+    }
 }
 
 PiRobot::~PiRobot() {
@@ -106,8 +109,8 @@ std::shared_ptr<provider::Provider> PiRobot::get_provider(const std::string& nam
 * Add provider
 */
 void PiRobot::add_provider(const std::string& type, const std::string& name){
-    auto provider = this->providers.find(name);
 
+    auto provider = this->providers.find(name);
     //provider name is unique
     if(provider != providers.end()){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Provider with such name is present already. Name: " + name);
@@ -115,7 +118,7 @@ void PiRobot::add_provider(const std::string& type, const std::string& name){
     }
 
     if(type == "FAKE"){
-        providers[name] = std::shared_ptr<pirobot::provider::Provider>(new pirobot::gpio::GpioProviderFake(name));
+        providers[name] = std::shared_ptr<pirobot::provider::Provider>(new pirobot::gpio::GpioProviderFake(name, 10, 16));
     }
     else if(type == "MCP23017"){ //this provider can be  used with real hardware only
         if(!is_real_world()){
@@ -135,15 +138,13 @@ void PiRobot::add_provider(const std::string& type, const std::string& name){
             ));
     }
     else if(type == "SPI"){ //this provider can be  used with real hardware only
-        if(!is_real_world()){
-            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " SPI bus provider can be used with real hardware only");
-            throw std::runtime_error(std::string("SPI bus provider can be used with real hardware only"));
-        }
         pirobot::spi::SPI_config spi_config;
+        spi_config.real_world = is_real_world();
+
         add_gpio("SIMPLE", pirobot::gpio::GPIO_MODE::OUT, 10); //SPI_CE0_N
         add_gpio("SIMPLE", pirobot::gpio::GPIO_MODE::OUT, 11); //SPI_CE1_N
         providers[name] = std::shared_ptr<pirobot::provider::Provider>(
-            new pirobot::spi::SPI(name, spi_config, get_gpio("SIMPLE", 10), get_gpio("SIMPLE", 10)));
+            new pirobot::spi::SPI(name, spi_config, get_gpio("SIMPLE", 10), get_gpio("SIMPLE", 11)));
     }
     else{
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Unknown provider type");
