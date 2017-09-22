@@ -68,7 +68,8 @@ public:
         for(int i = 0; i < m_channels; i++){
             m_mode[i] = config.mode[i];
             m_speed[i] = config.speed[i];
-            int fd = wiringPiSPISetupMode(i, config.speed[i], config.mode[i]);
+            if(m_real_world)
+                int fd = wiringPiSPISetupMode(i, config.speed[i], config.mode[i]);
             //TODO: Check result and generate exception if needed
         }
 

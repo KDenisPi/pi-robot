@@ -7,14 +7,23 @@
 
 #include <iostream>
 #include <time.h>
+#include <chrono>
+#include <ctime>
 #include "logger.h"
 
 namespace logger {
 
+std::chrono::time_point<std::chrono::system_clock> tp;
+char mtime[30];
+
 void log(const LLOG level, const std::string pattern, const std::string message){
-	struct timespec tm;
-	clock_gettime(CLOCK_REALTIME, &tm);
-	std::cout << __TIME__ << "." << (tm.tv_sec%60) << " | " << level << " | " << pattern << " | "<< message << std::endl;
+	//struct timespec tm;
+	//clock_gettime(CLOCK_REALTIME, &tm);
+	//std::cout << (tm.tv_sec%126000) << ":" << (tm.tv_sec%3600) << ":" << (tm.tv_sec%60) << " | " << level << " | " << pattern << " | "<< message << std::endl;
+	tp = std::chrono::system_clock::now();
+	std::time_t time_now = std::chrono::system_clock::to_time_t(tp);
+	std::strftime(mtime, sizeof(mtime), "%T", std::localtime(&time_now));
+	std::cout << mtime << " | " << level << " | " << pattern << " | "<< message << std::endl;
 }
 
 

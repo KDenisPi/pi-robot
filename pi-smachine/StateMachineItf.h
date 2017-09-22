@@ -19,8 +19,8 @@ namespace smachine {
 
 class StateMachineItf {
 public:
-	StateMachineItf();
-	virtual ~StateMachineItf();
+	StateMachineItf(){}
+	virtual ~StateMachineItf(){}
 
 	// Generate finish signal
 	virtual void finish() = 0;

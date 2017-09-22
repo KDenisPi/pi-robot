@@ -105,7 +105,7 @@ bool PiRobotPrj1::configure(){
     add_gpio("PCA9685", pirobot::gpio::GPIO_MODE::OUT, A_ENABLE);
     add_gpio("PCA9685", pirobot::gpio::GPIO_MODE::OUT, B_ENABLE);
 
-    add_gpio("Simple", pirobot::gpio::GPIO_MODE::OUT, 0);
+    add_gpio("SIMPLE", pirobot::gpio::GPIO_MODE::OUT, 0);
     
     // ****************** Items ****************
 

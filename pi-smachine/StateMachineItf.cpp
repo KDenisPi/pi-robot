@@ -6,16 +6,3 @@
  */
 
 #include "StateMachineItf.h"
-
-namespace smachine {
-
-StateMachineItf::StateMachineItf() {
-	// TODO Auto-generated constructor stub
-
-}
-
-StateMachineItf::~StateMachineItf() {
-	// TODO Auto-generated destructor stub
-}
-
-} /* namespace smachine */

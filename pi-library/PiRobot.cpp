@@ -143,8 +143,9 @@ void PiRobot::add_provider(const std::string& type, const std::string& name){
 
         add_gpio("SIMPLE", pirobot::gpio::GPIO_MODE::OUT, 10); //SPI_CE0_N
         add_gpio("SIMPLE", pirobot::gpio::GPIO_MODE::OUT, 11); //SPI_CE1_N
-        providers[name] = std::shared_ptr<pirobot::provider::Provider>(
-            new pirobot::spi::SPI(name, spi_config, get_gpio("SIMPLE", 10), get_gpio("SIMPLE", 11)));
+        //Ignore name
+        providers["SPI"] = std::shared_ptr<pirobot::provider::Provider>(
+            new pirobot::spi::SPI("SPI", spi_config, get_gpio("SIMPLE", 10), get_gpio("SIMPLE", 11)));
     }
     else{
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Unknown provider type");
@@ -193,12 +194,13 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
 
         if(iconfig.gpios.size() == 0)
             return false;
-        
+/*        
+        int asize = iconfig.gpios.size();    
         for(auto gpio : iconfig.gpios){
             if(gpio.first.empty() || gpio.second < 0)
                 return false;
         }    
-
+*/
         return true;
     };
 

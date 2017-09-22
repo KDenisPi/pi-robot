@@ -16,7 +16,7 @@ namespace gpio {
 class GpioProviderSimple : public GpioProvider
 {
 public:
-    GpioProviderSimple(const std::string name = "Simple");
+    GpioProviderSimple(const std::string name = "SIMPLE");
     virtual ~GpioProviderSimple();
 
     virtual const int dgtRead(const int pin) override;
