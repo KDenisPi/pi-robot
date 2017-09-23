@@ -20,15 +20,15 @@ public:
     /*
     *
     */
-    CircularBuffer(const std::size_t count) {
-        buffer = std::vector<T>(count);
+    CircularBuffer(const std::size_t max_size) : max_size_(max_size){
+        buffer = new T[max_size];
     }
 
     /*
     *
     */
     ~CircularBuffer(){
-
+        delete[] buffer;
     }
 
     /*
@@ -36,9 +36,10 @@ public:
     */
     const void put(const T& value){
         std::lock_guard<std::mutex> lk(cv_m);
-        if(buffer.size() == buffer.max_size())
-            buffer.erase(buffer.begin());
-        buffer.push_back(value);        
+        buffer[head_] = value;
+        head_ = (head_ + 1 >= max_size_ ? 0 : head_+1);
+        if(head_ == tail_)
+            tail_ = (tail_ + 1 >= max_size_ ? 0 : tail_+1);
     }
 
     /*
@@ -46,22 +47,24 @@ public:
     */
     const T& get(){
         std::lock_guard<std::mutex> lk(cv_m);
-        if(!buffer.empty()){
-            m_last_value = buffer.front();
-            buffer.erase(buffer.begin());
+        if(!is_empty()){
+            m_last_value = buffer[tail_];
+            tail_ = (tail_ + 1 >= max_size_ ? 0 : tail_+1);
         }
 
         return m_last_value;
     }
 
     const bool is_empty() const{
-        return buffer.empty();
+        return (tail_ == head_);
     }
 
 private:
-    std::vector<T> buffer;
+    T* buffer;
     T m_last_value;
-
+    int tail_ = 0;
+    int head_ = 0;
+    int max_size_;
     std::mutex cv_m;	
 };
 
