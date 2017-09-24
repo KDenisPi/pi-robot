@@ -15,6 +15,7 @@ const char TAG[] = "proj1";
 enum ID {
 	TIMER_SWITCH_TO_SECOND = 1000,
 	TIMER_FINISH_ROBOT = 1001,
+	TIMER_LIGHT_METER_STOP = 1002,
 };
 
 #endif /* PROJECT1_DEFINES_H_ */

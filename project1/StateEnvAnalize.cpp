@@ -15,6 +15,7 @@
 #include "blinking.h"
 #include "DCMotor.h"
 #include "ULN2003StepperMotor.h"
+#include "AnalogLightMeter.h"
 
 namespace project1 {
 namespace state {
@@ -42,8 +43,8 @@ void StateEnvAnalize::OnEntry(){
     auto dcm1 = std::static_pointer_cast<pirobot::item::dcmotor::DCMotor>(get_itf()->get_robot()->get_item("DCM_1"));
     auto step1 = std::static_pointer_cast<pirobot::item::ULN2003StepperMotor>(get_itf()->get_robot()->get_item("STEP_1"));
 
-    step1->set_direction(pirobot::item::MOTOR_DIR::DIR_CLOCKWISE);
-    step1->set_steps(600);
+    //step1->set_direction(pirobot::item::MOTOR_DIR::DIR_CLOCKWISE);
+    //step1->set_steps(600);
     /*
     step1->stop();
     step1->set_direction(pirobot::item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
@@ -53,6 +54,13 @@ void StateEnvAnalize::OnEntry(){
     red->On();
     blue->On();
     yellow->On();
+
+    auto lght_meter    = std::static_pointer_cast<pirobot::anlglightmeter::AnalogLightMeter>(
+        get_itf()->get_robot()->get_item("LightMeter_1"));
+    lght_meter->activate();
+
+    get_itf()->timer_start(TIMER_LIGHT_METER_STOP, 10);
+
 
     //dcm1->set_power_level(5.0f);
 
@@ -66,6 +74,11 @@ bool StateEnvAnalize::OnTimer(const int id){
     case TIMER_FINISH_ROBOT:
         get_itf()->finish();
         return true;
+    case TIMER_LIGHT_METER_STOP:
+        auto lght_meter    = std::static_pointer_cast<pirobot::anlglightmeter::AnalogLightMeter>(
+            get_itf()->get_robot()->get_item("LightMeter_1"));
+        lght_meter->deactivate();
+        return true;    
     }
     return false;
 }
