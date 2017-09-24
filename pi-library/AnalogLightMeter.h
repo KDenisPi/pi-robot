@@ -24,8 +24,8 @@ class AnalogLightMeter : public item::Item, public piutils::Threaded, public ana
 public:
     AnalogLightMeter(
         const std::shared_ptr<pirobot::analogdata::AnalogDataProviderItf> provider,
-        const std::string name,
-        const std::string comment = "Analog Light Meter",
+        const std::string& name,
+        const std::string& comment = "Analog Light Meter",
         const int analog_input_index=0
         ):
         item::Item(name, comment, item::ItemTypes::AnalogMeter), 

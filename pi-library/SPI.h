@@ -116,6 +116,7 @@ public:
             return false;
 
         lock();
+        m_channel = channel;
         m_gpio[channel]->Low();
         unlock();
 
@@ -175,11 +176,16 @@ private:
         *Emulate some data from hardware level
         */
         if(len == 3){ //Analog Light. Construct 12-bit value
-            data[2] = (unsigned char)(m_test_value & 0x00FF);
-            data[1] = (unsigned char)((m_test_value >> 8) & 0x0F);
+            unsigned short pin = ((data[0] & 0x01) << 2) | (data[1] >> 6);
             
-            m_test_value += 16;
+            data[2] = (unsigned char)(m_test_value & 0x00FF);
+            data[1] |= (unsigned char)((m_test_value >> 8) & 0x0F);
 
+            if(m_test_value % (144*(pin+1)) != 0)
+                m_test_value += 2;
+            else
+                m_test_value += 16;
+            
             if(m_test_value>= 4096)
                 m_test_value = 0;
         }

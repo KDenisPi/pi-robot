@@ -55,6 +55,17 @@ public:
         return m_last_value;
     }
 
+    /*
+    * Empty buffer
+    */
+    const void empty(){
+        std::lock_guard<std::mutex> lk(cv_m);
+        tail_ = head_;
+    }
+
+    /*
+    * Check if buffer is empty
+    */
     const bool is_empty() const{
         return (tail_ == head_);
     }

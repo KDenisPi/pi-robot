@@ -71,18 +71,18 @@ public:
 	notify(nullptr)
 	{};
 
-	Item( const std::string name,
-		  const std::string comment,
+	Item( const std::string& name,
+		  const std::string& comment,
 	      int itype) :
-	m_name(),
-	m_comment(),
+	m_name(name),
+	m_comment(comment),
 	m_type(itype),
 	notify(nullptr)
 	{};
 	
 	Item(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
-		  const std::string name,
-		  const std::string comment,
+		  const std::string& name,
+		  const std::string& comment,
 		  int itype
 		):
 		m_gpio(gpio),
@@ -97,8 +97,8 @@ public:
 	virtual bool initialize() {return true;};
 	virtual void stop() {};
 
-	void set_name(const std::string name) {m_name = name;}
-	void set_comment(const std::string comment) {m_comment = comment;}
+	void set_name(const std::string& name) {m_name = name;}
+	void set_comment(const std::string& comment) {m_comment = comment;}
 
 	inline const std::string name() const { return m_name; }
 	inline const std::string comment() const { return m_comment;}

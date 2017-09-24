@@ -49,7 +49,7 @@ enum DEFAULT_PIN_START {
 
 class GpioProvider : public pirobot::provider::Provider {
 public:
-	GpioProvider(const std::string name, const int pin_start=0, const int pin_count = 0) :
+	GpioProvider(const std::string& name, const int pin_start=0, const int pin_count = 0) :
 		Provider(pirobot::provider::PROVIDER_TYPE::PROV_GPIO, name),
 		m_pstart(pin_start), m_pcount(pin_count)
 	{}

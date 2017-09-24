@@ -350,18 +350,18 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
                 )));
             break;
     }
-    logger::log(logger::LLOG::NECECCARY, __func__, "Added Item: " + iconfig.name);
+    logger::log(logger::LLOG::NECECCARY, __func__, " Added Item: " + iconfig.name);
 }   
     
 /*
  *
  */
 bool PiRobot::start(){
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + "Robot is starting..");
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot is starting..");
     std::map<const std::string, std::shared_ptr<item::Item>>::iterator it;
 
     for(it = this->items.begin(); it != this->items.end(); ++it){
-        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + "Initialize " + it->first);
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Initialize " + it->first);
 
         /*
          * Set callback for Button
@@ -375,7 +375,7 @@ bool PiRobot::start(){
 
         const bool res = it->second->initialize();
         if(!res){
-            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + "Initialization failed " + it->first);
+            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Initialization failed " + it->first);
             return false;
             /*TODO: Throw Exception and exit? */
         }
@@ -390,24 +390,24 @@ bool PiRobot::start(){
  *
  */
 void PiRobot::stop(){
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + "Robot is stopping..");
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot is stopping..");
 
     std::map<const std::string, std::shared_ptr<item::Item>>::iterator it;
     for(it = this->items.begin(); it != this->items.end(); ++it){
-        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + "Stopping " + it->first);
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Stopping " + it->first);
         it->second->stop();
     }
 
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + "Robot was stopped");
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot was stopped");
 }
 
 /*
  *
  */
 bool PiRobot::configure(){
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + "Robot configuration is starting..");
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot configuration is starting..");
 
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + "Robot configuration is finished");
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot configuration is finished");
     return true;
 }
 

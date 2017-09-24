@@ -38,8 +38,8 @@ public:
     */
     MCP320X(const std::shared_ptr<pirobot::spi::SPI> spi, 
         const std::shared_ptr<pirobot::gpio::Gpio> gpio, 
-        const std::string name,
-        const std::string comment = "",
+        const std::string& name,
+        const std::string& comment = "",
         MCP320X_INPUTS anlg_inputs = MCP320X_INPUTS::MCP3208,
         spi::SPI_CHANNELS channel = spi::SPI_CHANNELS::SPI_0) : 
             item::Item(gpio, name, comment, item::ItemTypes::AnlgDgtConvertor),

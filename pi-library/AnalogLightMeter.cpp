@@ -38,10 +38,12 @@ void AnalogLightMeter::stop(){
             std::unique_lock<std::mutex> lk(owner->cv_m);
             owner->cv.wait(lk, fn);
 
+            /*
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + 
                 " Worker. Signal detected. Stop: " + std::to_string(owner->is_stop_signal()) + 
                 " Data: " + std::to_string(owner->data_present()) + 
                 " Active: " + std::to_string(owner->is_active()));
+            */
         }
 
         while(!owner->is_stop_signal() && owner->is_active() &&  owner->data_present()){
@@ -50,17 +52,23 @@ void AnalogLightMeter::stop(){
             diff = (value > prev_value ? value - prev_value : prev_value - value);
             
             if(diff > 10){
-                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + 
-                " Lights Metters Was: "  + std::to_string(prev_value) + " New: " + std::to_string(value));
+                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + name +
+                " Was: "  + std::to_string(prev_value) + " New: " + std::to_string(value));
             }
             prev_value = value;
         }
-
+        /*
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + 
             " Worker. Loop finished: " + std::to_string(owner->is_stop_signal()) + 
             " Data: " + std::to_string(owner->data_present()) + 
             " Active: " + std::to_string(owner->is_active()));
-}
+        */
+        if(!owner->is_active()){
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished. Name: " + name + 
+            " Processed msg: " + std::to_string(msg_counter));
+                
+        }
+    }
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished. Name: " + name + 
         " Processed msg: " + std::to_string(msg_counter));
 }
