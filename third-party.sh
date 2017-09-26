@@ -31,5 +31,13 @@ git clone git://git.drogon.net/wiringPi wiringPi
 cd ./wiringPi
 ./build
 
-cd ../../pi-robot
+#
+#
+#
+cd ..
+echo SPDLOG 
+git clone https://github.com/gabime/spdlog.git spdlog
+
+
+cd ../pi-robot
 
