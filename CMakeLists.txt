@@ -11,10 +11,14 @@ set(WIRINGPI_LIB "${WIRINGPI_HOME}/wiringPi")
 set(MOSQUITTO_HOME "${THIRD_PARTY_HOME}/mosquitto")
 set(MOSQUITTO_LIB "${MOSQUITTO_HOME}/build/lib")
 
+set(SPDLOG_HOME "${THIRD_PARTY_HOME}/spdlog")
+set(SPDLOG_INCLUDE "${SPDLOG_HOME}/include")
+
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
 message( STATUS "WIRINGPI_HOME ${WIRINGPI_HOME}")
 message( STATUS "WIRINGPI_LIB ${WIRINGPI_LIB}")
 message( STATUS "MOSQUITTO_LIB ${MOSQUITTO_LIB}")
+message( STATUS "SPDLOG_HOME ${SPDLOG_HOME}")
 
 
 find_library(WIPI_LIB wiringPi PATH ${WIRINGPI_LIB})
@@ -27,6 +31,10 @@ set(CMAKE_BIULD_TYPE Debug)
 #cmake version 3.0 and above
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+include_directories(BEFORE 
+${SPDLOG_INCLUDE}
+)
 
 #C++ 11
 #add_cxx_flags( "-std=c++11" )
