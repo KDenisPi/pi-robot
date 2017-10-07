@@ -175,7 +175,7 @@ void PiRobot::add_gpio(const std::string& provider_name,
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " GPIO with such PIN is present already PIN: " + std::to_string(pin));
         return;
     }
-        
+ 
     gpios_add(global_pin,
             std::shared_ptr<pirobot::gpio::Gpio>(
                 new pirobot::gpio::Gpio(global_pin,	gpio_mode, gpio_provider)
