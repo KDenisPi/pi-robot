@@ -104,6 +104,8 @@ public:
     
     std::function<void(int, std::string&, void*)> stm_notification;
 
+    const bool is_real_world() const { return m_realWorld;}
+    
 private:
     void gpios_add(int idx, const std::shared_ptr<gpio::Gpio> gpio){
         gpios[idx] = gpio;
@@ -113,8 +115,6 @@ private:
     bool m_realWorld;
     std::recursive_mutex mutex_sm;
     
-    const bool is_real_world() const { return m_realWorld;}
-
     std::map <int,
         std::shared_ptr<gpio::Gpio>,
         std::less<int>,
