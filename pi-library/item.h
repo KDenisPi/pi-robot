@@ -59,6 +59,7 @@ struct ItemConfig{
 
 	std::string sub_item;
 	int index;
+	int value_1;
 };
 
 class Item {

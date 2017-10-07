@@ -51,7 +51,7 @@ void AnalogLightMeter::stop(){
             msg_counter++;
             diff = (value > prev_value ? value - prev_value : prev_value - value);
             
-            if(diff > 10){
+            if(diff > owner->diff_for_event()){
                 logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + name +
                 " Was: "  + std::to_string(prev_value) + " New: " + std::to_string(value));
             }

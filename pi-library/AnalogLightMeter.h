@@ -26,10 +26,12 @@ public:
         const std::shared_ptr<pirobot::analogdata::AnalogDataProviderItf> provider,
         const std::string& name,
         const std::string& comment = "Analog Light Meter",
-        const int analog_input_index=0
+        const int analog_input_index=0,
+        const unsigned short value_diff_for_event = 10
         ):
         item::Item(name, comment, item::ItemTypes::AnalogMeter), 
-        m_provider(provider)
+        m_provider(provider),
+        m_value_diff_for_event(value_diff_for_event)
     {
         assert(provider);
 
@@ -98,9 +100,14 @@ public:
         return m_buff->get();
     }
 
+    const unsigned short diff_for_event() const {
+        return m_value_diff_for_event;
+    }
+
 private:
     std::shared_ptr<putils::circbuff::CircularBuffer<unsigned short>> m_buff;
     std::shared_ptr<pirobot::analogdata::AnalogDataProviderItf> m_provider;
+    unsigned short m_value_diff_for_event;
 };
 
 }

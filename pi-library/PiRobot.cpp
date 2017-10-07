@@ -346,7 +346,7 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
                         std::static_pointer_cast<pirobot::mcp320x::MCP320X>(get_item(iconfig.sub_item))
                     ),
                     iconfig.name, iconfig.comment,
-                    iconfig.index
+                    iconfig.index, iconfig.value_1
                 )));
             break;
     }
