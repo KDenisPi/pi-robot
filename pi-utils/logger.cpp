@@ -32,7 +32,7 @@ void log(const LLOG level, const std::string pattern, const std::string message)
 Logger::Logger() {
 	size_t q_size = 2048; //queue size must be power of 2
 	//spdlog::set_async_mode(q_size, spdlog::async_overflow_policy::block_retry);
-	async_file = spdlog::daily_logger_st("async_file_logger", "/home/denis/logs/async_log");
+	async_file = spdlog::daily_logger_st("async_file_logger", "/var/log/pi-robot/async_log");
 	async_file->set_level(spdlog::level::debug);
 	//async_file->flush_on(spdlog::level::err);
 	async_file->set_pattern("%H:%M:%S %z|%t|%L|%v");
@@ -40,7 +40,7 @@ Logger::Logger() {
 
 void Logger::log(const LLOG level, const std::string pattern, const std::string message){
 	std::lock_guard<std::mutex> lk(cv_m);
-	
+
 	if(level == LLOG::INFO)
 		async_file->info("{0} {1}", pattern, message);
 	else if(level == LLOG::DEBUG)
