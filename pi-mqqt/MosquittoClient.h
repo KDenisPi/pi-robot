@@ -62,8 +62,12 @@ public:
 			default: return std::to_string(code);
 		}
 	}
+
+bool const is_connected() const {return m_connected;}	
+
 private:
 	int m_qos;
+	bool m_connected;
 };
 
 } /*end namespace mqqt*/

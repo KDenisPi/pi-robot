@@ -20,7 +20,7 @@ public:
     /*
     *
     */
-    CircularBuffer(const std::size_t max_size) : max_size_(max_size){
+    CircularBuffer(const std::size_t max_size = 100) : max_size_(max_size){
         buffer = new T[max_size];
     }
 

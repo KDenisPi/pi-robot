@@ -16,7 +16,7 @@ const char TAG[] = "mosqt";
 * Constructor
 */
 MosquittoClient::MosquittoClient(const char* clientID) :
-    mosqpp::mosquittopp(clientID, true) {
+    mosqpp::mosquittopp(clientID, true), m_connected(false) {
   logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Started ");
 
 }
@@ -73,9 +73,12 @@ void MosquittoClient::on_connect(int rc){
 
     if(rc == MOSQ_ERR_SUCCESS){
         cl_notify(MQQT_CONNECT, MQQT_ERROR_SUCCESS);
+        m_connected = true;
     }
     else{
         cl_notify(MQQT_CONNECT, (rc == MOSQ_ERR_INVAL ? MQQT_ERROR_INVAL : MQQT_ERROR_FAILED));
+        m_connected = false;
+
         err_conn_inc();
         if(rc != MOSQ_ERR_INVAL && !is_max_err_conn()){
            logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Trying to reconnect...");
@@ -91,6 +94,7 @@ void MosquittoClient::on_connect(int rc){
 void MosquittoClient::on_disconnect(int rc){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Client disconnected. Code: " + cl_get_errname(rc));
 
+    m_connected = false;
     cl_notify(MQQT_DISCONNECT, (rc == MOSQ_ERR_SUCCESS ? MQQT_ERROR_SUCCESS : MQQT_ERROR_FAILED));
     loop_stop(false);
     return;

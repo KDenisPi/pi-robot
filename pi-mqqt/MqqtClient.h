@@ -16,6 +16,7 @@
 #include "MqqtClientItf.h"
 
 #include "Threaded.h"
+#include "CircularBuffer.h"
 
 namespace mqqt {
 
@@ -30,6 +31,9 @@ using pub_info = std::pair<int,std::pair<std::string, std::string>>;
 template <class T>
 class MqqtClient : public piutils::Threaded{
 public:
+    /*
+    *
+    */
     MqqtClient<T>(const MqqtServerInfo& conf) : 
         m_mid(0),
         m_conf(conf),
@@ -38,9 +42,16 @@ public:
         logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Client ID: " + (NULL == m_conf.clientid() ? std::string("NotDefined") : m_conf.clientid()));
         m_mqqtCl = std::shared_ptr<T>(new T(m_conf.clientid()));
         m_mqqtCl->owner_notification = std::bind(&MqqtClient::on_client, this, std::placeholders::_1, std::placeholders::_2);
+        
+        m_messages = std::shared_ptr<putils::circbuff::CircularBuffer<std::pair<std::string, std::string>>>(
+                new putils::circbuff::CircularBuffer<std::pair<std::string, std::string>>(m_max_size));
+        
         logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Version: " + get_version());   
     }
     
+    /*
+    *
+    */
     virtual ~MqqtClient(){
         logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__));
         if(m_mqqtCl){
@@ -60,6 +71,7 @@ public:
     const int get_next_mid(){
         return ++m_mid;
     }
+
     /*
     *
     */
@@ -68,12 +80,10 @@ public:
         if(is_stop_signal())
             return m_mid;
 
-    mutex_sm.lock();
-        if(m_messages.size() < m_max_size){
-            auto pub_item = std::make_pair<get_next_mid(), std::make_pair<topic,payload>>;
-            m_messages.push(pub_item);
-        }
-        mutex_sm.unlock();
+        //std::lock_guard<std::mutex> lk(cv_m);
+        auto pub_item = std::make_pair<get_next_mid(), std::make_pair<topic,payload>>;
+        m_messages->put(pub_item);
+
         return MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
     }
 
@@ -81,18 +91,17 @@ public:
     *
     */
     const std::shared_ptr<pub_info> get(){
-        mutex_sm.lock();
-        std::shared_ptr<pub_info> item = m_messages.front();
-        m_messages.pop();
-        mutex_sm.unlock();
-        return item;
+        return m_messages->get();
     }
 
+    /*
+    *
+    */
     const int put(pub_info& item){
         auto pub_item = item.second;
         return m_mqqtCl->cl_publish(item.first, pub_item.first, pub_item.second);
-        
     }
+
     /*
     *
     */
@@ -115,23 +124,26 @@ public:
         return m_mqqtCl->cl_get_version();
     }
 
-
-
     /*
     * For Threaded 
     */
     static void worker(MqqtClient* owner){
         logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Worker started.");
         
+        auto fn = [owner]{return (owner->is_stop_signal() || !owner->is_empty());};        
         while(!owner->is_stop_signal()){
-            while(!owner->is_empty()){
+
+            {
+                std::unique_lock<std::mutex> lk(owner->cv_m);
+                owner->cv.wait(lk, fn);
+            }
+
+            while(!owner->is_empty() && !owner->is_stop_signal()){
                 auto item = owner->get();
 
-                if(owner->is_stop_signal())
-                    break;
+                //Publish message here
+                owner->put(item);
             }
-            //delay(owner->get_loop_delay());
-            std::this_thread::sleep_for(std::chrono::milliseconds(owner->get_loop_delay()));
         }
     }
 
@@ -145,14 +157,14 @@ public:
         //disconnect client
         disconnect();
         //clear the queue
-        while(!m_messages.empty()){m_messages.pop();}
+        m_messages->empty();
     }
 
     /*
     *
     */
     const bool is_empty() const {
-        return m_messages.empty();
+        return m_messages->is_empty();
     }
 
 private:
@@ -160,10 +172,11 @@ private:
     MqqtServerInfo m_conf;  //server configuration
     std::shared_ptr<T> m_mqqtCl; //client implementation
 
-    std::recursive_mutex mutex_sm;
-    std::queue<std::shared_ptr<std::pair<std::string, std::string>>> m_messages;
-    int m_max_size;  
+    std::recursive_mutex cv_m;
+    std::condition_variable cv;
     
+    std::shared_ptr<putils::circbuff::CircularBuffer<std::pair<std::string, std::string>>> m_messages;
+    int m_max_size;  
 };
 
 } //end namespace mqqt
