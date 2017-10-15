@@ -51,10 +51,10 @@ bool StateEnvAnalize::OnTimer(const int id){
             return true;
         case TIMER_LIGHT_METER:
             {
-/*                
                 auto lght_meter_1    = std::static_pointer_cast<pirobot::anlglightmeter::AnalogLightMeter>
                     (get_itf()->get_robot()->get_item("LightMeter_1"));
                 lght_meter_1->deactivate();
+/*                
 
                 auto lght_meter_2    = std::static_pointer_cast<pirobot::anlglightmeter::AnalogLightMeter>
                     (get_itf()->get_robot()->get_item("LightMeter_2"));

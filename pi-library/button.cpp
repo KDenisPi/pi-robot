@@ -152,11 +152,9 @@ void Button::worker(Button* owner){
                     owner->to_string());
 
             if(owner->notify)
-                       owner->notify(owner->type(), name, (void*)(&state));
+                owner->notify(owner->type(), name, (void*)(&state));
         }
-
         std::this_thread::sleep_for(std::chrono::milliseconds(owner->get_loop_delay()));
-        //delay(owner->get_loop_delay());
     }
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished.");

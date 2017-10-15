@@ -419,10 +419,19 @@ void StateMachine::process_robot_notification(int itype, std::string& name, void
             else
                 logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Unknown state for Item::Button");
         }
-                else {
-                   std::shared_ptr<Event> item_evt(new Event(EVENT_TYPE::EVT_ITEM_ACTIVITY, name));
-                   put_event(item_evt);
-                }
+        else if(itype == pirobot::item::ItemTypes::AnalogMeter){
+            /*
+            *Analog Meter
+            */
+            auto values = static_cast<unsigned short*>(data);
+            bool is_bright = (values[0] > values[1]);
+            std::shared_ptr<Event> lmeter(new Event( (is_bright ? EVENT_TYPE::EVT_LM_HIGH : EVENT_TYPE::EVT_LM_LOW), name));
+            put_event(lmeter);
+        }
+        else {
+           std::shared_ptr<Event> item_evt(new Event(EVENT_TYPE::EVT_ITEM_ACTIVITY, name));
+           put_event(item_evt);
+        }
     }
     catch(...){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Unknown exception has been detected. Notification was lost");

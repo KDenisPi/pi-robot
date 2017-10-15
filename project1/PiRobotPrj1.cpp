@@ -62,14 +62,23 @@ bool PiRobotPrj1::configure(){
     /*
         MCP23017 (1) address 0x20, start pin 50
 
-        pin 9  - LED Red
-        pin 10 - BTN Stop
-        pin 11 - B Phase for DRV8835
-        pin 13 - A Phase for DRV8835
-        pin 14 - LED Blue
-        pin 15 - LED Yellow
+        pin 1 - LED Red
+        pin 2 - Button STOP
+
+        pin 3 - B Phase for DRV8835
+        pin 5 - A Phase for DRV8835
+
+        pin 6 - LED Blue
+        pin 7 - LED Yellow
+
+        pin 8  - STEP_PB0
+        pin 9  - STEP_PB1
+        pin 10 - STEP_PB2
+        pin 11 - STEP_PB3
+
+        pin 15 - Fake GPIO
     */
-    #define MCP23017_1	50
+
     #define LED_Red 	1
     #define BTN_Stop 	2
     #define B_PHASE 	3
@@ -83,6 +92,11 @@ bool PiRobotPrj1::configure(){
     #define STEP_PB2        10
     #define STEP_PB3        11
 
+    /*
+       PCA9685
+       pin 0 - A Enable
+       pin 1 - B Enable
+    */
     #define A_ENABLE        0
     #define B_ENABLE        1
 
@@ -118,8 +132,10 @@ bool PiRobotPrj1::configure(){
     };
     add_item(mcp_3208);
 
-    pirobot::item::ItemConfig light_meter = {pirobot::item::ItemTypes::AnalogMeter, "LightMeter_1", "LightMeter 1", {}, "MCP3208", 0};
-    add_item(light_meter);
+    pirobot::item::ItemConfig light_meter_1 = {pirobot::item::ItemTypes::AnalogMeter, "LightMeter_1", "LightMeter 1", {}, "MCP3208", 0, 100};
+    add_item(light_meter_1);
+    pirobot::item::ItemConfig light_meter_2 = {pirobot::item::ItemTypes::AnalogMeter, "LightMeter_2", "LightMeter 2", {}, "MCP3208", 1, 100};
+    add_item(light_meter_2);
 
     //BTN Stop
     pirobot::item::ItemConfig btn_stop = {pirobot::item::ItemTypes::BUTTON, "BTN_Stop", "BTN_Stop", {std::make_pair("MCP23017_1", BTN_Stop)}};

@@ -34,35 +34,31 @@ StateEnvAnalize::~StateEnvAnalize() {
 void StateEnvAnalize::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize started");
 
-    auto blue = std::static_pointer_cast<pirobot::item::Blinking<pirobot::item::Led>>(get_itf()->get_robot()->get_item("BLINK_Blue"));
-
-    auto red    = std::static_pointer_cast<pirobot::item::Led>(get_itf()->get_robot()->get_item("LED_Red"));
-    //auto blue   = std::static_pointer_cast<pirobot::item::Led>(get_itf()->get_robot()->get_item("LED_Blue"));
-    auto yellow = std::static_pointer_cast<pirobot::item::Led>(get_itf()->get_robot()->get_item("LED_Yellow"));
-
-    auto dcm1 = std::static_pointer_cast<pirobot::item::dcmotor::DCMotor>(get_itf()->get_robot()->get_item("DCM_1"));
-    auto step1 = std::static_pointer_cast<pirobot::item::ULN2003StepperMotor>(get_itf()->get_robot()->get_item("STEP_1"));
-
-    //step1->set_direction(pirobot::item::MOTOR_DIR::DIR_CLOCKWISE);
-    //step1->set_steps(600);
     /*
+    * 1. Switch both lightmetters On
+    * 2. Set direction for DC motor counter clockwise 
+    * 3. Switch DC motor On
+    * 4. Switch Blue blink On
+    */
+    auto blue = get_item<pirobot::item::Blinking<pirobot::item::Led>>("BLINK_Blue");
+    auto dcm_1 = get_item<pirobot::item::dcmotor::DCMotor>("DCM_1");
+    auto lght_meter_1 = get_item<pirobot::anlglightmeter::AnalogLightMeter>("LightMeter_1");
+    auto lght_meter_2 = get_item<pirobot::anlglightmeter::AnalogLightMeter>("LightMeter_2");
+    
+    dcm_1->set_direction(pirobot::item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
+
+    lght_meter_1->activate();
+    lght_meter_2->activate();
+
+    blue->On();
+    dcm_1->set_power_level(5.0f);
+
+/*
+    auto step1 = std::static_pointer_cast<pirobot::item::ULN2003StepperMotor>(get_itf()->get_robot()->get_item("STEP_1"));
     step1->stop();
     step1->set_direction(pirobot::item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
     step1->set_steps(600);
     */
-
-    red->On();
-    blue->On();
-    yellow->On();
-
-    auto lght_meter    = std::static_pointer_cast<pirobot::anlglightmeter::AnalogLightMeter>(
-        get_itf()->get_robot()->get_item("LightMeter_1"));
-    lght_meter->activate();
-
-    get_itf()->timer_start(TIMER_LIGHT_METER_STOP, 10);
-
-
-    //dcm1->set_power_level(5.0f);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize finished");
 }
@@ -74,51 +70,79 @@ bool StateEnvAnalize::OnTimer(const int id){
     case TIMER_FINISH_ROBOT:
         get_itf()->finish();
         return true;
-    case TIMER_LIGHT_METER_STOP:
-        auto lght_meter    = std::static_pointer_cast<pirobot::anlglightmeter::AnalogLightMeter>(
-            get_itf()->get_robot()->get_item("LightMeter_1"));
-        lght_meter->deactivate();
-        return true;    
     }
     return false;
 }
 
+/*
+* TODO: Move processing for BTN stop to common level
+*/
 bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ==== OnEvent Type: " + std::to_string(event->type()) +
             " Name:[" + event->name() + "]");
 
+    //emergency stop
     if(event->is_event("BTN_Stop")){
         if(event->type() == smachine::EVENT_TYPE::EVT_BTN_DOWN){
-            auto env = std::static_pointer_cast<MyEnv>(get_itf()->get_env());
-            if(env->m_finish)
-                get_itf()->finish();
-            else{
-                env->m_finish = true;
-                get_itf()->timer_start(TIMER_FINISH_ROBOT, 10);
-                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finish Timer started ID: " + 
-                    std::to_string(TIMER_FINISH_ROBOT));
-            }
+            get_itf()->finish();
             return true;
         }
     }
 
-    if(event->is_event("STEP_1")){
-        auto yellow = std::static_pointer_cast<pirobot::item::Led>(get_itf()->get_robot()->get_item("LED_Yellow"));
-        yellow->Off();
+    if(event->is_event("LightMeter_1")){
+        if(event->type() == smachine::EVENT_TYPE::EVT_LM_HIGH){
+            return true;
+        }            
+
+        auto env = get_env<MyEnv>();
+        auto dcm_1 = get_item<pirobot::item::dcmotor::DCMotor>("DCM_1");
+
+        if(dcm_1->get_direction() == pirobot::item::MOTOR_DIR::DIR_COUTERCLOCKWISE){
+            if(env->is_sensor_not_set(LM_SENSOR_0)){
+                env->set_lm_time(LM_SENSOR_0);
+            }
+        }
+        else{
+            dcm_1->stop();
+            auto yellow = get_item<pirobot::item::Blinking<pirobot::item::Led>>("BLINK_Yellow");
+            yellow->Off();
+
+            if(env->is_sensor_not_set(LM_SENSOR_1)){
+                dcm_1->set_direction(pirobot::item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
+                dcm_1->set_power_level(5.0f);
+                auto blue = get_item<pirobot::item::Blinking<pirobot::item::Led>>("BLINK_Blue");
+                blue->On();
+            }
+        }
         return true;
     }
 
-    if(event->is_event("BLINK_Blue")){
-      auto red    = std::static_pointer_cast<pirobot::item::Led>(get_itf()->get_robot()->get_item("LED_Red"));
-      red->Off();
+    if(event->is_event("LightMeter_2")){
+        if(event->type() == smachine::EVENT_TYPE::EVT_LM_HIGH){
+            return true;
+        }            
 
-      //auto dcm1 = std::static_pointer_cast<pirobot::item::dcmotor::DCMotor>(get_itf()->get_robot()->get_item("DCM_1"));
-      //dcm1->stop();
+        auto env = get_env<MyEnv>();
+        auto dcm_1 = get_item<pirobot::item::dcmotor::DCMotor>("DCM_1");
 
-      //auto step1 = std::static_pointer_cast<pirobot::item::ULN2003StepperMotor>(get_itf()->get_robot()->get_item("STEP_1"));
-      //step1->stop_rotation();
+        if(dcm_1->get_direction() == pirobot::item::MOTOR_DIR::DIR_CLOCKWISE){
+            if(env->is_sensor_not_set(LM_SENSOR_1)){
+                env->set_lm_time(LM_SENSOR_1);
+            }
+        }
+        else{
+            dcm_1->stop();
+            auto blue = get_item<pirobot::item::Blinking<pirobot::item::Led>>("BLINK_Blue");
+            blue->Off();
 
-      return true;
+            if(env->is_sensor_not_set(LM_SENSOR_0)){
+                dcm_1->set_direction(pirobot::item::MOTOR_DIR::DIR_CLOCKWISE);
+                dcm_1->set_power_level(5.0f);
+                auto yellow = get_item<pirobot::item::Blinking<pirobot::item::Led>>("BLINK_Yellow");
+                yellow->On();
+            }
+        }
+        return true;
     }
 
     return false;

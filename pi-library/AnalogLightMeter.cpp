@@ -26,8 +26,8 @@ void AnalogLightMeter::stop(){
     std::string name = owner->name();
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker started. Name: " + name);
 
-    unsigned short diff = 0;
-    unsigned short prev_value = 0, value;
+    // 0 - current value, 1 - previous value, 2 - difference
+    unsigned short values[3] = {0,0,0};
     int msg_counter = 0;
 
     auto fn = [owner]{return (owner->is_stop_signal() || (owner->is_active() && owner->data_present()));};
@@ -47,15 +47,21 @@ void AnalogLightMeter::stop(){
         }
 
         while(!owner->is_stop_signal() && owner->is_active() &&  owner->data_present()){
-            value = owner->get();
+            values[0] = owner->get();
             msg_counter++;
-            diff = (value > prev_value ? value - prev_value : prev_value - value);
+            values[2] = (values[0] > values[1] ? values[0] - values[1] : values[0] - values[0]);
             
-            if(diff > owner->diff_for_event()){
+            //ignore first measure
+            if(values[1] > 0 && values[2] > owner->diff_for_event()){
                 logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + name +
-                " Was: "  + std::to_string(prev_value) + " New: " + std::to_string(value));
+                " Was: "  + std::to_string(values[1]) + " New: " + std::to_string(values[0]));
+
+                if(owner->notify){
+                    owner->notify(owner->type(), name, (void*)values);
+                }
             }
-            prev_value = value;
+
+            values[1] = values[0];
         }
         /*
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + 

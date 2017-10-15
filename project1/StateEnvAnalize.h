@@ -22,6 +22,9 @@ public:
 	virtual bool OnTimer(const int id) override;
 	virtual bool OnEvent(const std::shared_ptr<smachine::Event> event) override;
 
+	template<class T> std::shared_ptr<T> get_env(){
+		return std::static_pointer_cast<T>(get_itf()->get_env());
+	}
 };
 
 } /* namespace state */
