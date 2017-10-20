@@ -1,15 +1,10 @@
 #include <iostream>
 #include <unistd.h>
 #include <stdlib.h>
-#include <memory>
-#include <pthread.h>
+#include <signal.h>
+#include <sys/wait.h>
 
 #include "version.h"
-
-/*
-* Timer test
-*/
-//#include "Timers.h"
 
 #include "defines.h"
 #include "StateMachine.h"
@@ -17,27 +12,69 @@
 #include "PiRobotPrj1.h"
 
 using namespace std;
+smachine::StateMachine* stm;
+pid_t childPid;
+
+static void sigHandlerChild(int sign){
+  if(sign == SIGINT) {
+    stm->finish();
+  }
+  else if (sign == SIGUSR1){
+    stm->run();
+  }
+}
+
+static void sigHandlerParent(int sign){
+  if (sign == SIGINT || sign == SIGUSR1) {
+    kill(childPid, sign);
+  }
+}
+
 
 int main (int argc, char* argv[])
 {
   cout <<  "Project1 started" << endl;
 
-  std::shared_ptr<project1::MyStateFactory> factory(new project1::MyStateFactory());
-  std::shared_ptr<pirobot::PiRobot> pirobot(new project1::PiRobotPrj1());
+  switch(childPid = fork()){
+    case -1:
+      exit(EXIT_FAILURE);
 
-  smachine::StateMachine* stm = new smachine::StateMachine(factory, pirobot);
+    case 0: //child
+      {
+        if (signal(SIGINT, sigHandlerChild) == SIG_ERR){
+          _exit(EXIT_FAILURE);
+        }
 
-  sleep(4);
+        std::shared_ptr<project1::MyStateFactory> factory(new project1::MyStateFactory());
+        std::shared_ptr<pirobot::PiRobot> pirobot(new project1::PiRobotPrj1());
+    
+        stm = new smachine::StateMachine(factory, pirobot);
+        stm->wait();
+        delete stm;
 
-  cout <<  "Wait for state machine" << endl;
-  stm->wait();
+        _exit(EXIT_SUCCESS);
+      }
+      break;
 
-  cout <<  "Sleep 3 sec" << endl;
-  sleep(3);
+    default: //parent
+      if (signal(SIGINT, sigHandlerParent) == SIG_ERR){
+        _exit(EXIT_FAILURE);
+      }
 
-  cout <<  "Delete State Machine" << endl;
-  delete stm;
-  cout <<  "Project1 finished" << endl;
-  exit(0);
+      for(;;){
+        pid_t chdPid = wait(NULL);
+        if(chdPid == -1){
+          if (errno == ECHILD) {
+            cout <<  "No more childs" << endl;
+            break;
+          }
+        }
+        else
+          cout <<  "Child finished " <<  chdPid << endl;
+      }
+      cout <<  "Project1 finished" << endl;
+  }
+
+  exit(EXIT_SUCCESS);
 }
 

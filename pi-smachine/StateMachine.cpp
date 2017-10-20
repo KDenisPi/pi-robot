@@ -42,11 +42,16 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, const st
         pirobot->stm_notification = std::bind(&StateMachine::process_robot_notification,
                 this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
     }
-
-        //Add first event 
-        put_event(std::shared_ptr<Event>(new Event(EVT_CHANGE_STATE, "StateInit")));
 }
 
+/*
+* Start State machine execution from the beginning
+*/
+void StateMachine::run(){
+    //Add first event 
+     put_event(std::shared_ptr<Event>(new Event(EVT_CHANGE_STATE, "StateInit")));
+}
+    
 
 void StateMachine::state_push(const std::shared_ptr<state::State> state){
     get_states()->push_front(state);

@@ -56,6 +56,10 @@ public:
     virtual std::shared_ptr<pirobot::PiRobot> get_robot() override {return m_pirobo;}
     virtual std::shared_ptr<Environment> get_env() override {return m_env; }
 
+    /*
+    * Start State machine execution from the beginning
+    */
+    void run();
 
     bool process_timer_event(const std::shared_ptr<Event> event);
     bool process_event(const std::shared_ptr<Event> event);
