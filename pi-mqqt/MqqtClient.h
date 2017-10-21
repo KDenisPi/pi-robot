@@ -68,6 +68,14 @@ public:
         return m_mqqtCl->cl_connect(m_conf);
     }
 
+    /*
+    * Temporal: Wait for processing.
+    */
+    void wait(){
+        piutils::Threaded::stop(false);
+    }
+
+
     const int get_next_mid(){
         return ++m_mid;
     }
@@ -125,6 +133,15 @@ public:
     }
 
     /*
+    *
+    */
+    bool start(){
+        logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Started");
+        //return piutils::Threaded::start<MqqtClient<T>>(this);
+        return true;
+    }
+    
+    /*
     * For Threaded 
     */
     static void worker(MqqtClient* owner){
@@ -145,6 +162,7 @@ public:
                 owner->put(item);
             }
         }
+        logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Worker finished.");
     }
 
     /*
@@ -152,12 +170,12 @@ public:
     */
     void stop() {
         logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Started.");
-        //stop working thread - do not try to send nothing
-        piutils::Threaded::stop();
-        //disconnect client
-        disconnect();
         //clear the queue
         m_messages->empty();
+        //disconnect client
+        disconnect();
+        //stop working thread - do not try to send nothing
+        piutils::Threaded::stop();
     }
 
     /*

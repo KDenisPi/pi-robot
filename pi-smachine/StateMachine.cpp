@@ -29,8 +29,8 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, const st
 
     m_env = std::shared_ptr<Environment>(m_factory->get_environment());
 
-        //Start timers
-        m_timers->start();
+    //Start timers
+    m_timers->start();
 
     if( !start()){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " State machine could not start!");
@@ -65,12 +65,11 @@ void StateMachine::state_push(const std::shared_ptr<state::State> state){
  */
 bool StateMachine::start(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-
     return piutils::Threaded::start<StateMachine>(this);
 }
 
 /*
- * Temporal: Wait for processing. Debug purpose only
+ * Temporal: Wait for processing.
  */
 void StateMachine::wait(){
     piutils::Threaded::stop(false);
