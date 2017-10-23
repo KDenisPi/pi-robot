@@ -51,7 +51,7 @@ public:
         assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);
         assert(spi);
         assert(!name.empty());
-        
+
         //switch device off
         get_gpio()->High();
     }
@@ -70,14 +70,14 @@ public:
 
         return result;
     }
-    
+
     /*
     *
     */
     virtual bool initialize() override{
         return piutils::Threaded::start<MCP320X>(this);
     }
-    
+
     /*
     * Register data receiver 
     */
@@ -86,19 +86,21 @@ public:
 
     /*
     *
-    */    
+    */
     virtual const std::string pname() const override{
         return name();
     }
-    
+
 
     inline virtual void stop() override;
 
     void On() {
+        logger::log(logger::LLOG::DEBUG, "MCP320X", std::string(__func__) + " Switch to On");
         get_gpio()->Low();
     }
 
     void Off() {
+        logger::log(logger::LLOG::DEBUG, "MCP320X", std::string(__func__) + " Switch to Off");
         get_gpio()->High();
     }
 
@@ -118,7 +120,7 @@ public:
     * Worker function
     */
     static void worker(MCP320X* p);
-    
+
     /*
     * Read data from device over SPI bus
     */
@@ -128,7 +130,7 @@ public:
 
     const int inputs() const {return m_anlg_inputs;}
     virtual void activate_data_receiver(const int input_idx) override;
-    
+
 
 private:
     std::shared_ptr<pirobot::spi::SPI> m_spi;

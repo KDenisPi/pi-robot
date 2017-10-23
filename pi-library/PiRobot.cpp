@@ -414,9 +414,9 @@ bool PiRobot::configure(){
 void PiRobot::printConfig(){
     std::map<const std::string, std::shared_ptr<item::Item>>::iterator it;
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + 
-        "-------------- configuration ---------------------------");
+        " -------------- configuration --------------------------- ");
     for(it = this->items.begin(); it != this->items.end(); ++it){
-        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + 
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " " +
             it->first + " " + it->second->printConfig());
     }
 }

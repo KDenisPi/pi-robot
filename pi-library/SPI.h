@@ -16,6 +16,7 @@
 
 #include <wiringPiSPI.h>
 
+#include "logger.h"
 #include "provider.h"
 #include "gpio.h"
 
@@ -99,6 +100,8 @@ public:
 
     //
     bool set_channel_on(const int channel) noexcept(false){
+
+        logger::log(logger::LLOG::DEBUG, "SPI", std::string(__func__) + " ON Channel: " + std::to_string(channel));
         if(channel >= m_channels){
             throw std::runtime_error(std::string("Invalid channel number"));
         }
@@ -112,20 +115,23 @@ public:
         }
 
         //switch GPIO for channel to LOW
-        if(!m_gpio[channel])
+        if(!m_gpio[channel]){
+            logger::log(logger::LLOG::DEBUG, "SPI", std::string(__func__) + " ON already. Channel: " + std::to_string(channel));
             return false;
+       }
 
         lock();
         m_channel = channel;
         m_gpio[channel]->Low();
         unlock();
 
+        logger::log(logger::LLOG::DEBUG, "SPI", std::string(__func__) + " ON Done. Channel: " + std::to_string(channel));
         return true;
     }
 
     //
     bool set_channel_off(const int channel) noexcept(false){
-
+        logger::log(logger::LLOG::DEBUG, "SPI", std::string(__func__) + " OFF Channel: " + std::to_string(channel));
         if(m_channel < 0)
             return true;
 

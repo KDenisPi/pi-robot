@@ -11,7 +11,7 @@
 
 namespace pirobot {
 namespace mcp320x {
-    
+
 const char TAG[] = "MCP320x";
 
 /*
@@ -40,7 +40,7 @@ void MCP320X::stop(){
 
     auto fn_start = [owner]{return (owner->is_stop_signal() || owner->is_active_agents());};
     auto fn_read = [owner]{return (!owner->is_stop_signal() && owner->is_active_agents());};
-    
+
     while(!owner->is_stop_signal()){
         //wait until stop signal will be received or we will have steps for processing
         {
@@ -52,24 +52,24 @@ void MCP320X::stop(){
         if(owner->is_stop_signal())
             break;
 
-        //activate my SPI channel    
+        //activate my SPI channel
         owner->activate_spi_channel();
 
         /*
         * Should I switch MCP320X after EACH reading or not? 
           I do not think so. 
-        
+
         3.7 Chip Select/Shutdown (CS/SHDN)
             The CS/SHDN pin is used to initiate communication
             with the device when pulled low and will end a
             conversion and put the device in low power standby
             when pulled high. The CS/SHDN pin must be pulled
-            high between conversions.        
+            high between conversions.
         */
 
         //switch device On    
         owner->On();
-        
+
 
         auto fn_read_data = [owner](unsigned char* buff, const unsigned char in_pin) -> unsigned short {
             buff[0] = (Control_Start_Bit | Control_SinDiff_Single | (in_pin >> 2));
@@ -97,7 +97,9 @@ void MCP320X::stop(){
             for(int i = 0; i < owner->inputs(); i++){
                 if(fn_is_active_agent(i)){
                     value = fn_read_data(buff, (unsigned char)i);
-                    owner->m_receivers[i]->data(value);                    
+                    owner->m_receivers[i]->data(value);
+
+                    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Received data: " + std::to_string(value) + " for: " +  std::to_string(i));
                 }
             }
 
@@ -131,7 +133,7 @@ bool MCP320X::register_data_receiver(const int input_idx,
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid receiver object");
         throw std::runtime_error(std::string("Invalid receiver object"));
     }
-             
+
     m_receivers[input_idx] = receiver;
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + 

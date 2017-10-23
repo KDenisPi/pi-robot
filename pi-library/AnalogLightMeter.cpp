@@ -11,9 +11,9 @@
 
 namespace pirobot {
 namespace anlglightmeter {
-    
+
 const char TAG[] = "AlgLtMt";
-    
+
 void AnalogLightMeter::stop(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
     piutils::Threaded::stop();
@@ -31,7 +31,7 @@ void AnalogLightMeter::stop(){
     int msg_counter = 0;
 
     auto fn = [owner]{return (owner->is_stop_signal() || (owner->is_active() && owner->data_present()));};
-    
+
     while(!owner->is_stop_signal()){
         //wait until stop signal will be received or we will have steps for processing
         {
@@ -50,7 +50,10 @@ void AnalogLightMeter::stop(){
             values[0] = owner->get();
             msg_counter++;
             values[2] = (values[0] > values[1] ? values[0] - values[1] : values[0] - values[0]);
-            
+
+            if(values[2] > 10)
+             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + name + " " + std::to_string(values[0]) + " " +
+                           std::to_string(values[1]) + " " + std::to_string(values[2]));
             //ignore first measure
             if(values[1] > 0 && values[2] > owner->diff_for_event()){
                 logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + name +
@@ -59,9 +62,13 @@ void AnalogLightMeter::stop(){
                 if(owner->notify){
                     owner->notify(owner->type(), name, (void*)values);
                 }
+
+                values[1] = values[0];
             }
 
-            values[1] = values[0];
+            if(values[1] == 0){
+              values[1] = values[0];
+           }
         }
         /*
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + 
@@ -72,7 +79,7 @@ void AnalogLightMeter::stop(){
         if(!owner->is_active()){
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished. Name: " + name + 
             " Processed msg: " + std::to_string(msg_counter));
-                
+
         }
     }
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished. Name: " + name + 

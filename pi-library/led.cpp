@@ -73,9 +73,10 @@ const std::string Led::printConfig(){
 }
 
 void Led::set_state(const LED_STATE state){
+/*
   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " State from: " + std::to_string(m_state) +
      " to:" + std::to_string(state));
-
+*/
   get_gpio()->digitalWrite(state);
   m_state = state;
 }

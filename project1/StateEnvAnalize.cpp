@@ -44,14 +44,14 @@ void StateEnvAnalize::OnEntry(){
     auto dcm_1 = get_item<pirobot::item::dcmotor::DCMotor>("DCM_1");
     auto lght_meter_1 = get_item<pirobot::anlglightmeter::AnalogLightMeter>("LightMeter_1");
     auto lght_meter_2 = get_item<pirobot::anlglightmeter::AnalogLightMeter>("LightMeter_2");
-    
+
     dcm_1->set_direction(pirobot::item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
 
     lght_meter_1->activate();
     lght_meter_2->activate();
 
     blue->On();
-    dcm_1->set_power_level(5.0f);
+    dcm_1->set_power_level(10.0f);
 
 /*
     auto step1 = std::static_pointer_cast<pirobot::item::ULN2003StepperMotor>(get_itf()->get_robot()->get_item("STEP_1"));
@@ -92,7 +92,7 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
     if(event->is_event("LightMeter_1")){
         if(event->type() == smachine::EVENT_TYPE::EVT_LM_HIGH){
             return true;
-        }            
+        }
 
         auto env = get_env<MyEnv>();
         auto dcm_1 = get_item<pirobot::item::dcmotor::DCMotor>("DCM_1");
@@ -109,7 +109,7 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
 
             if(env->is_sensor_not_set(LM_SENSOR_1)){
                 dcm_1->set_direction(pirobot::item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
-                dcm_1->set_power_level(5.0f);
+                dcm_1->set_power_level(10.0f);
                 auto blue = get_item<pirobot::item::Blinking<pirobot::item::Led>>("BLINK_Blue");
                 blue->On();
             }
@@ -120,7 +120,7 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
     if(event->is_event("LightMeter_2")){
         if(event->type() == smachine::EVENT_TYPE::EVT_LM_HIGH){
             return true;
-        }            
+        }
 
         auto env = get_env<MyEnv>();
         auto dcm_1 = get_item<pirobot::item::dcmotor::DCMotor>("DCM_1");
