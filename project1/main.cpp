@@ -24,10 +24,10 @@ pid_t stmPid, mqqtPid;
 * Singnal handler for State Machine
 */
 static void sigHandlerStateMachine(int sign){
+
   cout <<  "State machine: Detected signal " << sign  << endl;
   if(sign == SIGINT) {
-    stm->run();
-    //stm->finish();
+    stm->finish();
   }
   else if (sign == SIGUSR1){
     stm->run();
@@ -38,6 +38,8 @@ static void sigHandlerStateMachine(int sign){
 * Singnal handler for MQQT client
 */
 static void sigHandlerMQQT(int sign){
+
+  cout <<  "State machine: Detected signal " << sign  << endl;
   if(sign == SIGINT) {
     clMqqt->stop();
   }
@@ -51,10 +53,14 @@ static void sigHandlerMQQT(int sign){
 * Singnal handler for parent
 */
 static void sigHandlerParent(int sign){
+
   if (sign == SIGINT || sign == SIGUSR1) {
+
     cout <<  "Parent: Detected signal " << sign  << endl;
-    kill(stmPid, sign);
-    //kill(mqqtPid, sign);
+    if(stmPid)
+      kill(stmPid, sign);
+    if(mqqtPid)  
+      kill(mqqtPid, sign);
   }
 }
 
@@ -63,8 +69,18 @@ static void sigHandlerParent(int sign){
 */
 int main (int argc, char* argv[])
 {
-  cout <<  "Project1 started" << endl;
   bool mqtt = false;
+  sigset_t new_set;
+  stmPid = mqqtPid = 0;
+  
+  cout <<  "Project1 started" << endl;
+
+  sigemptyset (&new_set);
+  sigaddset (&new_set, SIGUSR1);
+  if( sigprocmask(SIG_BLOCK, &new_set, NULL) < 0){
+      cout <<  " Could not set signal mask." << endl;
+      exit(EXIT_FAILURE);
+  }
 
   if(argc >= 2 && strcmp(argv[1], "--mqtt") == 0){
     mqtt = true;
@@ -89,6 +105,7 @@ int main (int argc, char* argv[])
         cout <<  "Created state machine, wait" << endl;
         stm->wait();
         cout <<  "State machine finished" << endl;
+
         sleep(2);
 
         delete stm;
@@ -129,9 +146,9 @@ int main (int argc, char* argv[])
 
       if (signal(SIGINT, sigHandlerParent) == SIG_ERR){
         kill(stmPid, SIGINT);
+        
         if(mqtt)
           kill(mqqtPid, SIGINT);
-        //_exit(EXIT_FAILURE);
       }
 
       for(;;){
