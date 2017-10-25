@@ -51,7 +51,7 @@ void StateEnvAnalize::OnEntry(){
     lght_meter_2->activate();
 
     blue->On();
-    dcm_1->set_power_level(10.0f);
+    dcm_1->set_power_level(13.0f);
 
 /*
     auto step1 = std::static_pointer_cast<pirobot::item::ULN2003StepperMotor>(get_itf()->get_robot()->get_item("STEP_1"));
@@ -80,7 +80,6 @@ bool StateEnvAnalize::OnTimer(const int id){
 bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ==== OnEvent Type: " + std::to_string(event->type()) +
             " Name:[" + event->name() + "]");
-
     //emergency stop
     if(event->is_event("BTN_Stop")){
         if(event->type() == smachine::EVENT_TYPE::EVT_BTN_DOWN){
@@ -101,6 +100,8 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
             if(env->is_sensor_not_set(LM_SENSOR_0)){
                 env->set_lm_time(LM_SENSOR_0);
             }
+            else 
+              logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ====  LM1 HIGH Just Ignore");
         }
         else{
             dcm_1->stop();
@@ -108,8 +109,10 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
             yellow->Off();
 
             if(env->is_sensor_not_set(LM_SENSOR_1)){
+                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ====  LM1 HIGH Change direction");
+
                 dcm_1->set_direction(pirobot::item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
-                dcm_1->set_power_level(10.0f);
+                dcm_1->set_power_level(13.0f);
                 auto blue = get_item<pirobot::item::Blinking<pirobot::item::Led>>("BLINK_Blue");
                 blue->On();
             }
@@ -118,9 +121,6 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
     }
 
     if(event->is_event("LightMeter_2")){
-        if(event->type() == smachine::EVENT_TYPE::EVT_LM_HIGH){
-            return true;
-        }
 
         auto env = get_env<MyEnv>();
         auto dcm_1 = get_item<pirobot::item::dcmotor::DCMotor>("DCM_1");
@@ -129,6 +129,8 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
             if(env->is_sensor_not_set(LM_SENSOR_1)){
                 env->set_lm_time(LM_SENSOR_1);
             }
+            else
+              logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ====  LM2 HIGH Just Ignore");
         }
         else{
             dcm_1->stop();
@@ -136,8 +138,9 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
             blue->Off();
 
             if(env->is_sensor_not_set(LM_SENSOR_0)){
+                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ====  LM2 HIGH Change direction and continue");
                 dcm_1->set_direction(pirobot::item::MOTOR_DIR::DIR_CLOCKWISE);
-                dcm_1->set_power_level(5.0f);
+                dcm_1->set_power_level(13.0f);
                 auto yellow = get_item<pirobot::item::Blinking<pirobot::item::Led>>("BLINK_Yellow");
                 yellow->On();
             }

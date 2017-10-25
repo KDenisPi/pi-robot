@@ -51,7 +51,7 @@ void AnalogLightMeter::stop(){
             msg_counter++;
             values[2] = (values[0] > values[1] ? values[0] - values[1] : values[0] - values[0]);
 
-            if(values[2] > 10)
+            if(values[2] > 50)
              logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + name + " " + std::to_string(values[0]) + " " +
                            std::to_string(values[1]) + " " + std::to_string(values[2]));
             //ignore first measure

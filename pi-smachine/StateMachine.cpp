@@ -428,9 +428,11 @@ void StateMachine::process_robot_notification(int itype, std::string& name, void
             *Analog Meter
             */
             auto values = static_cast<unsigned short*>(data);
-            bool is_bright = (values[0] > values[1]);
-            std::shared_ptr<Event> lmeter(new Event( (is_bright ? EVENT_TYPE::EVT_LM_HIGH : EVENT_TYPE::EVT_LM_LOW), name));
-            put_event(lmeter);
+            if(values[0] != values[1]){
+              bool is_bright = (values[0] < values[1]);
+              std::shared_ptr<Event> lmeter(new Event( (is_bright ? EVENT_TYPE::EVT_LM_HIGH : EVENT_TYPE::EVT_LM_LOW), name));
+              put_event(lmeter);
+            }
         }
         else {
            std::shared_ptr<Event> item_evt(new Event(EVENT_TYPE::EVT_ITEM_ACTIVITY, name));
