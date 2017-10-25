@@ -226,13 +226,13 @@ void StateMachine::worker(StateMachine* stm){
                 logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Button event detected: " + std::to_string(event->type()));
                 stm->process_event(event);
                 break;
-                        case EVT_ITEM_ACTIVITY:
-                                stm->process_event(event);
-                                break;
+            case EVT_ITEM_ACTIVITY:
+                stm->process_event(event);
+                break;
             case EVT_NONE:
                 break;
-            //default:
-
+            default:
+                stm->process_event(event);
             }
         }
 
