@@ -1,0 +1,8 @@
+#start server as demon
+/build/src/mosquitto -c ./mosquitto.conf.dk
+
+# subscrime to topic 'pirobot'
+./build/client/mosquitto_sub -h 10.32.5.128 -d -t pirobot
+
+#publish message to topic 'pirobot'
+./build/client/mosquitto_pub -h 10.32.5.128 -t pirobot -m "hello  pi"
