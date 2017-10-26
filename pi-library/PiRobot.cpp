@@ -346,7 +346,8 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
                         std::static_pointer_cast<pirobot::mcp320x::MCP320X>(get_item(iconfig.sub_item))
                     ),
                     iconfig.name, iconfig.comment,
-                    iconfig.index, iconfig.value_1
+                    iconfig.index, iconfig.value_1, 
+                    (iconfig.value_2>0)
                 )));
             break;
     }
@@ -392,10 +393,22 @@ bool PiRobot::start(){
 void PiRobot::stop(){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot is stopping..");
 
+    //@TODO: make another solution later
+    const std::string debug_data_folder = "/var/log/pi-robot/";
+
     std::map<const std::string, std::shared_ptr<item::Item>>::iterator it;
     for(it = this->items.begin(); it != this->items.end(); ++it){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Stopping " + it->first);
         it->second->stop();
+
+        /*
+        * Save debug information
+        */
+        if(it->second->is_debug()){
+            logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Unload debug data for " + it->first);
+            std::string data_file = debug_data_folder + it->second->name() + ".csv";
+            it->second->unload_debug_data("file", data_file);
+        }
     }
 
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot was stopped");

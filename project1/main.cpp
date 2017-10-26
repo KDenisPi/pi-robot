@@ -77,17 +77,6 @@ int main (int argc, char* argv[])
     mqtt = true;
   }
 
-/*
-  sigemptyset (&new_set);
-  sigaddset (&new_set, SIGUSR1);
-  if( sigprocmask(SIG_BLOCK, &new_set, NULL) < 0){
-    cout <<  " Could not set signal mask." << endl;
-    exit(EXIT_FAILURE);
-  }
-  else
-    cout <<  " ----  SET signal mask." << endl;
-*/
-
   switch(stmPid = fork()){
     case -1:
       cout <<  "Failed first fork" << endl;
@@ -95,16 +84,6 @@ int main (int argc, char* argv[])
 
     case 0: //child
       {
-/*
-        sigemptyset (&new_set);
-        sigaddset (&new_set, SIGUSR1);
-        if( sigprocmask(SIG_BLOCK, &new_set, NULL) < 0){
-           cout <<  " Could not set signal mask." << endl;
-           exit(EXIT_FAILURE);
-        }
-        else
-           cout <<  " ----  SET signal mask." << endl;
-*/
         if (signal(SIGINT, sigHandlerStateMachine) == SIG_ERR ){
              cout <<  "Failed set first fork handler" << endl;
              _exit(EXIT_FAILURE);
@@ -112,6 +91,7 @@ int main (int argc, char* argv[])
 
         if( signal(SIGUSR1, sigHandlerStateMachine) == SIG_ERR){
              cout <<  "Failed set first fork handler" << endl;
+             _exit(EXIT_FAILURE);
         }
 
         std::shared_ptr<project1::MyStateFactory> factory(new project1::MyStateFactory());
@@ -123,7 +103,6 @@ int main (int argc, char* argv[])
         cout <<  "State machine finished" << endl;
 
         sleep(2);
-
         delete stm;
 
         _exit(EXIT_SUCCESS);
@@ -161,17 +140,6 @@ int main (int argc, char* argv[])
         }
       }
 
-      cout <<  "Parent task add signal SIGUSR1 " <<  stmPid << endl;
-/*
-      sigemptyset (&new_set);
-      sigaddset (&new_set, SIGUSR1);
-      if( sigprocmask(SIG_BLOCK, &new_set, NULL) < 0){
-        cout <<  " Could not set signal mask." << endl;
-        exit(EXIT_FAILURE);
-      }
-      else
-        cout <<  " ----  SET signal mask." << endl;
-*/
       if( signal(SIGUSR1, sigHandlerParent) == SIG_ERR){
         cout <<  "Parent handler error " <<  stmPid << endl;
       }

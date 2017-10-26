@@ -51,15 +51,12 @@ struct ItemConfig{
     std::string name;
     std::string comment;
     
-    /*
-    std::string provider;
-    int pin;
-    */
     std::array<std::pair<std::string, int>,5> gpios;
 
     std::string sub_item;
     int index;
     int value_1;
+    int value_2;
 };
 
 class Item {
@@ -69,7 +66,8 @@ public:
     m_name(),
     m_comment(),
     m_type(itype),
-    notify(nullptr)
+    notify(nullptr),
+    m_debug(false)
     {};
 
     Item( const std::string& name,
@@ -78,7 +76,8 @@ public:
     m_name(name),
     m_comment(comment),
     m_type(itype),
-    notify(nullptr)
+    notify(nullptr),
+    m_debug(false)
     {};
     
     Item(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
@@ -90,13 +89,20 @@ public:
         m_name(name),
         m_comment(comment),
         m_type(itype),
-        notify(nullptr)
+        notify(nullptr),
+        m_debug(false)
     {};
 
     virtual ~Item() {};
 
     virtual bool initialize() {return true;};
     virtual void stop() {};
+
+    virtual void activate_debug() {};
+    // Parameters: 
+    // dest_type - type of destination. "file" will be supported only by now
+    virtual void unload_debug_data(const std::string& dest_type, const std::string& destination) {};
+    bool const is_debug() const {return m_debug;}
 
     void set_name(const std::string& name) {m_name = name;}
     void set_comment(const std::string& comment) {m_comment = comment;}
@@ -129,12 +135,17 @@ public:
 
     std::function<void(int, std::string&, void*)> notify;
 
+    
+
 private:
     std::string m_name;
     std::string m_comment;
     int m_type;
 
     std::shared_ptr<pirobot::gpio::Gpio> m_gpio;
+
+protected:
+    bool m_debug;
 };
 
 }/* namespace item*/

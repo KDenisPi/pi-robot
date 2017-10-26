@@ -51,14 +51,21 @@ void AnalogLightMeter::stop(){
             msg_counter++;
             values[2] = (values[0] > values[1] ? values[0] - values[1] : values[0] - values[0]);
 
+            if(owner->is_debug()){
+                owner->debug_save_value(values[0]);
+            }
+            /*
             if(values[2] > 50)
              logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + name + " " + std::to_string(values[0]) + " " +
                            std::to_string(values[1]) + " " + std::to_string(values[2]));
+            */
+
             //ignore first measure
-            if(values[1] > 0 && values[2] > owner->diff_for_event()){
+            if(owner->diff_for_event() > 0 && values[1] > 0 && values[2] > owner->diff_for_event()){
+               /* 
                 logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + name +
                 " Was: "  + std::to_string(values[1]) + " New: " + std::to_string(values[0]));
-
+                */
                 if(owner->notify){
                     owner->notify(owner->type(), name, (void*)values);
                 }
@@ -86,6 +93,9 @@ void AnalogLightMeter::stop(){
         " Processed msg: " + std::to_string(msg_counter));
 }
 
+/*
+* Put value to buffer and notify working thread
+*/
 void AnalogLightMeter::data(const unsigned short value){
     const bool notify = m_buff->is_empty();
     m_buff->put(value);
@@ -93,6 +103,22 @@ void AnalogLightMeter::data(const unsigned short value){
         cv.notify_one();
 }
 
+/*
+* Upload debug data to file with format number,value (for future using in Excel)
+*/
+void AnalogLightMeter::unload_debug_data(const std::string& dest_type, const std::string& destination){
+    if(dest_type == "file"){
+        std::fstream s(destination, s.binary | s.trunc | s.out);
+        if (s.is_open()) {
+          for(int i = 0; i < m_debug_data_counter; i++)
+            s << i << "," << m_debug_values[i] << std::endl;
+          s.close();   
+        }
+        else
+            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not unload data to file " + destination);
+            
+    }
+}
 
 }//namespace anlglightmeter
 }//namespace pirobot

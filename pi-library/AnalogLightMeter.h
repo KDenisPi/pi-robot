@@ -1,15 +1,17 @@
 /*
- * AnalogLightMeter.h
- * Support for Analog Light Meter
- * I have HW5P-1
- *
- *  Created on: Sep 10, 2017
- *      Author: Denis Kudia
- */
+* AnalogLightMeter.h
+* Support for Analog Light Meter
+* I have HW5P-1
+*
+*  Created on: Sep 10, 2017
+*      Author: Denis Kudia
+*/
 
- #ifndef PI_LIBRARY_AnalogLightMeter_H_
- #define PI_LIBRARY_AnalogLightMeter_H_
+#ifndef PI_LIBRARY_AnalogLightMeter_H_
+#define PI_LIBRARY_AnalogLightMeter_H_
   
+#include <fstream>
+
 #include "item.h"
 #include "Threaded.h"
 #include "AnalogDataReceiverItf.h"
@@ -27,11 +29,15 @@ public:
         const std::string& name,
         const std::string& comment = "Analog Light Meter",
         const int analog_input_index=0,
-        const unsigned short value_diff_for_event = 10
+        const unsigned short value_diff_for_event = 0, //do not generate events
+        const bool debug_mode = false
         ):
         item::Item(name, comment, item::ItemTypes::AnalogMeter), 
         m_provider(provider),
-        m_value_diff_for_event(value_diff_for_event)
+        m_value_diff_for_event(value_diff_for_event),
+        m_debug_size(2048),
+        m_debug_values(nullptr),
+        m_debug_data_counter(0)
     {
         assert(provider);
 
@@ -42,11 +48,20 @@ public:
             m_provider->register_data_receiver(get_idx(), std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf>(this));
         }
 
-
+        if(debug_mode)
+            activate_debug();
     }
 
+    /*
+    * Destructor
+    */
     virtual ~AnalogLightMeter(){
         stop();
+
+        if(m_debug_values){
+            delete[] m_debug_values;
+            m_debug_values = nullptr;
+        }
     }
 
     /*
@@ -71,7 +86,7 @@ public:
     /*
     *
     */
-	virtual const std::string printConfig() override{
+    virtual const std::string printConfig() override{
         if(m_provider)
             return name() + " Provider: " + m_provider->pname() + " Index: " + std::to_string(get_idx());
 
@@ -100,14 +115,38 @@ public:
         return m_buff->get();
     }
 
+    /*
+    * Return difference between measures for event generating
+    */
     const unsigned short diff_for_event() const {
         return m_value_diff_for_event;
     }
+
+
+    /*
+    * Debug support
+    */
+    virtual void activate_debug() override {
+        m_debug = true;
+        m_debug_values = new unsigned short[m_debug_size];
+    }
+
+    void debug_save_value(unsigned short value){
+        if(m_debug_data_counter<m_debug_size)
+        m_debug_values[m_debug_data_counter++] = value;
+    }
+    
+    virtual void unload_debug_data(const std::string& dest_type, const std::string& destination) override;
+    
 
 private:
     std::shared_ptr<putils::circbuff::CircularBuffer<unsigned short>> m_buff;
     std::shared_ptr<pirobot::analogdata::AnalogDataProviderItf> m_provider;
     unsigned short m_value_diff_for_event;
+
+    unsigned short* m_debug_values;
+    int m_debug_data_counter;
+    int m_debug_size;
 };
 
 }
