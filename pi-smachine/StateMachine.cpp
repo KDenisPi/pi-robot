@@ -125,6 +125,8 @@ void StateMachine::put_event(const std::shared_ptr<Event> event, bool force){
     }
     m_events.push(event);
     mutex_sm.unlock();
+
+    cv.notify_one();
 }
 
 /*
@@ -177,8 +179,15 @@ void StateMachine::worker(StateMachine* stm){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker started.");
     bool finish = false;
 
+    auto fn = [stm]{return (stm->is_stop_signal() || !stm->empty());};
+    
     for(;;){
         //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker check event queue");
+
+        {
+            std::unique_lock<std::mutex> lk(stm->cv_m);
+            stm->cv.wait(lk, fn);
+        }        
 
         /*
         TODO: Add condition variable here
@@ -242,8 +251,7 @@ void StateMachine::worker(StateMachine* stm){
         /*
          *
          */
-        //sleep(1);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker finished.");
