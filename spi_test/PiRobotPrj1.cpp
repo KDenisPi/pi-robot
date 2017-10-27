@@ -52,9 +52,9 @@ bool PiRobotPrj1::configure(){
     };
     add_item(mcp_3208);
 
-    pirobot::item::ItemConfig light_meter1 = {pirobot::item::ItemTypes::AnalogMeter, "LightMeter_1", "LightMeter", {}, "MCP3208", 0, 200};
+    pirobot::item::ItemConfig light_meter1 = {pirobot::item::ItemTypes::AnalogMeter, "LightMeter_1", "LightMeter", {}, "MCP3208", 0, 200, 1};
     add_item(light_meter1);
-    pirobot::item::ItemConfig light_meter2 = {pirobot::item::ItemTypes::AnalogMeter, "LightMeter_2", "LightMeter", {}, "MCP3208", 1, 200};
+    pirobot::item::ItemConfig light_meter2 = {pirobot::item::ItemTypes::AnalogMeter, "LightMeter_2", "LightMeter", {}, "MCP3208", 1, 200, 1};
     add_item(light_meter2);
     /*
     pirobot::item::ItemConfig light_meter3 = {pirobot::item::ItemTypes::AnalogMeter, "LightMeter_3", "LightMeter", {}, "MCP3208", 2};

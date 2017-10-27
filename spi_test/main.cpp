@@ -18,12 +18,14 @@ int main (int argc, char* argv[])
   cout <<  "spi_test started" << endl;
 
   std::shared_ptr<spi_test::MyStateFactory> factory(new spi_test::MyStateFactory());
-  std::shared_ptr<pirobot::PiRobot> pirobot(new spi_test::PiRobotPrj1(true));
+  std::shared_ptr<pirobot::PiRobot> pirobot(new spi_test::PiRobotPrj1(false));
 
   smachine::StateMachine* stm = new smachine::StateMachine(factory, pirobot);
 
   sleep(4);
 
+  cout <<  "Start state machine" << endl;
+  stm->run();
   cout <<  "Wait for state machine" << endl;
   stm->wait();
 

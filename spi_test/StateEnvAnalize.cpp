@@ -31,14 +31,13 @@ StateEnvAnalize::~StateEnvAnalize() {
 void StateEnvAnalize::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize started");
 
-    auto lght_meter    = std::static_pointer_cast<pirobot::anlglightmeter::AnalogLightMeter>(
-        get_itf()->get_robot()->get_item("LightMeter_1"));
-    lght_meter->activate();
+    auto lght_meter_1 = get_item<pirobot::anlglightmeter::AnalogLightMeter>("LightMeter_1");
+    auto lght_meter_2 = get_item<pirobot::anlglightmeter::AnalogLightMeter>("LightMeter_2");
 
-    get_itf()->timer_start(TIMER_LIGHT_METER, 30);
-    //get_itf()->timer_start(TIMER_LIGHT_METER_1, 1);
-    //get_itf()->timer_start(TIMER_LIGHT_METER_2, 2);
+    lght_meter_1->activate();
+    lght_meter_2->activate();
     
+    get_itf()->timer_start(TIMER_LIGHT_METER, 30);
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize finished");
 }
 
@@ -51,40 +50,16 @@ bool StateEnvAnalize::OnTimer(const int id){
             return true;
         case TIMER_LIGHT_METER:
             {
-                auto lght_meter_1    = std::static_pointer_cast<pirobot::anlglightmeter::AnalogLightMeter>
-                    (get_itf()->get_robot()->get_item("LightMeter_1"));
+                auto lght_meter_1 = get_item<pirobot::anlglightmeter::AnalogLightMeter>("LightMeter_1");
+                auto lght_meter_2 = get_item<pirobot::anlglightmeter::AnalogLightMeter>("LightMeter_2");
                 lght_meter_1->deactivate();
-/*                
-
-                auto lght_meter_2    = std::static_pointer_cast<pirobot::anlglightmeter::AnalogLightMeter>
-                    (get_itf()->get_robot()->get_item("LightMeter_2"));
                 lght_meter_2->deactivate();
-    
-                auto lght_meter_3    = std::static_pointer_cast<pirobot::anlglightmeter::AnalogLightMeter>
-                    (get_itf()->get_robot()->get_item("LightMeter_3"));
-                lght_meter_3->deactivate();
-*/        
+
                 logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Run stop timer 5 sec");
                 get_itf()->timer_start(TIMER_FINISH_ROBOT, 5);
 
             }
             return true;
-/*            
-        case TIMER_LIGHT_METER_1:
-            {
-                auto lght_meter_2    = std::static_pointer_cast<pirobot::anlglightmeter::AnalogLightMeter>
-                    (get_itf()->get_robot()->get_item("LightMeter_1"));
-                lght_meter_2->activate();
-            }
-            return true;
-        case TIMER_LIGHT_METER_2:
-            {   
-                auto lght_meter_3    = std::static_pointer_cast<pirobot::anlglightmeter::AnalogLightMeter>
-                    (get_itf()->get_robot()->get_item("LightMeter_3"));
-                lght_meter_3->activate();
-            }
-            return true;
-*/            
     }
 
     return false;
