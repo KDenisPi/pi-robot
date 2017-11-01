@@ -43,8 +43,8 @@ public:
         m_mqqtCl = std::shared_ptr<T>(new T(m_conf.clientid()));
         m_mqqtCl->owner_notification = std::bind(&MqqtClient::on_client, this, std::placeholders::_1, std::placeholders::_2);
         
-        m_messages = std::shared_ptr<putils::circbuff::CircularBuffer<std::pair<std::string, std::string>>>(
-                new putils::circbuff::CircularBuffer<std::pair<std::string, std::string>>(m_max_size));
+        m_messages = std::shared_ptr<piutils::circbuff::CircularBuffer<std::pair<std::string, std::string>>>(
+                new piutils::circbuff::CircularBuffer<std::pair<std::string, std::string>>(m_max_size));
         
         logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Version: " + get_version());   
     }
@@ -193,7 +193,7 @@ private:
     std::recursive_mutex cv_m;
     std::condition_variable cv;
     
-    std::shared_ptr<putils::circbuff::CircularBuffer<std::pair<std::string, std::string>>> m_messages;
+    std::shared_ptr<piutils::circbuff::CircularBuffer<std::pair<std::string, std::string>>> m_messages;
     int m_max_size;  
 };
 

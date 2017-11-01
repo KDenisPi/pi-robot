@@ -42,7 +42,7 @@ public:
         assert(provider);
 
         set_idx(analog_input_index);
-        m_buff = std::shared_ptr<putils::circbuff::CircularBuffer<unsigned short>>(new putils::circbuff::CircularBuffer<unsigned short>(20));
+        m_buff = std::shared_ptr<piutils::circbuff::CircularBuffer<unsigned short>>(new piutils::circbuff::CircularBuffer<unsigned short>(20));
 
         if(m_provider){
             m_provider->register_data_receiver(get_idx(), std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf>(this));
@@ -140,7 +140,7 @@ public:
     
 
 private:
-    std::shared_ptr<putils::circbuff::CircularBuffer<unsigned short>> m_buff;
+    std::shared_ptr<piutils::circbuff::CircularBuffer<unsigned short>> m_buff;
     std::shared_ptr<pirobot::analogdata::AnalogDataProviderItf> m_provider;
     unsigned short m_value_diff_for_event;
 

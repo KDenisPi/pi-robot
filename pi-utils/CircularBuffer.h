@@ -11,7 +11,7 @@
 #include <vector>
 #include <mutex>
 
-namespace putils {
+namespace piutils {
 namespace circbuff {
 
 template<typename T>

@@ -248,10 +248,6 @@ void StateMachine::worker(StateMachine* stm){
         if(finish){
             break;
         }
-        /*
-         *
-         */
-        //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker finished.");
