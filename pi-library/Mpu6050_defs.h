@@ -31,7 +31,7 @@ namespace mpu6050 {
 #define MPU6050_MOT_DUR            0x20   // R/W
 #define MPU6050_ZRMOT_THR          0x21   // R/W
 #define MPU6050_ZRMOT_DUR          0x22   // R/W
-#define MPU6050_FIFO_EN            0x23   // R/W
+#define MPU6050_FIFO_ENABLE        0x23   // R/W
 #define MPU6050_I2C_MST_CTRL       0x24   // R/W
 #define MPU6050_I2C_SLV0_ADDR      0x25   // R/W
 #define MPU6050_I2C_SLV0_REG       0x26   // R/W

@@ -35,22 +35,6 @@ void Threaded::stop (const bool set_stop){
 
     logger::log(logger::LLOG::DEBUG, TAG_TR, std::string(__func__) + " Finished Thread:" + get_thread_id_str());
 }
-    
-template<class T>
-bool Threaded::start(T* owner){
-    logger::log(logger::LLOG::DEBUG, TAG_TR, std::string(__func__) + " Started");
-    bool ret = true;
-
-    if( is_stopped() ){
-        m_thread = std::thread(T::worker, owner);
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        logger::log(logger::LLOG::DEBUG, TAG_TR, std::string(__func__) + " Thread created. " + get_thread_id_str());
-    }
-    else{
-        logger::log(logger::LLOG::DEBUG, TAG_TR, std::string(__func__) + " Thread is started already. Nothing to do??!!");
-    }
-
-    return ret;
-}
+  
 
 } /* namespace pirobot */

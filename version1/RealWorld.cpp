@@ -5,7 +5,7 @@
  *      Author: Denis Kudia
  */
 
-//#include "logger.h"
+#include "logger.h"
 
 #include "Adafruit_PWMServoDriver.h"
 #include "GpioProviderFake.h"

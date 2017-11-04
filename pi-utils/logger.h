@@ -17,18 +17,20 @@
 
 namespace logger {
 
-enum LLOG {
-    ERROR = 0,
-    NECECCARY = 1,
-    INFO = 2,
-    DEBUG = 3
-};
+extern "C" {
+    enum LLOG {
+        ERROR = 0,
+        NECECCARY = 1,
+        INFO = 2,
+        DEBUG = 3
+    };
+    
+    void log(const LLOG level, const std::string& pattern, const std::string& msg);
+}    
 
 typedef std::pair<std::string, std::string> log_message;
 typedef std::pair<logger::LLOG, log_message> log_message_type;
 typedef piutils::circbuff::CircularBuffer<log_message_type> log_type;
-
-void log(const LLOG level, const std::string& pattern, const std::string& msg);
 
 class Logger : public piutils::Threaded{
 public:

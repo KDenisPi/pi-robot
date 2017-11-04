@@ -22,8 +22,10 @@ namespace logger {
 
 Logger plog;
 
+/*
 std::chrono::time_point<std::chrono::system_clock> tp;
 char mtime[30];
+*/
 
 void log(const LLOG level, const std::string pattern, const std::string message){
 /*
