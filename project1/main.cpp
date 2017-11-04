@@ -48,7 +48,6 @@ static void sigHandlerMQQT(int sign){
   }
 }
 
-
 /*
 * Singnal handler for parent
 */

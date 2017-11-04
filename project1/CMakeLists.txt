@@ -12,8 +12,8 @@ set(EXTRA_LIBS ${EXTRA_LIBS} pi-library pi-smachine pi-utils pi-mqqt pthread)
 include_directories(BEFORE ${WIRINGPI_LIB}
     ${MOSQUITTO_HOME}/lib/cpp
     ${MOSQUITTO_HOME}/lib
-    ${PROJECT_SOURCE_DIR}/../pi-library
     ${PROJECT_SOURCE_DIR}/../pi-utils
+    ${PROJECT_SOURCE_DIR}/../pi-library
     ${PROJECT_SOURCE_DIR}/../pi-smachine
     ${PROJECT_SOURCE_DIR}/../pi-mqqt
 )

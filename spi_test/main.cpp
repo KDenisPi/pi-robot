@@ -1,40 +1,112 @@
 #include <iostream>
 #include <unistd.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <sys/wait.h>
 
-/*
-* Timer test
-*/
-//#include "Timers.h"
-
+#include "logger.h"
 #include "StateMachine.h"
 #include "MyStateFactory.h"
 #include "PiRobotPrj1.h"
 
 using namespace std;
+smachine::StateMachine* stm;
+pid_t stmPid, mqqtPid;
+
+/*
+* Singnal handler for State Machine
+*/
+static void sigHandlerStateMachine(int sign){
+  
+    cout <<  "State machine: Detected signal " << sign  << endl;
+    if(sign == SIGINT) {
+      stm->finish();
+    }
+    else if (sign == SIGUSR1){
+      stm->run();
+    }
+}
+
+/*
+* Singnal handler for parent
+*/
+static void sigHandlerParent(int sign){
+  cout <<  "Parent: Detected signal " << sign  << endl;
+ 
+   if (sign == SIGINT || sign == SIGUSR1) {
+     if(stmPid)
+       kill(stmPid, sign);
+     if(mqqtPid)  
+       kill(mqqtPid, sign);
+   }
+}
 
 int main (int argc, char* argv[])
 {
   cout <<  "spi_test started" << endl;
 
-  std::shared_ptr<spi_test::MyStateFactory> factory(new spi_test::MyStateFactory());
-  std::shared_ptr<pirobot::PiRobot> pirobot(new spi_test::PiRobotPrj1(false));
+	//logger::log(logger::LLOG::DEBUG, "Main", std::string(__func__) + " Started....");
+  
+  switch(stmPid = fork()){
+    case -1:
+      cout <<  "Failed first fork" << endl;
+      exit(EXIT_FAILURE);
 
-  smachine::StateMachine* stm = new smachine::StateMachine(factory, pirobot);
+    case 0: //child
+      {
+        if (signal(SIGINT, sigHandlerStateMachine) == SIG_ERR ){
+             cout <<  "Failed set first fork handler" << endl;
+             _exit(EXIT_FAILURE);
+        }
 
-  sleep(4);
+        if( signal(SIGUSR1, sigHandlerStateMachine) == SIG_ERR){
+             cout <<  "Failed set first fork handler" << endl;
+             _exit(EXIT_FAILURE);
+        }
 
-  cout <<  "Start state machine" << endl;
-  stm->run();
-  cout <<  "Wait for state machine" << endl;
-  stm->wait();
+        std::shared_ptr<spi_test::MyStateFactory> factory(new spi_test::MyStateFactory());
+        std::shared_ptr<pirobot::PiRobot> pirobot(new spi_test::PiRobotPrj1(false));
+        stm = new smachine::StateMachine(factory, pirobot);
+        stm->wait();
 
-  cout <<  "Sleep 3 sec" << endl;
-  sleep(3);
+        cout <<  "State machine finished" << endl;
 
-  cout <<  "Delete State Machine" << endl;
-  delete stm;
-  cout <<  "spi_test finished" << endl;
-  exit(0);
+        sleep(2);
+        delete stm;
+
+        _exit(EXIT_SUCCESS);
+      }
+      break;
+
+    default: //parent
+      cout <<  "State machine child created " <<  stmPid << endl;
+
+      if( signal(SIGUSR1, sigHandlerParent) == SIG_ERR){
+        cout <<  "Parent handler error " <<  stmPid << endl;
+      }
+
+      if (signal(SIGINT, sigHandlerParent) == SIG_ERR ){
+        cout <<  "Parent handler error " <<  stmPid << endl;
+        kill(stmPid, SIGINT);
+      }
+
+      sleep(1);
+      kill(stmPid, SIGUSR1);
+
+      for(;;){
+        pid_t chdPid = wait(NULL);
+        if(chdPid == -1){
+          if (errno == ECHILD) {
+            cout <<  "No more childs" << endl;
+            break;
+          }
+        }
+        else
+          cout <<  "Child finished " <<  chdPid << endl;
+      }
+      cout <<  "Project1 finished" << endl;
+  }
+
+  exit(EXIT_SUCCESS);
 }
 

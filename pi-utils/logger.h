@@ -17,16 +17,14 @@
 
 namespace logger {
 
-extern "C" {
     enum LLOG {
         ERROR = 0,
         NECECCARY = 1,
         INFO = 2,
         DEBUG = 3
     };
-    
-    void log(const LLOG level, const std::string& pattern, const std::string& msg);
-}    
+
+void log(const LLOG level, const std::string pattern, const std::string message);    
 
 typedef std::pair<std::string, std::string> log_message;
 typedef std::pair<logger::LLOG, log_message> log_message_type;
@@ -43,7 +41,7 @@ public:
 
     static void worker(Logger* p);
 
-    inline void log(const LLOG level, const std::string& pattern, const std::string& message);
+    void llog(const LLOG level, const std::string& pattern, const std::string& message);
 
     const bool data_present() const {
         return !m_buff->is_empty();
@@ -53,7 +51,7 @@ public:
         return m_buff->get();
     }
 
-    void llog(const log_message_type) const;
+    void write_log(const log_message_type) const;
 
 private:
     std::shared_ptr<spdlog::logger> async_file;
@@ -61,6 +59,8 @@ private:
 
     std::shared_ptr<log_type> m_buff;
 };
+
+extern Logger plog;    
 
 } /* namespace logger */
 
