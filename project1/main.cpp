@@ -83,6 +83,8 @@ int main (int argc, char* argv[])
 
     case 0: //child
       {
+        ADD_SIGNAL(SIGALRM)
+
         if (signal(SIGINT, sigHandlerStateMachine) == SIG_ERR ){
              cout <<  "Failed set first fork handler" << endl;
              _exit(EXIT_FAILURE);

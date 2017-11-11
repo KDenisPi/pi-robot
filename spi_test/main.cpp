@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <fstream>
+
 
 #include "logger.h"
 #include "StateMachine.h"
@@ -45,8 +47,6 @@ int main (int argc, char* argv[])
 {
   cout <<  "spi_test started" << endl;
 
-	//logger::log(logger::LLOG::DEBUG, "Main", std::string(__func__) + " Started....");
-  
   switch(stmPid = fork()){
     case -1:
       cout <<  "Failed first fork" << endl;
@@ -54,6 +54,8 @@ int main (int argc, char* argv[])
 
     case 0: //child
       {
+        ADD_SIGNAL(SIGALRM)
+
         if (signal(SIGINT, sigHandlerStateMachine) == SIG_ERR ){
              cout <<  "Failed set first fork handler" << endl;
              _exit(EXIT_FAILURE);
@@ -67,19 +69,39 @@ int main (int argc, char* argv[])
         std::shared_ptr<spi_test::MyStateFactory> factory(new spi_test::MyStateFactory());
         std::shared_ptr<pirobot::PiRobot> pirobot(new spi_test::PiRobotPrj1(false));
         stm = new smachine::StateMachine(factory, pirobot);
+
+        cout <<  "State machine started. Wait" << endl;   
+        cout <<  "Logger links: " << logger::plog.use_count() << endl;
         stm->wait();
 
-        cout <<  "State machine finished" << endl;
+        cout  <<  "State machine finished" << endl;         
+
+        if(logger::plog){
+          cout <<  "Check logger state" << endl;
+          cout <<  "Logger links: " << logger::plog.use_count() << endl;
+        }
+        else
+          cout <<  "Logger not present" << endl;
 
         sleep(2);
+        cout <<  "Delete State Machine" << endl;
         delete stm;
 
+        cout <<  "State Machine deleted" << endl;
+        if(logger::plog){
+          cout <<  "Logger links 2: " << logger::plog.use_count() << endl;
+        }
+
+        logger::release();       
+ 
         _exit(EXIT_SUCCESS);
       }
       break;
 
     default: //parent
       cout <<  "State machine child created " <<  stmPid << endl;
+
+      ADD_SIGNAL(SIGALRM)
 
       if( signal(SIGUSR1, sigHandlerParent) == SIG_ERR){
         cout <<  "Parent handler error " <<  stmPid << endl;
@@ -90,7 +112,7 @@ int main (int argc, char* argv[])
         kill(stmPid, SIGINT);
       }
 
-      sleep(1);
+      sleep(5);
       kill(stmPid, SIGUSR1);
 
       for(;;){

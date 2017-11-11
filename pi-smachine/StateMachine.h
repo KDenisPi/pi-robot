@@ -22,6 +22,14 @@
 #include "Event.h"
 #include "Threaded.h"
 
+#define ADD_SIGNAL(signal)   sigset_t new_set;\
+  sigemptyset (&new_set);\
+  sigaddset (&new_set, signal);\
+  if( sigprocmask(SIG_BLOCK, &new_set, NULL) < 0){\
+     cout <<  " Could not set signal mask." << endl;\
+  }
+
+
 namespace smachine {
 
 class Timers;

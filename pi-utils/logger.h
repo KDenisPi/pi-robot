@@ -25,6 +25,7 @@ namespace logger {
     };
 
 void log(const LLOG level, const std::string pattern, const std::string message);    
+void release();
 
 typedef std::pair<std::string, std::string> log_message;
 typedef std::pair<logger::LLOG, log_message> log_message_type;
@@ -33,11 +34,14 @@ typedef piutils::circbuff::CircularBuffer<log_message_type> log_type;
 class Logger : public piutils::Threaded{
 public:
     Logger();
+    virtual ~Logger();
     
+    /*
     virtual ~Logger() {
         piutils::Threaded::stop();
         async_file->flush();
     }
+    */
 
     static void worker(Logger* p);
 
@@ -52,15 +56,24 @@ public:
     }
 
     void write_log(const log_message_type) const;
+    
+    void set_flush(){
+        m_flush = true;
+    }
+    const bool is_flush() const {
+        return m_flush;
+    }
 
 private:
     std::shared_ptr<spdlog::logger> async_file;
     std::mutex cv_m;
 
     std::shared_ptr<log_type> m_buff;
+    bool m_flush;
 };
 
-extern Logger plog;    
+//extern Logger plog;
+extern std::shared_ptr<Logger> plog;
 
 } /* namespace logger */
 
