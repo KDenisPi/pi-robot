@@ -36,7 +36,7 @@ public:
     */
     const void put(const T& value){
         std::lock_guard<std::mutex> lk(cv_m);
-        buffer[head_] = value;
+        buffer[head_] = std::move(value);
         head_ = (head_ + 1 >= max_size_ ? 0 : head_+1);
         if(head_ == tail_)
             tail_ = (tail_ + 1 >= max_size_ ? 0 : tail_+1);
