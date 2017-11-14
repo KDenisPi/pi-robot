@@ -111,7 +111,7 @@ void Logger::worker(Logger* owner){
 /*
 *
 */
-void log(const LLOG level, const std::string pattern, const std::string message){
+void log(const LLOG level, const std::string& pattern, const std::string& message){
     if(!plog){
         std::cout << "Create Logger" << std::endl;
         p_plog = new Logger();

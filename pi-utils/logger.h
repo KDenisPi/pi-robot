@@ -24,7 +24,7 @@ namespace logger {
         DEBUG = 3
     };
 
-void log(const LLOG level, const std::string pattern, const std::string message);    
+void log(const LLOG level, const std::string& pattern, const std::string& message);    
 void release();
 
 typedef std::pair<std::string, std::string> log_message;
