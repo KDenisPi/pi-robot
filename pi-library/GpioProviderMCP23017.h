@@ -16,8 +16,7 @@ namespace gpio {
 class GpioProviderMCP23017: public GpioProvider {
 public:
     GpioProviderMCP23017(const std::string name,
-        const uint8_t i2caddr = 0x20,
-        const int pin_start = DEFAULT_PIN_START::PROV_PIN_MCP23017);
+        const uint8_t i2caddr = 0x20);
     virtual ~GpioProviderMCP23017();
 
     virtual const std::string to_string() override;

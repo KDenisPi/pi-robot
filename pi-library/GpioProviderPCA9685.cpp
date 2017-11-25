@@ -16,9 +16,8 @@ namespace gpio {
 const char TAG[] = "PCA9685";
 
 GpioProviderPCA9685::GpioProviderPCA9685(const std::string name, 
-    std::shared_ptr<Adafruit_PWMServoDriver> pwm, 
-    const int pin_start, const float freq) :
-        GpioProvider(name, pin_start, 16), m_pwm(pwm), m_freq(freq)
+    std::shared_ptr<Adafruit_PWMServoDriver> pwm, const float freq) :
+        GpioProvider(name, 16), m_pwm(pwm), m_freq(freq)
 {
     assert(pwm != nullptr);
     m_pwm->begin();

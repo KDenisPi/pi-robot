@@ -18,8 +18,8 @@ namespace gpio {
 
 const char TAG[] = "MCP23017";
 
-GpioProviderMCP23017::GpioProviderMCP23017(const std::string name, const uint8_t i2caddr, const int pin_start) :
-          GpioProvider(name, pin_start, 16), _i2caddr(i2caddr), m_OLATA(0), m_OLATB(0), m_fd(-1)
+GpioProviderMCP23017::GpioProviderMCP23017(const std::string name, const uint8_t i2caddr) :
+          GpioProvider(name, 16), _i2caddr(i2caddr), m_OLATA(0), m_OLATB(0), m_fd(-1)
 {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
     int current_mode = 0;

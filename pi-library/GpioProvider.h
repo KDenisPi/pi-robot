@@ -41,17 +41,11 @@ enum GPIO_PROVIDER_TYPE {
         PROV_MCP23017   // MCP 2317
 };
 
-enum DEFAULT_PIN_START {
-	PROV_PIN_SIMPLE = 0,	// GPIO number 8
-	PROV_PIN_PCA9685 = 30,	// GPIO number 16
-	PROV_PIN_MCP23017 = 50	// GPIO number 16
-};
-
 class GpioProvider : public pirobot::provider::Provider {
 public:
-	GpioProvider(const std::string& name, const int pin_start=0, const int pin_count = 0) :
+	GpioProvider(const std::string& name, const int pin_count = 0) :
 		Provider(pirobot::provider::PROVIDER_TYPE::PROV_GPIO, name),
-		m_pstart(pin_start), m_pcount(pin_count)
+		m_pstart(0), m_pcount(pin_count)
 	{}
 
 	virtual ~GpioProvider() {}
@@ -63,8 +57,8 @@ public:
 	 *
 	 */
 	int getRealPin(const int pin) const {
-		assert((pin-m_pstart) < m_pcount);
-		return pin - m_pstart;
+		assert(pin < m_pcount);
+		return pin;
 	}
 
 	/*
@@ -72,7 +66,7 @@ public:
 	 */
 	bool is_valid_pin(int pin) const {
 		assert(pin >= m_pstart);
-		assert(pin < (m_pstart+m_pcount));
+		assert(pin < m_pcount);
 
 		if((pin >= m_pstart) && (pin < (m_pstart+m_pcount)))
 			return true;

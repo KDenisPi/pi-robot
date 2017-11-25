@@ -15,9 +15,8 @@ namespace gpio {
 
 const char TAG[] = "PrvFake";
 
-GpioProviderFake::GpioProviderFake(const std::string name, 
-	const int pin_start, const int pins) :
-		GpioProvider(name, pin_start, pins)
+GpioProviderFake::GpioProviderFake(const std::string name, const int pins) :
+		GpioProvider(name, pins)
 {
 }
 

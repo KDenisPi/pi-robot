@@ -49,7 +49,7 @@ public:
      * Get GPIO by absolute ID
      * Get GPIO by provider name and ID
      */
-    std::shared_ptr<gpio::Gpio> get_gpio(const int id) const noexcept(false);
+    std::shared_ptr<gpio::Gpio> get_gpio(const std::string& name) const noexcept(false);
     std::shared_ptr<gpio::Gpio> get_gpio(const std::string provider, const int id)  const noexcept(false);
 
     /*
@@ -57,15 +57,6 @@ public:
      */
     std::shared_ptr<item::Item> get_item(const std::string& name) const noexcept(false);
 
-/*    
-
-    inline const std::vector<int> get_gpios() const {
-        std::vector<int> keys;
-        for(auto imap: gpios)
-            keys.push_back(imap.first);
-        return keys;
-    }
-*/
     inline const std::vector<std::string> get_items() const {
         std::vector<std::string> keys;
         for(auto imap: items)
@@ -77,6 +68,10 @@ public:
         items[name] = item;
     }
 
+    const std::string get_gpio_name(const std::string& provider_name, const int pin) const {
+        std::string gpio_ = provider_name + "_" + std::to_string(pin);
+        return gpio_;
+    }
     /*
     * Create configuration functions
     *
@@ -107,18 +102,18 @@ public:
     const bool is_real_world() const { return m_realWorld;}
     
 private:
-    void gpios_add(int idx, const std::shared_ptr<gpio::Gpio> gpio){
-        gpios[idx] = gpio;
+    void gpios_add(const std::string& name, const std::shared_ptr<gpio::Gpio> gpio){
+        gpios[name] = gpio;
     }
 
 private:
     bool m_realWorld;
     std::recursive_mutex mutex_sm;
     
-    std::map <int,
+    std::map <std::string,
         std::shared_ptr<gpio::Gpio>,
-        std::less<int>,
-        std::allocator<std::pair<const int, std::shared_ptr<gpio::Gpio>> >
+        std::less<std::string>,
+        std::allocator<std::pair<const std::string, std::shared_ptr<gpio::Gpio>> >
     > gpios;
 
     std::map <std::string,

@@ -62,11 +62,11 @@ PiRobot::~PiRobot() {
 /*
  * Get GPIO by ID
  */
-std::shared_ptr<gpio::Gpio> PiRobot::get_gpio(const int id) const{
-    auto pgpio = this->gpios.find(id);
+std::shared_ptr<gpio::Gpio> PiRobot::get_gpio(const std::string& name) const{
+    auto pgpio = this->gpios.find(name);
     if(pgpio == gpios.end()){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Absent requested GPIO with ID " + std::to_string(id));
-        throw std::runtime_error(std::string("No GPIO with ID: ") + std::to_string(id));
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Absent requested GPIO with ID " + name);
+        throw std::runtime_error(std::string("No GPIO with ID: ") + name);
     }
     return pgpio->second;
 }
@@ -75,9 +75,8 @@ std::shared_ptr<gpio::Gpio> PiRobot::get_gpio(const int id) const{
  * Get GPIO by provider name and PIN number
  */
  std::shared_ptr<gpio::Gpio> PiRobot::get_gpio(const std::string provider_name, const int pin)  const{
-    auto provider = get_provider(provider_name);
-    auto gpio_provider = std::static_pointer_cast<pirobot::gpio::GpioProvider>(provider);
-    return get_gpio(gpio_provider->getStartPin() + pin);
+    auto name = get_gpio_name(provider_name, pin);
+    return get_gpio(name);
 }
 
 
@@ -118,7 +117,7 @@ void PiRobot::add_provider(const std::string& type, const std::string& name){
     }
 
     if(type == "FAKE"){
-        providers[name] = std::shared_ptr<pirobot::provider::Provider>(new pirobot::gpio::GpioProviderFake(name, 10, 16));
+        providers[name] = std::shared_ptr<pirobot::provider::Provider>(new pirobot::gpio::GpioProviderFake(name, 16));
     }
     else if(type == "MCP23017"){ //this provider can be  used with real hardware only
         if(!is_real_world()){
@@ -158,27 +157,29 @@ void PiRobot::add_provider(const std::string& type, const std::string& name){
 */
 void PiRobot::add_gpio(const std::string& provider_name, 
     const pirobot::gpio::GPIO_MODE gpio_mode, const int pin) noexcept(false){
+
     const auto provider = get_provider(provider_name);
     if(provider->get_ptype() != provider::PROVIDER_TYPE::PROV_GPIO){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid provider type");
         throw std::runtime_error(std::string("Invalid provider type"));
     }
     auto gpio_provider = std::static_pointer_cast<pirobot::gpio::GpioProvider>(provider);
-    int global_pin = gpio_provider->getStartPin() + pin;
     // Validate pin number
-    if(!gpio_provider->is_valid_pin(global_pin)){
+    if(!gpio_provider->is_valid_pin(pin)){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid pin number: " + std::to_string(pin));
         throw std::runtime_error(std::string(" Invalid pin number: ") + std::to_string(pin));
     }
-    auto pgpio = this->gpios.find(global_pin);
+
+    auto gpio_name = get_gpio_name(provider_name, pin);
+    auto pgpio = this->gpios.find(gpio_name);
     if(pgpio != gpios.end()){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " GPIO with such PIN is present already PIN: " + std::to_string(pin));
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " GPIO with such PIN is present already PIN: " + gpio_name);
         return;
     }
  
-    gpios_add(global_pin,
+    gpios_add(gpio_name,
             std::shared_ptr<pirobot::gpio::Gpio>(
-                new pirobot::gpio::Gpio(global_pin,	gpio_mode, gpio_provider)
+                new pirobot::gpio::Gpio(pin, gpio_mode, gpio_provider)
             ));
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Provider: " + provider_name + ". Added PIN: " + std::to_string(pin));
 }
@@ -194,13 +195,7 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
 
         if(iconfig.gpios.size() == 0)
             return false;
-/*        
-        int asize = iconfig.gpios.size();    
-        for(auto gpio : iconfig.gpios){
-            if(gpio.first.empty() || gpio.second < 0)
-                return false;
-        }    
-*/
+
         return true;
     };
 
@@ -211,7 +206,8 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
         return true;    
     };
 
-    auto f_get_gpio_provider_abs_pin = [this](const pirobot::item::ItemConfig& iconfig, int idx) -> int{
+    auto f_get_gpio_provider_name = [this](const pirobot::item::ItemConfig& iconfig, int idx) -> std::string{
+
         const auto gpio = iconfig.gpios[idx];
         const auto provider = get_provider(gpio.first);
         if(provider->get_ptype() != provider::PROVIDER_TYPE::PROV_GPIO){
@@ -220,7 +216,8 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
         }
 
         auto gpio_provider = std::static_pointer_cast<pirobot::gpio::GpioProvider>(provider);
-        return gpio_provider->getStartPin() + gpio.second;
+
+        return get_gpio_name(gpio_provider->get_name(), gpio.second);
     };
 
     switch(iconfig.type){
@@ -236,7 +233,7 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
                     throw std::runtime_error(std::string(" Invalid configuration"));
                 }
 
-                const int pin = f_get_gpio_provider_abs_pin(iconfig,0);
+                const std::string& gpio_name = f_get_gpio_provider_name(iconfig,0);
                 
                 /*
                 * LED parameters: Name, Comment, [GPIO provider, PIN]
@@ -244,7 +241,7 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
                 if(iconfig.type==item::ItemTypes::LED){
                     items_add(iconfig.name, 
                         std::shared_ptr<pirobot::item::Item>(
-                            new pirobot::item::Led(get_gpio(pin), iconfig.name, iconfig.comment)));
+                            new pirobot::item::Led(get_gpio(gpio_name), iconfig.name, iconfig.comment)));
                 }
                 /*
                 * BUTTON parameters: Name, Comment, [GPIO provider, PIN]
@@ -253,7 +250,7 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
                     items_add(iconfig.name, 
                         std::shared_ptr<pirobot::item::Item>(
                             new pirobot::item::Button(
-                                get_gpio(pin), 
+                                get_gpio(gpio_name), 
                                 iconfig.name, iconfig.comment, 
                                 pirobot::item::BUTTON_STATE::BTN_NOT_PUSHED, 
                                 pirobot::gpio::PULL_MODE::PULL_UP)));
@@ -264,20 +261,20 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
                 else if(iconfig.type==item::ItemTypes::DRV8835){
                     items_add(iconfig.name, 
                         std::shared_ptr<pirobot::item::Item>(
-                            new pirobot::item::Drv8835(get_gpio(pin), iconfig.name, iconfig.comment)));
+                            new pirobot::item::Drv8835(get_gpio(gpio_name), iconfig.name, iconfig.comment)));
                 }
                 else if(iconfig.type==item::ItemTypes::DCMotor){
                 /*
                 * DCMotor parameters: Name, Comment, [GPIO provider, PIN] [0]=A_PHASE, [1]=A_ENABLE, SUB.ITEM=DRV8835
                 */
                     
-                    const int pin_a_enable = f_get_gpio_provider_abs_pin(iconfig,1);
+                    const std::string& pin_a_enable = f_get_gpio_provider_name(iconfig,1);
 
                     items_add(iconfig.name, 
                         std::shared_ptr<pirobot::item::Item>(
                             new pirobot::item::dcmotor::DCMotor(
                                 std::static_pointer_cast<pirobot::item::Drv8835>(get_item(iconfig.sub_item)),
-                                get_gpio(pin),
+                                get_gpio(gpio_name),
                                 get_gpio(pin_a_enable), iconfig.name, iconfig.comment)
                             )
                         );
@@ -291,13 +288,13 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
                         [3]=PHASE_3
                     */
                         
-                    const int pin_pb_1 = f_get_gpio_provider_abs_pin(iconfig,1);
-                    const int pin_pb_2 = f_get_gpio_provider_abs_pin(iconfig,2);
-                    const int pin_pb_3 = f_get_gpio_provider_abs_pin(iconfig,3);
+                    const std::string& pin_pb_1 = f_get_gpio_provider_name(iconfig,1);
+                    const std::string& pin_pb_2 = f_get_gpio_provider_name(iconfig,2);
+                    const std::string& pin_pb_3 = f_get_gpio_provider_name(iconfig,3);
 
                     items_add(iconfig.name, 
                         std::shared_ptr<pirobot::item::Item>(new pirobot::item::ULN2003StepperMotor(
-                            get_gpio(pin),
+                            get_gpio(gpio_name),
                             get_gpio(pin_pb_1),
                             get_gpio(pin_pb_2),
                             get_gpio(pin_pb_3),
@@ -315,7 +312,7 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
                 else if(iconfig.type==item::ItemTypes::AnlgDgtConvertor){
                     items_add(iconfig.name, std::shared_ptr<pirobot::item::Item>(new pirobot::mcp320x::MCP320X(
                         std::static_pointer_cast<pirobot::spi::SPI>(get_provider("SPI")),
-                        get_gpio(pin),
+                        get_gpio(gpio_name),
                         iconfig.name, iconfig.comment)));
                 }                        
             }
