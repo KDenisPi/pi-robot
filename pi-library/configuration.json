@@ -1,0 +1,127 @@
+{
+    "version": "1.0", //Optional, for future using
+
+    //
+    // Flag if this configuration should be used with real hardware or with emulator
+    // Possible values: true - hardware, false - emulator
+    "real_world": "true",
+    //
+    // List of providers used for the project.
+    // We have two types of providers here: GPIO (all from the list below except SPI), SPI
+    // Note: SIMPLE provider is added always by default if real_world is true
+    //       For emulator we cannot use any providers instead of FAKE (SPI)
+    // Optional
+    // For GPIO providers we can set pin count (pins)
+    // Each GPIO provider has number pins by default (FAKE=16, SIMPLE=12, MCP23017=16, PCA9585=16)
+    "providers": [{"SIMPLE": {"pins":12}}
+        , "FAKE", "MCP23017", "PCA9685", "SPI"],
+
+    //
+    // GPIOs 
+    // GPIO mode can be "IN" or "OUT"
+    //
+    "gpios": [{"name": "gpio_name", "provider": "provider_name", "pin": 0, "mode": "IN/OUT"}],
+    
+    //
+    // Items (all elements another then providers, and gpios)
+    //
+    "items":[
+        //
+        // LED
+        //
+        {
+            "type":"LED", 
+            "name":"item_name", 
+            "comment": "", 
+            "gpio": {"provider": "provider_name", "pin": 0}
+        },
+
+        //
+        // Button
+        //
+        {
+            "type":"BUTTON",
+            "name":"item_name",
+            "comment":"",
+            "state":"PUSHED/NOT_PUSHED", //optional - NOT_PUSHED by default
+            "pull_mode": "PULL_UP/PULL_DOWN", //optional - PULL_UP by default
+            "gpio": {"provider": "provider_name", "pin":0}
+        },
+
+        //
+        // DRV 8835
+        //
+        {
+            "type":"DRV8835", 
+            "name":"item_name", 
+            "comment": "",
+            "mode":"IN_IN/PH_EN", //mode (see above), optional PH_EN by default
+            "gpio": {"provider": "provider_name", "pin": 0}
+        },
+
+        //
+        // DC Motor
+        //
+        {
+            "type":"DRV8835", 
+            "name":"item_name", 
+            "comment": "", 
+            "drv8835": "drv8835_name",
+            "gpio_direction": {"provider": "provider_name", "pin": 0},
+            "gpio_pwm": {"provider": "provider_name", "pin": 0},
+            "direction": "CLOCKWISE/COUTERCLOCKWISE"
+        },
+
+        //
+        // Stepper over ULN2003 (ULN2003Stepper)
+        //
+        {
+            "type":"ULN2003Stepper", 
+            "name":"item_name", 
+            "comment": "",
+            "gpio_phase_0": {"provider": "provider_name", "pin": 0},
+            "gpio_phase_1": {"provider": "provider_name", "pin": 0},
+            "gpio_phase_2": {"provider": "provider_name", "pin": 0},
+            "gpio_phase_3": {"provider": "provider_name", "pin": 0}
+        },
+
+        //
+        // AnlgDgtConvertor based on MCP320X (AC/DC converter)
+        // 
+        {
+            "type": "AnlgDgtConvertor",
+            "name":"item_name",
+            "comment":"",
+            "gpio_on_off":{"provider": "provider_name", "pin": 0}, //GPIO is used for switch ON/OFF (CS/SHDN) Low - On, High - Off
+            "analog_inputs":8, // number of analog inputs usually 8/4 depends on chip
+            "spi_channel":0 // possible values 0/1
+        },
+
+        //
+        // Blinker based on LED
+        //
+        {
+            "type":"BLINKER", 
+            "name":"item_name", 
+            "comment": "",
+            "led_item": "LED_item_name",
+            "tm_on": 250, //time on interval in milliseconds
+            "tm_off": 500, //time off interval in milliseconds
+            "blinks": 10 //blinks number, 0 - infinitely, never stop
+        },
+
+        //
+        // Analog Light Meter
+        //
+        {
+            "type": "AnalogLightMeter", 
+            "name": "item_name", 
+            "comment": "",
+            "analg_dgt_convertor_item": "AnlgDgtConvertor_name",
+            "analog_input_index": 0, //Pin index
+            "debug": false, //Debug mode true/false
+            "debug_buffer_size": 2048, //size of debug buffer
+            "value_diff_for_event" : 20 // Difference in measures that generate event
+        }        
+    ]
+}

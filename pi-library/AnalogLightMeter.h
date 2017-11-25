@@ -30,12 +30,13 @@ public:
         const std::string& comment = "Analog Light Meter",
         const int analog_input_index=0,
         const unsigned short value_diff_for_event = 0, //do not generate events
-        const bool debug_mode = false
+        const bool debug_mode = false,
+        const int debug_buffer_size = 2048
         ):
         item::Item(name, comment, item::ItemTypes::AnalogMeter), 
         m_provider(provider),
         m_value_diff_for_event(value_diff_for_event),
-        m_debug_size(2048),
+        m_debug_size(debug_buffer_size),
         m_debug_values(nullptr),
         m_debug_data_counter(0)
     {
