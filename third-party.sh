@@ -38,6 +38,12 @@ cd ..
 echo SPDLOG 
 git clone https://github.com/gabime/spdlog.git spdlog
 
+#
+#
+#
+cd ..
+echo jsoncons
+git clone https://github.com/danielaparker/jsoncons jsoncons 
 
 cd ../pi-robot
 
