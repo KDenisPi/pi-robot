@@ -49,33 +49,33 @@ void AnalogLightMeter::stop(){
         while(!owner->is_stop_signal() && owner->is_active() &&  owner->data_present()){
             values[0] = owner->get();
             msg_counter++;
-            values[2] = (values[0] > values[1] ? values[0] - values[1] : values[0] - values[0]);
+
+            if(values[1] == 0){
+              values[1] = values[0];
+              continue;
+            }
+
+            values[2] = (values[0] > values[1] ? values[0] - values[1] : values[1] - values[0]);
 
             if(owner->is_debug()){
                 owner->debug_save_value(values[0]);
             }
-            /*
-            if(values[2] > 50)
-             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + name + " " + std::to_string(values[0]) + " " +
-                           std::to_string(values[1]) + " " + std::to_string(values[2]));
-            */
 
             //ignore first measure
             if(owner->diff_for_event() > 0 && values[1] > 0 && values[2] > owner->diff_for_event()){
-               /* 
-                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + name +
-                " Was: "  + std::to_string(values[1]) + " New: " + std::to_string(values[0]));
-                */
+
+                if(owner->is_debug()){
+                   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + name +
+                    " Was: "  + std::to_string(values[1]) + " New: " + std::to_string(values[0]) + 
+                    " (" + std::to_string(values[2]) + ") Counter: " + std::to_string(msg_counter));
+                }
+
                 if(owner->notify){
                     owner->notify(owner->type(), name, (void*)values);
                 }
 
                 values[1] = values[0];
             }
-
-            if(values[1] == 0){
-              values[1] = values[0];
-           }
         }
         /*
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + 
@@ -116,7 +116,6 @@ void AnalogLightMeter::unload_debug_data(const std::string& dest_type, const std
         }
         else
             logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not unload data to file " + destination);
-            
     }
 }
 

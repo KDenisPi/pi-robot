@@ -73,11 +73,11 @@ public:
 
     /*
     *
-    */    
+    */
     virtual const std::string pname() const override{
         return name();
     }
-    
+
     virtual void activate() override{
         analogdata::AnalogDataReceiverItf::activate();
         m_provider->activate_data_receiver(get_idx());
@@ -89,10 +89,11 @@ public:
     */
     virtual const std::string printConfig() override{
         if(m_provider)
-            return name() + " Provider: " + m_provider->pname() + " Index: " + std::to_string(get_idx());
+            return name() + " Provider: " + m_provider->pname() + " Index: " + std::to_string(get_idx()) +
+                " Diff: " + std::to_string(diff_for_event()) + " Debug:  " + (m_debug ? "true" : "false");
 
         return name();
-    }        
+    }
 
     /*
     *
@@ -102,12 +103,12 @@ public:
     }
 
     virtual void stop() override;
-    
+
     /*
     * Worker function
     */
     static void worker(AnalogLightMeter* p);
-    
+
     const bool data_present() const {
         return !m_buff->is_empty();
     }

@@ -132,9 +132,10 @@ bool PiRobotPrj1::configure(){
     };
     add_item(mcp_3208);
 
-    pirobot::item::ItemConfig light_meter_1 = {pirobot::item::ItemTypes::AnalogMeter, "LightMeter_1", "LightMeter 1", {}, "MCP3208", 0, 0, 1};//100};
+    // 0/7 - chanel,  2000 - diff, 0/1 - debug
+    pirobot::item::ItemConfig light_meter_1 = {pirobot::item::ItemTypes::AnalogMeter, "LightMeter_1", "LightMeter 1", {}, "MCP3208", 0, 1500, 1};//100};
     add_item(light_meter_1);
-    pirobot::item::ItemConfig light_meter_2 = {pirobot::item::ItemTypes::AnalogMeter, "LightMeter_2", "LightMeter 2", {}, "MCP3208", 1, 0, 1};//100};
+    pirobot::item::ItemConfig light_meter_2 = {pirobot::item::ItemTypes::AnalogMeter, "LightMeter_2", "LightMeter 2", {}, "MCP3208", 1, 1500, 1};//100};
     add_item(light_meter_2);
 
     //BTN Stop
