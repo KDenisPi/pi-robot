@@ -30,21 +30,29 @@ struct Provider_Info{
 
 class Provider {
 public:
-    Provider(const PROVIDER_TYPE type, const std::string name) :
-        m_type(type), m_name(name) {
+    Provider(const PROVIDER_TYPE type, const std::string name, const std::string comment = "") :
+        m_type(type), m_name(name), m_comment(comment) {
 
         }
 
-    virtual ~Provider(){
+    virtual ~Provider(){ }
 
+    const std::string get_name() const {
+        return m_name;
+    }
+    
+    const PROVIDER_TYPE get_ptype() const {
+        return m_type;
     }
 
-    const std::string get_name() const {return m_name;}
-    const PROVIDER_TYPE get_ptype() const {return m_type;}
-
+    inline const std::string comment() const {
+        return m_comment;
+    }
+    
 private:
     PROVIDER_TYPE m_type;
     std::string m_name;
+    std::string m_comment;
 };
 
 }//end namespace provider
