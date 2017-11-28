@@ -43,14 +43,12 @@ enum GPIO_PROVIDER_TYPE {
 
 class GpioProvider : public pirobot::provider::Provider {
 public:
-	GpioProvider(const std::string& name, const int pin_count = 0) :
-		Provider(pirobot::provider::PROVIDER_TYPE::PROV_GPIO, name),
+	GpioProvider(const std::string& name, const int pin_count = 0, const std::string comment = "") :
+		Provider(pirobot::provider::PROVIDER_TYPE::PROV_GPIO, name, comment),
 		m_pstart(0), m_pcount(pin_count)
 	{}
 
 	virtual ~GpioProvider() {}
-
-	int const getStartPin() const {return m_pstart;}
     virtual GPIO_PROVIDER_TYPE const get_type() const = 0;
 
 	/*

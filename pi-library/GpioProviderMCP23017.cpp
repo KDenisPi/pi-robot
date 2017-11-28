@@ -58,7 +58,7 @@ GpioProviderMCP23017::~GpioProviderMCP23017() {
  *
  */
 const std::string GpioProviderMCP23017::to_string(){
-    return std::string("MCP23017")+ " From: " + std::to_string(getStartPin());
+    return "Name: " + get_name() + " Type:" + std::string("MCP23017");
 }
 
 /*

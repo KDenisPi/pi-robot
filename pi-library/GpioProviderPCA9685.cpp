@@ -29,7 +29,7 @@ GpioProviderPCA9685::~GpioProviderPCA9685() {
 }
 
 const std::string GpioProviderPCA9685::to_string(){
-    return std::string("PCA9685")+ " From: " + std::to_string(getStartPin());
+    return "Name: " + get_name() + " Type:" + std::string("PCA9685");
 }
 
 /*
