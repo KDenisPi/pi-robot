@@ -417,6 +417,12 @@ void PiRobot::stop(){
 bool PiRobot::configure(){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot configuration is starting..");
 
+    std::string conf = get_configuration();
+    if(conf.empty()){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " No Robot configuration");
+        return false;
+    }
+
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot configuration is finished");
     return true;
 }

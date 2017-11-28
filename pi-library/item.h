@@ -111,15 +111,20 @@ public:
     inline const std::string comment() const { return m_comment;}
     inline const int type() const { return m_type;}
 
-    virtual const std::string to_string(){
+    virtual const std::string to_string() {
         return name();
     }
 
     virtual const std::string printConfig() = 0;
 
-    const std::shared_ptr<pirobot::gpio::Gpio> get_gpio() {return m_gpio;}
+    const std::shared_ptr<pirobot::gpio::Gpio> get_gpio() const {
+        return m_gpio;
+    }
 
-    static const std::string type_name(int typen) { return std::string(ItemNames[typen]); }
+    static const std::string type_name(const int typen) {
+        return std::string(ItemNames[typen]); 
+    }
+
     static const char* ItemNames[];
 
     inline bool have_notify(){
@@ -134,8 +139,6 @@ public:
     }
 
     std::function<void(int, std::string&, void*)> notify;
-
-    
 
 private:
     std::string m_name;

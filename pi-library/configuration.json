@@ -5,20 +5,40 @@
     // Flag if this configuration should be used with real hardware or with emulator
     // Possible values: true - hardware, false - emulator
     "real_world": "true",
+
     //
     // List of providers used for the project.
     // We have two types of providers here: GPIO (all from the list below except SPI), SPI
     // Note: SIMPLE provider is added always by default if real_world is true
     //       For emulator we cannot use any providers instead of FAKE (SPI)
+    // 
+    // Attributes:
+    //
     // Optional
-    // For GPIO providers we can set pin count (pins)
-    // Each GPIO provider has number pins by default (FAKE=16, SIMPLE=12, MCP23017=16, PCA9585=16)
-    "providers": [{"SIMPLE": {"pins":12}}
-        , "FAKE", "MCP23017", "PCA9685", "SPI"],
+    // name - if name is not set the type name will be used but on this case you cannot have more than one provider each type
+    //
+    // GPIO only:
+    // pins - pin count (pins)
+    //        Each GPIO provider has number pins by default (FAKE=16, SIMPLE=12, MCP23017=16, PCA9585=16)
+    //
+    // SPI only
+    // channels - number of available SPI channels (1 or 2) 
+    // speed - speed in Hz for each channel, Default value 1MHz
+    // mode  - channel mode. Possible values (0,1,2,3). Default value 0
+    //
+    // Note: Two GPIO allocated on board (SIMPLE) with numbers 10, 11 allocated for SPI and cannot beused for another purposes
+   
+    "providers": [{"type": "SIMPLE", "pins":12},
+        {"type": "FAKE", "name": "FAKE"}, 
+        {"type": "MCP23017", "name": "MCP23017_1", "pins": 16}, 
+        {"type": "PCA9685", "name":"PCA9685"}, 
+        {"type": "SPI", "channels": 1, "speed": [1000000, 500000], "mode": [0,0] }
+    ],
 
     //
     // GPIOs 
     // GPIO mode can be "IN" or "OUT"
+    // provider is "name" attribute for provider object defined above
     //
     "gpios": [{"name": "gpio_name", "provider": "provider_name", "pin": 0, "mode": "IN/OUT"}],
     

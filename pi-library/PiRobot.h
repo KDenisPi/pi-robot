@@ -99,8 +99,22 @@ public:
     
     std::function<void(int, std::string&, void*)> stm_notification;
 
+    /*
+    *
+    */
     const bool is_real_world() const { return m_realWorld;}
     
+   /*
+   *
+   */
+   void set_configuration(const std::string& conf_file){
+    m_configuration = conf_file;
+   }
+
+   const std::string& get_configuration() const{
+       return m_configuration;
+   }
+
 private:
     void gpios_add(const std::string& name, const std::shared_ptr<gpio::Gpio> gpio){
         gpios[name] = gpio;
@@ -109,6 +123,8 @@ private:
 private:
     bool m_realWorld;
     std::recursive_mutex mutex_sm;
+
+    std::string m_configuration; //full defined path to the hardware configuration file 
     
     std::map <std::string,
         std::shared_ptr<gpio::Gpio>,
