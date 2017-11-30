@@ -9,6 +9,7 @@
     //
     // List of providers used for the project.
     // We have two types of providers here: GPIO (all from the list below except SPI), SPI
+    //
     // Note: SIMPLE provider is added always by default if real_world is true
     //       For emulator we cannot use any providers instead of FAKE (SPI)
     // 
@@ -22,28 +23,33 @@
     //        Each GPIO provider has number pins by default (FAKE=16, SIMPLE=12, MCP23017=16, PCA9585=16)
     //
     // SPI only
-    // channels - number of available SPI channels (1 or 2) 
+    // channels - number of available SPI channels (1 or 2). Default 1
     // speed - speed in Hz for each channel, Default value 1MHz
     // mode  - channel mode. Possible values (0,1,2,3). Default value 0
     //
     // Note: Two GPIO allocated on board (SIMPLE) with numbers 10, 11 allocated for SPI and cannot beused for another purposes
    
-    "providers": [{"type": "SIMPLE", "pins":12},
+    "providers": [
+        {"type": "SIMPLE", "pins":12},
         {"type": "FAKE", "name": "FAKE"}, 
         {"type": "MCP23017", "name": "MCP23017_1", "pins": 16}, 
         {"type": "PCA9685", "name":"PCA9685"}, 
+
         {"type": "SPI", "channels": 1, "speed": [1000000, 500000], "mode": [0,0] }
     ],
 
     //
     // GPIOs 
-    // GPIO mode can be "IN" or "OUT"
-    // provider is "name" attribute for provider object defined above
+    // name - optional. If name is not defined than provider_name_pin will be used
+    // mode - GPIO mode can be "IN" or "OUT"
+    // provider - provider is "name" attribute for provider object defined above
     //
     "gpios": [{"name": "gpio_name", "provider": "provider_name", "pin": 0, "mode": "IN/OUT"}],
     
     //
     // Items (all elements another then providers, and gpios)
+    //
+    // Note: GPIO can be defined or using {proveder, pin} pair or usind GPIO name {name}
     //
     "items":[
         //
@@ -83,7 +89,7 @@
         // DC Motor
         //
         {
-            "type":"DRV8835", 
+            "type":"DCMotor", 
             "name":"item_name", 
             "comment": "", 
             "drv8835": "drv8835_name",
@@ -112,7 +118,7 @@
             "type": "AnlgDgtConvertor",
             "name":"item_name",
             "comment":"",
-            "gpio_on_off":{"provider": "provider_name", "pin": 0}, //GPIO is used for switch ON/OFF (CS/SHDN) Low - On, High - Off
+            "gpio":{"provider": "provider_name", "pin": 0}, //GPIO is used for switch ON/OFF (CS/SHDN) Low - On, High - Off
             "analog_inputs":8, // number of analog inputs usually 8/4 depends on chip
             "spi_channel":0 // possible values 0/1
         },
@@ -124,7 +130,7 @@
             "type":"BLINKER", 
             "name":"item_name", 
             "comment": "",
-            "led_item": "LED_item_name",
+            "led": "LED_item_name",
             "tm_on": 250, //time on interval in milliseconds
             "tm_off": 500, //time off interval in milliseconds
             "blinks": 10 //blinks number, 0 - infinitely, never stop
@@ -136,12 +142,12 @@
         {
             "type": "AnalogLightMeter", 
             "name": "item_name", 
-            "comment": "",
-            "analg_dgt_convertor_item": "AnlgDgtConvertor_name",
+            "comment": "", //optional
+            "ad_convertor": "AnlgDgtConvertor_name",
             "analog_input_index": 0, //Pin index
-            "debug": false, //Debug mode true/false
-            "debug_buffer_size": 2048, //size of debug buffer
-            "value_diff_for_event" : 20 // Difference in measures that generate event
+            "debug": false, //Debug mode true/false, false by default, optional
+            "debug_buffer_size": 2048, //size of debug buffer, optional
+            "value_diff_for_event" : 20 // Difference in measures that generate event, optional
         }        
     ]
 }
