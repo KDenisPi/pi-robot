@@ -1,0 +1,65 @@
+//
+// Hardware configuration for Project1
+//
+{
+    "version": "1.0",
+    "real_world": "true",
+
+    "providers":[
+        {"type":"SIMPLE"},
+        {"type":"MCP23017", "name":"MCP23017_1"},
+        {"type":"PCA9685"},
+        {"type":"SPI", "channels": 1, "comment": "SPI. One channel"}
+    ],
+
+    "gpios": [
+        {"provider": "MCP23017_1", "pin": 1, "mode": "OUT", "name": "LED_Red"},
+        {"provider": "MCP23017_1", "pin": 6, "mode": "OUT", "name": "LED_Blue"},
+        {"provider": "MCP23017_1", "pin": 7, "mode": "OUT", "name": "LED_Yellow"},
+
+        {"provider": "MCP23017_1", "pin": 5, "mode": "OUT", "name": "A_PHASE"},
+        {"provider": "MCP23017_1", "pin": 3, "mode": "OUT", "name": "B_PHASE"},
+        {"provider": "MCP23017_1", "pin": 15, "mode": "OUT", "name": "FAKE_Mode"},
+
+        {"provider": "MCP23017_1", "pin": 8, "mode": "OUT", "name": "STEP_PB0"},
+        {"provider": "MCP23017_1", "pin": 9, "mode": "OUT", "name": "STEP_PB1"},
+        {"provider": "MCP23017_1", "pin": 10, "mode": "OUT", "name": "STEP_PB2"},
+        {"provider": "MCP23017_1", "pin": 11, "mode": "OUT", "name": "STEP_PB3"},
+
+        {"provider": "MCP23017_1", "pin": 2, "mode": "IN", "name": "BTN_Stop"},
+
+        {"provider": "PCA9685", "pin": 0, "mode": "OUT", "name": "A_ENABLE"},
+        {"provider": "PCA9685", "pin": 1, "mode": "OUT", "name": "B_ENABLE"},
+
+        {"provider": "SIMPLE", "pin": 0, "mode": "OUT", "name": "MCP320X_ENABLE"}
+    ],
+
+    "items": [
+        {"type":"LED", "name":"LED_Red", "gpio": {"name":"LED_Red"}},
+        {"type":"LED", "name":"LED_Blue", "gpio": {"name":"LED_Blue"}},
+        {"type":"LED", "name":"LED_Yellow", "gpio": {"name":"LED_Yellow"}},
+
+        {"type":"BUTTON", "name":"BTN_Stop", "gpio": {"name":"BTN_Stop"}},
+
+        {"type":"AnlgDgtConvertor", "name":"MCP3208", "gpio": {"name":"MCP320X_ENABLE"}, "analog_inputs":8, "spi_channel":0},
+
+        {"type":"AnalogLightMeter", "name":"LightMeter_1", "ad_convertor": "MCP3208", "analog_input_index": 0, "debug": true},
+        {"type":"AnalogLightMeter", "name":"LightMeter_2", "ad_convertor": "MCP3208", "analog_input_index": 1, "debug": true},
+
+        {"type":"BLINKER", "name":"BLINK_Red", "led": "LED_Red"},
+        {"type":"BLINKER", "name":"BLINK_Blue", "led": "LED_Blue"},
+        {"type":"BLINKER", "name":"BLINK_Yellow", "led": "LED_Yellow"},
+
+        {"type":"DRV8835", "name":"DRV8835", "mode": "PH_EN", "gpio": {"name":"FAKE_Mode"}},
+        
+        {"type":"DCMotor", "name": "DCM_1", "gpio_direction": {"name": "A_PHASE"}, "gpio_pwm": {"name": "A_ENABLE"}},
+        {
+            "type": "ULN2003Stepper", "name": "STEP_1", 
+            "gpio_phase_0": {"name": "STEP_PB0"},
+            "gpio_phase_1": {"name": "STEP_PB1"},
+            "gpio_phase_2": {"name": "STEP_PB2"},
+            "gpio_phase_3": {"name": "STEP_PB3"}
+        }
+    ]
+    
+}
