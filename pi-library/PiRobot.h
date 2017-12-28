@@ -33,7 +33,7 @@ public:
      *
      * TODO: Read configuration from file
      */
-    virtual bool configure();
+    virtual bool configure(const std::string cfile);
 
     /*
      *
@@ -72,17 +72,24 @@ public:
         std::string gpio_ = provider_name + "_" + std::to_string(pin);
         return gpio_;
     }
+
     /*
-    * Create configuration functions
-    *
+    * Get provider by name
     */
-    void add_provider(const std::string& type, const std::string& name) noexcept(false);
     std::shared_ptr<provider::Provider> get_provider(const std::string& name) const noexcept(false);
     
     /*
+    * Check if provider exists by name
+    */
+    bool is_provider(const std::string& name) const{
+        auto provider = this->providers.find(name);
+        return (provider != providers.end());
+    }
+
+    /*
     * Create GPIO for the provider. Provider should created before using add_provider function
     */
-    void add_gpio(const std::string& provider_name, 
+    void add_gpio(const std::string& name, const std::string& provider_name, 
         const pirobot::gpio::GPIO_MODE gpio_mode, const int pin) noexcept(false);
     
     /*
@@ -116,8 +123,15 @@ public:
    }
 
 private:
+    //
+    //
+    //
     void gpios_add(const std::string& name, const std::shared_ptr<gpio::Gpio> gpio){
         gpios[name] = gpio;
+    }
+
+    void set_real_world(const bool real_world){
+        m_realWorld = real_world;
     }
 
 private:

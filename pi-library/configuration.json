@@ -11,7 +11,7 @@
     // We have two types of providers here: GPIO (all from the list below except SPI), SPI
     //
     // Note: SIMPLE provider is added always by default if real_world is true
-    //       For emulator we cannot use any providers instead of FAKE (SPI)
+    //       For emulator we cannot use any providers instead of FAKE or SPI
     // 
     // Attributes:
     //
@@ -30,12 +30,13 @@
     // Note: Two GPIO allocated on board (SIMPLE) with numbers 10, 11 allocated for SPI and cannot beused for another purposes
    
     "providers": [
-        {"type": "SIMPLE", "pins":12},
-        {"type": "FAKE", "name": "FAKE"}, 
-        {"type": "MCP23017", "name": "MCP23017_1", "pins": 16}, 
-        {"type": "PCA9685", "name":"PCA9685"}, 
+        //{"type": "SIMPLE", "pins": 12},
+        {"type": "FAKE", "name": "FAKE", "pins": 16}, 
+        {"type": "PWM", "name": "AdafruitPWM", "i2c_addr" : 64},//0x40
+        {"type": "MCP23017", "name": "MCP23017_1", "i2c_addr" : 32}, //0x20 
+        {"type": "PCA9685", "name":"PCA9685", "pwm": "AdafruitPWM", "frequency": 60.0},  
 
-        {"type": "SPI", "channels": 1, "speed": [1000000, 500000], "mode": [0,0] }
+        {"type": "SPI", "channels": 1, "speed_1": 1000000, "speed_2": 500000, "mode_1": 0, "mode_2": 0}
     ],
 
     //
@@ -120,7 +121,8 @@
             "comment":"",
             "gpio":{"provider": "provider_name", "pin": 0}, //GPIO is used for switch ON/OFF (CS/SHDN) Low - On, High - Off
             "analog_inputs":8, // number of analog inputs usually 8/4 depends on chip
-            "spi_channel":0 // possible values 0/1
+            "spi_channel":0, // possible values 0/1
+            "delay": 5
         },
 
         //
@@ -148,6 +150,17 @@
             "debug": false, //Debug mode true/false, false by default, optional
             "debug_buffer_size": 2048, //size of debug buffer, optional
             "value_diff_for_event" : 20 // Difference in measures that generate event, optional
+        },
+
+        //
+        // MPU 6050
+        //
+        {
+            "type": "MPU6050",
+            "name": "item_name",
+            "comment": "", //optional
+            "i2c_addr": 104, //0x68
+            "delay": 100
         }        
     ]
 }

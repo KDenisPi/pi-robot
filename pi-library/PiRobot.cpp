@@ -18,6 +18,7 @@
 #include "GpioProviderMCP23017.h"
 #include "GpioProviderPCA9685.h"
 #include "SPI.h"
+#include "I2C.h"
 
 #include "item.h"
 #include "led.h"
@@ -40,15 +41,6 @@ PiRobot::PiRobot(const bool realWorld)
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + std::string("Started. Real world? ") + 
         (realWorld ? " TRUE" : " FALSE"));
 
-    if(is_real_world()) //Under PI
-    {
-        int wiPi = wiringPiSetup();
-        //Rasbery based GPIO provider present always
-        providers["SIMPLE"] = std::shared_ptr<pirobot::gpio::GpioProvider>(new pirobot::gpio::GpioProviderSimple());
-    }
-    else{
-        providers["SIMPLE"] = std::shared_ptr<pirobot::gpio::GpioProvider>(new pirobot::gpio::GpioProviderFake());
-    }
 }
 
 PiRobot::~PiRobot() {
@@ -105,58 +97,12 @@ std::shared_ptr<provider::Provider> PiRobot::get_provider(const std::string& nam
 }
 
 /*
-* Add provider
-*/
-void PiRobot::add_provider(const std::string& type, const std::string& name){
-
-    auto provider = this->providers.find(name);
-    //provider name is unique
-    if(provider != providers.end()){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Provider with such name is present already. Name: " + name);
-        throw std::runtime_error(std::string("Provider with such name is present already. Name: ") + name);
-    }
-
-    if(type == "FAKE"){
-        providers[name] = std::shared_ptr<pirobot::provider::Provider>(new pirobot::gpio::GpioProviderFake(name, 16));
-    }
-    else if(type == "MCP23017"){ //this provider can be  used with real hardware only
-        if(!is_real_world()){
-            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " GPIO provider MCP23017 can be used with real hardware only");
-            throw std::runtime_error(std::string("GPIO provider MCP23017 can be used with real hardware only"));
-        }
-        providers[name] = std::shared_ptr<pirobot::provider::Provider>(new pirobot::gpio::GpioProviderMCP23017(name));
-    }
-    else if(type == "PCA9685"){ //this provider can be  used with real hardware only
-        if(!is_real_world()){
-            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " GPIO provider PCA9685 can be used with real hardware only");
-            throw std::runtime_error(std::string("GPIO provider PCA9685 can be used with real hardware only"));
-        }
-        providers[name] = std::shared_ptr<pirobot::provider::Provider>(
-            new pirobot::gpio::GpioProviderPCA9685(name, 
-                std::shared_ptr<pirobot::gpio::Adafruit_PWMServoDriver>(new pirobot::gpio::Adafruit_PWMServoDriver())
-            ));
-    }
-    else if(type == "SPI"){ //this provider can be  used with real hardware only
-        pirobot::spi::SPI_config spi_config;
-        spi_config.real_world = is_real_world();
-
-        add_gpio("SIMPLE", pirobot::gpio::GPIO_MODE::OUT, 10); //SPI_CE0_N
-        add_gpio("SIMPLE", pirobot::gpio::GPIO_MODE::OUT, 11); //SPI_CE1_N
-        //Ignore name
-        providers["SPI"] = std::shared_ptr<pirobot::provider::Provider>(
-            new pirobot::spi::SPI("SPI", spi_config, get_gpio("SIMPLE", 10), get_gpio("SIMPLE", 11)));
-    }
-    else{
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Unknown provider type");
-        throw std::runtime_error(std::string("Unknown provider type"));
-    }
-}
-
-/*
 * Create GPIO for the provider. Provider should created before using add_provider function
 */
-void PiRobot::add_gpio(const std::string& provider_name, 
-    const pirobot::gpio::GPIO_MODE gpio_mode, const int pin) noexcept(false){
+void PiRobot::add_gpio(const std::string& name, 
+    const std::string& provider_name, 
+    const pirobot::gpio::GPIO_MODE gpio_mode, 
+    const int pin) noexcept(false){
 
     const auto provider = get_provider(provider_name);
     if(provider->get_ptype() != provider::PROVIDER_TYPE::PROV_GPIO){
@@ -170,17 +116,19 @@ void PiRobot::add_gpio(const std::string& provider_name,
         throw std::runtime_error(std::string(" Invalid pin number: ") + std::to_string(pin));
     }
 
-    auto gpio_name = get_gpio_name(provider_name, pin);
+    auto gpio_name = (name.empty() ? get_gpio_name(provider_name, pin) : name);
+
     auto pgpio = this->gpios.find(gpio_name);
     if(pgpio != gpios.end()){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " GPIO with such PIN is present already PIN: " + gpio_name);
-        return;
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " GPIO with such name is present already: " + gpio_name + " Provider: " + provider_name);
+        throw std::runtime_error(std::string(" GPIO with such name is present already: ") + gpio_name);
     }
  
     gpios_add(gpio_name,
             std::shared_ptr<pirobot::gpio::Gpio>(
                 new pirobot::gpio::Gpio(pin, gpio_mode, gpio_provider)
             ));
+
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Provider: " + provider_name + ". Added PIN: " + std::to_string(pin));
 }
 
@@ -333,7 +281,7 @@ void PiRobot::add_item(const pirobot::item::ItemConfig& iconfig){
                     std::static_pointer_cast<pirobot::item::Led>(get_item(iconfig.sub_item)),iconfig.name)));
              
             break;
-        case item::ItemTypes::AnalogMeter:
+        case item::ItemTypes::AnalogLightMeter:
             /*
             * Analod light meter.
             */
@@ -409,22 +357,6 @@ void PiRobot::stop(){
     }
 
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot was stopped");
-}
-
-/*
- *
- */
-bool PiRobot::configure(){
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot configuration is starting..");
-
-    std::string conf = get_configuration();
-    if(conf.empty()){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " No Robot configuration");
-        return false;
-    }
-
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot configuration is finished");
-    return true;
 }
 
 void PiRobot::printConfig(){

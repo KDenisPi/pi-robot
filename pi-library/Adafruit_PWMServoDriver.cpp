@@ -27,25 +27,40 @@ namespace gpio {
 
 const char TAG[] = "PWM";
 
+const uint8_t Adafruit_PWMServoDriver::s_i2c_addr = 0x40;
+
 #define CALIB_FACTOR   0.89   //the calibration factor -- manually calculated
 
 // Set to true to print some debug messages, or false to disable them.
 #define ENABLE_DEBUG_OUTPUT false
 
-Adafruit_PWMServoDriver::Adafruit_PWMServoDriver(uint8_t addr) : m_prescale(0) {
-  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(addr));
-  _i2caddr = addr;
+Adafruit_PWMServoDriver::Adafruit_PWMServoDriver(const std::string& name, 
+    std::shared_ptr<pirobot::i2c::I2C> i2c, 
+    const uint8_t i2c_addr) : Provider(pirobot::provider::PROVIDER_TYPE::PROV_PWM, name), m_prescale(0) {
+
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Name: " + name + " Addr: " + std::to_string(i2c_addr));
+
+  _i2caddr = i2c_addr;
+
+  //register I2C user
+  i2c->add_user(name, i2c_addr);
 
   I2CWrapper::lock();
-  m_fd = I2CWrapper::I2CSetup(addr);
+  m_fd = I2CWrapper::I2CSetup(_i2caddr);
   I2CWrapper::unlock();
 }
 
+//
+//
+//
 Adafruit_PWMServoDriver::~Adafruit_PWMServoDriver() {
   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
 }
 
 
+//
+//
+//
 void Adafruit_PWMServoDriver::begin(void) {
   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
   reset();

@@ -18,17 +18,20 @@ namespace item {
 
 const char TAG[] = "button";
 
-const char* Item::ItemNames[] = {"Unknown", 
-    "Led", 
-    "Button", 
-    "Servo", 
-    "Tilt Switch", 
-    "Stepper", 
-    "DC Motor", 
-    "DRV8835", 
-    "Blink",
-    "A/D Convertor",
-    "Analog Meter"
+const char* Item::ItemNames[] = {
+    "UNKNOWN",
+    "LED",
+    "BUTTON",
+    "SERVO",
+    "TILT_SWITCH",
+    "STEPPER",
+    "DCMotor",
+    "DRV8835",
+    "BLINKER",
+    "AnlgDgtConvertor",
+    "AnalogLightMeter",
+    "ULN2003Stepper",
+    "MPU6050"
 };
 
 /*

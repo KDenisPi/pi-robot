@@ -16,8 +16,8 @@ namespace gpio {
 
 const char TAG[] = "PrvSmpl";
 
-GpioProviderSimple::GpioProviderSimple(const std::string name) :
-        GpioProvider(name, 12)
+GpioProviderSimple::GpioProviderSimple(const std::string name, const int pins) :
+        GpioProvider(name, pins)
 {
 }
 

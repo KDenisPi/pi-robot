@@ -9,7 +9,6 @@
 #include "logger.h"
 #include "StateMachine.h"
 #include "MyStateFactory.h"
-#include "PiRobotPrj1.h"
 
 using namespace std;
 smachine::StateMachine* stm;
@@ -67,7 +66,7 @@ int main (int argc, char* argv[])
         }
 
         std::shared_ptr<spi_test::MyStateFactory> factory(new spi_test::MyStateFactory());
-        std::shared_ptr<pirobot::PiRobot> pirobot(new spi_test::PiRobotPrj1(false));
+        std::shared_ptr<pirobot::PiRobot> pirobot(new pirobot::PiRobot());
         stm = new smachine::StateMachine(factory, pirobot);
 
         cout <<  "State machine started. Wait" << endl;   

@@ -23,8 +23,8 @@ const char TAG[] = "MCP23017";
 float Mpu6050::accel_LSB_Sensitivity[] = {16384, 8192, 4096, 2048};
 float Mpu6050::gyro_LSB_Sensitivity[] = {131.0, 65.5, 32.8, 16.4};
 
-Mpu6050::Mpu6050(const uint8_t i2caddr, const unsigned int utime) :
-    _i2caddr(i2caddr), m_fd(0), update_interval(utime),
+Mpu6050::Mpu6050(const uint8_t i2caddr, const unsigned int loop_delay) :
+    _i2caddr(i2caddr), m_fd(0),
     m_val({0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}),
     base_x_accel(0.0),
     base_y_accel(0.0),
@@ -36,18 +36,12 @@ Mpu6050::Mpu6050(const uint8_t i2caddr, const unsigned int utime) :
 {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Address: " + std::to_string(_i2caddr));
 
-    set_loop_delay(10);
+    set_loop_delay(loop_delay);
     
     int error;
     uint8_t model, value;
     bool sleep_mode;
     char buff[10];
-
-    /*
-     * I do not want to ask bus to quickly
-     */
-    if(update_interval < 100)
-        update_interval = 100;
 
     I2CWrapper::lock();
     m_fd = I2CWrapper::I2CSetup(_i2caddr);

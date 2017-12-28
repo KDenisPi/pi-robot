@@ -19,7 +19,11 @@
 #define _ADAFRUIT_PWMServoDriver_H
 
 #include <cstdint>
+#include <memory>
 #include <wiringPi.h>
+
+#include "I2C.h"
+#include "provider.h"
 
 namespace pirobot {
 namespace gpio {
@@ -59,9 +63,9 @@ struct LED_DATA {
 	uint16_t off;
 };
 
-class Adafruit_PWMServoDriver {
+class Adafruit_PWMServoDriver :  public pirobot::provider::Provider {
  public:
-  Adafruit_PWMServoDriver(uint8_t addr = 0x40);
+  Adafruit_PWMServoDriver(const std::string& name, std::shared_ptr<pirobot::i2c::I2C> i2c, const uint8_t i2c_addr = s_i2c_addr);
   virtual ~Adafruit_PWMServoDriver();
 
   void begin(void);
@@ -76,6 +80,12 @@ class Adafruit_PWMServoDriver {
   void setPin(uint8_t num, uint16_t val, bool invert=false);
   void getPin(uint8_t num, LED_DATA& data);
   const uint8_t getPrescale() const {return m_prescale;}
+
+  virtual const std::string printConfig() override {
+        return get_name() + " I2C addr: " + std::to_string(_i2caddr) + "\n";
+  }
+
+  static const uint8_t s_i2c_addr;
 
  private:
   uint8_t _i2caddr;

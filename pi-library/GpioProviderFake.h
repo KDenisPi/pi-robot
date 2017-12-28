@@ -16,7 +16,7 @@ namespace gpio {
 class GpioProviderFake : public GpioProvider
 {
 public:
-	GpioProviderFake(const std::string name = "Fake", const int pins=16);
+	GpioProviderFake(const std::string name = "Fake", const int pins=s_pins);
 	virtual ~GpioProviderFake();
 
 	virtual const int dgtRead(const int pin) override;
@@ -26,8 +26,13 @@ public:
 	virtual void setPulse(const int pin, const uint16_t pulselen) override;
 
 	virtual const std::string to_string() override;
-        virtual const GPIO_PROVIDER_TYPE get_type() const override { return GPIO_PROVIDER_TYPE::PROV_FAKE; }
+    virtual const GPIO_PROVIDER_TYPE get_type() const override { return GPIO_PROVIDER_TYPE::PROV_FAKE; }
 
+    virtual const std::string printConfig() override {
+        return to_string() + "\n";
+    }
+
+	static const int s_pins;
 };
 
 }

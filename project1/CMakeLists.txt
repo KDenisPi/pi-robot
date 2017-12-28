@@ -16,6 +16,7 @@ include_directories(BEFORE ${WIRINGPI_LIB}
     ${PROJECT_SOURCE_DIR}/../pi-library
     ${PROJECT_SOURCE_DIR}/../pi-smachine
     ${PROJECT_SOURCE_DIR}/../pi-mqqt
+    ${JSONCONS}
 )
 
 message( STATUS "EXTRA_LIBS (proj):  ${EXTRA_LIBS}" )

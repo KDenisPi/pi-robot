@@ -31,7 +31,7 @@ void StateInit::OnEntry(){
 	 * Need to add hardware initialization there.
 	 * Also to check hardware state and configuration
 	 */
-	if( !get_itf()->get_robot()->configure()){
+	if( !get_itf()->get_robot()->configure("")){
 		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Hardware configuration failed. Stop.");
 		//Generate FINISH Event
 		get_itf()->finish();

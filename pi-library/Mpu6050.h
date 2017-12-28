@@ -110,7 +110,7 @@ struct mpu6050_values {
 
 class Mpu6050 : public piutils::Threaded {
 public:
-    Mpu6050(const uint8_t i2caddr = MPU6050_I2C_ADDRESS, const unsigned int utime = 1000);
+    Mpu6050(const uint8_t i2caddr = MPU6050_I2C_ADDRESS, const unsigned int loop_delay = 100);
     virtual ~Mpu6050();
 
     static float accel_LSB_Sensitivity[];

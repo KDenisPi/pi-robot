@@ -427,7 +427,7 @@ void StateMachine::process_robot_notification(int itype, std::string& name, void
             else
                 logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Unknown state for Item::Button");
         }
-        else if(itype == pirobot::item::ItemTypes::AnalogMeter){
+        else if(itype == pirobot::item::ItemTypes::AnalogLightMeter){
             /*
             *Analog Meter
             */

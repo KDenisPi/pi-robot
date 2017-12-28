@@ -28,8 +28,9 @@ enum ItemTypes{
     DRV8835 = 7,
     BLINKER = 8,
     AnlgDgtConvertor = 9,
-    AnalogMeter = 10,
-    ULN2003Stepper = 11
+    AnalogLightMeter = 10,
+    ULN2003Stepper = 11,
+    MPU6050 = 12,
 };
 
 enum BUTTON_STATE{
@@ -125,13 +126,22 @@ public:
         return std::string(ItemNames[typen]); 
     }
 
+    static const item::ItemTypes type_by_name(const std::string& name){
+        for(int i = 0; i <=  item::ItemTypes::MPU6050; i++){
+            if(name == ItemNames[i])
+                return (item::ItemTypes)i;
+        }
+
+        return item::ItemTypes::UNKNOWN;
+    }
+
     static const char* ItemNames[];
 
     inline bool have_notify(){
         if(m_type == ItemTypes::BUTTON || 
             m_type == ItemTypes::TILT_SWITCH ||
             m_type == ItemTypes::BLINKER ||
-            m_type == ItemTypes::AnalogMeter ||
+            m_type == ItemTypes::AnalogLightMeter ||
             m_type == ItemTypes::STEPPER) {
                 return true;
         }

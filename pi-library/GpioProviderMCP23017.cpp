@@ -18,11 +18,18 @@ namespace gpio {
 
 const char TAG[] = "MCP23017";
 
-GpioProviderMCP23017::GpioProviderMCP23017(const std::string name, const uint8_t i2caddr) :
-          GpioProvider(name, 16), _i2caddr(i2caddr), m_OLATA(0), m_OLATB(0), m_fd(-1)
+const int GpioProviderMCP23017::s_pins = 16;
+const uint8_t GpioProviderMCP23017::s_i2c_addr = 0x20;
+
+
+GpioProviderMCP23017::GpioProviderMCP23017(const std::string name, std::shared_ptr<pirobot::i2c::I2C> i2c, const uint8_t i2c_addr, const int pins) :
+          GpioProvider(name, pins), _i2caddr(i2c_addr), m_OLATA(0), m_OLATB(0), m_fd(-1)
 {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
     int current_mode = 0;
+
+    //register I2C user
+    i2c->add_user(name, i2c_addr);
 
     I2CWrapper::lock();
 
@@ -52,13 +59,6 @@ GpioProviderMCP23017::~GpioProviderMCP23017() {
           close(m_fd);
     }
     I2CWrapper::unlock();
-}
-
-/*
- *
- */
-const std::string GpioProviderMCP23017::to_string(){
-    return "Name: " + get_name() + " Type:" + std::string("MCP23017");
 }
 
 /*

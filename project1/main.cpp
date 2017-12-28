@@ -9,7 +9,6 @@
 #include "defines.h"
 #include "StateMachine.h"
 #include "MyStateFactory.h"
-#include "PiRobotPrj1.h"
 #include "MosquittoClient.h"
 #include "MqqtClient.h"
 
@@ -96,7 +95,7 @@ int main (int argc, char* argv[])
         }
 
         std::shared_ptr<project1::MyStateFactory> factory(new project1::MyStateFactory());
-        std::shared_ptr<pirobot::PiRobot> pirobot(new project1::PiRobotPrj1());
+        std::shared_ptr<pirobot::PiRobot> pirobot(new pirobot::PiRobot());
 
         stm = new smachine::StateMachine(factory, pirobot);
         cout <<  "Created state machine, wait" << endl;

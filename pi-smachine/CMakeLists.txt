@@ -8,6 +8,7 @@ project(pi-smachine)
 include_directories(BEFORE ${WIRINGPI_LIB}
    ${PROJECT_SOURCE_DIR}/../pi-library
    ${PROJECT_SOURCE_DIR}/../pi-utils
+   ${JSONCONS}
 )
 
 #add_library(librt STATIC IMPORTED)

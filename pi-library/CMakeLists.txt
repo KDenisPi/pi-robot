@@ -6,6 +6,7 @@ project(pi-library)
 set(CMAKE_BIULD_TYPE Debug)
 include_directories(BEFORE ${WIRINGPI_LIB}
    ${PROJECT_SOURCE_DIR}/../pi-utils
+   ${JSONCONS}
 )
 
 message( STATUS "WIRINGPI_LIB ${WIRINGPI_LIB}")

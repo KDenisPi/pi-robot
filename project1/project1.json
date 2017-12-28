@@ -6,10 +6,10 @@
     "real_world": "true",
 
     "providers":[
-        {"type":"SIMPLE"},
-        {"type":"MCP23017", "name":"MCP23017_1"},
-        {"type":"PCA9685"},
-        {"type":"SPI", "channels": 1, "comment": "SPI. One channel"}
+        {"type":"MCP23017", "name":"MCP23017_1", "i2c_addr" : 32},
+        {"type": "PWM", "name": "AdafruitPWM", "i2c_addr" : 64},//0x40
+        {"type":"PCA9685", "name":"PCA9685", "pwm": "AdafruitPWM", "frequency": 60.0},
+        {"type":"SPI", "channels": 1, "comment": "SPI. One channel", "speed_1": 1000000, "mode_1": 0}
     ],
 
     "gpios": [

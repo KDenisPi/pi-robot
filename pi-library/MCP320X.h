@@ -41,7 +41,8 @@ public:
         const std::string& name,
         const std::string& comment = "",
         MCP320X_INPUTS anlg_inputs = MCP320X_INPUTS::MCP3208,
-        spi::SPI_CHANNELS channel = spi::SPI_CHANNELS::SPI_0) : 
+        spi::SPI_CHANNELS channel = spi::SPI_CHANNELS::SPI_0,
+        const unsigned int loop_delay = 5) : 
             item::Item(gpio, name, comment, item::ItemTypes::AnlgDgtConvertor),
             m_spi(spi),
             m_anlg_inputs((int)anlg_inputs),
@@ -52,6 +53,8 @@ public:
         assert(spi);
         assert(!name.empty());
 
+        set_loop_delay(loop_delay);
+        
         //switch device off
         get_gpio()->High();
     }
