@@ -94,7 +94,7 @@
             "name":"item_name", 
             "comment": "", 
             "drv8835": "drv8835_name",
-            "gpio_direction": {"provider": "provider_name", "pin": 0},
+            "gpio": {"provider": "provider_name", "pin": 0}, //Direction control
             "gpio_pwm": {"provider": "provider_name", "pin": 0},
             "direction": "CLOCKWISE/COUTERCLOCKWISE"
         },
@@ -109,7 +109,8 @@
             "gpio_phase_0": {"provider": "provider_name", "pin": 0},
             "gpio_phase_1": {"provider": "provider_name", "pin": 0},
             "gpio_phase_2": {"provider": "provider_name", "pin": 0},
-            "gpio_phase_3": {"provider": "provider_name", "pin": 0}
+            "gpio_phase_3": {"provider": "provider_name", "pin": 0},
+            "direction": "CLOCKWISE/COUTERCLOCKWISE" //optional CLOCKWISE by default
         },
 
         //

@@ -31,6 +31,7 @@ enum ItemTypes{
     AnalogLightMeter = 10,
     ULN2003Stepper = 11,
     MPU6050 = 12,
+    LAST_ITEM = 13
 };
 
 enum BUTTON_STATE{
@@ -127,7 +128,7 @@ public:
     }
 
     static const item::ItemTypes type_by_name(const std::string& name){
-        for(int i = 0; i <=  item::ItemTypes::MPU6050; i++){
+        for(int i = 0; i <  item::ItemTypes::LAST_ITEM; i++){
             if(name == ItemNames[i])
                 return (item::ItemTypes)i;
         }
