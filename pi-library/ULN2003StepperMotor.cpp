@@ -20,38 +20,16 @@ namespace item {
 ULN2003StepperMotor::ULN2003StepperMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio_0,
         const std::shared_ptr<pirobot::gpio::Gpio> gpio_1,
         const std::shared_ptr<pirobot::gpio::Gpio> gpio_2,
-        const std::shared_ptr<pirobot::gpio::Gpio> gpio_3) :
-            Item(gpio_0, ItemTypes::ULN2003Stepper),
-            m_gpio_1(gpio_1),
-            m_gpio_2(gpio_2),
-            m_gpio_3(gpio_3),
-            m_step(10),
-            m_direction(MOTOR_DIR::DIR_CLOCKWISE)
-{
-    assert(get_gpio() != NULL);
-    assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);
-
-    assert(m_gpio_1.get() != NULL);
-    assert(m_gpio_1->getMode() ==  gpio::GPIO_MODE::OUT);
-    assert(m_gpio_2.get() != NULL);
-    assert(m_gpio_2->getMode() ==  gpio::GPIO_MODE::OUT);
-    assert(m_gpio_3.get() != NULL);
-    assert(m_gpio_3->getMode() ==  gpio::GPIO_MODE::OUT);
-
-}
-
-ULN2003StepperMotor::ULN2003StepperMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio_0,
-        const std::shared_ptr<pirobot::gpio::Gpio> gpio_1,
-        const std::shared_ptr<pirobot::gpio::Gpio> gpio_2,
         const std::shared_ptr<pirobot::gpio::Gpio> gpio_3,
         const std::string name,
-        const std::string comment)	:
+        const std::string comment,
+        MOTOR_DIR direction)	:
             Item(gpio_0, name, comment, ItemTypes::ULN2003Stepper),
             m_gpio_1(gpio_1),
             m_gpio_2(gpio_2),
             m_gpio_3(gpio_3),
             m_step(10),
-            m_direction(MOTOR_DIR::DIR_CLOCKWISE)
+            m_direction(direction)
 {
     assert(get_gpio() != NULL);
     assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);

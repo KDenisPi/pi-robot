@@ -20,14 +20,10 @@ public:
     ULN2003StepperMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio_0,
             const std::shared_ptr<pirobot::gpio::Gpio> gpio_1,
             const std::shared_ptr<pirobot::gpio::Gpio> gpio_2,
-            const std::shared_ptr<pirobot::gpio::Gpio> gpio_3);
-
-    ULN2003StepperMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio_0,
-            const std::shared_ptr<pirobot::gpio::Gpio> gpio_1,
-            const std::shared_ptr<pirobot::gpio::Gpio> gpio_2,
             const std::shared_ptr<pirobot::gpio::Gpio> gpio_3,
             const std::string name,
-            const std::string comment);
+            const std::string comment,
+            MOTOR_DIR direction = MOTOR_DIR::DIR_CLOCKWISE);
 
     virtual ~ULN2003StepperMotor();
 
