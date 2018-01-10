@@ -22,7 +22,7 @@ const char TAG[] = "smash";
 
 StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, const std::shared_ptr<pirobot::PiRobot> pirobot) :
         m_factory(factory),
-        m_pirobo(pirobot)
+        m_pirobot(pirobot)
 {
     m_timers = std::shared_ptr<Timers>(new Timers(this));
     m_states = std::shared_ptr<std::list<std::shared_ptr<state::State>>>(new std::list<std::shared_ptr<state::State>>);
@@ -92,7 +92,7 @@ StateMachine::~StateMachine() {
     //Stop main thread if it is not stopped yet
     this->stop();
     // Stop Equipment
-    m_pirobo->stop();
+    m_pirobot->stop();
     //Stop Timers support
     m_timers->stop();
     //Erase not processed states
@@ -260,7 +260,7 @@ void StateMachine::process_finish_event(){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Process FINISH event");
 
     try{
-        m_pirobo->stop();
+        m_pirobot->stop();
     }
     catch(...){
 

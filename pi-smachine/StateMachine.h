@@ -61,7 +61,7 @@ public:
     virtual void timer_start(const int timer_id, const time_t interval, const bool interval_timer) override;
     virtual void timer_cancel(const int timer_id) override;
 
-    virtual std::shared_ptr<pirobot::PiRobot> get_robot() override {return m_pirobo;}
+    virtual std::shared_ptr<pirobot::PiRobot> get_robot() override {return m_pirobot;}
     virtual std::shared_ptr<Environment> get_env() override {return m_env; }
 
     /*
@@ -113,7 +113,7 @@ private:
      */
     std::shared_ptr<smachine::Timers> m_timers;
 
-    std::shared_ptr<pirobot::PiRobot> m_pirobo;
+    std::shared_ptr<pirobot::PiRobot> m_pirobot;
     std::shared_ptr<StateFactory> m_factory;
 
     std::shared_ptr<Environment> m_env;

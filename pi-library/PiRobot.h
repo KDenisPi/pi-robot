@@ -46,16 +46,17 @@ public:
     void stop();
 
     /*
+     * Get Item by name
+     */
+    std::shared_ptr<item::Item> get_item(const std::string& name) const noexcept(false);
+
+private:
+    /*
      * Get GPIO by absolute ID
      * Get GPIO by provider name and ID
      */
     std::shared_ptr<gpio::Gpio> get_gpio(const std::string& name) const noexcept(false);
     std::shared_ptr<gpio::Gpio> get_gpio(const std::string provider, const int id)  const noexcept(false);
-
-    /*
-     * Get Item by name
-     */
-    std::shared_ptr<item::Item> get_item(const std::string& name) const noexcept(false);
 
     inline const std::vector<std::string> get_items() const {
         std::vector<std::string> keys;
@@ -97,14 +98,15 @@ public:
     */
     void add_item(const pirobot::item::ItemConfig& iconfig)  noexcept(false);   
 
-    void printConfig();
-
+public:
     /*
      *
      */
     void notify_stm(int itype, std::string& name, void* data);
     
     std::function<void(int, std::string&, void*)> stm_notification;
+
+    void printConfig();
 
     /*
     *

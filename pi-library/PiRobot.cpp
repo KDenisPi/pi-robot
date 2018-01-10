@@ -13,23 +13,6 @@
 #include "PiRobot.h"
 #include "logger.h"
 
-#include "GpioProviderFake.h"
-#include "GpioProviderSimple.h"
-#include "GpioProviderMCP23017.h"
-#include "GpioProviderPCA9685.h"
-#include "SPI.h"
-#include "I2C.h"
-
-#include "item.h"
-#include "led.h"
-#include "button.h"
-#include "blinking.h"
-#include "Drv8835.h"
-#include "DCMotor.h"
-#include "ULN2003StepperMotor.h"
-#include "MCP320X.h"
-#include "AnalogLightMeter.h"
-
 namespace pirobot {
 
 const char TAG[] = "PiRobot";
