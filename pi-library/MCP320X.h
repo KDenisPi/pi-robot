@@ -64,7 +64,7 @@ public:
     */
     virtual ~MCP320X();
 
-	virtual const std::string printConfig() override{
+	virtual const std::string printConfig() override {
         std::string result =  name() + " SPI Channel: " + std::to_string(m_channel) + " Analog Inputs: " + 
             std::to_string(m_anlg_inputs) + "\n";
         for(int i = 0; i < m_anlg_inputs; i++){

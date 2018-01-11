@@ -59,8 +59,8 @@ namespace gpio {
 #define ALLLED_OFF_H 0xFD
 
 struct LED_DATA {
-	uint16_t on;
-	uint16_t off;
+  uint16_t on;
+  uint16_t off;
 };
 
 class Adafruit_PWMServoDriver :  public pirobot::provider::Provider {

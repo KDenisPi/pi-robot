@@ -26,6 +26,7 @@
 #include "ULN2003StepperMotor.h"
 #include "MCP320X.h"
 #include "AnalogLightMeter.h"
+#include "Mpu6050.h"
 
 
 namespace pirobot {
@@ -438,6 +439,7 @@ bool PiRobot::configure(const std::string cfile){
             /*
             * BLINKER parameters: Name, SUB.ITEM=LED
             */
+                {
                     auto led = get_attr_mandatory<std::string>(json_item, "led");
                     auto tm_on  =  get_attr<int>(json_item, "tm_on", 250);
                     auto tm_off  =  get_attr<int>(json_item, "tm_off", 500);
@@ -451,6 +453,19 @@ bool PiRobot::configure(const std::string cfile){
                             tm_on, 
                             tm_off,
                             blinks)));
+                }
+                break;
+
+                case item::ItemTypes::MPU6050:
+                {
+                    auto i2c_addr = (uint8_t)get_attr<int>(json_item, "i2c_addr", MPU6050_I2C_ADDRESS);
+                    auto loop_delay  =  get_attr<unsigned int>(json_item, "delay", 100);
+                    logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item: " + item_name + " I2C address: " + std::to_string(i2c_addr));
+
+                    items_add(item_name, 
+                            std::shared_ptr<pirobot::item::Item>(
+                                new pirobot::mpu6050::Mpu6050(item_name, item_comment, i2c_addr, loop_delay)));                        
+                }
                 break;
             }//Item types
         }//Items collection loading

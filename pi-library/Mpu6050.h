@@ -48,6 +48,7 @@
 #include <mutex>
 
 #include "Mpu6050_defs.h"
+#include "item.h"
 #include "Threaded.h"
 
 namespace pirobot {
@@ -108,9 +109,13 @@ struct mpu6050_values {
 #define IF_BIT(VALUE,BITN) (((VALUE>>BITN)&0x01)==1)
 #define SET_BIT(VALUE,BITN) ((0x01<<BITN)|VALUE) 
 
-class Mpu6050 : public piutils::Threaded {
+class Mpu6050 : public item::Item, public piutils::Threaded {
 public:
-    Mpu6050(const uint8_t i2caddr = MPU6050_I2C_ADDRESS, const unsigned int loop_delay = 100);
+    Mpu6050(const std::string& name,
+        const std::string& comment = "",
+        const uint8_t i2caddr = MPU6050_I2C_ADDRESS, 
+        const unsigned int loop_delay = 100);
+
     virtual ~Mpu6050();
 
     static float accel_LSB_Sensitivity[];
@@ -136,7 +141,15 @@ public:
     //  while calibration is happening
     void calibrate_sensors();
 
-    void initialize();
+    /*
+    *
+    */
+    virtual bool initialize() override;
+
+  	virtual const std::string printConfig() override {
+        return name() + " I2C addr: " + std::to_string(_i2caddr) + "\n";
+    }
+    
     /*
      * Update values - will be used in loop
      */
@@ -157,20 +170,25 @@ public:
     // Set device to to sleep (true) or wake up (false)
     void set_sleep(bool sleep_mode);
     bool get_sleep();
+    const bool is_sleep() const {
+      return m_sleep_mode;
+    }
 
     void self_check();
 
     void gyro_set_full_scale_range(int range);
-        int  gyro_get_full_scale_range();
+    int  gyro_get_full_scale_range();
 
-        void accel_set_full_scale_range(int range);
-        int  accel_get_full_scale_range();
+    void accel_set_full_scale_range(int range);
+    int  accel_get_full_scale_range();
 
 private:
     uint8_t _i2caddr;
     int m_fd;
     int m_gyro_conf;
     int m_accel_conf;
+
+    bool  m_sleep_mode;
 
     unsigned int update_interval; //update interval (1 second by default)
     std::recursive_mutex data_update;
