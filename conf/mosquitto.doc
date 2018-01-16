@@ -1,6 +1,12 @@
 #start server as demon
 /build/src/mosquitto -c ./mosquitto.conf.dk
 
+
+#
+# Remember! Use host name the same as set in certifacate or use --insecure 
+#
+./mosquitto_pub -h dk-centos7-mqqt.localdomain -p 8883  -t pirobot -m "hello  pi" --cafile /home/denis/pi-robot/mqqt_tls/m2mqtt_ca.crt -d --tls-version tlsv1
+
 # subscrime to topic 'pirobot'
 ./build/client/mosquitto_sub -h 10.32.5.128 -d -t pirobot
 

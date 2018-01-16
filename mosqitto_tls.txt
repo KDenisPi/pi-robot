@@ -1,0 +1,60 @@
+#!/bin/sh
+
+# 1. Create CA Key pair (password mosquittopi)
+#
+# genrsa - generate a RSA prived key
+# 2048 - number of bits for private key
+#
+openssl genrsa -des3 -out m2mqtt_ca.key 2048
+
+# 1.1 How to print and check generated key
+openssl rsa -in m2mqtt_ca.key -text -check -passin pass:mosquittopi
+
+# 2. Create CA Certificate
+
+# Parameters for CA certificates
+#
+# /C  - Coutry name (2 letter code)
+# /ST - State or Province name
+# /L  - Locality Name (City)
+# /O  - Organization/Company name
+# /OU - organization department
+# /CN - common name
+# /emailAddress - email address
+
+SUBJINFOCA="/C=US/ST=CA/L=FosterCity/O=DenisKudia/CN=DK CA/emailAddress=dkudja@gmail.com/"
+SUBJINFOSRV="/C=US/ST=CA/L=FosterCity/O=DenisKudia/CN=dk-centos7-mqqt.localdomain/emailAddress=dkudja@gmail.com/"
+
+# -x509 this option outputs a self signed certificate instead of a certificate request. 
+#       This is typically used to generate a test certificate or a self signed root CA.
+
+openssl req -new -x509 -days 3650 -key m2mqtt_ca.key -out m2mqtt_ca.crt -subj "${SUBJINFOCA}" -passin pass:mosquittopi -config openssl.cnf
+
+# 2.1  Print certificate configuration
+openssl x509 -noout -text -in m2mqtt_ca.crt
+
+# 3. Create Broker (server) Key pair (not encrypted because I do not want to show password in command line)
+openssl genrsa -out m2mqtt_srv.key 2048
+
+# 4. Create Certificate Signing Request (csr) file using server prived key
+openssl req -new -key m2mqtt_srv.key -out m2mqtt_srv.csr -subj "$SUBJINFOSRV"
+
+# 4.1 Print Certificate Signing Request information
+openssl req -noout -text -in m2mqtt_srv.csr
+
+# 5. Generate Broker (server) request using CA key and CA certificate
+# x509: certificate display and signing utility
+# -req: a certificate request is expected as input
+# -in: input file for the certificate
+# -CA: specifies the file to be signed
+# -CAkey: CA private key to sign the certificate with
+# -Cacreateserial: the serial number file gets created if it does not exist
+# -out: output file name
+# -days: how long the certificate shall be valid 
+  
+openssl x509 -req -in m2mqtt_srv.csr -CA m2mqtt_ca.crt -CAkey m2mqtt_ca.key -CAcreateserial -passin pass:mosquittopi -out m2mqtt_srv.crt -days 3650
+
+# 5.1 Check connection to mosquitto server
+openssl  s_client -showcerts -connect 10.32.5.141:8883 -CAfile ./m2mqtt_ca.crt
+
+
