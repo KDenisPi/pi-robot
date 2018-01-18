@@ -31,11 +31,24 @@ MosquittoClient::~MosquittoClient(){
 *
 */
 const int MosquittoClient::cl_connect(const MqqtServerInfo& conf){
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__));
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " TLS: " + std::to_string(conf.is_tls()));
+
+    int res;
+    //TLS sapport
+    if(conf.is_tls()){
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " TLS: " + std::to_string(conf.is_tls()) + 
+            " CA file: " + conf.get_cafile() + " Insecure: " + std::to_string(conf.is_tls_insecure()) + 
+            " Version: " + conf.get_tls_version());
+        
+        res = tls_set(conf.get_cafile().c_str());
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " TLS set: " + cl_get_errname(res) + " CA file: " + conf.get_cafile());
+        tls_opts_set(1, conf.get_tls_version().c_str());
+        tls_insecure_set(conf.is_tls_insecure());
+    }
 
     m_qos = conf.qos();
     reconnect_delay_set(reconnect_delay, reconnect_delay_max, false);
-    int res =  connect_async(conf.host(), conf.port(), conf.keepalive());
+    res =  connect_async(conf.host(), conf.port(), conf.keepalive());
     loop_start();
 
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Finished: " + cl_get_errname(res));

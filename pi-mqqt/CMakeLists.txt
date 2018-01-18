@@ -7,6 +7,7 @@ include_directories(BEFORE ${MOSQUITTO_HOME}/lib/cpp
    ${MOSQUITTO_HOME}/lib
    ${PROJECT_SOURCE_DIR}/../pi-smashine
    ${PROJECT_SOURCE_DIR}/../pi-utils
+   ${JSONCONS}
 )
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_MQQT_SOURCES)
