@@ -62,7 +62,24 @@ static void sigHandlerParent(int sign){
   }
 }
 
-const char* err_message = "Error. No configuration file.\nUsage project1 --conf coniguration_file [--mqqt mqqt_server_ip_addres]";
+const char* err_message = "Error. No configuration file.\nUsage project1 --conf coniguration_file [--mqqt-conf mqqt_configuration_file ]";
+
+std::string validate_file_parameter(const int idx, const int argc, char* argv[]){
+  std::string filename;
+  if(idx == argc){
+    cout <<  err_message << endl;
+    _exit(EXIT_FAILURE);
+  }
+  filename = argv[idx];
+  std::ifstream file_stream(filename);
+  if(!file_stream){
+    cout <<  "Configuration file " << filename << " does not exist or not available." << endl;
+    _exit(EXIT_FAILURE);
+  }
+  file_stream.close();
+
+  return filename;
+}
 
 /*
 * program --conf path_to_configuration [--mqqt mqqt_server_ip_addres]
@@ -71,28 +88,24 @@ const char* err_message = "Error. No configuration file.\nUsage project1 --conf 
 int main (int argc, char* argv[])
 {
   bool mqtt = false;
-  std::string conf_file, mqqt_ip;
+  std::string robot_conf, mqqt_conf;
   stmPid = mqqtPid = 0;
   sigset_t new_set;
   cout <<  "Project1 started" << endl;
 
-  if(argc < 3 || (strcmp(argv[1], "--conf") != 0)){
+  for(int i = 1; i < argc; i++){
+    if(strcmp(argv[i], "--conf") == 0){
+      robot_conf = validate_file_parameter(++i, argc, argv);
+    }
+    else if(strcmp(argv[i], "--mqqt-conf") == 0){
+      mqqt_conf = validate_file_parameter(++i, argc, argv);
+      mqtt = true;
+    }
+  }
+
+  if(robot_conf.empty()){
     cout <<  err_message << endl;
     _exit(EXIT_FAILURE);
-  }
-
-  conf_file = argv[3];
-  std::ifstream file_stream(argv[3]);
-  if(!file_stream){
-    cout <<  "Configuration file does not exist or not available." << endl;
-    _exit(EXIT_FAILURE);
-  }
-  file_stream.close();
-
-  if(argc >= 5 && strcmp(argv[3], "--mqtt") == 0){
-    mqtt = true;
-    //IP address of MQQT server
-    mqqt_ip = argv[4];
   }
 
   switch(stmPid = fork()){
@@ -130,10 +143,10 @@ int main (int argc, char* argv[])
 
         try{
           // Load hardware configuration
-          pirobot->configure(conf_file);
+          pirobot->configure(robot_conf);
         }
         catch(std::runtime_error& rterr){
-          cout <<  "Could not load Pi Robot hardware configuration.\nError: " << rterr.what() << endl;
+          cout <<  "Could not load Pi Robot hardware configuration " << robot_conf << "\nError: " << rterr.what() << endl;
           _exit(EXIT_FAILURE);
         }
 
@@ -170,10 +183,17 @@ int main (int argc, char* argv[])
                 _exit(EXIT_FAILURE);
               }
 
-              mqqt::MqqtServerInfo info(mqqt::MqqtServerInfo(mqqt_ip, "pi-robot"));
-              clMqqt = new mqqt::MqqtClient<mqqt::MosquittoClient>(info);
-              clMqqt->wait();
+              try{
+                // Load MQQT server configuration
+                mqqt::MqqtServerInfo info = mqqt::MqqtServerInfo::load(mqqt_conf);
+                clMqqt = new mqqt::MqqtClient<mqqt::MosquittoClient>(info);
+              }
+              catch(std::runtime_error& rterr){
+                cout <<  "Could not load Pi Robot hardware configuration " << robot_conf << "\nError: " << rterr.what() << endl;
+                _exit(EXIT_FAILURE);
+              }
 
+              clMqqt->wait();
               sleep(2);
 
               delete clMqqt;

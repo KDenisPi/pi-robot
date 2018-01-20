@@ -33,7 +33,7 @@ public:
      *
      * TODO: Read configuration from file
      */
-    virtual bool configure(const std::string cfile);
+    virtual bool configure(const std::string& cfile);
 
     /*
      *

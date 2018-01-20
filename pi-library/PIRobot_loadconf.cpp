@@ -5,9 +5,9 @@
  *      Author: Denis Kudia
  */
 
-#include "jsoncons/json.hpp"
 #include "PiRobot.h"
 #include "logger.h"
+#include "JsonHelper.h"
 
 #include "Adafruit_PWMServoDriver.h"
 #include "GpioProviderFake.h"
@@ -33,39 +33,9 @@ namespace pirobot {
 const char TAG[] = "PiRobot";
 
 /*
-    Get attribute value and use defauilt value if absent
-*/
-template<class T>
-T get_attr(const jsoncons::json& object, const std::string& name, const T& attr_default){
-        return (object.has_key(name) ? object[name].as<T>() : attr_default);
-};
-
-/*
-    Get value for mandatory attribute and raise exception if attribut absent.
-*/
-template<class T>
-T get_attr_mandatory(const jsoncons::json& object, const std::string& name){
-    if(!object.has_key(name)){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Absent mandatory attribute " + name);
-        throw std::runtime_error(std::string("Absent mandatory attribute. Name: ") + name);
-    }
-    return object[name].as<T>();
-};
-
-/*
-//
-*/
-std::string str_toupper(std::string s) {
-    std::transform(s.begin(), s.end(), s.begin(), 
-        [](unsigned char c){ return std::toupper(c); } // correct
-     );
-    return s;
-}
-
-/*
  *
  */
-bool PiRobot::configure(const std::string cfile){
+bool PiRobot::configure(const std::string& cfile){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot configuration is starting..");
 
     std::string conf = (cfile.empty() ? get_configuration() : cfile);
@@ -80,8 +50,8 @@ bool PiRobot::configure(const std::string cfile){
 
         jsoncons::json conf = jsoncons::json::parse(ijson);
 
-        auto version = get_attr<std::string>(conf, "version", "");
-        auto real_world = get_attr<bool>(conf, "real_world", true);
+        auto version = jsonhelper::get_attr<std::string>(conf, "version", "");
+        auto real_world = jsonhelper::get_attr<bool>(conf, "real_world", true);
 
         set_real_world(real_world);
         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Version: " + version + " Real World: " + std::to_string(real_world));
@@ -116,7 +86,7 @@ bool PiRobot::configure(const std::string cfile){
             }
             
             if(provider_type == "FAKE"){
-                auto pins = get_attr<int>(provider, "pins", gpio::GpioProviderFake::s_pins);
+                auto pins = jsonhelper::get_attr<int>(provider, "pins", gpio::GpioProviderFake::s_pins);
                 providers[provider_name] = std::shared_ptr<pirobot::provider::Provider>(new pirobot::gpio::GpioProviderFake(provider_name, pins));
             }
             else if(provider_type == "PWM"){ //this provider can be  used with real hardware only
@@ -126,7 +96,7 @@ bool PiRobot::configure(const std::string cfile){
                 }
 
                 auto i2c_provider = std::static_pointer_cast<pirobot::i2c::I2C>(get_provider("I2C"));
-                auto i2c_addr = (uint8_t)get_attr<int>(provider, "i2c_addr", gpio::Adafruit_PWMServoDriver::s_i2c_addr);
+                auto i2c_addr = (uint8_t)jsonhelper::get_attr<int>(provider, "i2c_addr", gpio::Adafruit_PWMServoDriver::s_i2c_addr);
                 logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Provider: " + provider_name + " I2C address: " + std::to_string(i2c_addr));
 
                 providers[provider_name] = std::shared_ptr<pirobot::gpio::Adafruit_PWMServoDriver>(
@@ -139,7 +109,7 @@ bool PiRobot::configure(const std::string cfile){
                 }
 
                 auto i2c_provider = std::static_pointer_cast<pirobot::i2c::I2C>(get_provider("I2C"));
-                auto i2c_addr = (uint8_t)get_attr<int>(provider, "i2c_addr", gpio::GpioProviderMCP23017::s_i2c_addr);
+                auto i2c_addr = (uint8_t)jsonhelper::get_attr<int>(provider, "i2c_addr", gpio::GpioProviderMCP23017::s_i2c_addr);
                 logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Provider: " + provider_name + " I2C address: " + std::to_string(i2c_addr));
 
                 providers[provider_name] = std::shared_ptr<pirobot::provider::Provider>(
@@ -151,8 +121,8 @@ bool PiRobot::configure(const std::string cfile){
                     throw std::runtime_error(std::string("GPIO provider PCA9685 can be used with real hardware only"));
                 }
 
-                auto pwm_name = get_attr<std::string>(provider, "pwm", "");
-                auto frequency = get_attr<float>(provider, "frequency", gpio::GpioProviderPCA9685::s_frequency);
+                auto pwm_name = jsonhelper::get_attr<std::string>(provider, "pwm", "");
+                auto frequency = jsonhelper::get_attr<float>(provider, "frequency", gpio::GpioProviderPCA9685::s_frequency);
                 logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Provider: " + provider_name + " Frequency: " + std::to_string(frequency) + 
                     " PWM: " + pwm_name);
 
@@ -166,22 +136,22 @@ bool PiRobot::configure(const std::string cfile){
                 pirobot::spi::SPI_config spi_config;
 
                 spi_config.real_world = is_real_world();
-                spi_config.channels = get_attr<int>(provider, "channels", 1);
+                spi_config.channels = jsonhelper::get_attr<int>(provider, "channels", 1);
 
                 if(spi_config.channels == 0 || spi_config.channels > 2){
                     logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid number of SPI channels. Should be equal 1 or 2");
                     throw std::runtime_error(std::string("Invalid number of SPI channels"));
                 }
 
-                spi_config.speed[0] = get_attr<int>(provider, "speed_1", 1000000); //1MHz
-                spi_config.mode[0] = (spi::SPI_MODE)get_attr<int>(provider, "mode_1", spi::SPI_MODE::MODE_0);
+                spi_config.speed[0] = jsonhelper::get_attr<int>(provider, "speed_1", 1000000); //1MHz
+                spi_config.mode[0] = (spi::SPI_MODE)jsonhelper::get_attr<int>(provider, "mode_1", spi::SPI_MODE::MODE_0);
 
                 logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Provider: " + provider_name + " Channels: " + std::to_string(spi_config.channels) + 
                     " Speed[0]: " + std::to_string(spi_config.speed[0]) + " Mode[0]: " + std::to_string(spi_config.mode[0]));
 
                 if(spi_config.channels == 2){
-                    spi_config.speed[1] = get_attr<int>(provider, "speed_2", 1000000); //1MHz
-                    spi_config.mode[1] = (spi::SPI_MODE)get_attr<int>(provider, "mode_2", spi::SPI_MODE::MODE_0);
+                    spi_config.speed[1] = jsonhelper::get_attr<int>(provider, "speed_2", 1000000); //1MHz
+                    spi_config.mode[1] = (spi::SPI_MODE)jsonhelper::get_attr<int>(provider, "mode_2", spi::SPI_MODE::MODE_0);
 
                     logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Provider: " + provider_name + " Channels: " + std::to_string(spi_config.channels) + 
                     " Speed[1]: " + std::to_string(spi_config.speed[1]) + " Mode[1]: " + std::to_string(spi_config.mode[1]));
@@ -209,10 +179,10 @@ bool PiRobot::configure(const std::string cfile){
         for(const auto& json_gpio : json_gpios.array_range()){
 
             //Load GPIO attributes (all are mandatory)
-            auto gpio_name = get_attr_mandatory<std::string>(json_gpio, "name");
-            auto gpio_provider = get_attr_mandatory<std::string>(json_gpio, "provider");
-            auto gpio_pin = get_attr_mandatory<int>(json_gpio, "pin");
-            auto gpio_mode = get_attr_mandatory<std::string>(json_gpio, "mode");
+            auto gpio_name = jsonhelper::get_attr_mandatory<std::string>(json_gpio, "name");
+            auto gpio_provider = jsonhelper::get_attr_mandatory<std::string>(json_gpio, "provider");
+            auto gpio_pin = jsonhelper::get_attr_mandatory<int>(json_gpio, "pin");
+            auto gpio_mode = jsonhelper::get_attr_mandatory<std::string>(json_gpio, "mode");
 
             logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " GPIO Name: " + gpio_name + " Provider: " + gpio_provider + 
                 " Pin:" + std::to_string(gpio_pin) + " Mode:" + gpio_mode);
@@ -232,8 +202,8 @@ bool PiRobot::configure(const std::string cfile){
         
         auto f_get_gpio_name = [this](const jsoncons::json& object, const std::string& gpio_object_name, const std::string& item_name) -> std::string{
             auto gpio_object = object[gpio_object_name];
-            auto gpio_provider = get_attr_mandatory<std::string>(gpio_object, "provider");
-            auto gpio_pin = get_attr_mandatory<int>(gpio_object, "pin");
+            auto gpio_provider = jsonhelper::get_attr_mandatory<std::string>(gpio_object, "provider");
+            auto gpio_pin = jsonhelper::get_attr_mandatory<int>(gpio_object, "pin");
 
             logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item Name: " + item_name + " GPIO provider: " + gpio_provider + 
                         " Pin:" + std::to_string(gpio_pin));
@@ -250,7 +220,7 @@ bool PiRobot::configure(const std::string cfile){
 
 
         auto f_get_motor_direction = [this](const jsoncons::json& object, const std::string& item_name) -> item::MOTOR_DIR{
-            std::string direction_name = get_attr<std::string>(object, "direction", "CLOCKWISE");
+            std::string direction_name = jsonhelper::get_attr<std::string>(object, "direction", "CLOCKWISE");
 
             if((direction_name != "CLOCKWISE") && (direction_name != "COUTERCLOCKWISE")){
                 logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid Motor direction value: " + direction_name + " for " + item_name);
@@ -263,9 +233,9 @@ bool PiRobot::configure(const std::string cfile){
         auto json_items  =  conf["items"];
         for(const auto& json_item : json_items.array_range()){
 
-            auto item_type = get_attr_mandatory<std::string>(json_item, "type");
-            auto item_name = get_attr_mandatory<std::string>(json_item, "name");
-            auto item_comment = get_attr<std::string>(json_item, "comment", "");
+            auto item_type = jsonhelper::get_attr_mandatory<std::string>(json_item, "type");
+            auto item_name = jsonhelper::get_attr_mandatory<std::string>(json_item, "name");
+            auto item_comment = jsonhelper::get_attr<std::string>(json_item, "comment", "");
 
             logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item Name: " + item_name + " Type: " + item_type + " Commend:" + item_comment);
             
@@ -300,8 +270,8 @@ bool PiRobot::configure(const std::string cfile){
                 * BUTTON parameters: Name, Comment, [GPIO provider, PIN]
                 */
                     else if(itype==item::ItemTypes::BUTTON){
-                        auto btn_state = get_attr<std::string>(json_item, "state", "NOT_PUSHED");
-                        auto btn_pull_mode = get_attr<std::string>(json_item, "pull_mode", "PULL_UP");
+                        auto btn_state = jsonhelper::get_attr<std::string>(json_item, "state", "NOT_PUSHED");
+                        auto btn_pull_mode = jsonhelper::get_attr<std::string>(json_item, "pull_mode", "PULL_UP");
 
                         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Button Name: " + item_name + " State: " + btn_state + 
                             " Pull mode:" + btn_pull_mode);
@@ -328,7 +298,7 @@ bool PiRobot::configure(const std::string cfile){
                 * DRV8835 parameters: Name, Comment, [GPIO provider, PIN]
                 */
                     else if(itype==item::ItemTypes::DRV8835){
-                        auto drv8835_mode = get_attr<std::string>(json_item, "mode", "PH_EN");
+                        auto drv8835_mode = jsonhelper::get_attr<std::string>(json_item, "mode", "PH_EN");
                         
                         if((drv8835_mode != "PH_EN") && (drv8835_mode != "IN_IN")){
                             logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid Drv8835 mode value.");
@@ -350,7 +320,7 @@ bool PiRobot::configure(const std::string cfile){
                             throw std::runtime_error(std::string("Invalid GPIO PWM value (duplicate)."));
                         }
 
-                        auto drv8835_name = get_attr_mandatory<std::string>(json_item, "drv8835");
+                        auto drv8835_name = jsonhelper::get_attr_mandatory<std::string>(json_item, "drv8835");
                         auto direction = f_get_motor_direction(json_item, item_name);
                         
                         items_add(item_name, 
@@ -369,9 +339,9 @@ bool PiRobot::configure(const std::string cfile){
                 */
                     else  if(itype== item::ItemTypes::AnlgDgtConvertor){
                         std::string gpio_name = f_get_gpio_name(json_item, "gpio", item_name);
-                        auto analog_inputs =  get_attr<int>(json_item, "analog_inputs", 8);
-                        auto spi_channel  =  get_attr<int>(json_item, "spi_channel", 0);
-                        auto loop_delay  =  get_attr<unsigned int>(json_item, "delay", 5);
+                        auto analog_inputs =  jsonhelper::get_attr<int>(json_item, "analog_inputs", 8);
+                        auto spi_channel  =  jsonhelper::get_attr<int>(json_item, "spi_channel", 0);
+                        auto loop_delay  =  jsonhelper::get_attr<unsigned int>(json_item, "delay", 5);
 
                         items_add(item_name, std::shared_ptr<pirobot::item::Item>(new pirobot::mcp320x::MCP320X(
                             std::static_pointer_cast<pirobot::spi::SPI>(get_provider("SPI")),
@@ -413,12 +383,12 @@ bool PiRobot::configure(const std::string cfile){
             * Analod light meter.
             */  
                 {
-                    auto ad_convertor = get_attr_mandatory<std::string>(json_item, "ad_convertor");
-                    auto analog_input_index = get_attr_mandatory<int>(json_item, "analog_input_index");
+                    auto ad_convertor = jsonhelper::get_attr_mandatory<std::string>(json_item, "ad_convertor");
+                    auto analog_input_index = jsonhelper::get_attr_mandatory<int>(json_item, "analog_input_index");
 
-                    auto debug_mode  =  get_attr<bool>(json_item, "debug", false);
-                    auto debug_buffer_size  =  get_attr<int>(json_item, "debug_buffer_size", 2048);
-                    auto value_diff_for_event  =  get_attr<int>(json_item, "value_diff_for_event", 0);
+                    auto debug_mode  =  jsonhelper::get_attr<bool>(json_item, "debug", false);
+                    auto debug_buffer_size  =  jsonhelper::get_attr<int>(json_item, "debug_buffer_size", 2048);
+                    auto value_diff_for_event  =  jsonhelper::get_attr<int>(json_item, "value_diff_for_event", 0);
 
                     items_add(item_name, std::shared_ptr<pirobot::item::Item>(
                         new pirobot::anlglightmeter::AnalogLightMeter(
@@ -440,10 +410,10 @@ bool PiRobot::configure(const std::string cfile){
             * BLINKER parameters: Name, SUB.ITEM=LED
             */
                 {
-                    auto led = get_attr_mandatory<std::string>(json_item, "led");
-                    auto tm_on  =  get_attr<int>(json_item, "tm_on", 250);
-                    auto tm_off  =  get_attr<int>(json_item, "tm_off", 500);
-                    auto blinks  =  get_attr<int>(json_item, "blinks", 0);
+                    auto led = jsonhelper::get_attr_mandatory<std::string>(json_item, "led");
+                    auto tm_on  =  jsonhelper::get_attr<int>(json_item, "tm_on", 250);
+                    auto tm_off  =  jsonhelper::get_attr<int>(json_item, "tm_off", 500);
+                    auto blinks  =  jsonhelper::get_attr<int>(json_item, "blinks", 0);
                 
                     items_add(item_name, std::shared_ptr<pirobot::item::Item>(
                         new pirobot::item::Blinking<pirobot::item::Led>(
@@ -458,8 +428,8 @@ bool PiRobot::configure(const std::string cfile){
 
                 case item::ItemTypes::MPU6050:
                 {
-                    auto i2c_addr = (uint8_t)get_attr<int>(json_item, "i2c_addr", MPU6050_I2C_ADDRESS);
-                    auto loop_delay  =  get_attr<unsigned int>(json_item, "delay", 100);
+                    auto i2c_addr = (uint8_t)jsonhelper::get_attr<int>(json_item, "i2c_addr", MPU6050_I2C_ADDRESS);
+                    auto loop_delay  =  jsonhelper::get_attr<unsigned int>(json_item, "delay", 100);
                     logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item: " + item_name + " I2C address: " + std::to_string(i2c_addr));
 
                     items_add(item_name, 

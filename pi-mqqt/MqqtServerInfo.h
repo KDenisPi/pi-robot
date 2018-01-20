@@ -30,8 +30,14 @@ public:
 
     bool is_empty() const {return m_host.empty();}
     const char* host() const {return m_host.c_str();}
+    void set_host(const std::string& host){
+        m_host = host;
+    }
 
     const char* clientid() const {return (m_clientid.empty() ? NULL : m_clientid.c_str());}
+    void set_clientid(const std::string& clientid){
+        m_clientid = clientid;
+    }
     
     void set_port(const int port) {m_port = port;}
     const int port() const { return m_port;}
