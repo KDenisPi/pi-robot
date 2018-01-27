@@ -67,7 +67,8 @@ int main (int argc, char* argv[])
 
         std::shared_ptr<spi_test::MyStateFactory> factory(new spi_test::MyStateFactory());
         std::shared_ptr<pirobot::PiRobot> pirobot(new pirobot::PiRobot());
-        stm = new smachine::StateMachine(factory, pirobot);
+        std::shared_ptr<mqqt::MqqtClient<mqqt::MqqtClientItf>> mqqt();
+        stm = new smachine::StateMachine(factory, pirobot, nullptr);
 
         cout <<  "State machine started. Wait" << endl;   
         cout <<  "Logger links: " << logger::plog.use_count() << endl;

@@ -47,12 +47,12 @@ public:
     */
     const T& get(){
         std::lock_guard<std::mutex> lk(cv_m);
+        int ptail = tail_;
         if(!is_empty()){
-            m_last_value = buffer[tail_];
             tail_ = (tail_ + 1 >= max_size_ ? 0 : tail_+1);
         }
 
-        return m_last_value;
+        return buffer[ptail];
     }
 
     /*

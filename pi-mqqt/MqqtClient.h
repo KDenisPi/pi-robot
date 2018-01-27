@@ -12,8 +12,10 @@
 #include <queue>
 
 #include "logger.h"
+
 #include "MqqtDefines.h"
 #include "MqqtClientItf.h"
+#include "mqqt_object.h"
 
 #include "Threaded.h"
 #include "CircularBuffer.h"
@@ -23,28 +25,36 @@ namespace mqqt {
 
 const char TAG_CL[] = "mqqtcl";
 
-using pub_info = std::pair<int,std::pair<std::string, std::string>>;    
+using pub_info = std::pair<std::string,std::pair<int, std::string>>;    
+
+class MqqtItf {
+public:
+    MqqtItf() {}
+    virtual ~MqqtItf() {}
+
+    virtual bool start() = 0;
+    virtual void stop() = 0;
+};
 
 /*
 * MQQT client implementation
 */
 template <class T>
-class MqqtClient : public piutils::Threaded{
+class MqqtClient : public piutils::Threaded, public MqqtItf {
 public:
     /*
     *
     */
     MqqtClient<T>(const MqqtServerInfo& conf) : 
-        m_mid(0),
         m_conf(conf),
         m_max_size(100)
     {
         logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Client ID: " + (NULL == m_conf.clientid() ? std::string("NotDefined") : m_conf.clientid()));
+        
         m_mqqtCl = std::shared_ptr<T>(new T(m_conf.clientid()));
         m_mqqtCl->owner_notification = std::bind(&MqqtClient::on_client, this, std::placeholders::_1, std::placeholders::_2);
         
-        m_messages = std::shared_ptr<piutils::circbuff::CircularBuffer<std::pair<std::string, std::string>>>(
-                new piutils::circbuff::CircularBuffer<std::pair<std::string, std::string>>(m_max_size));
+        m_messages = std::shared_ptr<piutils::circbuff::CircularBuffer<MqqtObject*>>(new piutils::circbuff::CircularBuffer<MqqtObject*>(m_max_size));
         
         logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Version: " + get_version());   
     }
@@ -68,16 +78,15 @@ public:
         return m_mqqtCl->cl_connect(m_conf);
     }
 
+    const bool is_connected() const {
+        return m_mqqtCl->is_connected();
+    }
+
     /*
     * Temporal: Wait for processing.
     */
     void wait(){
         piutils::Threaded::stop(false);
-    }
-
-
-    const int get_next_mid(){
-        return ++m_mid;
     }
 
     /*
@@ -86,11 +95,9 @@ public:
     const MQQT_CLIENT_ERROR publish(const std::string& topic, const std::string& payload){
         //do nothing if client stopped already 
         if(is_stop_signal())
-            return m_mid;
+            return MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
 
-        //std::lock_guard<std::mutex> lk(cv_m);
-        auto pub_item = std::make_pair<get_next_mid(), std::make_pair<topic,payload>>;
-        m_messages->put(pub_item);
+        m_messages->put(new MqqtObject(topic, payload));
 
         return MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
     }
@@ -98,16 +105,16 @@ public:
     /*
     *
     */
-    const std::shared_ptr<pub_info> get(){
+    const MqqtObject* get(){
         return m_messages->get();
     }
 
     /*
     *
     */
-    const int put(pub_info& item){
-        auto pub_item = item.second;
-        return m_mqqtCl->cl_publish(item.first, pub_item.first, pub_item.second);
+    const int put(const MqqtObject* item){
+        int mid = 0;
+        return m_mqqtCl->cl_publish(&mid, item->topic(), item->payloadsize(), item->payload().get());
     }
 
     /*
@@ -135,19 +142,20 @@ public:
     /*
     *
     */
-    bool start(){
+    virtual bool start() override {
         logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Started");
-        //return piutils::Threaded::start<MqqtClient<T>>(this);
-        return true;
+        return piutils::Threaded::start<mqqt::MqqtClient<T>>(this);
     }
     
     /*
     * For Threaded 
     */
-    static void worker(MqqtClient* owner){
+    static void worker(MqqtClient<T>* owner){
         logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Worker started.");
         
-        auto fn = [owner]{return (owner->is_stop_signal() || !owner->is_empty());};        
+        owner->connect();
+
+        auto fn = [owner]{return (owner->is_stop_signal() || (!owner->is_empty() && owner->is_connected()));};        
         while(!owner->is_stop_signal()){
 
             {
@@ -155,20 +163,24 @@ public:
                 owner->cv.wait(lk, fn);
             }
 
-            while(!owner->is_empty() && !owner->is_stop_signal()){
-                auto item = owner->get();
-
+            while(owner->is_connected() && !owner->is_empty() && !owner->is_stop_signal()){
                 //Publish message here
+                const MqqtObject* item = owner->get();
                 owner->put(item);
+
+                delete item;
             }
         }
+
+        owner->disconnect();
+            
         logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Worker finished.");
     }
 
     /*
     *
     */
-    void stop() {
+    virtual void stop() override{
         logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Started.");
         //clear the queue
         m_messages->empty();
@@ -186,14 +198,10 @@ public:
     }
 
 private:
-    int m_mid;  // message ID
     MqqtServerInfo m_conf;  //server configuration
     std::shared_ptr<T> m_mqqtCl; //client implementation
 
-    std::recursive_mutex cv_m;
-    std::condition_variable cv;
-    
-    std::shared_ptr<piutils::circbuff::CircularBuffer<std::pair<std::string, std::string>>> m_messages;
+    std::shared_ptr<piutils::circbuff::CircularBuffer<MqqtObject*>> m_messages;
     int m_max_size;  
 };
 

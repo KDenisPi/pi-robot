@@ -73,9 +73,11 @@ const std::string MosquittoClient::cl_get_version() const {
 }
 
 
-const int MosquittoClient::cl_publish(int mid, std::string& topic, std::string& payload){
-    int mmid = mid;
-    return publish(&mmid, topic.c_str(), payload.length(), payload.c_str(), m_qos);
+const int MosquittoClient::cl_publish(int* mid, const std::string& topic, const std::string& payload){
+    return publish(mid, topic.c_str(), payload.length(), payload.c_str(), m_qos);
+}
+const int MosquittoClient::cl_publish(int* mid, const std::string& topic, const int payloadsize, const void* payload){
+    return publish(mid, topic.c_str(), payloadsize, payload, m_qos);
 }
 
 /*

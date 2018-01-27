@@ -20,7 +20,8 @@ namespace smachine {
 
 const char TAG[] = "smash";
 
-StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, const std::shared_ptr<pirobot::PiRobot> pirobot) :
+StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, 
+    const std::shared_ptr<pirobot::PiRobot> pirobot, const std::shared_ptr<mqqt::MqqtItf> mqqt) :
         m_factory(factory),
         m_pirobot(pirobot)
 {
@@ -37,7 +38,7 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, const st
     }
 
     //set callback function for hardware calls
-    if(pirobot.get() != nullptr){
+    if(pirobot){
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Created callback notification function");
         pirobot->stm_notification = std::bind(&StateMachine::process_robot_notification,
                 this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);

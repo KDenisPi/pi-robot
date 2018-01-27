@@ -16,9 +16,8 @@
 using namespace std;
 
 smachine::StateMachine* stm;
-mqqt::MqqtClient<mqqt::MosquittoClient>* clMqqt;
 
-pid_t stmPid, mqqtPid;
+pid_t stmPid;
 
 /*
 * Singnal handler for State Machine
@@ -35,20 +34,6 @@ static void sigHandlerStateMachine(int sign){
 }
 
 /*
-* Singnal handler for MQQT client
-*/
-static void sigHandlerMQQT(int sign){
-
-  cout <<  "MQQT: Detected signal " << sign  << endl;
-  if(sign == SIGINT) {
-    clMqqt->stop();
-  }
-  else if (sign == SIGUSR1){
-    clMqqt->start();
-  }
-}
-
-/*
 * Singnal handler for parent
 */
 static void sigHandlerParent(int sign){
@@ -57,8 +42,6 @@ static void sigHandlerParent(int sign){
   if (sign == SIGINT || sign == SIGUSR1) {
     if(stmPid)
       kill(stmPid, sign);
-    if(mqqtPid)  
-      kill(mqqtPid, sign);
   }
 }
 
@@ -89,7 +72,7 @@ int main (int argc, char* argv[])
 {
   bool mqtt = false;
   std::string robot_conf, mqqt_conf;
-  stmPid = mqqtPid = 0;
+  stmPid  = 0;
   sigset_t new_set;
   cout <<  "Project1 started" << endl;
 
@@ -153,10 +136,23 @@ int main (int argc, char* argv[])
         //Create State factory for State Machine
         std::shared_ptr<project1::MyStateFactory> factory(new project1::MyStateFactory());
 
+        std::shared_ptr<mqqt::MqqtItf> clMqqt;
+        if(mqtt){
+              try{
+                // Load MQQT server configuration
+                mqqt::MqqtServerInfo info = mqqt::MqqtServerInfo::load(mqqt_conf);
+                clMqqt = std::shared_ptr<mqqt::MqqtItf>(new mqqt::MqqtClient<mqqt::MosquittoClient>(info));
+              }
+              catch(std::runtime_error& rterr){
+                cout <<  "Could not load Pi Robot hardware configuration " << robot_conf << "\nError: " << rterr.what() << endl;
+                _exit(EXIT_FAILURE);
+              }
+          
+        }
         /*
         * Create State machine
         */
-        stm = new smachine::StateMachine(factory, pirobot);
+        stm = new smachine::StateMachine(factory, pirobot, clMqqt);
         cout <<  "Created state machine. Waiting for finishing" << endl;
         stm->wait();
         cout <<  "State machine finished" << endl;
@@ -171,41 +167,6 @@ int main (int argc, char* argv[])
     default: //parent
       cout <<  "State machine child created " <<  stmPid << endl;
 
-      if(mqtt){
-        switch(mqqtPid = fork()){
-          case -1:
-            //exit(EXIT_FAILURE);
-            break;
-          case 0:
-            {
-              if (signal(SIGINT, sigHandlerMQQT) == SIG_ERR ||
-                    signal(SIGUSR1, sigHandlerMQQT) == SIG_ERR){
-                _exit(EXIT_FAILURE);
-              }
-
-              try{
-                // Load MQQT server configuration
-                mqqt::MqqtServerInfo info = mqqt::MqqtServerInfo::load(mqqt_conf);
-                clMqqt = new mqqt::MqqtClient<mqqt::MosquittoClient>(info);
-              }
-              catch(std::runtime_error& rterr){
-                cout <<  "Could not load Pi Robot hardware configuration " << robot_conf << "\nError: " << rterr.what() << endl;
-                _exit(EXIT_FAILURE);
-              }
-
-              clMqqt->wait();
-              sleep(2);
-
-              delete clMqqt;
-              _exit(EXIT_SUCCESS);
-            }
-            break;
-
-          default:
-            cout <<  "MQTT client child created " <<  mqqtPid << endl;
-        }
-      }
-
       if( signal(SIGUSR1, sigHandlerParent) == SIG_ERR){
         cout <<  "Parent handler error " <<  stmPid << endl;
       }
@@ -213,9 +174,6 @@ int main (int argc, char* argv[])
       if (signal(SIGINT, sigHandlerParent) == SIG_ERR ){
         cout <<  "Parent handler error " <<  stmPid << endl;
         kill(stmPid, SIGINT);
-
-        if(mqtt)
-          kill(mqqtPid, SIGINT);
       }
 
       for(;;){

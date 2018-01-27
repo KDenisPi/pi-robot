@@ -21,6 +21,7 @@
 #include "EventChangeState.h"
 #include "Event.h"
 #include "Threaded.h"
+#include "MqqtClient.h"
 
 #define ADD_SIGNAL(signal)   sigset_t new_set;\
   sigemptyset (&new_set);\
@@ -36,7 +37,9 @@ class Timers;
 
 class StateMachine : public StateMachineItf, public piutils::Threaded {
 public:
-    StateMachine(const std::shared_ptr<StateFactory> factory, const std::shared_ptr<pirobot::PiRobot> pirobot);
+    StateMachine(const std::shared_ptr<StateFactory> factory, 
+        const std::shared_ptr<pirobot::PiRobot> pirobot,
+        const std::shared_ptr<mqqt::MqqtItf> mqqt);
     virtual ~StateMachine();
 
     /*

@@ -27,7 +27,8 @@ public:
     virtual const int cl_connect(const MqqtServerInfo& conf) = 0;
     virtual const int cl_disconnect() = 0;
     virtual const std::string cl_get_version() const = 0;
-    virtual const int cl_publish(int mid, std::string& topic, std::string& payload) = 0;
+    virtual const int cl_publish(int* mid, const std::string& topic, const std::string& payload) = 0;
+    virtual const int cl_publish(int* mid, const std::string& topic, const int payloadsize, const void* payload) = 0;
 
     virtual void cl_notify(mqqt::MQQT_CLIENT_STATE state, mqqt::MQQT_CLIENT_ERROR code) const {
         if(owner_notification != nullptr){
@@ -35,7 +36,7 @@ public:
         }
     } 
 
-	std::function<void(MQQT_CLIENT_STATE state, MQQT_CLIENT_ERROR code)> owner_notification;
+    std::function<void(MQQT_CLIENT_STATE state, MQQT_CLIENT_ERROR code)> owner_notification;
 
     const bool is_max_err_conn() const {
         return (m_err_connect >= err_conn_max);
@@ -44,6 +45,8 @@ public:
     void err_conn_inc() {
         m_err_connect++;
     }
+
+    virtual bool const is_connected() const = 0;	
 
 private:    
     int m_err_connect; //connection error counter
