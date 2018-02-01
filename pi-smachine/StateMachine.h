@@ -97,10 +97,12 @@ public:
     static void worker(StateMachine* p);
 
 private:
+    //
     bool start();
+    //
     void stop();
 
-
+    //
     bool empty() const {return m_events.empty();}
 
     inline std::shared_ptr<std::list<std::shared_ptr<state::State>>> get_states() const {return m_states;}
@@ -112,14 +114,44 @@ private:
     std::shared_ptr<std::list<std::shared_ptr<state::State>>> m_states;
 
     /*
-     *
+     * Timer support object
      */
     std::shared_ptr<smachine::Timers> m_timers;
 
+    // Hardware configuration
     std::shared_ptr<pirobot::PiRobot> m_pirobot;
+    // State factory
     std::shared_ptr<StateFactory> m_factory;
-
+    //Environment
     std::shared_ptr<Environment> m_env;
+
+    //MQQT support flag
+    bool m_mqqt_active;
+    std::shared_ptr<mqqt::MqqtItf> m_mqqt;
+    const std::string m_topic; 
+
+    //Send State Mashine state to MQQT server. Topic is "stm"
+    void report_state(const std::string& message){
+        publish(m_topic, message);
+    }
+
+public:    
+    const bool is_mqqt() const {return m_mqqt_active;}
+
+    virtual const mqqt::MQQT_CLIENT_ERROR publish(const std::string& topic, const std::string& payload) override{
+        if(is_mqqt())
+            return m_mqqt->publish(topic, payload);
+
+        return mqqt::MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
+    }
+
+    virtual const mqqt::MQQT_CLIENT_ERROR publish(const std::string& topic, const int payloadsize, const void* payload) override{
+        if(is_mqqt())
+            return m_mqqt->publish(topic, payloadsize, payload);
+
+        return mqqt::MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
+    }
+    
 };
 
 } /* namespace smachine */

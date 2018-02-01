@@ -34,6 +34,9 @@ public:
 
     virtual bool start() = 0;
     virtual void stop() = 0;
+
+    virtual const MQQT_CLIENT_ERROR publish(const std::string& topic, const std::string& payload) = 0;
+    virtual const MQQT_CLIENT_ERROR publish(const std::string& topic, const int payloadsize, const void* payload) = 0;
 };
 
 /*
@@ -92,15 +95,24 @@ public:
     /*
     *
     */
-    const MQQT_CLIENT_ERROR publish(const std::string& topic, const std::string& payload){
+    const MQQT_CLIENT_ERROR publish(const std::string& topic, const std::string& payload) override {
         //do nothing if client stopped already 
         if(is_stop_signal())
             return MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
 
         m_messages->put(new MqqtObject(topic, payload));
-
         return MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
     }
+
+    virtual const MQQT_CLIENT_ERROR publish(const std::string& topic, const int payloadsize, const void* payload) override {
+        //do nothing if client stopped already 
+        if(is_stop_signal())
+            return MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
+
+        m_messages->put(new MqqtObject(topic, payloadsize, payload));
+        return MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
+    }
+
 
     /*
     *

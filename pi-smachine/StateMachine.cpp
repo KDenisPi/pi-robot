@@ -23,8 +23,12 @@ const char TAG[] = "smash";
 StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, 
     const std::shared_ptr<pirobot::PiRobot> pirobot, const std::shared_ptr<mqqt::MqqtItf> mqqt) :
         m_factory(factory),
-        m_pirobot(pirobot)
+        m_pirobot(pirobot),
+        m_mqqt_active(false),
+        m_topic("stm")
 {
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+    
     m_timers = std::shared_ptr<Timers>(new Timers(this));
     m_states = std::shared_ptr<std::list<std::shared_ptr<state::State>>>(new std::list<std::shared_ptr<state::State>>);
 
@@ -43,6 +47,17 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
         pirobot->stm_notification = std::bind(&StateMachine::process_robot_notification,
                 this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
     }
+
+    // MQQT support
+    if(mqqt){
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Detected MQQT server support");
+        m_mqqt_active = true;
+        m_mqqt = mqqt;
+
+        m_mqqt->start();
+    }
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
 }
 
 /*
@@ -93,9 +108,18 @@ StateMachine::~StateMachine() {
     //Stop main thread if it is not stopped yet
     this->stop();
     // Stop Equipment
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Stopping PI Robot");
     m_pirobot->stop();
+
     //Stop Timers support
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Stopping Timers");
     m_timers->stop();
+
+    if(is_mqqt()){
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Stopping MQQT client");
+        m_mqqt->stop();
+    }
+
     //Erase not processed states
     m_states->erase(m_states->begin(), m_states->end());
 

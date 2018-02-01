@@ -14,6 +14,7 @@
 #include "TimersItf.h"
 #include "PiRobot.h"
 #include "Environment.h"
+#include "MqqtDefines.h"
 
 namespace smachine {
 
@@ -36,6 +37,8 @@ public:
 	virtual std::shared_ptr<pirobot::PiRobot> get_robot() = 0;
 	virtual std::shared_ptr<Environment> get_env() = 0;
 
+    virtual const mqqt::MQQT_CLIENT_ERROR publish(const std::string& topic, const std::string& payload) = 0;
+    virtual const mqqt::MQQT_CLIENT_ERROR publish(const std::string& topic, const int payloadsize, const void* payload) = 0;
 };
 
 } /* namespace smachine */
