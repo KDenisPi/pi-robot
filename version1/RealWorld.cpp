@@ -29,7 +29,7 @@
 namespace realworld {
 
 RealWorld::RealWorld() :
-		pirobot::PiRobot(true)
+		pirobot::PiRobot()
 {
 
 }

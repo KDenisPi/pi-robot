@@ -26,6 +26,9 @@ public:
 	 * Create Environment object
 	 */
 	virtual smachine::Environment* get_environment() override;
+	virtual const std::string get_first_state() override {
+		return "StateEnvAnalize";
+	}
 
 };
 

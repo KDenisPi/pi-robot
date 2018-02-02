@@ -12,6 +12,7 @@
 #include "MyStateFactory.h"
 #include "StateEnvAnalize.h"
 #include "StateUpdateState.h"
+#include "StateNoHardware.h"
 
 const char TAG[] = "myfact";
 
@@ -33,7 +34,6 @@ smachine::Environment* MyStateFactory::get_environment(){
 	return new MyEnv();
 }
 
-
 /*
  *
  */
@@ -45,6 +45,9 @@ const std::shared_ptr<smachine::state::State> MyStateFactory::get_state(const st
 	}
 	else if(state_name.compare("StateUpdateState") == 0){
 		return std::shared_ptr<smachine::state::State>(new project1::state::StateUpdateState(itf));
+	}
+	else if(state_name.compare("StateNoHardware") == 0){
+		return std::shared_ptr<smachine::state::State>(new project1::state::StateNoHardware(itf));
 	}
 
 	logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Generate exception no such State");

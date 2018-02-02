@@ -47,7 +47,7 @@ void StateInit::OnEntry(){
 	}
 
 	//temporal solution
-	get_itf()->state_change("StateEnvAnalize");
+	get_itf()->state_change(get_itf()->get_first_state());
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEntry finished");
 }

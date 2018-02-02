@@ -25,7 +25,7 @@ namespace pirobot {
 
 class PiRobot {
 public:
-    PiRobot(const bool realWorld = false);
+    PiRobot();
     virtual ~PiRobot();
 
     /*

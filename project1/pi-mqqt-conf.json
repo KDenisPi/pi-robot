@@ -1,0 +1,13 @@
+{
+ "version": "1.0",   
+ "host" : "",
+ "client_id": "",
+ "port": 1883,
+ "keep_alive": 10,
+ "qos": 0,
+
+ "tls": false,
+ "tls_ca_file" : "",
+ "tls_insecure": false,
+ "tls_version": "tlsv1.2"
+}

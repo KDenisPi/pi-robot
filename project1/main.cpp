@@ -123,15 +123,7 @@ int main (int argc, char* argv[])
         * Create PI Robot instance
         */
         std::shared_ptr<pirobot::PiRobot> pirobot(new pirobot::PiRobot());
-
-        try{
-          // Load hardware configuration
-          pirobot->configure(robot_conf);
-        }
-        catch(std::runtime_error& rterr){
-          cout <<  "Could not load Pi Robot hardware configuration " << robot_conf << "\nError: " << rterr.what() << endl;
-          _exit(EXIT_FAILURE);
-        }
+        pirobot->set_configuration(robot_conf);
 
         //Create State factory for State Machine
         std::shared_ptr<project1::MyStateFactory> factory(new project1::MyStateFactory());

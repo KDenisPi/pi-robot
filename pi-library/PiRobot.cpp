@@ -17,13 +17,11 @@ namespace pirobot {
 
 const char TAG[] = "PiRobot";
 
-PiRobot::PiRobot(const bool realWorld)
-    : m_realWorld(realWorld),
+PiRobot::PiRobot()
+    : m_realWorld(false),
       stm_notification(nullptr)
 {
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + std::string("Started. Real world? ") + 
-        (realWorld ? " TRUE" : " FALSE"));
-
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + std::string("Started. "));
 }
 
 PiRobot::~PiRobot() {

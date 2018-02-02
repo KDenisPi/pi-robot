@@ -59,7 +59,9 @@ public:
      */
     // Generate finish signal
     virtual void finish() override;
-    virtual void state_change(const std::string new_state) override;
+    virtual void state_change(const std::string& new_state) override;
+	virtual const std::string get_first_state() override;
+    
     virtual void state_pop() override;
     virtual void timer_start(const int timer_id, const time_t interval, const bool interval_timer) override;
     virtual void timer_cancel(const int timer_id) override;

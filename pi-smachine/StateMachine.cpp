@@ -67,7 +67,12 @@ void StateMachine::run(){
     //Add first event 
      put_event(std::shared_ptr<Event>(new Event(EVT_CHANGE_STATE, "StateInit")));
 }
-    
+
+const std::string StateMachine::get_first_state(){
+    return m_factory->get_first_state();
+}
+ 
+
 
 void StateMachine::state_push(const std::shared_ptr<state::State> state){
     get_states()->push_front(state);
@@ -165,7 +170,7 @@ void StateMachine::finish(){
 /*
  *
  */
-void StateMachine::state_change(const std::string new_state){
+void StateMachine::state_change(const std::string& new_state){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Generate event Change state to: " + new_state);
     std::shared_ptr<Event> event(new EventChangeState(new_state));
     put_event(event);

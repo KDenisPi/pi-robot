@@ -27,6 +27,8 @@ public:
 	 * Create Environment object
 	 */
 	virtual Environment* get_environment() = 0;
+
+	virtual const std::string get_first_state() = 0;
 };
 
 } /* namespace smachine */

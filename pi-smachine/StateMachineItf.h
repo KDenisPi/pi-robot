@@ -26,7 +26,8 @@ public:
 	// Generate finish signal
 	virtual void finish() = 0;
 	// create event for state changing
-	virtual void state_change(const std::string new_state) = 0;
+	virtual void state_change(const std::string& new_state) = 0;
+	virtual const std::string get_first_state() = 0;
 	//
 	virtual void state_pop() = 0;
 	// create timer
