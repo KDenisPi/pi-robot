@@ -131,7 +131,7 @@
 # address and so will be accessible to all network interfaces.
 # bind_address ip-address/host name
 #bind_address
-bind_address 10.32.5.141
+bind_address 10.32.5.179
 #dk-centos7.localdomain
 
 # Port to use for the default listener.

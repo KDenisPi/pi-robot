@@ -17,6 +17,7 @@
 namespace smachine {
 namespace state {
 
+#define TIMER_CREATE(id, interval)  get_itf()->timer_start(id, interval);
 /*
  * Return true from OnEvent and OnTimer if received Event or Timer
  * was processed inside function

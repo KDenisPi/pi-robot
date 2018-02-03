@@ -28,6 +28,8 @@ StateNoHardware::~StateNoHardware() {
 void StateNoHardware::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateNoHardware started");
 
+    TIMER_CREATE(TIMER_FINISH_ROBOT, 25)
+
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateNoHardware finished");
 }
 

@@ -82,7 +82,7 @@ public:
     const std::string get_tls_version() const{
         return m_tls_version;
     }
-    void get_tls_version(const std::string& tls_version){
+    void set_tls_version(const std::string& tls_version){
         m_tls_version = tls_version;
     }
 
@@ -108,7 +108,8 @@ public:
     */
     const std::string to_string(){
         return std::string("Host: [") + m_host + "] id: [" + m_clientid  +"] port: " + 
-            std::to_string(m_port) + " keep alive: " + std::to_string(m_keepalive);
+            std::to_string(m_port) + " keep alive: " + std::to_string(m_keepalive) + 
+            " TLS:" + std::to_string(m_tls) + " TLS version: " + m_tls_version + " Insecure:" + std::to_string(m_tls_insecure);
     }
 
 private:    

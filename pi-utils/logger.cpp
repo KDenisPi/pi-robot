@@ -117,8 +117,10 @@ void log(const LLOG level, const std::string& pattern, const std::string& messag
         p_plog = new Logger();
         plog = std::shared_ptr<Logger>(p_plog); //new Logger());
     }
-    if(!plog->is_flush())
+    if(!plog->is_flush()){
+        //std::cout <<  message << std::endl;        
         plog->llog(level, pattern, message);
+    }
 }
 
 void release(){

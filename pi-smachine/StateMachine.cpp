@@ -65,6 +65,7 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
 */
 void StateMachine::run(){
     //Add first event 
+     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
      put_event(std::shared_ptr<Event>(new Event(EVT_CHANGE_STATE, "StateInit")));
 }
 
@@ -172,6 +173,9 @@ void StateMachine::finish(){
  */
 void StateMachine::state_change(const std::string& new_state){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Generate event Change state to: " + new_state);
+    
+    report_state(" Generate event Change state to: " + new_state);
+
     std::shared_ptr<Event> event(new EventChangeState(new_state));
     put_event(event);
 }

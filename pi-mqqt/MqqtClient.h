@@ -52,7 +52,7 @@ public:
         m_conf(conf),
         m_max_size(100)
     {
-        logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Client ID: " + (NULL == m_conf.clientid() ? std::string("NotDefined") : m_conf.clientid()));
+        logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + m_conf.to_string() );
         
         m_mqqtCl = std::shared_ptr<T>(new T(m_conf.clientid()));
         m_mqqtCl->owner_notification = std::bind(&MqqtClient::on_client, this, std::placeholders::_1, std::placeholders::_2);
@@ -66,7 +66,7 @@ public:
     *
     */
     virtual ~MqqtClient(){
-        logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__));
+        logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Started");
         if(m_mqqtCl){
             m_mqqtCl->cl_disconnect();
         }
@@ -77,7 +77,7 @@ public:
     *
     */
     const int connect(){
-        logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__));
+        logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Started");
         return m_mqqtCl->cl_connect(m_conf);
     }
 

@@ -29,7 +29,9 @@ static void sigHandlerStateMachine(int sign){
     stm->finish();
   }
   else if (sign == SIGUSR1){
+    cout <<  "State machine: Run " << sign  << endl;
     stm->run();
+    cout <<  "State machine: Run finished" << sign  << endl;
   }
 }
 
@@ -122,18 +124,22 @@ int main (int argc, char* argv[])
         /*
         * Create PI Robot instance
         */
+        cout <<  "Create hardware support" << endl;
         std::shared_ptr<pirobot::PiRobot> pirobot(new pirobot::PiRobot());
         pirobot->set_configuration(robot_conf);
 
         //Create State factory for State Machine
+        cout <<  "Create State Factory support" << endl;
         std::shared_ptr<project1::MyStateFactory> factory(new project1::MyStateFactory());
 
         std::shared_ptr<mqqt::MqqtItf> clMqqt;
         if(mqtt){
+              cout <<  "MQQT detected" << endl;
               try{
                 // Load MQQT server configuration
                 mqqt::MqqtServerInfo info = mqqt::MqqtServerInfo::load(mqqt_conf);
                 clMqqt = std::shared_ptr<mqqt::MqqtItf>(new mqqt::MqqtClient<mqqt::MosquittoClient>(info));
+                cout <<  "MQQT configuration loaded" << endl;
               }
               catch(std::runtime_error& rterr){
                 cout <<  "Could not load Pi Robot hardware configuration " << robot_conf << "\nError: " << rterr.what() << endl;

@@ -44,11 +44,16 @@ MqqtServerInfo MqqtServerInfo::load(const std::string& json_file){
 
         mqqt_info.set_host(host);
         mqqt_info.set_clientid(clientid);
+        mqqt_info.set_tls(tls);
 
         if(tls){
             auto tls_ca_file = jsonhelper::get_attr_mandatory<std::string>(conf, "tls_ca_file");
             auto tls_insecure = jsonhelper::get_attr<bool>(conf, "tls_insecure", false);
             auto tls_version = jsonhelper::get_attr<std::string>(conf, "tls_version", "tlsv1.2");
+
+            mqqt_info.set_cafile(tls_ca_file);
+            mqqt_info.set_tls_insecure(tls_insecure);
+            mqqt_info.set_tls_version(tls_version);
         }
 
     }
