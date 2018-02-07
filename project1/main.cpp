@@ -13,11 +13,23 @@
 #include "MosquittoClient.h"
 #include "MqqtClient.h"
 
+#include "CircularBuffer.h"
+
 using namespace std;
 
 smachine::StateMachine* stm;
+void mytime(const std::string& message);
 
 pid_t stmPid;
+
+void mytime(const std::string& message){
+    char mtime[30];
+    std::chrono::time_point<std::chrono::system_clock> tp;
+    tp = std::chrono::system_clock::now();
+    std::time_t time_now = std::chrono::system_clock::to_time_t(tp);
+    std::strftime(mtime, sizeof(mtime), "%T", std::localtime(&time_now));
+    std::cout << mtime << " --- " << message << std::endl;
+}
 
 /*
 * Singnal handler for State Machine
@@ -29,9 +41,9 @@ static void sigHandlerStateMachine(int sign){
     stm->finish();
   }
   else if (sign == SIGUSR1){
-    cout <<  "State machine: Run " << sign  << endl;
+    mytime("State machine: Run");
     stm->run();
-    cout <<  "State machine: Run finished" << sign  << endl;
+    mytime("State machine: Run finished");
   }
 }
 
@@ -78,7 +90,10 @@ int main (int argc, char* argv[])
   sigset_t new_set;
   cout <<  "Project1 started" << endl;
 
-  for(int i = 1; i < argc; i++){
+  for(int i = 0; i < argc; i++){
+    std::string arg = argv[i];
+    cout <<  "Arg: " << i << " [" << arg << "]" << endl;
+
     if(strcmp(argv[i], "--conf") == 0){
       robot_conf = validate_file_parameter(++i, argc, argv);
     }
@@ -87,6 +102,12 @@ int main (int argc, char* argv[])
       mqtt = true;
     }
   }
+
+/*
+  robot_conf = "/home/denis/pi-robot/project1/nohardware.json";
+  mqqt_conf =  "/home/denis/pi-robot/project1/pi-mqqt-conf.json";
+  mqtt = true;
+*/
 
   if(robot_conf.empty()){
     cout <<  err_message << endl;
@@ -121,6 +142,8 @@ int main (int argc, char* argv[])
              _exit(EXIT_FAILURE);
         }
 
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Create child");
+
         /*
         * Create PI Robot instance
         */
@@ -142,7 +165,7 @@ int main (int argc, char* argv[])
                 cout <<  "MQQT configuration loaded" << endl;
               }
               catch(std::runtime_error& rterr){
-                cout <<  "Could not load Pi Robot hardware configuration " << robot_conf << "\nError: " << rterr.what() << endl;
+                cout <<  "Could not load MQQT configuration configuration " << robot_conf << "\nError: " << rterr.what() << endl;
                 _exit(EXIT_FAILURE);
               }
           
@@ -154,9 +177,13 @@ int main (int argc, char* argv[])
         cout <<  "Created state machine. Waiting for finishing" << endl;
         stm->wait();
         cout <<  "State machine finished" << endl;
+        mytime("Child finished");
 
         sleep(2);
         delete stm;
+
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Child finished");
+        logger::release();
 
         _exit(EXIT_SUCCESS);
       }
@@ -164,6 +191,7 @@ int main (int argc, char* argv[])
 
     default: //parent
       cout <<  "State machine child created " <<  stmPid << endl;
+      mytime("State machine child created ");
 
       if( signal(SIGUSR1, sigHandlerParent) == SIG_ERR){
         cout <<  "Parent handler error " <<  stmPid << endl;
@@ -186,6 +214,7 @@ int main (int argc, char* argv[])
           cout <<  "Child finished " <<  chdPid << endl;
       }
       cout <<  "Project1 finished" << endl;
+      mytime("Project1 finished");
   }
 
   exit(EXIT_SUCCESS);

@@ -43,6 +43,7 @@ MqqtServerInfo MqqtServerInfo::load(const std::string& json_file){
         auto port = jsonhelper::get_attr<int>(conf, "port", (tls ? 8883 : 1883));
 
         mqqt_info.set_host(host);
+        mqqt_info.set_port(port);
         mqqt_info.set_clientid(clientid);
         mqqt_info.set_tls(tls);
 

@@ -57,7 +57,7 @@ public:
         m_mqqtCl = std::shared_ptr<T>(new T(m_conf.clientid()));
         m_mqqtCl->owner_notification = std::bind(&MqqtClient::on_client, this, std::placeholders::_1, std::placeholders::_2);
         
-        m_messages = std::shared_ptr<piutils::circbuff::CircularBuffer<MqqtObject*>>(new piutils::circbuff::CircularBuffer<MqqtObject*>(m_max_size));
+        m_messages = std::shared_ptr<piutils::circbuff::CircularBuffer<std::shared_ptr<MqqtObject>>>(new piutils::circbuff::CircularBuffer<std::shared_ptr<MqqtObject>>(m_max_size));
         
         logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Version: " + get_version());   
     }
@@ -96,20 +96,34 @@ public:
     *
     */
     const MQQT_CLIENT_ERROR publish(const std::string& topic, const std::string& payload) override {
+        logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Topic: [" + topic + "]");
+        
         //do nothing if client stopped already 
-        if(is_stop_signal())
+        if(is_stop_signal()){
+            logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Ignored");
             return MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
+        }
 
-        m_messages->put(new MqqtObject(topic, payload));
+        std::shared_ptr<MqqtObject> item = std::shared_ptr<MqqtObject>(new MqqtObject(topic, payload));
+        m_messages->put(std::move(item));
+        cv.notify_one();
+
         return MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
     }
 
     virtual const MQQT_CLIENT_ERROR publish(const std::string& topic, const int payloadsize, const void* payload) override {
-        //do nothing if client stopped already 
-        if(is_stop_signal())
-            return MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
+        logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Topic(2):" + topic);
 
-        m_messages->put(new MqqtObject(topic, payloadsize, payload));
+        //do nothing if client stopped already 
+        if(is_stop_signal()){
+            logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Ignored");
+            return MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
+        }
+
+        std::shared_ptr<MqqtObject> item = std::shared_ptr<MqqtObject>(new MqqtObject(topic, payloadsize, payload));
+        m_messages->put(std::move(item));
+        cv.notify_one();
+
         return MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
     }
 
@@ -117,16 +131,16 @@ public:
     /*
     *
     */
-    const MqqtObject* get(){
+    const std::shared_ptr<MqqtObject>& get(){
         return m_messages->get();
     }
 
     /*
     *
     */
-    const int put(const MqqtObject* item){
+    const int put(const std::shared_ptr<MqqtObject>& item){
         int mid = 0;
-        return m_mqqtCl->cl_publish(&mid, item->topic(), item->payloadsize(), item->payload().get());
+        return m_mqqtCl->cl_publish(&mid, item->topic(), item->payloadsize(), item->payload().c_str());
     }
 
     /*
@@ -175,12 +189,15 @@ public:
                 owner->cv.wait(lk, fn);
             }
 
+            logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Message detected");
+
             while(owner->is_connected() && !owner->is_empty() && !owner->is_stop_signal()){
                 //Publish message here
-                const MqqtObject* item = owner->get();
+                const std::shared_ptr<MqqtObject>& item = owner->get();
                 owner->put(item);
 
-                delete item;
+                logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Message sent ");// + item->to_string() );
+                //delete item;
             }
         }
 
@@ -213,7 +230,7 @@ private:
     MqqtServerInfo m_conf;  //server configuration
     std::shared_ptr<T> m_mqqtCl; //client implementation
 
-    std::shared_ptr<piutils::circbuff::CircularBuffer<MqqtObject*>> m_messages;
+    std::shared_ptr<piutils::circbuff::CircularBuffer<std::shared_ptr<MqqtObject>>> m_messages;
     int m_max_size;  
 };
 

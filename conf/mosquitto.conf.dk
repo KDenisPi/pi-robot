@@ -131,12 +131,13 @@
 # address and so will be accessible to all network interfaces.
 # bind_address ip-address/host name
 #bind_address
-bind_address 10.32.5.179
+bind_address 10.32.5.184
+#bind_address 192.168.0.19
 #dk-centos7.localdomain
 
 # Port to use for the default listener.
-#port 1883
-port 8883
+port 1883
+#port 8883
 
 # The maximum number of client connections to allow. This is 
 # a per listener setting.
@@ -187,21 +188,21 @@ port 8883
 # containing the CA certificates. For capath to work correctly, the
 # certificate files must have ".crt" as the file ending and you must run
 # "c_rehash <path to capath>" each time you add/remove a certificate.
-cafile /home/denis/pi-robot/mqqt_tls/m2mqtt_ca.crt
+#cafile /home/denis/pi-robot/mqqt_tls/m2mqtt_ca.crt
 #capath
 
 # Path to the PEM encoded server certificate.
-certfile /home/denis/pi-robot/mqqt_tls/m2mqtt_srv.crt
+#certfile /home/denis/pi-robot/mqqt_tls/m2mqtt_srv.crt
 
 # Path to the PEM encoded keyfile.
-keyfile /home/denis/pi-robot/mqqt_tls/m2mqtt_srv.key
+#keyfile /home/denis/pi-robot/mqqt_tls/m2mqtt_srv.key
 
 # This option defines the version of the TLS protocol to use for this listener.
 # The default value allows v1.2, v1.1 and v1.0, if they are all supported by
 # the version of openssl that the broker was compiled against. For openssl >=
 # 1.0.1 the valid values are tlsv1.2 tlsv1.1 and tlsv1. For openssl < 1.0.1 the
 # valid values are tlsv1.
-tls_version tlsv1.2
+#tls_version tlsv1.2
 
 # By default a TLS enabled listener will operate in a similar fashion to a
 # https enabled web server, in that the server has a certificate signed by a CA

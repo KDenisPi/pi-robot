@@ -51,11 +51,11 @@ public:
         return !m_buff->is_empty();
     }
 
-    const log_message_type get(){
+    const log_message_type& get(){
         return m_buff->get();
     }
 
-    void write_log(const log_message_type) const;
+    void write_log(const log_message_type& message) const;
     
     void set_flush(){
         m_flush = true;

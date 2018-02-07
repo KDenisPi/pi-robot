@@ -29,6 +29,8 @@ std::chrono::time_point<std::chrono::system_clock> tp;
 char mtime[30];
 */
 /*
+    char mtime[30];
+    std::chrono::time_point<std::chrono::system_clock> tp;
     tp = std::chrono::system_clock::now();
     std::time_t time_now = std::chrono::system_clock::to_time_t(tp);
     std::strftime(mtime, sizeof(mtime), "%T", std::localtime(&time_now));
@@ -51,6 +53,7 @@ Logger::Logger() : m_flush(false){
 
     m_buff = std::shared_ptr<log_type>(new log_type(2048));
     piutils::Threaded::start<Logger>(this);
+
     std::cout << "Logger created" << std::endl;
 }
 
@@ -65,14 +68,14 @@ Logger::~Logger() {
 
 void Logger::llog(const logger::LLOG level, const std::string& pattern, const std::string& message){
     log_message_type msg = std::make_pair(level, std::make_pair(pattern,message));
-    m_buff->put(msg);
+    m_buff->put(std::move(msg));
     cv.notify_one();
 }
 
 /*
 *
 */
-void Logger::write_log(const log_message_type logm) const{
+void Logger::write_log(const log_message_type& logm) const{
     auto logm_ = logm.second;
 
     if(logm.first == LLOG::INFO)
@@ -89,23 +92,25 @@ void Logger::write_log(const log_message_type logm) const{
 *
 */
 void Logger::worker(Logger* owner){
+    std::cout << "Logger worked started" << std::endl;
     auto fn = [owner]{return (owner->is_stop_signal() || owner->data_present());};
     
-        while(!owner->is_stop_signal()){
-            //wait until stop signal will be received or we will have steps for processing
-            {
-                std::unique_lock<std::mutex> lk(owner->cv_m);
-                owner->cv.wait(lk, fn);
-            }
-    
-            while( (!owner->is_stop_signal()||owner->is_flush()) && owner->data_present()){
-                auto logm = owner->get();
-                owner->write_log(logm);
-            }
-            
-            if(owner->is_flush())
-                break;
+    while(!owner->is_stop_signal()){
+        //wait until stop signal will be received or we will have steps for processing
+        {
+            std::unique_lock<std::mutex> lk(owner->cv_m);
+            owner->cv.wait(lk, fn);
         }
+        
+        while( (!owner->is_stop_signal()||owner->is_flush()) && owner->data_present()){
+            auto logm = owner->get();
+            owner->write_log(logm);
+        }
+        
+        if(owner->is_flush())
+            break;
+    }
+    std::cout << "Logger worked finished" << std::endl;
 }
 
 /*
@@ -118,14 +123,15 @@ void log(const LLOG level, const std::string& pattern, const std::string& messag
         plog = std::shared_ptr<Logger>(p_plog); //new Logger());
     }
     if(!plog->is_flush()){
-        //std::cout <<  message << std::endl;        
+        std::cout <<  message << std::endl;        
         plog->llog(level, pattern, message);
     }
 }
 
 void release(){
-  if(p_plog != nullptr){
-     delete p_plog;
+  std::cout << "Release Logger" << std::endl;
+  if(plog){
+     delete plog.get();
   }
 }
 
