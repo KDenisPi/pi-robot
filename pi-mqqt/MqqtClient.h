@@ -140,7 +140,7 @@ public:
     */
     const int put(const std::shared_ptr<MqqtObject>& item){
         int mid = 0;
-        return m_mqqtCl->cl_publish(&mid, item->topic(), item->payloadsize(), item->payload().c_str());
+        return m_mqqtCl->cl_publish(&mid, item->topic(), item->payloadsize(), item->payload().get());
     }
 
     /*

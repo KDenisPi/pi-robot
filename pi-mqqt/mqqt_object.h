@@ -23,34 +23,30 @@ const char TAG_MQ[] = "mqqtobj";
 //
 class MqqtObject {
 public:
-    MqqtObject(const std::string& topic, const std::string& payload) { //: m_payload(nullptr) {
+    MqqtObject(const std::string& topic, const std::string& payload) : m_payload(nullptr) {
 
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " [1] started");
 
         m_payloadsize = payload.length();
         m_topic = std::move(topic);
-        m_payload = std::move(payload);
 
-        //m_payload = new char[m_payloadsize];
-        //std::memcpy(m_payload, payload.c_str(), m_payloadsize);
+        char* p = new char[m_payloadsize];
+        std::memcpy(p, payload.c_str(), m_payloadsize);
+        m_payload = std::shared_ptr<char>(p);
 
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " [1] finished");
     }
 
-    MqqtObject(const std::string& topic, const int payloadsize, const void* payload) { //: m_payload(nullptr){
+    MqqtObject(const std::string& topic, const int payloadsize, const void* payload) : m_payload(nullptr){
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " [2] " + topic);
 
         m_payloadsize = payloadsize;
         m_topic = std::move(topic);
         //m_payload = std::move(payload);
-
-        //m_payload = new char[m_payloadsize];
-        //std::memcpy(m_payload, payload, m_payloadsize);
     }
 
-    MqqtObject() : m_payloadsize(0) { //, m_payload(nullptr) {
+    MqqtObject() : m_payloadsize(0), m_payload(nullptr) {
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " [3] ");
-
     }
 
     virtual ~MqqtObject(){
@@ -64,10 +60,10 @@ public:
         clear();
         m_topic = node.topic();
         m_payloadsize = node.payloadsize();
-        m_payload = node.payload();
 
-        //m_payload = new char[m_payloadsize];
-        //std::memcpy(m_payload, node.payload(), m_payloadsize);
+        char* p = new char[m_payloadsize];
+        std::memcpy(p, node.payload().get(), m_payloadsize);
+        m_payload = std::shared_ptr<char>(p);
 
         return *this;
     }
@@ -76,8 +72,10 @@ public:
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " Copy 2");
 
         m_topic = std::move(node.topic());
-        m_payload = std::move(node.payload());
         m_payloadsize = node.payloadsize();
+        m_payload = std::move(node.payload());
+
+        return *this;
     }
 
     //
@@ -95,7 +93,7 @@ public:
     //
     //
     //
-    const std::string& payload() const{
+    const std::shared_ptr<char>& payload() const{
         return m_payload;
     }
 
@@ -104,26 +102,22 @@ public:
     }
 
     const std::string to_string() const {
-        //std::string msg = " Topic: [" + m_topic + "] Payload: [" + (m_payload != nullptr ? "Data" : "Empty") + "] Size: " + std::to_string(m_payloadsize);
-        std::string msg = " Topic: [" + m_topic + "] Payload: [" + m_payload + "] Size: " + std::to_string(m_payloadsize);
+        std::string msg = " Topic: [" + m_topic + "] Payload: [" + (m_payload ? "Data" : "Empty") + "] Size: " + std::to_string(m_payloadsize);
         return msg;
     }
 
 private:
     std::string m_topic;
-    //void* m_payload;
-    std::string m_payload;
+    std::shared_ptr<char> m_payload;
     int m_payloadsize;
 
     void clear() {
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " Clear ");
-        /*
-        if(m_payload != nullptr){
-            delete[] (char*)m_payload;
-            m_payload = nullptr;
+        
+        if(m_payload){
+            delete[] (char*)m_payload.get();
+            m_payload.reset();
         }
-        */
-        m_payload.clear();
         m_payloadsize = 0;
         m_topic.clear();
     }
