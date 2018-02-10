@@ -28,14 +28,14 @@ public:
     virtual const int cl_publish(int* mid, const std::string& topic, const int payloadsize, const void* payload) override;
     
 
-    virtual void on_connect(int /*rc*/);
-    virtual void on_disconnect(int /*rc*/);
-    virtual void on_publish(int /*mid*/);
-    virtual void on_message(const struct mosquitto_message * /*message*/){return;}
-    virtual void on_subscribe(int /*mid*/, int /*qos_count*/, const int * /*granted_qos*/);
-    virtual void on_unsubscribe(int /*mid*/);
-    virtual void on_log(int /*level*/, const char * /*str*/);
-    virtual void on_error();    
+    virtual void on_connect(int rc) override;;
+    virtual void on_disconnect(int rc) override;;
+    virtual void on_publish(int mid) override;;
+    virtual void on_message(const struct mosquitto_message * message) override {return;}
+    virtual void on_subscribe(int mid, int qos_count, const int * granted_qos) override;;
+    virtual void on_unsubscribe(int mid) override;;
+    virtual void on_log(int level, const char * str) override;;
+    virtual void on_error() override;;    
 
     unsigned int reconnect_delay = 2;
     unsigned int reconnect_delay_max = 6;
@@ -67,6 +67,11 @@ public:
 virtual bool const is_connected() const override { return m_connected; }	
 
 private:
+
+    void set_connected(const bool connected){
+        m_connected = connected;
+    }
+
     int m_qos;
     bool m_connected;
 };

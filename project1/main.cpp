@@ -105,6 +105,7 @@ int main (int argc, char* argv[])
 
 /*
   robot_conf = "/home/denis/pi-robot/project1/nohardware.json";
+
   mqqt_conf =  "/home/denis/pi-robot/project1/pi-mqqt-conf.json";
   mqtt = true;
 */
@@ -159,6 +160,9 @@ int main (int argc, char* argv[])
         if(mqtt){
               cout <<  "MQQT detected" << endl;
               try{
+                int res = mosqpp::lib_init();
+                cout <<  "MQQT library intialized Res: " << std::to_string(res) << endl;
+
                 // Load MQQT server configuration
                 mqqt::MqqtServerInfo info = mqqt::MqqtServerInfo::load(mqqt_conf);
                 clMqqt = std::shared_ptr<mqqt::MqqtItf>(new mqqt::MqqtClient<mqqt::MosquittoClient>(info));
@@ -176,11 +180,16 @@ int main (int argc, char* argv[])
         stm = new smachine::StateMachine(factory, pirobot, clMqqt);
         cout <<  "Created state machine. Waiting for finishing" << endl;
         stm->wait();
+
         cout <<  "State machine finished" << endl;
         mytime("Child finished");
 
         sleep(2);
         delete stm;
+
+        if(mqtt){
+          mosqpp::lib_cleanup();
+        }
 
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Child finished");
         logger::release();

@@ -67,9 +67,8 @@ public:
     */
     virtual ~MqqtClient(){
         logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Started");
-        if(m_mqqtCl){
-            m_mqqtCl->cl_disconnect();
-        }
+        disconnect();
+
         m_mqqtCl.reset();
     }
     
@@ -147,8 +146,14 @@ public:
     *
     */
     const int disconnect(){
-        logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__));
-        return m_mqqtCl->cl_disconnect();
+        logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " State: " + (m_mqqtCl ? std::to_string(m_mqqtCl->is_connected()) : "No Client"));
+
+        if(m_mqqtCl && m_mqqtCl->is_connected()){
+            logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " MQQT client connected. Disconecting" );
+            return m_mqqtCl->cl_disconnect();
+        }
+        
+        return MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
     }
 
     /*

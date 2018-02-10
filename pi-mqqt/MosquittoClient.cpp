@@ -23,6 +23,7 @@ MosquittoClient::MosquittoClient(const char* clientID) :
 
 MosquittoClient::~MosquittoClient(){
   logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Started ");
+  cl_disconnect();
   loop_stop(true);
 }
 
@@ -31,7 +32,10 @@ MosquittoClient::~MosquittoClient(){
 *
 */
 const int MosquittoClient::cl_connect(const MqqtServerInfo& conf){
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " TLS: " + std::to_string(conf.is_tls()));
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Host: " + conf.host() + " Port: " + std::to_string(conf.port()) + " TLS: " + std::to_string(conf.is_tls()));
+
+    m_qos = conf.qos();
+    reconnect_delay_set(reconnect_delay, reconnect_delay_max, false);
 
     int res;
     //TLS sapport
@@ -42,12 +46,14 @@ const int MosquittoClient::cl_connect(const MqqtServerInfo& conf){
         
         res = tls_set(conf.get_cafile().c_str());
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " TLS set: " + cl_get_errname(res) + " CA file: " + conf.get_cafile());
-        tls_opts_set(1, conf.get_tls_version().c_str());
-        tls_insecure_set(conf.is_tls_insecure());
+
+        res = tls_insecure_set((conf.is_tls_insecure() ? true : false));
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " TLS Insecure set: " + cl_get_errname(res) + " TLS insecure: " + std::to_string(conf.is_tls_insecure()));
+        
+        res = tls_opts_set(0, conf.get_tls_version().c_str());
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " TLS option set: " + cl_get_errname(res) + " TLS version: " + conf.get_tls_version());
     }
 
-    m_qos = conf.qos();
-    reconnect_delay_set(reconnect_delay, reconnect_delay_max, false);
     res =  connect_async(conf.host(), conf.port(), conf.keepalive());
     loop_start();
 
@@ -60,7 +66,12 @@ const int MosquittoClient::cl_connect(const MqqtServerInfo& conf){
 */
 const int MosquittoClient::cl_disconnect(){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__));
-    return disconnect();
+    int res =  disconnect();
+    if(res == MOSQ_ERR_SUCCESS)
+        set_connected(false);
+
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Result: " + cl_get_errname(res));
+    return res;
 }
 
 /*
@@ -84,15 +95,16 @@ const int MosquittoClient::cl_publish(int* mid, const std::string& topic, const 
 * Callback for on connect
 */
 void MosquittoClient::on_connect(int rc){
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Client connected. Code: " + cl_get_errname(rc));
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_connect Code: " + cl_get_errname(rc));
 
     if(rc == MOSQ_ERR_SUCCESS){
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_connect Code: " + cl_get_errname(rc) + " Set connected: true");        
+        set_connected(true);
         cl_notify(MQQT_CONNECT, MQQT_ERROR_SUCCESS);
-        m_connected = true;
     }
     else{
         cl_notify(MQQT_CONNECT, (rc == MOSQ_ERR_INVAL ? MQQT_ERROR_INVAL : MQQT_ERROR_FAILED));
-        m_connected = false;
+        set_connected(false);
 
         err_conn_inc();
         if(rc != MOSQ_ERR_INVAL && !is_max_err_conn()){
@@ -107,11 +119,10 @@ void MosquittoClient::on_connect(int rc){
 * Callback for on disconnect
 */
 void MosquittoClient::on_disconnect(int rc){
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Client disconnected. Code: " + cl_get_errname(rc));
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_disconnect Code: " + cl_get_errname(rc));
 
-    m_connected = false;
+    set_connected(false);
     cl_notify(MQQT_DISCONNECT, (rc == MOSQ_ERR_SUCCESS ? MQQT_ERROR_SUCCESS : MQQT_ERROR_FAILED));
-    loop_stop(false);
     return;
 }
 
@@ -119,7 +130,7 @@ void MosquittoClient::on_disconnect(int rc){
 * Callback for on publish
 */
 void MosquittoClient::on_publish(int mid){
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " message was published. MID: " + std::to_string(mid));
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_publish MID: " + std::to_string(mid));
     return;
 }
 
@@ -127,7 +138,7 @@ void MosquittoClient::on_publish(int mid){
 * Callback for on subscribe
 */
 void MosquittoClient::on_subscribe(int mid, int qos_count, const int * granted_qos){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Subscribd. MID: " + std::to_string(mid) +
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " on_subscribe MID: " + std::to_string(mid) +
         " QOS Requested: " + std::to_string(qos_count) + " Granted: " + std::to_string(granted_qos[0]));
     return;
 }
@@ -142,8 +153,8 @@ void MosquittoClient::on_unsubscribe(int /*mid*/){
 /*
 * Callback for on logging from mosquitto library
 */
-void MosquittoClient::on_log(int /*level*/, const char * str){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + str);
+void MosquittoClient::on_log(int level, const char * str){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Level: " + std::to_string(level) + " Msg: " + str);
     return;
 }
 
