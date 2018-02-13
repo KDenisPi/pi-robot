@@ -131,8 +131,8 @@
 # address and so will be accessible to all network interfaces.
 # bind_address ip-address/host name
 #bind_address
-bind_address 10.32.5.184
-#bind_address 192.168.0.19
+#bind_address 10.32.5.184
+bind_address 192.168.0.22
 #bind-address 127.0.0.1
 
 # Port to use for the default listener.

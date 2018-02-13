@@ -1,0 +1,19 @@
+{
+	"version" : "1.0",
+    "real_world" : true,
+    
+    "gpios": [
+        {"provider": "SIMPLE", "pin": 0, "mode": "IN", "name": "RefSensor"}
+    ],
+
+    "items":[
+        {
+            "type":"BUTTON",
+            "name":"RefSensor",
+            "comment":"",
+            "state":"NOT_PUSHED", 
+            "pull_mode": "PULL_DOWN", 
+            "gpio": {"name": "RefSensor"}
+        }
+    ]    
+}
