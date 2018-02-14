@@ -10,7 +10,7 @@ find_library(PI_LIB pi-library PATH ${CMAKE_BINARY_DIR})
 find_library(PI_MQQT pi-mqqt PATH ${CMAKE_BINARY_DIR})
 
 set(CMAKE_BIULD_TYPE Debug)
-set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-mqqt pi-library)
+set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-mqqt pi-library pthread)
 
 include_directories(BEFORE ${MOSQUITTO_HOME}/lib/cpp
    ${MOSQUITTO_HOME}/lib

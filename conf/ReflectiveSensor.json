@@ -3,7 +3,7 @@
     "real_world" : true,
     
     "gpios": [
-        {"provider": "SIMPLE", "pin": 0, "mode": "IN", "name": "RefSensor"}
+        {"provider": "SIMPLE", "pin": 0, "mode": "IN"}
     ],
 
     "items":[
@@ -12,8 +12,8 @@
             "name":"RefSensor",
             "comment":"",
             "state":"NOT_PUSHED", 
-            "pull_mode": "PULL_DOWN", 
-            "gpio": {"name": "RefSensor"}
+            "pull_mode": "PULL_UP", 
+            "gpio": {"name": "RefSensor", "provider": "SIMPLE",  "pin": 0}
         }
     ]    
 }

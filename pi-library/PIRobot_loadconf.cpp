@@ -86,7 +86,7 @@ bool PiRobot::configure(const std::string& cfile){
                     logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Provider with such name is present already. Name: " + provider_name);
                     throw std::runtime_error(std::string("Provider with such name is present already. Name: ") + provider_name);
                 }
-                
+
                 if(provider_type == "FAKE"){
                     auto pins = jsonhelper::get_attr<int>(provider, "pins", gpio::GpioProviderFake::s_pins);
                     providers[provider_name] = std::shared_ptr<pirobot::provider::Provider>(new pirobot::gpio::GpioProviderFake(provider_name, pins));
@@ -132,7 +132,7 @@ bool PiRobot::configure(const std::string& cfile){
 
                     providers[provider_name] = std::shared_ptr<pirobot::provider::Provider>(
                             new pirobot::gpio::GpioProviderPCA9685(provider_name, pwm_provider, frequency));
-                }       
+                }
                 else if(provider_type == "SPI"){ //this provider can be  used with real hardware only
 
                     pirobot::spi::SPI_config spi_config;
@@ -158,7 +158,7 @@ bool PiRobot::configure(const std::string& cfile){
                         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Provider: " + provider_name + " Channels: " + std::to_string(spi_config.channels) + 
                         " Speed[1]: " + std::to_string(spi_config.speed[1]) + " Mode[1]: " + std::to_string(spi_config.mode[1]));
                     }
-                    
+
                     add_gpio("SPI_CE0_N", "SIMPLE", gpio::GPIO_MODE::OUT, 10); //SPI_CE0_N
                     add_gpio("SPI_CE1_N", "SIMPLE", gpio::GPIO_MODE::OUT, 11); //SPI_CE1_N
 
@@ -174,7 +174,7 @@ bool PiRobot::configure(const std::string& cfile){
         }
         else
             logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " No provider information");
-    
+
         /*
         // Create GPIO
         */
@@ -230,9 +230,9 @@ bool PiRobot::configure(const std::string& cfile){
 
             if((direction_name != "CLOCKWISE") && (direction_name != "COUTERCLOCKWISE")){
                 logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid Motor direction value: " + direction_name + " for " + item_name);
-                throw std::runtime_error(std::string("Invalid Motor direction value: ") + direction_name + " for " + item_name);
+                throw std::runtime_error(std::string(" Invalid Motor direction value: ") + direction_name + " for " + item_name);
             }
-            
+
             return (direction_name == "CLOCKWISE" ? item::MOTOR_DIR::DIR_CLOCKWISE : item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
         };
 
@@ -245,12 +245,12 @@ bool PiRobot::configure(const std::string& cfile){
                 auto item_comment = jsonhelper::get_attr<std::string>(json_item, "comment", "");
 
                 logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item Name: " + item_name + " Type: " + item_type + " Commend:" + item_comment);
-                
-                item::ItemTypes itype = item::Item::type_by_name(item_name);
+
+                item::ItemTypes itype = item::Item::type_by_name(item_type);
 
                 if(itype == item::ItemTypes::UNKNOWN || item_name.empty()){
                     logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid Item configuration. Type is unknown or name is empty.");
-                    throw std::runtime_error(std::string("Invalid Item configuration. Type is unknown or name is empty."));
+                    throw std::runtime_error(std::string(" Invalid Item configuration. Type is unknown or name is empty."));
                 }
 
                 switch(itype){
@@ -262,7 +262,7 @@ bool PiRobot::configure(const std::string& cfile){
                     {
                         if(!json_item.has_key("gpio")){
                             logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid Item configuration. GPIO information is absent.");
-                            throw std::runtime_error(std::string("Invalid Item configuration. GPIO information is absent."));
+                            throw std::runtime_error(std::string(" Invalid Item configuration. GPIO information is absent."));
                         }
 
                         std::string gpio_name = f_get_gpio_name(json_item, "gpio", item_name);
@@ -280,25 +280,25 @@ bool PiRobot::configure(const std::string& cfile){
                             auto btn_state = jsonhelper::get_attr<std::string>(json_item, "state", "NOT_PUSHED");
                             auto btn_pull_mode = jsonhelper::get_attr<std::string>(json_item, "pull_mode", "PULL_UP");
 
-                            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Button Name: " + item_name + " State: " + btn_state + 
+                            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Button Name: " + item_name + " State: " + btn_state +
                                 " Pull mode:" + btn_pull_mode);
-                            
+
                             if((btn_state != "NOT_PUSHED") && (btn_state != "PUSHED")){
                                 logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid Button state value.");
-                                throw std::runtime_error(std::string("Invalid Button state value."));
+                                throw std::runtime_error(std::string(" Invalid Button state value."));
                             }
 
                             if((btn_pull_mode != "PULL_UP") && (btn_pull_mode != "PULL_DOWN")){
                                 logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid Button pull mode value.");
-                                throw std::runtime_error(std::string("Invalid Button pull mode value."));
+                                throw std::runtime_error(std::string(" Invalid Button pull mode value."));
                             }
 
-                            items_add(item_name, 
+                            items_add(item_name,
                                 std::shared_ptr<pirobot::item::Item>(
                                     new pirobot::item::Button(
-                                        get_gpio(gpio_name), 
-                                        item_name, item_comment, 
-                                        (btn_state == "NOT_PUSHED" ? item::BUTTON_STATE::BTN_NOT_PUSHED : item::BUTTON_STATE::BTN_PUSHED), 
+                                        get_gpio(gpio_name),
+                                        item_name, item_comment,
+                                        (btn_state == "NOT_PUSHED" ? item::BUTTON_STATE::BTN_NOT_PUSHED : item::BUTTON_STATE::BTN_PUSHED),
                                         (btn_pull_mode == "PULL_UP" ? gpio::PULL_MODE::PULL_UP : gpio::PULL_MODE::PULL_DOWN))));
                         }//BUTTON
                     /*
@@ -306,15 +306,15 @@ bool PiRobot::configure(const std::string& cfile){
                     */
                         else if(itype==item::ItemTypes::DRV8835){
                             auto drv8835_mode = jsonhelper::get_attr<std::string>(json_item, "mode", "PH_EN");
-                            
+
                             if((drv8835_mode != "PH_EN") && (drv8835_mode != "IN_IN")){
                                 logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid Drv8835 mode value.");
-                                throw std::runtime_error(std::string("Invalid Drv8835 mode value."));
+                                throw std::runtime_error(std::string(" Invalid Drv8835 mode value."));
                             }
 
                             items_add(item_name, 
                                 std::shared_ptr<pirobot::item::Item>(
-                                    new pirobot::item::Drv8835(get_gpio(gpio_name), item_name, item_comment)));                        
+                                    new pirobot::item::Drv8835(get_gpio(gpio_name), item_name, item_comment)));
                         }//DRV8835
                     /*
                     * DCMotor parameters: Name, Comment, two GPIOs, DRV8835, Direction
@@ -329,8 +329,8 @@ bool PiRobot::configure(const std::string& cfile){
 
                             auto drv8835_name = jsonhelper::get_attr_mandatory<std::string>(json_item, "drv8835");
                             auto direction = f_get_motor_direction(json_item, item_name);
-                            
-                            items_add(item_name, 
+
+                            items_add(item_name,
                                 std::shared_ptr<pirobot::item::Item>(
                                     new pirobot::item::dcmotor::DCMotor(
                                         std::static_pointer_cast<pirobot::item::Drv8835>(get_item(drv8835_name)),
@@ -338,7 +338,7 @@ bool PiRobot::configure(const std::string& cfile){
                                         get_gpio(pwm_gpio_name), item_name, item_comment,
                                         direction)
                                     )
-                                );                        
+                                );
 
                         }//DC Motor
                     /*
@@ -388,7 +388,7 @@ bool PiRobot::configure(const std::string& cfile){
                     case item::ItemTypes::AnalogLightMeter:
                 /*
                 * Analod light meter.
-                */  
+                */
                     {
                         auto ad_convertor = jsonhelper::get_attr_mandatory<std::string>(json_item, "ad_convertor");
                         auto analog_input_index = jsonhelper::get_attr_mandatory<int>(json_item, "analog_input_index");
@@ -421,7 +421,7 @@ bool PiRobot::configure(const std::string& cfile){
                         auto tm_on  =  jsonhelper::get_attr<int>(json_item, "tm_on", 250);
                         auto tm_off  =  jsonhelper::get_attr<int>(json_item, "tm_off", 500);
                         auto blinks  =  jsonhelper::get_attr<int>(json_item, "blinks", 0);
-                    
+
                         items_add(item_name, std::shared_ptr<pirobot::item::Item>(
                             new pirobot::item::Blinking<pirobot::item::Led>(
                                 std::static_pointer_cast<pirobot::item::Led>(get_item(led)),
