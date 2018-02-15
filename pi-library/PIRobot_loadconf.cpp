@@ -183,12 +183,15 @@ bool PiRobot::configure(const std::string& cfile){
             auto json_gpios  =  conf["gpios"];
             for(const auto& json_gpio : json_gpios.array_range()){
 
+                //
                 //Load GPIO attributes (all are mandatory)
-                auto gpio_name = jsonhelper::get_attr_mandatory<std::string>(json_gpio, "name");
+                //Note: If name present use it otherwise combine provider+pin as name
+                //
                 auto gpio_provider = jsonhelper::get_attr_mandatory<std::string>(json_gpio, "provider");
                 auto gpio_pin = jsonhelper::get_attr_mandatory<int>(json_gpio, "pin");
                 auto gpio_mode = jsonhelper::get_attr_mandatory<std::string>(json_gpio, "mode");
-
+                auto gpio_name = jsonhelper::get_attr<std::string>(json_gpio, "name", get_gpio_name(gpio_provider, gpio_pin));
+                
                 logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " GPIO Name: " + gpio_name + " Provider: " + gpio_provider + 
                     " Pin:" + std::to_string(gpio_pin) + " Mode:" + gpio_mode);
 
@@ -207,8 +210,17 @@ bool PiRobot::configure(const std::string& cfile){
         // Create Items
         */
         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " ------------ Load Items ------------");
+
         auto f_get_gpio_name = [this](const jsoncons::json& object, const std::string& gpio_object_name, const std::string& item_name) -> std::string{
             auto gpio_object = object[gpio_object_name];
+
+            //
+            // If GPIO has his own name - use it without checking provider and PIN
+            //
+            if(!gpio_object.has_key("name")){
+                return jsonhelper::get_attr_mandatory<std::string>(gpio_object, "name");
+            }
+            
             auto gpio_provider = jsonhelper::get_attr_mandatory<std::string>(gpio_object, "provider");
             auto gpio_pin = jsonhelper::get_attr_mandatory<int>(gpio_object, "pin");
 
