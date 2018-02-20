@@ -61,9 +61,14 @@ public:
             " Heater: " + std::to_string(is_Heater_Enabled());
     }
 
+
+
 private:
     uint8_t _i2caddr;
     int m_fd;
+
+    int _last_MRH;
+    int _last_Temp;
 
     uint8_t _user_reg; //current state of user register
     inline uint8_t get_user_reg();
@@ -86,7 +91,7 @@ private:
     }
 
     void set_heater(const bool enable);
-
+    void measurement();
 };    
 
 }//item

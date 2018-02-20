@@ -57,8 +57,7 @@ Si7021::~Si7021(){
 
 uint8_t Si7021::get_user_reg(){
     I2CWrapper::lock();
-    I2CWrapper::I2CWrite(m_fd, SI7021_READ_UR_1);
-    _user_reg = (uint8_t)I2CWrapper::I2CRead(m_fd);
+    _user_reg = I2CWrapper::I2CReadReg8(m_fd, SI7021_READ_UR_1);
     I2CWrapper::unlock();
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Value: " + std::to_string(_user_reg));
@@ -85,7 +84,19 @@ void Si7021::set_heater(const bool enable){
     get_user_reg();//temporal solution
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " On-chip Heater: " + ( is_Heater_Enabled() ? "Disable" : "Enable"));
+}
 
+void Si7021::measurement(){
+    I2CWrapper::lock();
+    // Measure Relative Humidity
+    _last_MRH =  I2CWrapper::I2CReadReg16(m_fd, SI7021_MRH_HMM);
+    _last_Temp = I2CWrapper::I2CReadReg16(m_fd, SI7021_RT_NHMM);
+    I2CWrapper::unlock();
+
+    auto mrh = (125*_last_MRH)/65536 - 6;
+    auto temp = (175.72*_last_Temp)/65536 - 46.85;
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "MRH RAW: " + std::to_string(_last_MRH) + " MRH: " + std::to_string(mrh));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "Temp RAW: " + std::to_string(_last_Temp) + " Temp: " + std::to_string(temp));
 }
 
 
