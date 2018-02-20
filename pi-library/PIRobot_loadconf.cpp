@@ -217,7 +217,7 @@ bool PiRobot::configure(const std::string& cfile){
             //
             // If GPIO has his own name - use it without checking provider and PIN
             //
-            if(!gpio_object.has_key("name")){
+            if(gpio_object.has_key("name")){
                 return jsonhelper::get_attr_mandatory<std::string>(gpio_object, "name");
             }
             
