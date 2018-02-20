@@ -67,6 +67,7 @@ private:
 
     uint8_t _user_reg; //current state of user register
     inline uint8_t get_user_reg();
+    inline void set_user_reg(const uint8_t value);
 
     //Detect Measurement Resolution from User Register value
     const uint8_t get_measument_resolution() const{
@@ -83,6 +84,9 @@ private:
     const bool is_Heater_Enabled(){
         return ((_user_reg & SI7021_UR_HTRE) != 0);
     }
+
+    void set_heater(const bool enable);
+
 };    
 
 }//item

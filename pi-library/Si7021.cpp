@@ -44,6 +44,10 @@ Si7021::Si7021(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C>
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " VDD status: " + ( is_VDD_OK() ? "OK" : "Low"));
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " On-chip Heater: " + ( is_Heater_Enabled() ? "Disable" : "Enable"));
+
+    if(is_Heater_Enabled()){
+        set_heater(false);
+    }
 }
 
 Si7021::~Si7021(){
@@ -55,7 +59,32 @@ uint8_t Si7021::get_user_reg(){
     I2CWrapper::I2CWrite(m_fd, SI7021_READ_UR_1);
     _user_reg = (uint8_t)I2CWrapper::I2CRead(m_fd);
     I2CWrapper::unlock();
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Value: " + std::to_string(_user_reg));
     return _user_reg;
+}
+
+void Si7021::set_user_reg(const uint8_t value){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Value: " + std::to_string(_user_reg));
+
+    I2CWrapper::lock();
+    I2CWrapper::I2CWriteReg8(m_fd, SI7021_WRITE_UR_1, value);
+    I2CWrapper::unlock();
+}
+
+
+void Si7021::set_heater(const bool enable){
+    if( (enable && is_Heater_Enabled()) || (!enable && !is_Heater_Enabled()) ){
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Nothing to do : Current: " + std::to_string(is_Heater_Enabled()) + " New: " + std::to_string(enable));
+    }
+
+    uint8_t user_reg = (enable ? (_user_reg | SI7021_UR_HTRE ) : (user_reg & (~SI7021_UR_HTRE)));
+    set_user_reg(user_reg);
+
+    get_user_reg();//temporal solution
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " On-chip Heater: " + ( is_Heater_Enabled() ? "Disable" : "Enable"));
+
 }
 
 
