@@ -50,6 +50,7 @@
 #include "Mpu6050_defs.h"
 #include "item.h"
 #include "Threaded.h"
+#include "I2C.h"
 
 namespace pirobot {
 namespace mpu6050 {
@@ -112,6 +113,7 @@ struct mpu6050_values {
 class Mpu6050 : public item::Item, public piutils::Threaded {
 public:
     Mpu6050(const std::string& name,
+        const std::shared_ptr<pirobot::i2c::I2C> i2c,
         const std::string& comment = "",
         const uint8_t i2caddr = MPU6050_I2C_ADDRESS, 
         const unsigned int loop_delay = 100);

@@ -27,7 +27,7 @@
 #include "MCP320X.h"
 #include "AnalogLightMeter.h"
 #include "Mpu6050.h"
-
+#include "Si7021.h"
 
 namespace pirobot {
 const char TAG[] = "PiRobot";
@@ -447,15 +447,27 @@ bool PiRobot::configure(const std::string& cfile){
 
                     case item::ItemTypes::MPU6050:
                     {
+                        auto i2c_provider = std::static_pointer_cast<pirobot::i2c::I2C>(get_provider("I2C"));
                         auto i2c_addr = (uint8_t)jsonhelper::get_attr<int>(json_item, "i2c_addr", MPU6050_I2C_ADDRESS);
                         auto loop_delay  =  jsonhelper::get_attr<unsigned int>(json_item, "delay", 100);
                         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item: " + item_name + " I2C address: " + std::to_string(i2c_addr));
 
                         items_add(item_name, 
                                 std::shared_ptr<pirobot::item::Item>(
-                                    new pirobot::mpu6050::Mpu6050(item_name, item_comment, i2c_addr, loop_delay)));                        
+                                    new pirobot::mpu6050::Mpu6050(item_name, i2c_provider, item_comment, i2c_addr, loop_delay)));                        
                     }
                     break;
+
+                    case item::ItemTypes::SI7021:
+                    {
+                        auto i2c_provider = std::static_pointer_cast<pirobot::i2c::I2C>(get_provider("I2C"));
+                        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item: " + item_name + " Comment: " + item_comment);
+
+                        items_add(item_name, 
+                                std::shared_ptr<pirobot::item::Item>(
+                                    new pirobot::item::Si7021(item_name, i2c_provider, item_comment)));
+                        
+                    }
                 }//Item types
             }//Items collection loading
         }

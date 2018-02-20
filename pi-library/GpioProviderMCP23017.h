@@ -17,7 +17,7 @@ namespace gpio {
 
 class GpioProviderMCP23017: public GpioProvider {
 public:
-    GpioProviderMCP23017(const std::string name, std::shared_ptr<pirobot::i2c::I2C> i2c, const uint8_t i2c_addr = s_i2c_addr, const int pins = s_pins);
+    GpioProviderMCP23017(const std::string& name, std::shared_ptr<pirobot::i2c::I2C> i2c, const uint8_t i2c_addr = s_i2c_addr, const int pins = s_pins);
     virtual ~GpioProviderMCP23017();
 
     /*

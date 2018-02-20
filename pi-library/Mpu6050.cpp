@@ -24,6 +24,7 @@ float Mpu6050::accel_LSB_Sensitivity[] = {16384, 8192, 4096, 2048};
 float Mpu6050::gyro_LSB_Sensitivity[] = {131.0, 65.5, 32.8, 16.4};
 
 Mpu6050::Mpu6050(const std::string& name,
+    const std::shared_ptr<pirobot::i2c::I2C> i2c,
     const std::string& comment,
     const uint8_t i2caddr, 
     const unsigned int loop_delay) :
@@ -45,6 +46,9 @@ Mpu6050::Mpu6050(const std::string& name,
     int error;
     uint8_t model, value;
     char buff[10];
+
+    //register I2C user
+    i2c->add_user(name, _i2caddr);
 
     I2CWrapper::lock();
     m_fd = I2CWrapper::I2CSetup(_i2caddr);

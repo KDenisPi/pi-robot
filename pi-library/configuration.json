@@ -162,6 +162,16 @@
             "comment": "", //optional
             "i2c_addr": 104, //0x68
             "delay": 100
+        },
+        //
+        // Si7021 
+        // I2C Humidity and Temperature Sensor
+        //
+        {
+            "type": "SI7021",
+            "name": "item_name",
+            "comment": "" //optional
         }        
+        
     ]
 }

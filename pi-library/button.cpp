@@ -31,7 +31,8 @@ const char* Item::ItemNames[] = {
     "AnlgDgtConvertor",
     "AnalogLightMeter",
     "ULN2003Stepper",
-    "MPU6050"
+    "MPU6050",
+    "SI7021"
 };
 
 /*

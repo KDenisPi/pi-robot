@@ -31,7 +31,8 @@ enum ItemTypes{
     AnalogLightMeter = 10,
     ULN2003Stepper = 11,
     MPU6050 = 12,
-    LAST_ITEM = 13
+    SI7021 = 13,
+    LAST_ITEM = 14
 };
 
 enum BUTTON_STATE{

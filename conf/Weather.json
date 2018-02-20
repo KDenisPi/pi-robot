@@ -1,0 +1,12 @@
+{
+	"version" : "1.0",
+    "real_world" : true,
+    
+    "items":[
+        {
+            "type":"SI7021",
+            "name":"Si7021",
+            "comment":""
+        }
+    ]    
+}

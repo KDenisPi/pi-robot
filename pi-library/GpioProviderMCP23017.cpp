@@ -22,14 +22,14 @@ const int GpioProviderMCP23017::s_pins = 16;
 const uint8_t GpioProviderMCP23017::s_i2c_addr = 0x20;
 
 
-GpioProviderMCP23017::GpioProviderMCP23017(const std::string name, std::shared_ptr<pirobot::i2c::I2C> i2c, const uint8_t i2c_addr, const int pins) :
+GpioProviderMCP23017::GpioProviderMCP23017(const std::string& name, std::shared_ptr<pirobot::i2c::I2C> i2c, const uint8_t i2c_addr, const int pins) :
           GpioProvider(name, pins), _i2caddr(i2c_addr), m_OLATA(0), m_OLATB(0), m_fd(-1)
 {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
     int current_mode = 0;
 
     //register I2C user
-    i2c->add_user(name, i2c_addr);
+    i2c->add_user(name, _i2caddr);
 
     I2CWrapper::lock();
 
