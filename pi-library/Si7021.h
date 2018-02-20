@@ -8,6 +8,7 @@
  *      Author: Denis Kudia
  */
 #include "item.h"
+#include "I2C.h"
 
 #ifndef PI_LIBRARY_SI7021_H
 #define PI_LIBRARY_SI7021_H
@@ -91,6 +92,9 @@ private:
     }
 
     void set_heater(const bool enable);
+
+public:    
+    //make measurement
     void measurement();
 };    
 

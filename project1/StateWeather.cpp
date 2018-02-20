@@ -10,6 +10,7 @@
 #include "defines.h"
 #include "StateWeather.h"
 #include "MyEnv.h"
+#include "Si7021.h"
 
 namespace project1 {
 namespace state {
@@ -29,6 +30,9 @@ void StateWeather::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateWeather started");
 
     TIMER_CREATE(TIMER_FINISH_ROBOT, 10)
+
+    auto si7021 = get_item<pirobot::item::Si7021>("Si7021");
+    si7021->measurement();
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateWeather finished");
 }
