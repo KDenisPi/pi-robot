@@ -43,8 +43,9 @@ Si7021::Si7021(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C>
             " bit. Temperature: " + std::to_string(s_measure_Temp[mes_res]) + " bit.");
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " VDD status: " + ( is_VDD_OK() ? "OK" : "Low"));
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " On-chip Heater: " + ( is_Heater_Enabled() ? "Disable" : "Enable"));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " On-chip Heater: " + ( is_Heater_Enabled() ? "Enable" : "Disable"));
 
+    //we do not need on heater now
     if(is_Heater_Enabled()){
         set_heater(false);
     }
