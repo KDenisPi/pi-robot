@@ -40,7 +40,7 @@ Si7021::Si7021(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C>
     uint8_t mes_res = get_measument_resolution();
 
     firmware();
-    
+
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Measument Resolution  Relative Humidity: " + std::to_string(s_measure_RH[mes_res]) + 
             " bit. Temperature: " + std::to_string(s_measure_Temp[mes_res]) + " bit.");
 
@@ -100,11 +100,11 @@ void Si7021::reset(){
 //
 void Si7021::firmware(){
     I2CWrapper::lock();
-    I2CWrapper::I2CWrite(m_fd, SI7021_READ_FIRMWARE_1);
-    I2CWrapper::I2CWrite(m_fd, SI7021_READ_FIRMWARE_2);
+    I2CWrapper::I2CWriteReg8(m_fd, SI7021_READ_FIRMWARE_1, SI7021_READ_FIRMWARE_2);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     uint8_t _firmware = I2CWrapper::I2CRead(m_fd);
     I2CWrapper::unlock();
-
+    //possible values  0xFF - 1.0 , 0x20 - 2.0
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Firmaware version: " + (_firmware == 0xFF ? "1.0" : "2.0") + " RAW: " + std::to_string(_firmware));
 }
 
