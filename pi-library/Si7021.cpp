@@ -87,16 +87,44 @@ void Si7021::set_heater(const bool enable){
 }
 
 void Si7021::measurement(){
+    uint8_t mrh[2] = {0,0}, temp[2] = {0,0};
+
     I2CWrapper::lock();
-    // Measure Relative Humidity
-    _last_MRH =  I2CWrapper::I2CReadReg16(m_fd, SI7021_MRH_HMM);
-    _last_Temp = I2CWrapper::I2CReadReg16(m_fd, SI7021_RT_NHMM);
+
+    // Measure Relative Humidity - send command
+    I2CWrapper::I2CWrite(m_fd, SI7021_MRH_NHMM);
+
+    //accordingly specification it takes us 12ms for MRH and 11ms for Temp = 30ms
+    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+
+    //read two bytes
+    mrh[1] = I2CWrapper::I2CRead(m_fd);
+    mrh[0] = I2CWrapper::I2CRead(m_fd);
+
+    _last_MRH = mrh[1]*256 + mrh[0];
+    uint16_t last_MRH  = 0;
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MRH Full:" + std::to_string(_last_MRH) +  " MS: " + std::to_string(mrh[1]) + " LS: " + std::to_string(mrh[0]));
+
+    //TGemperature already measured durint MRH detecting - just read value
+    I2CWrapper::I2CWrite(m_fd, SI7021_RT_NHMM);
+
+    temp[1] = I2CWrapper::I2CRead(m_fd);
+    temp[0] = I2CWrapper::I2CRead(m_fd);
+    uint16_t last_Temp = temp[1]*256 + temp[0];
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Temp Full:" + std::to_string(last_Temp) +  " MS: " + std::to_string(temp[1]) + " LS: " + std::to_string(temp[0]));
+
+    //uint16_t last_Temp = I2CWrapper::I2CReadReg16(m_fd, SI7021_RT_NHMM);
     I2CWrapper::unlock();
 
-    auto mrh = (125*_last_MRH)/65536 - 6;
-    auto temp = (175.72*_last_Temp)/65536 - 46.85;
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "MRH RAW: " + std::to_string(_last_MRH) + " MRH: " + std::to_string(mrh));
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "Temp RAW: " + std::to_string(_last_Temp) + " Temp: " + std::to_string(temp));
+    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Full:" + std::to_string(last_MRH) +  " MS: " + std::to_string((last_MRH&0xFF00)>>16) + " LS: " + std::to_string((last_MRH&0x00FF)));
+    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Full:" + std::to_string(last_Temp) +  " MS: " + std::to_string((last_Temp&0xFF00)>>16) + " LS: " + std::to_string((last_Temp&0x00FF)));
+
+
+    auto res_mrh = (125*last_MRH)/65536 - 6;
+    auto res_temp = (175.72*last_Temp)/65536 - 46.85;
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "MRH RAW: " + std::to_string(last_MRH) + " MRH: " + std::to_string(res_mrh));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "Temp RAW: " + std::to_string(last_Temp) + " Temp: " + std::to_string(res_temp));
 }
 
 
