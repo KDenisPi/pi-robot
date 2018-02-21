@@ -68,13 +68,22 @@ private:
     uint8_t _i2caddr;
     int m_fd;
 
-    int _last_MRH;
-    int _last_Temp;
+    struct Si7021_data {
+        float _last_MRH; //last value for MRH measument
+        float _last_Temp;//last value for Temperature measument 
+    } values;
 
     uint8_t _user_reg; //current state of user register
+
     inline uint8_t get_user_reg();
     inline void set_user_reg(const uint8_t value);
 
+    //I do not want to allow provide possibility to enable heater for now
+    void set_heater(const bool enable);
+
+    void firmware();
+
+public:    
     //Detect Measurement Resolution from User Register value
     const uint8_t get_measument_resolution() const{
         uint8_t mes_res = 0x00; //Measurement Resolution
@@ -91,11 +100,11 @@ private:
         return ((_user_reg & SI7021_UR_HTRE) != 0);
     }
 
-    void set_heater(const bool enable);
-
-public:    
     //make measurement
-    void measurement();
+    const struct Si7021::Si7021_data& measurement();
+
+    //Reset
+    inline void reset();
 };    
 
 }//item

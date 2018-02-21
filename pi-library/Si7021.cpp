@@ -22,7 +22,7 @@ const uint8_t Si7021::s_measure_Temp[4] = {14,12,13,11};
 
 
 Si7021::Si7021(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i2c, const std::string& comment) : 
-    Item(name, comment, ItemTypes::SI7021), _i2caddr(s_i2c_addr), _user_reg(0x00) {
+    Item(name, comment, ItemTypes::SI7021), _i2caddr(s_i2c_addr), _user_reg(0x00), values({0.0, 0.0}) {
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
 
@@ -39,6 +39,8 @@ Si7021::Si7021(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C>
     uint8_t user_reg = get_user_reg();
     uint8_t mes_res = get_measument_resolution();
 
+    firmware();
+    
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Measument Resolution  Relative Humidity: " + std::to_string(s_measure_RH[mes_res]) + 
             " bit. Temperature: " + std::to_string(s_measure_Temp[mes_res]) + " bit.");
 
@@ -49,12 +51,18 @@ Si7021::Si7021(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C>
     if(is_Heater_Enabled()){
         set_heater(false);
     }
+
+    //wait 100ms before use
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
 Si7021::~Si7021(){
 
 }
 
+//
+//Read user register value
+//
 uint8_t Si7021::get_user_reg(){
     I2CWrapper::lock();
     _user_reg = I2CWrapper::I2CReadReg8(m_fd, SI7021_READ_UR_1);
@@ -64,6 +72,9 @@ uint8_t Si7021::get_user_reg(){
     return _user_reg;
 }
 
+//
+// Set user register value
+//
 void Si7021::set_user_reg(const uint8_t value){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Value: " + std::to_string(_user_reg));
 
@@ -72,7 +83,35 @@ void Si7021::set_user_reg(const uint8_t value){
     I2CWrapper::unlock();
 }
 
+//Reset
+void Si7021::reset(){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
 
+    I2CWrapper::lock();
+    I2CWrapper::I2CWrite(m_fd, SI7021_RESET);
+    I2CWrapper::unlock();
+
+    //wait 15ms before use
+    std::this_thread::sleep_for(std::chrono::milliseconds(15));
+}
+
+//
+//Read firmware value
+//
+void Si7021::firmware(){
+    I2CWrapper::lock();
+    I2CWrapper::I2CWrite(m_fd, SI7021_READ_FIRMWARE_1);
+    I2CWrapper::I2CWrite(m_fd, SI7021_READ_FIRMWARE_2);
+    uint8_t _firmware = I2CWrapper::I2CRead(m_fd);
+    I2CWrapper::unlock();
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Firmaware version: " + (_firmware == 0xFF ? "1.0" : "2.0") + " RAW: " + std::to_string(_firmware));
+}
+
+
+//
+// On/Off heater
+//
 void Si7021::set_heater(const bool enable){
     if( (enable && is_Heater_Enabled()) || (!enable && !is_Heater_Enabled()) ){
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Nothing to do : Current: " + std::to_string(is_Heater_Enabled()) + " New: " + std::to_string(enable));
@@ -86,8 +125,12 @@ void Si7021::set_heater(const bool enable){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " On-chip Heater: " + ( is_Heater_Enabled() ? "Disable" : "Enable"));
 }
 
-void Si7021::measurement(){
+//
+//Do measument Measure Relative Humidity and Temperature
+//
+const struct Si7021::Si7021_data& Si7021::measurement(){
     uint8_t mrh[2] = {0,0}, temp[2] = {0,0};
+    uint16_t last_MRH = 0, last_Temp = 0;
 
     I2CWrapper::lock();
 
@@ -101,30 +144,32 @@ void Si7021::measurement(){
     mrh[1] = I2CWrapper::I2CRead(m_fd);
     mrh[0] = I2CWrapper::I2CRead(m_fd);
 
-    _last_MRH = mrh[1]*256 + mrh[0];
-    uint16_t last_MRH  = 0;
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MRH Full:" + std::to_string(_last_MRH) +  " MS: " + std::to_string(mrh[1]) + " LS: " + std::to_string(mrh[0]));
+    last_MRH = mrh[1]*256 + mrh[0];
 
     //TGemperature already measured durint MRH detecting - just read value
     I2CWrapper::I2CWrite(m_fd, SI7021_RT_NHMM);
 
     temp[1] = I2CWrapper::I2CRead(m_fd);
     temp[0] = I2CWrapper::I2CRead(m_fd);
-    uint16_t last_Temp = temp[1]*256 + temp[0];
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Temp Full:" + std::to_string(last_Temp) +  " MS: " + std::to_string(temp[1]) + " LS: " + std::to_string(temp[0]));
+    last_Temp = temp[1]*256 + temp[0];
 
-    //uint16_t last_Temp = I2CWrapper::I2CReadReg16(m_fd, SI7021_RT_NHMM);
     I2CWrapper::unlock();
 
-    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Full:" + std::to_string(last_MRH) +  " MS: " + std::to_string((last_MRH&0xFF00)>>16) + " LS: " + std::to_string((last_MRH&0x00FF)));
-    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Full:" + std::to_string(last_Temp) +  " MS: " + std::to_string((last_Temp&0xFF00)>>16) + " LS: " + std::to_string((last_Temp&0x00FF)));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MRH Full:" + std::to_string(last_MRH) +  " MS: " + std::to_string(mrh[1]) + " LS: " + std::to_string(mrh[0]));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Temp Full:" + std::to_string(last_Temp) +  " MS: " + std::to_string(temp[1]) + " LS: " + std::to_string(temp[0]));
 
+    values._last_MRH = (125*last_MRH)/65536 - 6;
+    //check border values
+    if(values._last_MRH < 0) values._last_MRH == 0.0;
+    else if(values._last_MRH > 100.0) values._last_MRH = 100.0;
 
-    auto res_mrh = (125*last_MRH)/65536 - 6;
-    auto res_temp = (175.72*last_Temp)/65536 - 46.85;
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "MRH RAW: " + std::to_string(last_MRH) + " MRH: " + std::to_string(res_mrh));
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "Temp RAW: " + std::to_string(last_Temp) + " Temp: " + std::to_string(res_temp));
+    values._last_Temp = (175.72*last_Temp)/65536 - 46.85;
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "MRH RAW: " + std::to_string(last_MRH) + " MRH: " + std::to_string(values._last_MRH));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "Temp RAW: " + std::to_string(last_Temp) + " Temp: " + std::to_string(values._last_Temp));
+
+    return values;
 }
 
 
