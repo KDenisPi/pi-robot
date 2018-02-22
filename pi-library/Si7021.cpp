@@ -14,7 +14,7 @@
 namespace pirobot {
 namespace item {
 
-const char TAG[] = "MCP23017";
+const char TAG[] = "Si7021";
 const uint8_t Si7021::s_i2c_addr = 0x40;
 
 const uint8_t Si7021::s_measure_RH[4] = {12, 8, 10, 11};
