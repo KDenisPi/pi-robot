@@ -44,8 +44,8 @@ Sgp30::Sgp30(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i
 void Sgp30::read_data(uint8_t* data, const int len, const uint16_t cmd, const int delay){
 
     I2CWrapper::lock();
-
-    I2CWrapper::I2CWriteReg8(m_fd, (cmd >> 8), (cmd & 0x00FF));
+    I2CWrapper::I2CWrite(m_fd, (cmd >> 8));
+    I2CWrapper::I2CWrite(m_fd, (cmd & 0x00FF));
     std::this_thread::sleep_for(std::chrono::milliseconds(delay));
 
     for(int i = 0; i < len; i++){
@@ -87,7 +87,8 @@ void Sgp30::init_air_quality(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
 
     I2CWrapper::lock();
-    I2CWrapper::I2CWriteReg8(m_fd, (SGP30_INIT_AIR_QUALITY >> 8), (SGP30_INIT_AIR_QUALITY & 0x00FF));
+    I2CWrapper::I2CWrite(m_fd, (SGP30_INIT_AIR_QUALITY >> 8));
+    I2CWrapper::I2CWrite(m_fd, (SGP30_INIT_AIR_QUALITY & 0x00FF));
     I2CWrapper::unlock();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -103,8 +104,8 @@ void Sgp30::measure_air_quality(){
 
     read_data(data, 6, SGP30_MEASURE_AIR_QUALITY, 10);
 
-    //crc_check[0] = calculate_crc(&data[0], 2, 0xFF, 0x31);
-    //crc_check[1] = calculate_crc(&data[3], 2, 0xFF, 0x31);
+    crc_check[0] = pirobot::crc::crc(&data[0], 2, 0xFF, 0x31);
+    crc_check[1] = pirobot::crc::crc(&data[3], 2, 0xFF, 0x31);
 
     if(crc_check[0] == data[2]){
         measure[0] = data[0];
@@ -133,8 +134,8 @@ void Sgp30::get_baseline(){
 
     read_data(data, 6, SGP30_GET_BASELINE, 10);
 
-    //crc_check[0] = calculate_crc(&data[0], 2, 0xFF, 0x31);
-    //crc_check[1] = calculate_crc(&data[3], 2, 0xFF, 0x31);
+    crc_check[0] = pirobot::crc::crc(&data[0], 2, 0xFF, 0x31);
+    crc_check[1] = pirobot::crc::crc(&data[3], 2, 0xFF, 0x31);
 
     if(crc_check[0] != data[2])
         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " CO2 CRC Invalid");
@@ -167,10 +168,11 @@ void Sgp30::set_humidity(const uint16_t humidity){
     uint8_t data[3] = {0x00, 0x00, 0x00};
     data[0] = (humidity >> 8);
     data[1] = (humidity & 0x00FF);
-    //data[2] = calculate_crc(&data[0], 2, 0xFF, 0x31);
+    data[2] = pirobot::crc::crc(&data[0], 2, 0xFF, 0x31);
 
     I2CWrapper::lock();
-    I2CWrapper::I2CWriteReg8(m_fd, (SGP30_SET_HUMIDITY >> 8), (SGP30_SET_HUMIDITY & 0x00FF));
+    I2CWrapper::I2CWrite(m_fd, (SGP30_SET_HUMIDITY >> 8));
+    I2CWrapper::I2CWrite(m_fd, (SGP30_SET_HUMIDITY & 0x00FF));
     I2CWrapper::I2CWrite(m_fd, data[0]);
     I2CWrapper::I2CWrite(m_fd, data[1]);
     I2CWrapper::I2CWrite(m_fd, data[2]);
