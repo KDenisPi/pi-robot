@@ -32,7 +32,7 @@ const char* Item::ItemNames[] = {
     "AnalogLightMeter",
     "ULN2003Stepper",
     "MPU6050",
-    "SI7021"
+    "SI7021",
     "SGP30"
 };
 
