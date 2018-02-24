@@ -28,6 +28,7 @@
 #include "AnalogLightMeter.h"
 #include "Mpu6050.h"
 #include "Si7021.h"
+#include "sgp30.h"
 
 namespace pirobot {
 const char TAG[] = "PiRobot";
@@ -468,6 +469,19 @@ bool PiRobot::configure(const std::string& cfile){
                                     new pirobot::item::Si7021(item_name, i2c_provider, item_comment)));
                         
                     }
+                    break;
+
+                    case item::ItemTypes::SGP30:
+                    {
+                        auto i2c_provider = std::static_pointer_cast<pirobot::i2c::I2C>(get_provider("I2C"));
+                        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item: " + item_name + " Comment: " + item_comment);
+
+                        items_add(item_name, 
+                                std::shared_ptr<pirobot::item::Item>(
+                                    new pirobot::item::Sgp30(item_name, i2c_provider, item_comment)));
+                        
+                    }
+                    break;
                 }//Item types
             }//Items collection loading
         }

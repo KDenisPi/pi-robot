@@ -32,7 +32,8 @@ enum ItemTypes{
     ULN2003Stepper = 11,
     MPU6050 = 12,
     SI7021 = 13,
-    LAST_ITEM = 14
+    SGP30  = 14,
+    LAST_ITEM = 15
 };
 
 enum BUTTON_STATE{

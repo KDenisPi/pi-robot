@@ -171,6 +171,15 @@
             "type": "SI7021",
             "name": "item_name",
             "comment": "" //optional
+        },
+        //
+        // SGP30 
+        // I2C Sensirion Gas Platform (CO2, TVOC)
+        //
+        {
+            "type": "SGP30",
+            "name": "item_name",
+            "comment": "" //optional
         }        
         
     ]

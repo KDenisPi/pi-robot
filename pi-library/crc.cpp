@@ -10,13 +10,16 @@
 
 #include "crc.h"
 
+namespace pirobot {
 namespace crc {
 
-uint8_t calculate_crc(const uint8_t* data, const int dlen, const uint16_t init_val, const uint8_t polynomial){
-  uint16_t res = init_val;
-  for(int i = 0; i < dlen; i++){
+unsigned char crc(const unsigned char* data, const int dlen, const unsigned short init_val, const unsigned char polynomial){
+  unsigned short res = init_val;
+  int i, j;
+
+  for(i = 0; i < dlen; i++){
     res = res ^ data[i];
-    for(int j = 0; j < 8; j++){
+    for(j = 0; j < 8; j++){
       if( (res & 0x80) ){
         res = (res << 1) ^ polynomial;
       } 
@@ -31,3 +34,4 @@ uint8_t calculate_crc(const uint8_t* data, const int dlen, const uint16_t init_v
 }
 
 }//crc
+}

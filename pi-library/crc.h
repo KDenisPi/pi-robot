@@ -13,9 +13,12 @@
 #ifndef PI_UTILS_CRC_H
 #define PI_UTILS_CRC_H
 
+namespace pirobot {
 namespace crc {
-uint8_t calculate_crc(const uint8_t* data, const int dlen, const uint16_t init_val, const uint8_t polynomial);
+
+unsigned char crc(const unsigned char* data, const int dlen, const unsigned short init_val, const unsigned char polynomial);
 
 } //crc
+} //piutils
 
 #endif

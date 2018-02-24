@@ -6,6 +6,7 @@ project(version1)
 set(VER_MJR 0)
 set(VER_MIN 1)
 
+find_library(PI_LIB pi-utils PATH ${CMAKE_BINARY_DIR})
 find_library(PI_LIB pi-library PATH ${CMAKE_BINARY_DIR})
 find_library(PI_MQQT pi-mqqt PATH ${CMAKE_BINARY_DIR})
 
@@ -15,9 +16,9 @@ set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-mqqt pi-library pthread)
 include_directories(BEFORE ${MOSQUITTO_HOME}/lib/cpp
    ${MOSQUITTO_HOME}/lib
    ${WIRINGPI_LIB}
+   ${PROJECT_SOURCE_DIR}/../pi-utils
    ${PROJECT_SOURCE_DIR}/../pi-mqqt
    ${PROJECT_SOURCE_DIR}/../pi-library
-   ${PROJECT_SOURCE_DIR}/../pi-utils
    ${JSONCONS}
 )
 

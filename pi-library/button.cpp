@@ -33,6 +33,7 @@ const char* Item::ItemNames[] = {
     "ULN2003Stepper",
     "MPU6050",
     "SI7021"
+    "SGP30"
 };
 
 /*
