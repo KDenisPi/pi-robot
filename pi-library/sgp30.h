@@ -45,7 +45,7 @@ public:
 
     // Initialize
     virtual bool initialize() override{
-        return piutils::Threaded::start<pirobot::item::Sgp30>(this);
+        return true; //piutils::Threaded::start<pirobot::item::Sgp30>(this);
     }
 
     // Worker function

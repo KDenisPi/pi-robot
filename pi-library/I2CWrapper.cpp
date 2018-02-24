@@ -59,7 +59,7 @@ int I2CWrapper::I2CWriteData(const int fd, const int reg, const uint8_t* buffer,
 	data.block[0] = size;
 	memcpy(&data.block[1], buffer, rsize);
 
-	return I2CWrapper::i2c_smbus_access(fd, I2C_SMBUS_WRITE, reg, I2C_SMBUS_BLOCK_DATA, &data);
+	return I2CWrapper::i2c_smbus_access(fd, I2C_SMBUS_WRITE, reg, I2C_SMBUS_I2C_BLOCK_DATA, &data);
 }
 
 /*
@@ -77,7 +77,7 @@ int I2CWrapper::I2CReadData(const int fd, const int reg, uint8_t* buffer, const 
 	memset(&data.block[0], 0x00, sizeof(data.block));
 	data.block[0] = size;
 
-	int result = I2CWrapper::i2c_smbus_access(fd, I2C_SMBUS_READ, reg, I2C_SMBUS_BLOCK_DATA, &data);
+	int result = I2CWrapper::i2c_smbus_access(fd, I2C_SMBUS_READ, reg, I2C_SMBUS_I2C_BLOCK_DATA, &data);
 	if( result < 0 )
 		return result;
 

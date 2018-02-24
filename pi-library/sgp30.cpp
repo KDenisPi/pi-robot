@@ -8,6 +8,7 @@
  *      Author: Denis Kudia
  */
 
+#include "wiringPi.h"
 #include "logger.h"
 #include "I2CWrapper.h"
 #include "sgp30.h"
@@ -34,24 +35,35 @@ Sgp30::Sgp30(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i
     m_fd = I2CWrapper::I2CSetup(_i2caddr);
     I2CWrapper::unlock();
 
+    delay(1000);
+
     get_feature_set_version();
+
+    uint8_t data[9] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    read_data(data, 3, 0x2032, 220);
+    uint8_t crc_check = pirobot::crc::crc(data, 2, 0xFF, 0x31);
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " 1:[" + std::to_string(data[0]) + "] 2:[" + std::to_string(data[1]) + "] 3:[" + std::to_string(data[2]) + "] CRC:[" + std::to_string(crc_check)+"]" );
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Descr: " + std::to_string(m_fd));
 }
 
 //
 // Read data 
-void Sgp30::read_data(uint8_t* data, const int len, const uint16_t cmd, const int delay){
+void Sgp30::read_data(uint8_t* data, const int len, const uint16_t cmd, const int delay_ms){
+    int msb = (cmd >> 8);
+    int lsb = (cmd & 0x00FF);
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MSB: " + std::to_string(msb) + " LSB:" + std::to_string(lsb));
 
     I2CWrapper::lock();
-    I2CWrapper::I2CWrite(m_fd, (cmd >> 8));
-    I2CWrapper::I2CWrite(m_fd, (cmd & 0x00FF));
-    std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+    I2CWrapper::I2CWriteReg8(m_fd, msb, lsb);
 
-    for(int i = 0; i < len; i++){
-        data[i] = I2CWrapper::I2CRead(m_fd);
-    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+    //delay(delay_ms);
 
+    int res_len = I2CWrapper::I2CReadData(m_fd, msb, data, 3);
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Len: " + std::to_string(res_len) + " CRC:" + std::to_string(data[2]));
     I2CWrapper::unlock();
 }
 
@@ -59,14 +71,15 @@ void Sgp30::read_data(uint8_t* data, const int len, const uint16_t cmd, const in
 // Get feature set version. Data return 3 bytes. Delay max 2ms 
 //
 void Sgp30::get_feature_set_version(){
-    uint8_t data[3] = {0x00, 0x00, 0x00};
+    uint8_t data[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-    read_data(data, 3, SGP30_GET_FEATURE_SET_VERSION, 2);
+    read_data(data, 3, SGP30_GET_FEATURE_SET_VERSION, 10);
 
     //calculate CRC
     uint8_t crc_check = pirobot::crc::crc(data, 2, 0xFF, 0x31);
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " 1:[" + std::to_string(data[0]) + "] 2:[" + std::to_string(data[1]) + "] 3:[" + std::to_string(data[2]) + "] CRC:[" + std::to_string(crc_check)+"]" );
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Feature set RAW MSB: " + std::to_string(data[0]) + " LSB:" + std::to_string(data[1]) + 
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Feature set RAW MSB: " + std::to_string(data[0]) + " LSB:" + std::to_string(data[1]) +
         " CRC: " + (data[2]==crc_check ? "OK " : "Invalid ") + std::to_string(data[2]) );
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Product Type: " + std::to_string(data[0] >> 5) + " Version: " + std::to_string(data[1]));
 }

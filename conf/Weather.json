@@ -4,8 +4,8 @@
     
     "items":[
         {
-            "type":"SI7021",
-            "name":"Si7021",
+            "type":"SGP30",
+            "name":"SGP30",
             "comment":""
         }
     ]    
