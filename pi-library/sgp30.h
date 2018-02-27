@@ -31,7 +31,7 @@ namespace item {
 
 struct Sdp30_measure {
     uint16_t uiCO2;
-    uint16_t uiTVOC;    
+    uint16_t uiTVOC;
 };
 
 class Sgp30 : public item::Item, public piutils::Threaded {
@@ -48,7 +48,7 @@ public:
 
     // Initialize
     virtual bool initialize() override{
-        return true; //piutils::Threaded::start<pirobot::item::Sgp30>(this);
+        return piutils::Threaded::start<pirobot::item::Sgp30>(this);
     }
 
     // Worker function
@@ -56,7 +56,7 @@ public:
 
     // Stop
     virtual void stop() override;
-    
+
     // Init air quality
     void init_air_quality();
     // Measure air quality
@@ -85,15 +85,6 @@ private:
     int read_data(uint8_t* data, const int len, const uint16_t cmd, const int delay);
     int write_data(uint8_t* data, const int len, const uint16_t cmd, const int delay);
 
-    // Save measure results
-    void put_results(const uint16_t co2, const uint16_t tvoc){
-        std::lock_guard<std::mutex> lk(cv_m);
-        struct Sdp30_measure values;
-        values.uiCO2 = co2;
-        values.uiTVOC = tvoc;
-    }
-
-
     //Convert two byte value to uint16_t
     uint16_t convert_result(uint8_t* data){
         uint16_t result = data[0];
@@ -115,7 +106,6 @@ public:
         results[0] = baseline.uiCO2;
         results[1] = baseline.uiTVOC;
     }
-    
 };
 
 }//item

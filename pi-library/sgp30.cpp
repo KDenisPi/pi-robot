@@ -3,7 +3,7 @@
  * I2C Sensurion Gas Platform
  *
  *  Note: This device always uses 0x58 address
- * 
+ *
  *  Created on: Feb 21, 2018
  *      Author: Denis Kudia
  */
@@ -23,10 +23,15 @@ const uint8_t Sgp30::s_i2c_addr = 0x58;
 //
 //
 //
-Sgp30::Sgp30(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i2c, const std::string& comment) : 
+Sgp30::Sgp30(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i2c, const std::string& comment) :
     Item(name, comment, ItemTypes::SGP30), _i2caddr(s_i2c_addr) {
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
+
+    values.uiCO2  = 0;
+    values.uiTVOC = 0;
+    baseline.uiCO2  = 0;
+    baseline.uiTVOC = 0;
 
     //register I2C user
     i2c->add_user(name, _i2caddr);
@@ -38,7 +43,7 @@ Sgp30::Sgp30(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i
     get_feature_set_version();
 
     measure_test();
-    
+
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Descr: " + std::to_string(m_fd));
 }
 
@@ -53,6 +58,7 @@ bool Sgp30::measure_test(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " 1:[" + std::to_string(data[0]) + "] 2:[" + std::to_string(data[1]) + "] 3:[" + std::to_string(data[2]) + "] CRC:[" + std::to_string(crc_check)+"]" );
 
     if(data[2] == crc_check && SGP30_MEASURE_TEST_PATTERN == convert_result(data)){
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Success");
         return true;
     }
 
@@ -65,17 +71,17 @@ int Sgp30::read_data(uint8_t* data, const int len, const uint16_t cmd, const int
     int msb = (cmd >> 8);
     int lsb = (cmd & 0x00FF);
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MSB: " + std::to_string(msb) + " LSB:" + std::to_string(lsb));
+    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MSB: " + std::to_string(msb) + " LSB:" + std::to_string(lsb));
 
     I2CWrapper::lock();
     I2CWrapper::I2CWriteReg8(m_fd, msb, lsb);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
 
-    int res_len = I2CWrapper::I2CReadData(m_fd, msb, data, 3);
+    int res_len = I2CWrapper::I2CReadData(m_fd, msb, data, len);
     I2CWrapper::unlock();
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Len: " + std::to_string(res_len));
+    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Len: " + std::to_string(res_len));
     return res_len;
 }
 
@@ -100,7 +106,6 @@ void Sgp30::get_feature_set_version(){
 //
 Sgp30::~Sgp30(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
-
     stop();
 }
 
@@ -123,9 +128,10 @@ void Sgp30::init_air_quality(){
 void Sgp30::measure_air_quality(){
     uint8_t data[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     uint8_t crc_check[2] = {0x00, 0x00};
-    uint16_t measure[2];
+    struct Sdp30_measure  measure;
 
-    get_results(measure);
+    measure.uiCO2  = values.uiCO2;
+    measure.uiTVOC = values.uiTVOC;
 
     read_data(data, 6, SGP30_MEASURE_AIR_QUALITY, 10);
 
@@ -133,20 +139,21 @@ void Sgp30::measure_air_quality(){
     crc_check[1] = pirobot::crc::crc(&data[3], 2, 0xFF, 0x31);
 
     if(crc_check[0] == data[2]){
-        measure[0] = convert_result(data);
+          measure.uiCO2 = convert_result(data);
     }
     else
         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " CO2 CRC Invalid");
 
     if(crc_check[1] == data[5]){
-        measure[1] = convert_result(&data[3]);
+        measure.uiTVOC = convert_result(&data[3]);
     }
     else
         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " TVOC CRC Invalid");
 
-    if((crc_check[0] == data[2]) || (crc_check[1] == data[5])){
-        put_results(measure[0], measure[1]);
-    }
+    std::lock_guard<std::mutex> lk(cv_m);
+    values.uiCO2  = measure.uiCO2;
+    values.uiTVOC = measure.uiTVOC;
+
 }
 
 // Get baseline
@@ -171,12 +178,15 @@ void Sgp30::get_baseline(){
     }
     else
         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " TVOC CRC Invalid");
-    
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ------------ Get Baseline CO2: " + std::to_string(base_co2) + " TVOC: " + std::to_string(base_tvoc));
+
     std::lock_guard<std::mutex> lk(cv_m);
     baseline.uiCO2 = base_co2;
     baseline.uiTVOC = base_tvoc;
 }
 
+//Write data
 int Sgp30::write_data(uint8_t* data, const int len, const uint16_t cmd, const int delay_ms){
     int msb = (cmd >> 8);
     int lsb = (cmd & 0x00FF);
@@ -187,7 +197,7 @@ int Sgp30::write_data(uint8_t* data, const int len, const uint16_t cmd, const in
     I2CWrapper::unlock();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Len: " + std::to_string(res_len));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Data Len: " + std::to_string(res_len));
 
     return res_len;
 }
@@ -208,22 +218,23 @@ void Sgp30::set_humidity(const uint16_t humidity){
     write_data(data, 4, SGP30_SET_HUMIDITY, 10);
 }
 
-//Set humidity
-void Sgp30::set_baseline(const uint16_t base_c02, const uint16_t base_tvoc){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Baseline CO2: " + std::to_string(base_c02) + " TVOC: " + std::to_string(base_tvoc));
+//Set baseline
+// NOTE: Set baseline use parameter TVOC, CO2 (other functions CO2, TVOC)
+void Sgp30::set_baseline(const uint16_t base_co2, const uint16_t base_tvoc){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Baseline CO2: " + std::to_string(base_co2) + " TVOC: " + std::to_string(base_tvoc));
     uint8_t data[7] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     int msb = (SGP30_SET_BASELINE >> 8);
     int lsb = (SGP30_SET_BASELINE & 0x00FF);
 
     data[0] = lsb;
 
-    data[1] = (base_c02 >> 8);
-    data[2] = (base_c02 & 0x00FF);
-    data[3] = pirobot::crc::crc(&data[1], 2, 0xFF, 0x31);
-
-    data[4] = (base_tvoc >> 8);
-    data[5] = (base_tvoc & 0x00FF);
+    data[4] = (base_co2 >> 8);
+    data[5] = (base_co2 & 0x00FF);
     data[6] = pirobot::crc::crc(&data[4], 2, 0xFF, 0x31);
+
+    data[1] = (base_tvoc >> 8);
+    data[2] = (base_tvoc & 0x00FF);
+    data[3] = pirobot::crc::crc(&data[1], 2, 0xFF, 0x31);
 
     write_data(data, 7, SGP30_SET_BASELINE, 10);
 }
@@ -244,11 +255,13 @@ void Sgp30::stop(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker started. Name: " + name);
 
     owner->init_air_quality();
+    owner->set_baseline(440, 23);
+    owner->get_baseline();
 
     while(!owner->is_stop_signal()){
 
         owner->measure_air_quality();
-        
+
         std::this_thread::sleep_for(std::chrono::milliseconds(1000)); //1sec - 1Hz
     }
 
