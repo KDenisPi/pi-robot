@@ -25,6 +25,8 @@ public:
     template<class T> std::shared_ptr<T> get_env(){
         return std::static_pointer_cast<T>(get_itf()->get_env());
     }
+
+    void get_values();
 };
 
 } /* namespace state */

@@ -27,20 +27,26 @@ StateWeather::~StateWeather() {
     // TODO Auto-generated destructor stub
 }
 
+
+void StateWeather::get_values(){
+    uint16_t result[2], baseline[2];
+    auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
+    sgp30->get_results(result);
+    sgp30->get_baseline(baseline);
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result CO2: " + std::to_string(result[0]) + " TVOC: " + std::to_string(result[0]));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Baseline CO2: " + std::to_string(baseline[0]) + " TVOC: " + std::to_string(baseline[0]));
+}
+
 void StateWeather::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateWeather started");
 
-    TIMER_CREATE(TIMER_FINISH_ROBOT, 15)
-    //TIMER_CREATE(TIMER_SGP30_Get_VALUE, 5)
+    TIMER_CREATE(TIMER_FINISH_ROBOT, 30)
+    TIMER_CREATE(TIMER_SGP30_Get_VALUE, 5)
 
     //auto si7021 = get_item<pirobot::item::Si7021>("Si7021");
     //si7021->measurement();
-/*
-    uint16_t result[2];
-    auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
-    sgp30->get_results(result);
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result CO2: " + std::to_string(result[0]) + " TVOC: " + std::to_string(result[0]));
-*/
+
+    get_values();
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateWeather finished");
 }
 
@@ -53,10 +59,7 @@ bool StateWeather::OnTimer(const int id){
             return true;
         case TIMER_SGP30_Get_VALUE:
         {
-            uint16_t result[2];
-            auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
-            sgp30->get_results(result);
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result CO2: " + std::to_string(result[0]) + " TVOC: " + std::to_string(result[0]));
+            get_values();
 
             TIMER_CREATE(TIMER_SGP30_Get_VALUE, 5)
         }
