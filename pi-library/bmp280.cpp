@@ -21,10 +21,10 @@ const uint8_t Bmp280::s_i2c_addr = 0x76;
 
 const char* Bmp280::s_measure_mode[4] = {"Sleep mode", "Forced mode", "Forced mode", "Normal mode"};
 const char* Bmp280::s_oversampling[8] = {
-        "Skipped", 
-        "Oversamplig x 1", 
-        "Oversamplig x 2", 
-        "Oversamplig x 4", 
+        "Skipped",
+        "Oversamplig x 1",
+        "Oversamplig x 2",
+        "Oversamplig x 4",
         "Oversamplig x 8",
         "Oversamplig x 16",
         "Oversamplig x 16",
@@ -43,8 +43,8 @@ const char* Bmp280::s_standby_time[8] = {
 };
 
 
-Bmp280::Bmp280(const std::string& name, 
-    const std::shared_ptr<pirobot::i2c::I2C> i2c, 
+Bmp280::Bmp280(const std::string& name,
+    const std::shared_ptr<pirobot::i2c::I2C> i2c,
     const uint8_t i2c_addr,
     const uint8_t mode,
     const uint8_t preasure_oversampling,
@@ -53,9 +53,9 @@ Bmp280::Bmp280(const std::string& name,
     const uint8_t filter,
     const int spi,
     const int spi_channel,
-    const std::string& comment) : 
-    Item(name, comment, ItemTypes::BMP280), _i2caddr(i2c_addr), m_mode(mode), 
-    m_preasure_oversampling(preasure_oversampling), m_temperature_oversampling(temperature_oversampling), 
+    const std::string& comment) :
+    Item(name, comment, ItemTypes::BMP280), _i2caddr(i2c_addr), m_mode(mode),
+    m_preasure_oversampling(preasure_oversampling), m_temperature_oversampling(temperature_oversampling),
     m_standby_time(standby_time), m_filter(filter), m_spi(spi), m_spi_channel(spi_channel){
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
@@ -85,18 +85,20 @@ Bmp280::~Bmp280(){
 
 }
 
-//Get chip ID 
+//Get chip ID
 uint8_t Bmp280::get_id(){
     I2CWrapper::lock();
     uint8_t id = I2CWrapper::I2CReadReg8(m_fd, BMP280_ID);
     I2CWrapper::lock();
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ID: " + std::to_string(id));
-    return id;    
+    return id;
 }
 
 //Reset
 void Bmp280::reset(){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
+
     I2CWrapper::lock();
     I2CWrapper::I2CWriteReg8(m_fd, BMP280_RESET, BMP280_RESET_CODE);
     I2CWrapper::lock();
@@ -108,9 +110,9 @@ const uint8_t Bmp280::get_status(){
     uint8_t status = I2CWrapper::I2CReadReg8(m_fd, BMP280_STATUS);
     I2CWrapper::lock();
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Status Measuring: " + ((status & BMP280_STATUS_MEASURING) ? "Yes" : "No") + 
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Status Measuring: " + ((status & BMP280_STATUS_MEASURING) ? "Yes" : "No") +
                     "  Data update: " + ((status & BMP280_STATUS_DATA_UPDATE) ? "Yes" : "No"));
-    return status;    
+    return status;
 }
 
 //Set measure control
@@ -118,6 +120,8 @@ bool Bmp280::set_measure_control(const uint8_t power_mode, const uint8_t pressur
     assert(power_mode <= 3);
     assert(pressure_over <= 8);
     assert((temp_over <= 8 || temp_over == 0xFF));
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Mode: " + std::to_string(power_mode) + " osrs_p: " + std::to_string(pressure_over) + " osrs_t: " + std::to_string(temp_over));
 
     if((power_mode > 3) | (pressure_over > 8) | (temp_over > 8 && temp_over != 0xFF) | (pressure_over == BMP280_OVERSAMPLING_SKIPPED && temp_over == 0xFF))
         return false;
@@ -132,7 +136,7 @@ bool Bmp280::set_measure_control(const uint8_t power_mode, const uint8_t pressur
     I2CWrapper::lock();
     I2CWrapper::I2CWriteReg8(m_fd, BMP280_CTRL_MEASURE, meas_ctrl);
     I2CWrapper::lock();
-    
+
     return true;
 }
 
@@ -141,12 +145,12 @@ const uint8_t Bmp280::get_measure_control(){
     I2CWrapper::lock();
     uint8_t meas_ctrl = I2CWrapper::I2CReadReg8(m_fd, BMP280_CTRL_MEASURE);
     I2CWrapper::lock();
-    
+
     uint8_t mode = (meas_ctrl & 0x03);
     uint8_t osrs_p = ((meas_ctrl >> 2) & 0x07);
     uint8_t osrs_t = (meas_ctrl >> 5);
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Measure control. Power mode: " + s_measure_mode[mode] + 
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Measure control. Power mode: " + s_measure_mode[mode] +
             " Oversampling Preassure: " + s_oversampling[osrs_p] + " Temperature: " + s_oversampling[osrs_t]);
     return meas_ctrl;
 }
@@ -161,14 +165,15 @@ const uint8_t Bmp280::get_config(){
     uint8_t filter = ((config >> 2) & 0x07);
     uint8_t standby_time = (config >> 5);
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Config. SPI: " + (spi ? "On" : "Off") + 
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Config. SPI: " + (spi ? "On" : "Off") +
             " Filter: " + std::to_string(filter) + " Temperature: " + s_standby_time[standby_time] + " ms");
-    
-    return config;    
+
+    return config;
 }
 
 //Set config
 void Bmp280::set_config(const uint8_t spi, const uint8_t filter, const uint8_t standby_time){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " SPI: " + std::to_string(spi) + " Filter: " + std::to_string(filter) + " SB Time: " + std::to_string(standby_time));
 
     int8_t config = (standby_time << 5) | (filter << 2) | spi;
 
@@ -180,14 +185,19 @@ void Bmp280::set_config(const uint8_t spi, const uint8_t filter, const uint8_t s
 //Return current pressure and temperature values
 void Bmp280::get_results(uint32_t& pressure, uint32_t& temp){
     uint8_t raw[6];
+
+    //for FORCED ans SLEEP modes make measurement
+    if(m_mode != BMP280_POWER_MODE_NORMAL)
+        set_measure_control(m_mode, m_preasure_oversampling, m_temperature_oversampling);
+
     I2CWrapper::lock();
     int read_bytes = I2CWrapper::I2CReadData(m_fd, BMP280_PRESSURE_MSB, raw, 6);
     I2CWrapper::lock();
-    
+
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Read bytes: " + std::to_string(read_bytes));
 
-    pressure = construct_value(raw[0], raw[1], raw[2]);
-    temp = construct_value(raw[3], raw[4], raw[5]);
+    pressure = construct_value(raw[0], raw[1], (raw[2] >> 4));
+    temp = construct_value(raw[3], raw[4], (raw[5] >> 4));
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pressure: " + std::to_string(pressure) + " Temperature: " + std::to_string(temp));
 }

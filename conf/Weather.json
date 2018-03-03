@@ -5,10 +5,10 @@
     "items":[
         {
             "type": "BMP280",
-            "name": "bmp280",
+            "name": "BMP280",
             "i2c_addr": 118,
             "mode": "FORCED",
-            "preasure_oversampling": 1,
+            "preasure_oversampling": 1
         }        
     ]    
 }
