@@ -45,8 +45,8 @@ void StateWeather::get_bmp280_values(){
     auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
 
     bmp280->get_results(pressure, temp);
-    
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pressure: " + std::to_string(pressure) + " Temperature: " + std::to_string(temp));
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pressure: " + std::to_string(pressure)+ "Pa (" +  std::to_string(pressure/133.3) + "mmHg) Temperature: " + std::to_string(temp) + "C");
 }
 
 
