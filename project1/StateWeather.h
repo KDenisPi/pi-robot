@@ -26,7 +26,9 @@ public:
         return std::static_pointer_cast<T>(get_itf()->get_env());
     }
 
-    void get_values();
+    void get_spg30_values();
+    void get_bmp280_values();
+    
 };
 
 } /* namespace state */

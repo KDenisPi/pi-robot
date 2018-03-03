@@ -29,6 +29,7 @@
 #include "Mpu6050.h"
 #include "Si7021.h"
 #include "sgp30.h"
+#include "bmp280.h"
 
 namespace pirobot {
 const char TAG[] = "PiRobot";
@@ -479,6 +480,34 @@ bool PiRobot::configure(const std::string& cfile){
                         items_add(item_name, 
                                 std::shared_ptr<pirobot::item::Item>(
                                     new pirobot::item::Sgp30(item_name, i2c_provider, item_comment)));
+                        
+                    }
+                    break;
+
+                    case item::ItemTypes::BMP280:
+                    {
+                        auto i2c_provider = std::static_pointer_cast<pirobot::i2c::I2C>(get_provider("I2C"));
+                        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item: " + item_name + " Comment: " + item_comment);
+
+                        auto i2c_addr = (uint8_t)jsonhelper::get_attr<int>(json_item, "i2c_addr", pirobot::item::Bmp280::s_i2c_addr); //0x76
+                        auto smode = jsonhelper::get_attr_mandatory<std::string>(json_item, "FORCED");
+                        auto preasure_oversampling = (uint8_t)jsonhelper::get_attr<int>(json_item, "preasure_oversampling", 1);
+                        auto temperature_oversampling = (uint8_t)jsonhelper::get_attr<int>(json_item, "temperature_oversampling", 0xFF);
+                        auto standby_time = (uint8_t)jsonhelper::get_attr<int>(json_item, "standby_time", 5);
+                        auto filter = (uint8_t)jsonhelper::get_attr<int>(json_item, "filter", 0);
+                        auto spi = jsonhelper::get_attr<int>(json_item, "SPI", 0);
+                        auto spi_channel  =  jsonhelper::get_attr<int>(json_item, "spi_channel", 0);
+                        
+                        auto mode = pirobot::item::Bmp280::get_mode_by_name(smode);
+
+                        if( (filter != 0) && (filter != 2) && (filter != 4) &&(filter != 8) && (filter != 16) ){
+                            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid filter value. Possible values 0,2,4,8,16");
+                            throw std::runtime_error(std::string("Invalid filter value. Possible values 0,2,4,8,16"));
+                        }
+
+                        items_add(item_name, 
+                                std::shared_ptr<pirobot::item::Item>(
+                                    new pirobot::item::Bmp280(item_name, i2c_provider, i2c_addr, mode, preasure_oversampling, temperature_oversampling, standby_time, filter, spi, spi_channel, item_comment)));
                         
                     }
                     break;

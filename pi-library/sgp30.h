@@ -94,17 +94,17 @@ private:
 
 public:
     //Get measure results
-    void get_results(uint16_t* results){
+    void get_results(uint16_t& co2, uint16_t& tvoc){
         std::lock_guard<std::mutex> lk(cv_m);
-        results[0] = values.uiCO2;
-        results[1] = values.uiTVOC;
+        co2 = values.uiCO2;
+        tvoc = values.uiTVOC;
     }
 
     //Get measure results
-    void get_baseline(uint16_t* results){
+    void get_baseline(uint16_t& bs_co2, uint16_t& bs_tvoc){
         std::lock_guard<std::mutex> lk(cv_m);
-        results[0] = baseline.uiCO2;
-        results[1] = baseline.uiTVOC;
+        bs_co2 = baseline.uiCO2;
+        bs_tvoc = baseline.uiTVOC;
     }
 };
 

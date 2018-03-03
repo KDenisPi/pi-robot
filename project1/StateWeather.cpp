@@ -12,6 +12,7 @@
 #include "MyEnv.h"
 #include "Si7021.h"
 #include "sgp30.h"
+#include "bmp280.h"
 
 namespace project1 {
 namespace state {
@@ -28,20 +29,32 @@ StateWeather::~StateWeather() {
 }
 
 
-void StateWeather::get_values(){
-    uint16_t result[2], baseline[2];
+void StateWeather::get_spg30_values(){
+    uint16_t co2, tvoc, bs_co2, bs_tvoc;
     auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
-    sgp30->get_results(result);
-    sgp30->get_baseline(baseline);
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result CO2: " + std::to_string(result[0]) + " TVOC: " + std::to_string(result[1]));
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Baseline CO2: " + std::to_string(baseline[0]) + " TVOC: " + std::to_string(baseline[1]));
+
+    sgp30->get_results(co2, tvoc);
+    sgp30->get_baseline(bs_co2, bs_tvoc);
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result CO2: " + std::to_string(co2) + " TVOC: " + std::to_string(tvoc));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Baseline CO2: " + std::to_string(bs_co2) + " TVOC: " + std::to_string(bs_tvoc));
 }
+
+void StateWeather::get_bmp280_values(){
+    uint32_t pressure, temp;
+    auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
+
+    bmp280->get_results(pressure, temp);
+    
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pressure: " + std::to_string(pressure) + " Temperature: " + std::to_string(temp));
+}
+
 
 void StateWeather::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateWeather started");
 
     TIMER_CREATE(TIMER_FINISH_ROBOT, 40)
-    TIMER_CREATE(TIMER_SGP30_Get_VALUE, 15)
+    TIMER_CREATE(TIMER_GET_VALUE, 15)
 
     //auto si7021 = get_item<pirobot::item::Si7021>("Si7021");
     //si7021->measurement();
@@ -56,11 +69,11 @@ bool StateWeather::OnTimer(const int id){
         case TIMER_FINISH_ROBOT:
             get_itf()->finish();
             return true;
-        case TIMER_SGP30_Get_VALUE:
+        case TIMER_GET_VALUE:
         {
-            get_values();
+            get_bmp280_values();
 
-            TIMER_CREATE(TIMER_SGP30_Get_VALUE, 5)
+            TIMER_CREATE(TIMER_GET_VALUE, 5)
         }
     }
     return false;

@@ -4,9 +4,11 @@
     
     "items":[
         {
-            "type":"SGP30",
-            "name":"SGP30",
-            "comment":""
-        }
+            "type": "BMP280",
+            "name": "bmp280",
+            "i2c_addr": 118,
+            "mode": "FORCED",
+            "preasure_oversampling": 1,
+        }        
     ]    
 }

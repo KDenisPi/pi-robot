@@ -19,21 +19,22 @@ namespace item {
 
 enum ItemTypes{
     UNKNOWN = 0,
-    LED = 1,
-    BUTTON = 2,
-    SERVO = 3,
-    TILT_SWITCH = 4,
-    STEPPER = 5,
-    DCMotor = 6,
-    DRV8835 = 7,
-    BLINKER = 8,
-    AnlgDgtConvertor = 9,
-    AnalogLightMeter = 10,
-    ULN2003Stepper = 11,
-    MPU6050 = 12,
-    SI7021 = 13,
-    SGP30  = 14,
-    LAST_ITEM = 15
+    LED,
+    BUTTON,
+    SERVO,
+    TILT_SWITCH,
+    STEPPER,
+    DCMotor,
+    DRV8835,
+    BLINKER,
+    AnlgDgtConvertor,
+    AnalogLightMeter,
+    ULN2003Stepper,
+    MPU6050,
+    SI7021,
+    SGP30,
+    BMP280,
+    LAST_ITEM
 };
 
 enum BUTTON_STATE{
