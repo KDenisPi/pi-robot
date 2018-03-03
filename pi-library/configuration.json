@@ -183,15 +183,15 @@
         },
         //
         // BMP280 
-        // I2C Digital Preasure Sensor
+        // I2C Digital Pressure Sensor
         //
         {
             "type": "BMP280",
             "name": "item_name",
             "i2c_addr": 118, //0x76 (118), 0x77 (119)
             "mode": "FORCED", //NORMAL, SLEEP, FORCED
-            "preasure_oversampling": 1, //0,1,2,3,4,5 default 1
-            "temperature_oversampling": 1, //0,1,2,3,4,5 default 1, can be detected using preasure value
+            "pressure_oversampling": 1, //0,1,2,3,4,5 default 1
+            "temperature_oversampling": 1, //0,1,2,3,4,5 default 1, can be detected using pressure value
             "standby_time": 5, //0-8
             "filter": 0, //0,2,4,8,16 - used for NORMAL mode only
             "SPI": 0, //SPI mode ON-1, OFF-0 default OFF (0)

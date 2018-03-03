@@ -53,7 +53,20 @@ namespace item {
 #define BMP280_FILTER_8     0x08
 #define BMP280_FILTER_16    0x0F
 
+//registers for compensation values
+#define BMP280_dig_T1   0x88
+#define BMP280_dig_T2   0x8A
+#define BMP280_dig_T3   0x8C
 
+#define BMP280_dig_P1   0x8E
+#define BMP280_dig_P2   0x90
+#define BMP280_dig_P3   0x92
+#define BMP280_dig_P4   0x94
+#define BMP280_dig_P5   0x96
+#define BMP280_dig_P6   0x98
+#define BMP280_dig_P7   0x9A
+#define BMP280_dig_P8   0x9C
+#define BMP280_dig_P9   0x9E
 
 class Bmp280 : public item::Item {
 
@@ -61,7 +74,7 @@ public:
     Bmp280(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i2c, 
             const uint8_t i2c_addr = s_i2c_addr,
             const uint8_t mode = BMP280_POWER_MODE_FORCED,
-            const uint8_t preasure_oversampling = 1,
+            const uint8_t pressure_oversampling = 1,
             const uint8_t temperature_oversampling = 0xFF,
             const uint8_t standby_time = 0x05,
             const uint8_t filter = BMP280_FILTER_OFF,
@@ -114,7 +127,7 @@ public:
     const uint8_t get_config();
 
     //Return current pressure and temperature values
-    void get_results(uint32_t& pressure, uint32_t& temp);
+    void get_results(float& pressure, float& temp);
 
     //
     //Set measure control parameters
@@ -138,16 +151,38 @@ private:
     int m_fd;
 
     uint8_t m_mode;
-    uint8_t m_preasure_oversampling;
+    uint8_t m_pressure_oversampling;
     uint8_t m_temperature_oversampling;
     uint8_t m_standby_time; //used for NORMAL mode only, 0-8
     uint8_t m_filter; //0,2,4,8,16
     int m_spi;
     int m_spi_channel;
     
+    //compensation values
+    uint16_t dig_T1;
+    int16_t  dig_T2;
+    int16_t  dig_T3;
+
+    uint16_t dig_P1;
+    int16_t  dig_P2;
+    int16_t  dig_P3;
+    int16_t  dig_P4;
+    int16_t  dig_P5;
+    int16_t  dig_P6;
+    int16_t  dig_P7;
+    int16_t  dig_P8;
+    int16_t  dig_P9;
+
+    int32_t t_fine;
+
+    void read_compensation();
+
+    float calculate_Temperature(int32_t temperature);
+    float calculate_Pressure(int32_t pressure);
+
     //construct value
-    const uint32_t construct_value(const uint32_t msb, const uint32_t lsb, const uint32_t xlsb){
-        return (msb << 12) | (lsb << 4) | xlsb;
+    const int32_t construct_value(const uint32_t msb, const uint32_t lsb, const uint32_t xlsb){
+        return (int32_t) ((msb << 12) | (lsb << 4) | xlsb);
     }
 };
 

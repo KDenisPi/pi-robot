@@ -489,7 +489,7 @@ bool PiRobot::configure(const std::string& cfile){
 
                         auto i2c_addr = (uint8_t)jsonhelper::get_attr<int>(json_item, "i2c_addr", pirobot::item::Bmp280::s_i2c_addr); //0x76
                         auto smode = jsonhelper::get_attr<std::string>(json_item, "mode", "FORCED");
-                        auto preasure_oversampling = (uint8_t)jsonhelper::get_attr<int>(json_item, "preasure_oversampling", 1);
+                        auto pressure_oversampling = (uint8_t)jsonhelper::get_attr<int>(json_item, "pressure_oversampling", 1);
                         auto temperature_oversampling = (uint8_t)jsonhelper::get_attr<int>(json_item, "temperature_oversampling", 0xFF);
                         auto standby_time = (uint8_t)jsonhelper::get_attr<int>(json_item, "standby_time", 5);
                         auto filter = (uint8_t)jsonhelper::get_attr<int>(json_item, "filter", 0);
@@ -505,7 +505,7 @@ bool PiRobot::configure(const std::string& cfile){
 
                         items_add(item_name, 
                                 std::shared_ptr<pirobot::item::Item>(
-                                    new pirobot::item::Bmp280(item_name, i2c_provider, i2c_addr, mode, preasure_oversampling, temperature_oversampling, standby_time, filter, spi, spi_channel, item_comment)));
+                                    new pirobot::item::Bmp280(item_name, i2c_provider, i2c_addr, mode, pressure_oversampling, temperature_oversampling, standby_time, filter, spi, spi_channel, item_comment)));
                     }
                     break;
                 }//Item types

@@ -41,7 +41,7 @@ void StateWeather::get_spg30_values(){
 }
 
 void StateWeather::get_bmp280_values(){
-    uint32_t pressure, temp;
+    float pressure, temp;
     auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
 
     bmp280->get_results(pressure, temp);

@@ -47,7 +47,7 @@ Bmp280::Bmp280(const std::string& name,
     const std::shared_ptr<pirobot::i2c::I2C> i2c,
     const uint8_t i2c_addr,
     const uint8_t mode,
-    const uint8_t preasure_oversampling,
+    const uint8_t pressure_oversampling,
     const uint8_t temperature_oversampling,
     const uint8_t standby_time,
     const uint8_t filter,
@@ -55,7 +55,7 @@ Bmp280::Bmp280(const std::string& name,
     const int spi_channel,
     const std::string& comment) :
     Item(name, comment, ItemTypes::BMP280), _i2caddr(i2c_addr), m_mode(mode),
-    m_preasure_oversampling(preasure_oversampling), m_temperature_oversampling(temperature_oversampling),
+    m_pressure_oversampling(pressure_oversampling), m_temperature_oversampling(temperature_oversampling),
     m_standby_time(standby_time), m_filter(filter), m_spi(spi), m_spi_channel(spi_channel){
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
@@ -70,12 +70,14 @@ Bmp280::Bmp280(const std::string& name,
     /*
     * 1. Switch to SLEEP and set Measure control parameters
     * 2. Set configuration parameters
-    * 3. If mode is NORMAL switch this mode On
+    * 3. Read compensation values
+    * 4. If mode is NORMAL switch this mode On
     */
-    set_measure_control(BMP280_POWER_MODE_SLEEP, m_preasure_oversampling, m_temperature_oversampling);
+    set_measure_control(BMP280_POWER_MODE_SLEEP, m_pressure_oversampling, m_temperature_oversampling);
     set_config(m_spi, m_filter, m_standby_time);
+    read_compensation();
     if(m_mode == BMP280_POWER_MODE_NORMAL)
-        set_measure_control(m_mode, m_preasure_oversampling, m_temperature_oversampling);
+        set_measure_control(m_mode, m_pressure_oversampling, m_temperature_oversampling);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Descr: " + std::to_string(m_fd));
 }
@@ -183,12 +185,12 @@ void Bmp280::set_config(const uint8_t spi, const uint8_t filter, const uint8_t s
 }
 
 //Return current pressure and temperature values
-void Bmp280::get_results(uint32_t& pressure, uint32_t& temp){
+void Bmp280::get_results(float& pressure, float& temp){
     uint8_t raw[6];
 
     //for FORCED ans SLEEP modes make measurement
     if(m_mode != BMP280_POWER_MODE_NORMAL)
-        set_measure_control(m_mode, m_preasure_oversampling, m_temperature_oversampling);
+        set_measure_control(m_mode, m_pressure_oversampling, m_temperature_oversampling);
 
     I2CWrapper::lock();
     int read_bytes = I2CWrapper::I2CReadData(m_fd, BMP280_PRESSURE_MSB, raw, 6);
@@ -196,10 +198,75 @@ void Bmp280::get_results(uint32_t& pressure, uint32_t& temp){
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Read bytes: " + std::to_string(read_bytes));
 
-    pressure = construct_value(raw[0], raw[1], (raw[2] >> 4));
-    temp = construct_value(raw[3], raw[4], (raw[5] >> 4));
+    int32_t raw_pressure = construct_value(raw[0], raw[1], (raw[2] >> 4));
+    int32_t raw_temp = construct_value(raw[3], raw[4], (raw[5] >> 4));
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " RAW Pressure: " + std::to_string(raw_pressure) + " Temperature: " + std::to_string(raw_temp));
+
+    //order is important - we use temperature value for pressure calculation
+    temp = calculate_Temperature(raw_temp);
+    pressure = calculate_Pressure(raw_pressure);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pressure: " + std::to_string(pressure) + " Temperature: " + std::to_string(temp));
+}
+
+void Bmp280::read_compensation(){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
+
+    I2CWrapper::lock();
+
+    dig_T1 = (uint16_t)I2CWrapper::I2CReadReg16(m_fd, BMP280_dig_T1);
+    dig_T2 = (int16_t)I2CWrapper::I2CReadReg16(m_fd, BMP280_dig_T2);
+    dig_T3 = (int16_t)I2CWrapper::I2CReadReg16(m_fd, BMP280_dig_T3);
+
+    dig_P1 = (uint16_t)I2CWrapper::I2CReadReg16(m_fd, BMP280_dig_P1);
+    dig_P2 = (int16_t)I2CWrapper::I2CReadReg16(m_fd, BMP280_dig_P2);
+    dig_P3 = (int16_t)I2CWrapper::I2CReadReg16(m_fd, BMP280_dig_P3);
+    dig_P4 = (int16_t)I2CWrapper::I2CReadReg16(m_fd, BMP280_dig_P4);
+    dig_P5 = (int16_t)I2CWrapper::I2CReadReg16(m_fd, BMP280_dig_P5);
+    dig_P6 = (int16_t)I2CWrapper::I2CReadReg16(m_fd, BMP280_dig_P6);
+    dig_P7 = (int16_t)I2CWrapper::I2CReadReg16(m_fd, BMP280_dig_P7);
+    dig_P8 = (int16_t)I2CWrapper::I2CReadReg16(m_fd, BMP280_dig_P8);
+    dig_P9 = (int16_t)I2CWrapper::I2CReadReg16(m_fd, BMP280_dig_P9);
+
+    I2CWrapper::unlock();
+}
+
+float Bmp280::calculate_Temperature(int32_t temperature)
+{
+    int32_t var1, var2;
+
+    var1  = ((((temperature>>3) - ((int32_t)dig_T1 <<1))) * ((int32_t)dig_T2)) >> 11;
+    var2  = (((((temperature>>4) - ((int32_t)dig_T1)) * ((temperature>>4) - ((int32_t)dig_T1))) >> 12) * ((int32_t)dig_T3)) >> 14;
+
+    t_fine = var1 + var2;
+
+    float T  = (t_fine * 5 + 128) >> 8;
+    return T/100;
+}
+
+float Bmp280::calculate_Pressure(int32_t pressure){
+    int64_t var1, var2, p;
+
+    var1 = ((int64_t)t_fine) - 128000;
+    var2 = var1 * var1 * (int64_t)dig_P6;
+    var2 = var2 + ((var1*(int64_t)dig_P5)<<17);
+    var2 = var2 + (((int64_t)dig_P4)<<35);
+    var1 = ((var1 * var1 * (int64_t)dig_P3)>>8) +
+        ((var1 * (int64_t)dig_P2)<<12);
+    var1 = (((((int64_t)1)<<47)+var1))*((int64_t)dig_P1)>>33;
+
+    if (var1 == 0) {
+        return 0;  // avoid exception caused by division by zero
+    }
+    
+    p = 1048576 - pressure;
+    p = (((p<<31) - var2)*3125) / var1;
+    var1 = (((int64_t)dig_P9) * (p>>13) * (p>>13)) >> 25;
+    var2 = (((int64_t)dig_P8) * p) >> 19;
+
+    p = ((p + var1 + var2) >> 8) + (((int64_t)dig_P7)<<4);
+    return (float)p/256;
 }
 
 
