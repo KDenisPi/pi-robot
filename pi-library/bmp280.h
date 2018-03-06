@@ -9,6 +9,9 @@
  *      Author: Denis Kudia
  */
 
+#ifndef PI_LIBRARY_BMP280_H
+#define PI_LIBRARY_BMP280_H
+
 #include "item.h"
 #include "I2C.h"
 
@@ -188,3 +191,5 @@ private:
 
 }//item
 }//pirobot
+
+#endif

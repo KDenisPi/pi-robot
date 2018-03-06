@@ -8,13 +8,13 @@
  *      Author: Denis Kudia
  */
 
+#ifndef PI_LIBRARY_SGP30_H
+#define PI_LIBRARY_SGP30_H
+
 #include "item.h"
 #include "I2C.h"
 #include "Threaded.h"
 #include "crc.h"
-
-#ifndef PI_LIBRARY_SGP30_H
-#define PI_LIBRARY_SGP30_H
 
 namespace pirobot {
 namespace item {

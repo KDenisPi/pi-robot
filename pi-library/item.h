@@ -34,6 +34,7 @@ enum ItemTypes{
     SI7021,
     SGP30,
     BMP280,
+    TSL2561,
     LAST_ITEM
 };
 

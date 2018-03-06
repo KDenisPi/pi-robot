@@ -35,6 +35,7 @@ const char* Item::ItemNames[] = {
     "SI7021",
     "SGP30",
     "BMP280"
+    "TSL2561"
 };
 
 /*
