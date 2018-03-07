@@ -210,6 +210,7 @@ void Bmp280::get_results(float& pressure, float& temp){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pressure: " + std::to_string(pressure) + " Temperature: " + std::to_string(temp));
 }
 
+//Read compensation value
 void Bmp280::read_compensation(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
 
@@ -232,6 +233,7 @@ void Bmp280::read_compensation(){
     I2CWrapper::unlock();
 }
 
+//calculate temperature
 float Bmp280::calculate_Temperature(int32_t temperature)
 {
     int32_t var1, var2;
@@ -245,6 +247,7 @@ float Bmp280::calculate_Temperature(int32_t temperature)
     return T/100;
 }
 
+//calculate pressure
 float Bmp280::calculate_Pressure(int32_t pressure){
     int64_t var1, var2, p;
 

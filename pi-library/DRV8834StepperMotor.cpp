@@ -179,7 +179,8 @@ void DRV8834_StepperMotor::set_step_size(const DRV8834_MICROSTEP step_size){
 		m_gpio_mode_1->digitalWrite(mode1);
 	}
 
-	delay(50);
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	//delay(50);
 	m_step_size = step_size;
 }
 
@@ -207,9 +208,11 @@ void DRV8834_StepperMotor::step(const int num_steps /*= 1*/){
 		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Thread started for: " + name);
 		for(int i = 0; i < steps && this->is_rotate(); i++){
 			this->get_gpio()->digitalWrite(gpio::SGN_LEVEL::SGN_HIGH);
-			delay(50);
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			//delay(50);
 			this->get_gpio()->digitalWrite(gpio::SGN_LEVEL::SGN_LOW);
-			delay(50);
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			//delay(50);
 		}
 
 		//if rotation have not finished by external reason - send message
