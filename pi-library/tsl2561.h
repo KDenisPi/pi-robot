@@ -131,20 +131,28 @@ namespace item {
 #define TSL2561_REGISTER_CHAN1_HIGH        0x0F  // Light data channel 1, high byte
 
 /** Three options for how long to integrate readings for */
-typedef enum
+enum tsl2561IntegrationTime_t
 {
   TSL2561_INTEGRATIONTIME_13MS      = 0x00,    // 13.7ms
   TSL2561_INTEGRATIONTIME_101MS     = 0x01,    // 101ms
-  TSL2561_INTEGRATIONTIME_402MS     = 0x02     // 402ms
-} tsl2561IntegrationTime_t;
+  TSL2561_INTEGRATIONTIME_402MS     = 0x02,     // 402ms
+  TSL2561_INTEGRATIONTIME_MANUAL    = 0x03     //not defined - manual
+};
 
 /** TSL2561 offers 2 gain settings */
-typedef enum
+enum tsl2561Gain_t
 {
   TSL2561_GAIN_1X                   = 0x00,    // No gain
   TSL2561_GAIN_16X                  = 0x10,    // 16x gain
-} tsl2561Gain_t;
+};
 
+enum tsl2561Manual_t {
+    TSL2561_MANUAL_OFF   =  0x00,
+    TSL2561_MANUAL_ON    =  0x01
+};
+
+
+//I2C Light-to-Digital Converter
 class Tsl2561 : public item::Item {
 
 public:
@@ -163,28 +171,92 @@ public:
     void power_on();
     //set power off
     void power_off();
-    //get power On/OFF state
+    //get power ON/OFF state
     const bool is_power_on() const {
         return _is_power_on;
     }
+
+    //get timing value
+    const uint8_t get_timing();
+    //set timing
+    void  set_timing(const tsl2561IntegrationTime_t integ, const tsl2561Gain_t gain, tsl2561Manual_t manual = tsl2561Manual_t::TSL2561_MANUAL_OFF);
+    //set gain value
+    void set_gain(const tsl2561Gain_t gain){
+        set_timing(_tsl2561IntegrationTime, gain, tsl2561Manual_t::TSL2561_MANUAL_OFF);
+    }
+    //
+    const char* get_integration_time_name(){
+        const uint8_t integration_time = (_timing & 0x03);
+
+        if(integration_time == tsl2561IntegrationTime_t::TSL2561_INTEGRATIONTIME_13MS)
+            return "13.7ms";
+        else if(integration_time == tsl2561IntegrationTime_t::TSL2561_INTEGRATIONTIME_101MS)
+            return "101ms";
+        else if(integration_time == tsl2561IntegrationTime_t::TSL2561_INTEGRATIONTIME_402MS)
+            return "402ms";
+        
+        return "Manual";
+    }
+
+    // get gain name
+    const char* get_gain_name(){
+        const uint8_t gain = (_timing >> 4 ) & 0x01;
+        return ((gain == tsl2561Gain_t::TSL2561_GAIN_1X) ? "Low gain (1x)" : "High gain (16x)");
+    }
+
+    //get revision number
+    const uint8_t get_id();
+
+    //get results
+    const bool get_results(uint32_t& lux);
 
 private:
     uint8_t _i2caddr;
     int m_fd;
 
+    bool _is_power_on = false;
+    uint8_t _timing = 0;
+
+    tsl2561IntegrationTime_t _tsl2561IntegrationTime;
+    tsl2561Gain_t _tsl2561Gain;
+    bool _tsl2561AutoGain = true; 
+
+    uint16_t _data_vis_ir;
+    uint16_t _data_ir_only;
+
+    // get integration time value
+    const tsl2561IntegrationTime_t get_integration_time(){
+        const uint8_t integration_time = (_timing & 0x03);
+        return (tsl2561IntegrationTime_t) integration_time;
+    }
+
+    //get gain value
+    const tsl2561Gain_t get_gain(){
+        const uint8_t gain = (_timing >> 4 ) & 0x01;
+        return ((gain == tsl2561Gain_t::TSL2561_GAIN_1X) ? tsl2561Gain_t::TSL2561_GAIN_1X : tsl2561Gain_t::TSL2561_GAIN_16X);
+    }
+
     //switch poser to ON/OFF
     void set_power(const bool on_off){
+
         if(_is_power_on == on_off)
             return;
 
         _is_power_on = on_off;
 
         I2CWrapper::lock();
-        I2CWrapper::I2CWriteReg8(m_fd, TSL2561_REGISTER_CONTROL, (_is_power_on ? TSL2561_CONTROL_POWERON : TSL2561_CONTROL_POWEROFF));
+        I2CWrapper::I2CWriteReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_CONTROL, (_is_power_on ? TSL2561_CONTROL_POWERON : TSL2561_CONTROL_POWEROFF));
         I2CWrapper::unlock();
     };
 
-    bool _is_power_on = false;
+    //read RAW sensor data
+    void read_raw_data();
+    //read word value with low byte first
+    uint16_t read16(const uint8_t reg);
+    //read values
+    void getLuminosity();
+    //calculate value
+    uint32_t calculateLux(uint16_t broadband, uint16_t ir);
 };
 
 }//item
