@@ -54,9 +54,9 @@ void StateWeather::get_tsl2561_values(){
     uint32_t lux;
 
     auto tsl2561 = get_item<pirobot::item::Tsl2561>("TSL2561");
-    bool overflow = tsl2561->get_results(lux);
+    bool success = tsl2561->get_results(lux);
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Lux: " + std::to_string(lux)+ " Overflow: " + std::to_string(overflow));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Lux: " + std::to_string(lux)+ " Overflow: " + std::to_string(!success));
 }
 
 

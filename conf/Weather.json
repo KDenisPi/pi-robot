@@ -4,11 +4,8 @@
     
     "items":[
         {
-            "type": "BMP280",
-            "name": "BMP280",
-            "i2c_addr": 118,
-            "mode": "FORCED",
-            "pressure_oversampling": 1
+            "type": "TSL2561",
+            "name": "TSL2561"
         }        
     ]    
 }

@@ -1,10 +1,10 @@
 /*
  * tsl2561.cpp
  * I2C Light-to-Digital Converter
- *  
- * 
- *  Note: This device can use three different addresses 0x29, 0x39 (default), 0x49 
- * 
+ *
+ *
+ *  Note: This device can use three different addresses 0x29, 0x39 (default), 0x49
+ *
  *  Created on: Mar 5, 2018
  *      Author: Denis Kudia
  */
@@ -23,7 +23,7 @@ const uint8_t Tsl2561::s_i2c_addr = 0x39;
 //
 //
 //
-Tsl2561::Tsl2561(const std::string& name, 
+Tsl2561::Tsl2561(const std::string& name,
         const std::shared_ptr<pirobot::i2c::I2C> i2c,
         const uint8_t i2c_addr,
         const std::string& comment) :
@@ -41,6 +41,9 @@ Tsl2561::Tsl2561(const std::string& name,
     //get timing value
     get_timing();
 
+    //get device ID
+    get_id();
+
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Descr: " + std::to_string(m_fd));
 }
 
@@ -48,7 +51,6 @@ Tsl2561::Tsl2561(const std::string& name,
 //
 Tsl2561::~Tsl2561(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
-
 }
 
 //
@@ -59,7 +61,7 @@ const uint8_t Tsl2561::get_timing(){
 
     _tsl2561IntegrationTime = get_integration_time();
     _tsl2561Gain = get_gain();
-       
+
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timing: Integration time: " + get_integration_time_name()+ " Gain: " + get_gain_name());
 
     return _timing;
@@ -69,14 +71,14 @@ const uint8_t Tsl2561::get_timing(){
 void  Tsl2561::set_timing(const tsl2561IntegrationTime_t integ, const tsl2561Gain_t gain, tsl2561Manual_t manual){
 
     _timing = (gain << 4) | (manual << 3) | integ;
-    
+
     I2CWrapper::lock();
     I2CWrapper::I2CWriteReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_TIMING, _timing);
     I2CWrapper::unlock();
 
     _tsl2561IntegrationTime = get_integration_time();
     _tsl2561Gain = get_gain();
-       
+
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timing: Integration time: " + get_integration_time_name()+ " Gain: " + get_gain_name());
 }
 
@@ -86,9 +88,9 @@ const uint8_t Tsl2561::get_id(){
     uint8_t id = I2CWrapper::I2CReadReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_ID);
     I2CWrapper::unlock();
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ID.  Part number: " + ((id >> 4) == 0001 ? "TSL2561" : "TSL2560") + " Revision: " + std::to_string((id&0x0F)));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ID: " + std::to_string(id) + " Part number: " + (((id >> 4)&0001) ? "TSL2561" : "TSL2560") + " Revision: " + std::to_string((id&0x0F)));
 
-    return id; 
+    return id;
 }
 
 //read RAW sensor data
@@ -104,17 +106,19 @@ void Tsl2561::read_raw_data(){
         	std::this_thread::sleep_for(std::chrono::milliseconds(TSL2561_DELAY_INTTIME_13MS));// KTOWN: Was 14ms
             break;
         case TSL2561_INTEGRATIONTIME_101MS:
-           	std::this_thread::sleep_for(std::chrono::milliseconds(TSL2561_DELAY_INTTIME_13MS));// KTOWN: Was 102ms
+           	std::this_thread::sleep_for(std::chrono::milliseconds(TSL2561_DELAY_INTTIME_101MS));// KTOWN: Was 102ms
           break;
         default:
-        	std::this_thread::sleep_for(std::chrono::milliseconds(TSL2561_DELAY_INTTIME_13MS));// KTOWN: Was 403ms
+        	std::this_thread::sleep_for(std::chrono::milliseconds(TSL2561_DELAY_INTTIME_402MS));// KTOWN: Was 403ms
           break;
-    }    
+    }
     _data_vis_ir = read16(TSL2561_REGISTER_CHAN0_LOW);
     _data_ir_only = read16(TSL2561_REGISTER_CHAN1_LOW);
 
     //switch power ON
     power_off();
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Data Vis: " + std::to_string(_data_vis_ir) + " IR: " + std::to_string(_data_ir_only));
 }
 
 
@@ -126,7 +130,7 @@ uint16_t Tsl2561::read16(const uint8_t reg){
     I2CWrapper::lock();
     int rlen = I2CWrapper::I2CReadData(m_fd, TSL2561_COMMAND_BIT | TSL2561_BLOCK_BIT | reg, buff, 2);
     I2CWrapper::unlock();
-    
+
     result = buff[1];
     return (result << 8) | buff[0]; 
 }
