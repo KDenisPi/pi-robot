@@ -335,6 +335,17 @@ const bool Tsl2561::get_results(uint32_t& lux){
     return (lux < 65535); //if we have 65535 it seems value is overflow    
 }
 
+//Set Power On/Off
+void Tsl2561::set_power(const bool on_off){
+  if(_is_power_on == on_off)
+      return;
 
-}
-}
+  _is_power_on = on_off;
+
+  I2CWrapper::lock();
+  I2CWrapper::I2CWriteReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_CONTROL, (_is_power_on ? TSL2561_CONTROL_POWERON : TSL2561_CONTROL_POWEROFF));
+  I2CWrapper::unlock();
+};
+
+}//item
+}//pirobot

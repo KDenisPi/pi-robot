@@ -13,6 +13,7 @@
 #include "Si7021.h"
 #include "sgp30.h"
 #include "bmp280.h"
+#include "tsl2561.h"
 
 namespace project1 {
 namespace state {
@@ -31,8 +32,8 @@ StateWeather::~StateWeather() {
 
 void StateWeather::get_spg30_values(){
     uint16_t co2, tvoc, bs_co2, bs_tvoc;
-    auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
 
+    auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
     sgp30->get_results(co2, tvoc);
     sgp30->get_baseline(bs_co2, bs_tvoc);
 
@@ -42,11 +43,20 @@ void StateWeather::get_spg30_values(){
 
 void StateWeather::get_bmp280_values(){
     float pressure, temp;
-    auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
 
+    auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
     bmp280->get_results(pressure, temp);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pressure: " + std::to_string(pressure)+ "Pa (" +  std::to_string(pressure/133.3) + "mmHg) Temperature: " + std::to_string(temp) + "C");
+}
+
+void StateWeather::get_tsl2561_values(){
+    uint32_t lux;
+
+    auto tsl2561 = get_item<pirobot::item::Tsl2561>("TSL2561");
+    bool overflow = tsl2561->get_results(lux);
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Lux: " + std::to_string(lux)+ " Overflow: " + std::to_string(overflow));
 }
 
 
@@ -71,8 +81,9 @@ bool StateWeather::OnTimer(const int id){
             return true;
         case TIMER_GET_VALUE:
         {
-            get_bmp280_values();
-
+            //get_bmp280_values();
+            get_tsl2561_values();
+            
             TIMER_CREATE(TIMER_GET_VALUE, 5)
         }
     }

@@ -30,6 +30,7 @@
 #include "Si7021.h"
 #include "sgp30.h"
 #include "bmp280.h"
+#include "tsl2561.h"
 
 namespace pirobot {
 const char TAG[] = "PiRobot";
@@ -446,7 +447,9 @@ bool PiRobot::configure(const std::string& cfile){
                                 blinks)));
                     }
                     break;
-
+                    /*
+                    * MPU-6050 Accelerometer + Gyro
+                    */
                     case item::ItemTypes::MPU6050:
                     {
                         auto i2c_provider = std::static_pointer_cast<pirobot::i2c::I2C>(get_provider("I2C"));
@@ -460,6 +463,9 @@ bool PiRobot::configure(const std::string& cfile){
                     }
                     break;
 
+                    /*
+                    *  Si7021 I2C Humidity and Temperature Sensor
+                    */
                     case item::ItemTypes::SI7021:
                     {
                         auto i2c_provider = std::static_pointer_cast<pirobot::i2c::I2C>(get_provider("I2C"));
@@ -471,6 +477,9 @@ bool PiRobot::configure(const std::string& cfile){
                     }
                     break;
 
+                    /*
+                    *  SGP30 I2C Sensurion Gas Platform
+                    */
                     case item::ItemTypes::SGP30:
                     {
                         auto i2c_provider = std::static_pointer_cast<pirobot::i2c::I2C>(get_provider("I2C"));
@@ -482,6 +491,9 @@ bool PiRobot::configure(const std::string& cfile){
                     }
                     break;
 
+                    /*
+                    * BMP280 I2C Digital Presure Sensor
+                    */
                     case item::ItemTypes::BMP280:
                     {
                         auto i2c_provider = std::static_pointer_cast<pirobot::i2c::I2C>(get_provider("I2C"));
@@ -508,6 +520,22 @@ bool PiRobot::configure(const std::string& cfile){
                                     new pirobot::item::Bmp280(item_name, i2c_provider, i2c_addr, mode, pressure_oversampling, temperature_oversampling, standby_time, filter, spi, spi_channel, item_comment)));
                     }
                     break;
+
+                    /*
+                    *  TSL2561  I2C Light-to-Digital Converter
+                    */
+                    case item::ItemTypes::TSL2561:
+                    {
+                        auto i2c_provider = std::static_pointer_cast<pirobot::i2c::I2C>(get_provider("I2C"));
+                        auto i2c_addr = (uint8_t)jsonhelper::get_attr<int>(json_item, "i2c_addr", pirobot::item::Tsl2561::s_i2c_addr); //0x39
+                        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item: " + item_name + " Comment: " + item_comment);
+
+                        items_add(item_name, 
+                                std::shared_ptr<pirobot::item::Item>(
+                                    new pirobot::item::Tsl2561(item_name, i2c_provider, i2c_addr, item_comment)));
+                    }
+                    break;
+
                 }//Item types
             }//Items collection loading
         }

@@ -28,6 +28,7 @@ public:
 
     void get_spg30_values();
     void get_bmp280_values();
+    void get_tsl2561_values();
     
 };
 

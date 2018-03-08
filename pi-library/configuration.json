@@ -197,6 +197,16 @@
             "SPI": 0, //SPI mode ON-1, OFF-0 default OFF (0)
             "spi_channel": 0,
             "comment": "" //optional
-        }        
+        },
+        //
+        // TSL2561 
+        // I2C Light-to-Digital Converter
+        //
+        {
+            "type": "TSL2561",
+            "name": "item_name",
+            "i2c_addr": 57, //0x29 (41), 0x39 (57) (default), 0x49 (73)
+            "comment": "" //optional
+        }
     ]
 }

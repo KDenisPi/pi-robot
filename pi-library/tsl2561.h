@@ -168,9 +168,15 @@ public:
     }
 
     //set power on
-    void power_on();
+    void power_on(){
+        set_power(true);
+    }
+    
     //set power off
-    void power_off();
+    void power_off(){
+        set_power(false);
+    }
+
     //get power ON/OFF state
     const bool is_power_on() const {
         return _is_power_on;
@@ -237,18 +243,7 @@ private:
     }
 
     //switch poser to ON/OFF
-    void set_power(const bool on_off){
-
-        if(_is_power_on == on_off)
-            return;
-
-        _is_power_on = on_off;
-
-        I2CWrapper::lock();
-        I2CWrapper::I2CWriteReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_CONTROL, (_is_power_on ? TSL2561_CONTROL_POWERON : TSL2561_CONTROL_POWEROFF));
-        I2CWrapper::unlock();
-    };
-
+    void set_power(const bool on_off);
     //read RAW sensor data
     void read_raw_data();
     //read word value with low byte first
