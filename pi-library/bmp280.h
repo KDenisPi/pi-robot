@@ -129,8 +129,8 @@ public:
     //Get config
     const uint8_t get_config();
 
-    //Return current pressure and temperature values
-    void get_results(float& pressure, float& temp);
+    //Return current pressure, temperature, altitude values
+    void get_results(float& pressure, float& temp, float& altitude);
 
     //
     //Set measure control parameters
@@ -182,6 +182,8 @@ private:
 
     float calculate_Temperature(int32_t temperature);
     float calculate_Pressure(int32_t pressure);
+
+    float read_Altitude(const float pressure, const float seaLevelhPa = 1013.25);
 
     //construct value
     const int32_t construct_value(const uint32_t msb, const uint32_t lsb, const uint32_t xlsb){

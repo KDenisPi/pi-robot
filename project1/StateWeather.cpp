@@ -29,7 +29,17 @@ StateWeather::~StateWeather() {
     // TODO Auto-generated destructor stub
 }
 
+void StateWeather::get_si7021_values(){
+    float humidity, temperature, abs_humidity;
 
+    auto si7021 = get_item<pirobot::item::Si7021>("Si7021");
+    si7021->get_results(humidity, temperature, abs_humidity);
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Humidity: " + std::to_string(humidity) + " Temperature: " + std::to_string(temperature) + "C");
+}
+
+
+// CO2, TVOC
 void StateWeather::get_spg30_values(){
     uint16_t co2, tvoc, bs_co2, bs_tvoc;
 
@@ -41,15 +51,18 @@ void StateWeather::get_spg30_values(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Baseline CO2: " + std::to_string(bs_co2) + " TVOC: " + std::to_string(bs_tvoc));
 }
 
+//pressure, temperature, altitude
 void StateWeather::get_bmp280_values(){
-    float pressure, temp;
+    float pressure, temperature, altitude;
 
     auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
-    bmp280->get_results(pressure, temp);
+    bmp280->get_results(pressure, temperature, altitude);
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pressure: " + std::to_string(pressure)+ "Pa (" +  std::to_string(pressure/133.3) + "mmHg) Temperature: " + std::to_string(temp) + "C");
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pressure: " + std::to_string(pressure)+ "Pa (" +  std::to_string(pressure/133.3) + "mmHg) Temperature: " + 
+            std::to_string(temperature) + "C Altitude: " + std::to_string(altitude));
 }
 
+//luminasity 
 void StateWeather::get_tsl2561_values(){
     uint32_t lux;
 
@@ -65,9 +78,6 @@ void StateWeather::OnEntry(){
 
     TIMER_CREATE(TIMER_FINISH_ROBOT, 40)
     TIMER_CREATE(TIMER_GET_VALUE, 15)
-
-    //auto si7021 = get_item<pirobot::item::Si7021>("Si7021");
-    //si7021->measurement();
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateWeather finished");
 }

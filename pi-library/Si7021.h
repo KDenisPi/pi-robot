@@ -80,8 +80,10 @@ private:
 
     //I do not want to allow provide possibility to enable heater for now
     void set_heater(const bool enable);
-
+    //print firmware version
     void firmware();
+    //calculate absolute humidity
+    float get_absolute_humidity(const float temperature, const float humidity);
 
 public:    
     //Detect Measurement Resolution from User Register value
@@ -101,7 +103,7 @@ public:
     }
 
     //make measurement
-    const struct Si7021::Si7021_data& measurement();
+    void get_results(float& humidity, float& temperature, float& abs_humidity);
 
     //Reset
     inline void reset();

@@ -185,7 +185,7 @@ void Bmp280::set_config(const uint8_t spi, const uint8_t filter, const uint8_t s
 }
 
 //Return current pressure and temperature values
-void Bmp280::get_results(float& pressure, float& temp){
+void Bmp280::get_results(float& pressure, float& temp, float& altitude){
     uint8_t raw[6];
 
     //for FORCED ans SLEEP modes make measurement
@@ -206,8 +206,10 @@ void Bmp280::get_results(float& pressure, float& temp){
     //order is important - we use temperature value for pressure calculation
     temp = calculate_Temperature(raw_temp);
     pressure = calculate_Pressure(raw_pressure);
+    altitude = read_Altitude(pressure);
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pressure: " + std::to_string(pressure) + " Temperature: " + std::to_string(temp));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pressure: " + std::to_string(pressure) + " Temperature: " + std::to_string(temp) + 
+        " Altitude: " + std::to_string(altitude));
 }
 
 //Read compensation value
@@ -272,6 +274,12 @@ float Bmp280::calculate_Pressure(int32_t pressure){
     return (float)p/256;
 }
 
+//calculate altitude
+float Bmp280::read_Altitude(const float pressure, const float seaLevelhPa){
+  float altitude;
+  altitude = 44330 * (1.0 - pow((pressure/100) / seaLevelhPa, 0.1903));
+  return altitude;
+}
 
 }//item
 }//pirobot

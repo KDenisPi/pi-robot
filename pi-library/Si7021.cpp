@@ -6,6 +6,7 @@
  *      Author: Denis Kudia
  */
 
+#include <cmath>
 #include "logger.h"
 #include "I2C.h"
 #include "I2CWrapper.h"
@@ -128,7 +129,7 @@ void Si7021::set_heater(const bool enable){
 //
 //Do measument Measure Relative Humidity and Temperature
 //
-const struct Si7021::Si7021_data& Si7021::measurement(){
+void Si7021::get_results(float& humidity, float& temperature, float& abs_humidity){
     uint8_t mrh[2] = {0,0}, temp[2] = {0,0};
     uint16_t last_MRH = 0, last_Temp = 0;
 
@@ -161,15 +162,25 @@ const struct Si7021::Si7021_data& Si7021::measurement(){
 
     values._last_MRH = (125*last_MRH)/65536 - 6;
     //check border values
-    if(values._last_MRH < 0) values._last_MRH == 0.0;
-    else if(values._last_MRH > 100.0) values._last_MRH = 100.0;
+    if(values._last_MRH < 0) 
+        values._last_MRH == 0.0;
+    else if(values._last_MRH > 100.0) 
+        values._last_MRH = 100.0;
 
     values._last_Temp = (175.72*last_Temp)/65536 - 46.85;
 
+    temperature = values._last_Temp;
+    humidity = values._last_MRH;
+    abs_humidity = get_absolute_humidity(temperature, humidity);
+
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "MRH RAW: " + std::to_string(last_MRH) + " MRH: " + std::to_string(values._last_MRH));
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "Temp RAW: " + std::to_string(last_Temp) + " Temp: " + std::to_string(values._last_Temp));
+}
 
-    return values;
+//calculate absolute humidity (grams/m3)
+float Si7021::get_absolute_humidity(const float temperature, const float humidity){
+    float abs_humidity = (6.112 * std::exp((17.67*temperature)/(temperature+243.5)) * humidity * 2.1674)/(273.15 + temperature);
+    return abs_humidity;
 }
 
 
