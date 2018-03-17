@@ -57,8 +57,10 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smachine)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-mqqt)
 
 #add_subdirectory(${PROJECT_SOURCE_DIR}/version1)
-add_subdirectory(${PROJECT_SOURCE_DIR}/project1)
+#add_subdirectory(${PROJECT_SOURCE_DIR}/project1)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/spi_test)
+add_subdirectory(${PROJECT_SOURCE_DIR}/weather)
+
 
 
 
