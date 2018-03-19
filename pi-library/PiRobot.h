@@ -141,6 +141,9 @@ private:
     std::recursive_mutex mutex_sm;
 
     std::string m_configuration; //full defined path to the hardware configuration file 
+
+    //Folder for saving measuremets oer components supported it
+    std::string m_debug_data_folder;
     
     std::map <std::string,
         std::shared_ptr<gpio::Gpio>,

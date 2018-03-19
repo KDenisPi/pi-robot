@@ -139,7 +139,6 @@ bool PiRobot::start(){
             return false;
             /*TODO: Throw Exception and exit? */
         }
-        //(std::dynamic_pointer_cast<item::Led>(it->second))->On();
     }
 
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + "Robot is started ");
@@ -152,9 +151,6 @@ bool PiRobot::start(){
 void PiRobot::stop(){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot is stopping..");
 
-    //@TODO: make another solution later
-    const std::string debug_data_folder = "/var/log/pi-robot/";
-
     std::map<const std::string, std::shared_ptr<item::Item>>::iterator it;
     for(it = this->items.begin(); it != this->items.end(); ++it){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Stopping " + it->first);
@@ -165,7 +161,7 @@ void PiRobot::stop(){
         */
         if(it->second->is_debug()){
             logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Unload debug data for " + it->first);
-            std::string data_file = debug_data_folder + it->second->name() + ".csv";
+            std::string data_file = m_debug_data_folder + it->second->name() + ".csv";
             it->second->unload_debug_data("file", data_file);
         }
     }

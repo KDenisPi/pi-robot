@@ -114,6 +114,7 @@ Sgp30::~Sgp30(){
 //
 void Sgp30::init_air_quality(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
+
     int msb = (SGP30_INIT_AIR_QUALITY >> 8);
     int lsb = (SGP30_INIT_AIR_QUALITY & 0x00FF);
 
@@ -222,7 +223,9 @@ void Sgp30::set_humidity(const uint16_t humidity){
 // NOTE: Set baseline use parameter TVOC, CO2 (other functions CO2, TVOC)
 void Sgp30::set_baseline(const uint16_t base_co2, const uint16_t base_tvoc){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Baseline CO2: " + std::to_string(base_co2) + " TVOC: " + std::to_string(base_tvoc));
+
     uint8_t data[7] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    
     int msb = (SGP30_SET_BASELINE >> 8);
     int lsb = (SGP30_SET_BASELINE & 0x00FF);
 
@@ -237,6 +240,9 @@ void Sgp30::set_baseline(const uint16_t base_co2, const uint16_t base_tvoc){
     data[3] = pirobot::crc::crc(&data[1], 2, 0xFF, 0x31);
 
     write_data(data, 7, SGP30_SET_BASELINE, 10);
+
+    baseline.uiCO2 = base_co2;
+    baseline.uiTVOC = base_tvoc;
 }
 
 //
@@ -254,16 +260,21 @@ void Sgp30::stop(){
     std::string name = owner->name();
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker started. Name: " + name);
 
-    owner->init_air_quality();
-    owner->set_baseline(440, 23);
-    owner->get_baseline();
+    //waiting untill sensor initial values will not be initialized 
+    auto fn = [owner]{return (owner->is_stop_signal() || owner->is_initialized());};
+    std::unique_lock<std::mutex> lk(owner->cv_m);
+    owner->cv.wait(lk, fn);
 
+    owner->init_air_quality();
     while(!owner->is_stop_signal()){
 
         owner->measure_air_quality();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1000)); //1sec - 1Hz
     }
+
+    //save baseline values at the end of measure cycle
+    owner->get_baseline();
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished. Name: " + name);
 }

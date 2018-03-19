@@ -55,6 +55,7 @@ bool PiRobot::configure(const std::string& cfile){
 
         auto version = jsonhelper::get_attr<std::string>(conf, "version", "");
         auto real_world = jsonhelper::get_attr<bool>(conf, "real_world", true);
+        m_debug_data_folder = jsonhelper::get_attr<std::string>(conf, "debug_data_folder", "/var/log/pi-robot/");
 
         set_real_world(real_world);
         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Version: " + version + " Real World: " + std::to_string(real_world));

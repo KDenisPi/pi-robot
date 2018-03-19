@@ -15,10 +15,9 @@ namespace weather {
 const char TAG[] = "wthr";
 
 enum ID {
-    TIMER_SWITCH_TO_SECOND = 1000,
-    TIMER_FINISH_ROBOT = 1001,
-    TIMER_LIGHT_METER_STOP = 1002,
-    TIMER_GET_VALUE = 1003,
+    TIMER_FINISH_ROBOT      = 1000,
+    TIMER_WARM_INTERVAL     = 1001,
+    TIMER_UPDATE_INTERVAL   = 1002
 };
 
 }

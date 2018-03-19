@@ -18,6 +18,7 @@ namespace smachine {
 namespace state {
 
 #define TIMER_CREATE(id, interval)  get_itf()->timer_start(id, interval);
+#define CHANGE_STATE(state) get_itf()->state_change(state);
 /*
  * Return true from OnEvent and OnTimer if received Event or Timer
  * was processed inside function
@@ -43,6 +44,10 @@ public:
 
 	template<class T> std::shared_ptr<T> get_item(const std::string name){
 		return std::static_pointer_cast<T>(get_itf()->get_robot()->get_item(name));
+	}
+
+	template<class T> std::shared_ptr<T> get_env(){
+		return std::static_pointer_cast<T>(get_itf()->get_env());
 	}
 
 private:

@@ -70,9 +70,20 @@ public:
     //Execute measure test, true - chip is OK
     bool measure_test();
 
+    const bool is_initialized() const {
+        return m_initialized;
+    }
+
+    void set_initialized(const bool initialized){
+        m_initialized = initialized;
+        cv.notify_one();
+    }
+
 private:
     uint8_t _i2caddr;
     int m_fd;
+
+    bool m_initialized;
 
     //lest measured values
     struct Sdp30_measure values;

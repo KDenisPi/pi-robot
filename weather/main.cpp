@@ -14,6 +14,7 @@
 
 #include "StateMachine.h"
 #include "context.h"
+#include "WeatherStFactory.h"
 
 
 using namespace std;
@@ -42,9 +43,7 @@ static void sigHandlerStateMachine(int sign){
     stm->finish();
   }
   else if (sign == SIGUSR1){
-    mytime("State machine: Run");
     stm->run();
-    mytime("State machine: Run finished");
   }
 }
 
@@ -60,7 +59,7 @@ static void sigHandlerParent(int sign){
   }
 }
 
-const char* err_message = "Error. No configuration file.\nUsage project1 --conf coniguration_file [--mqqt-conf mqqt_configuration_file ]";
+const char* err_message = "Error. No configuration file.\nUsage weather --conf coniguration_file [--mqqt-conf mqqt_configuration_file ]";
 
 std::string validate_file_parameter(const int idx, const int argc, char* argv[]){
   std::string filename;
@@ -68,6 +67,7 @@ std::string validate_file_parameter(const int idx, const int argc, char* argv[])
     cout <<  err_message << endl;
     _exit(EXIT_FAILURE);
   }
+
   filename = argv[idx];
   std::ifstream file_stream(filename);
   if(!file_stream){
@@ -89,7 +89,7 @@ int main (int argc, char* argv[])
   std::string robot_conf, mqqt_conf;
   stmPid  = 0;
   sigset_t new_set;
-  cout <<  "Project1 started" << endl;
+  cout <<  "Weather started" << endl;
 
   for(int i = 0; i < argc; i++){
     std::string arg = argv[i];
@@ -103,13 +103,6 @@ int main (int argc, char* argv[])
       mqtt = true;
     }
   }
-
-/*
-  robot_conf = "/home/denis/pi-robot/project1/nohardware.json";
-
-  mqqt_conf =  "/home/denis/pi-robot/project1/pi-mqqt-conf.json";
-  mqtt = true;
-*/
 
   if(robot_conf.empty()){
     cout <<  err_message << endl;
@@ -144,7 +137,7 @@ int main (int argc, char* argv[])
              _exit(EXIT_FAILURE);
         }
 
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Create child");
+        logger::log(logger::LLOG::DEBUG, "main", std::string(__func__) + " Create child");
 
         /*
         * Create PI Robot instance
@@ -155,7 +148,7 @@ int main (int argc, char* argv[])
 
         //Create State factory for State Machine
         cout <<  "Create State Factory support" << endl;
-        std::shared_ptr<project1::MyStateFactory> factory(new project1::MyStateFactory());
+        std::shared_ptr<weather::WeatherStFactory> factory(new weather::WeatherStFactory());
 
         std::shared_ptr<mqqt::MqqtItf> clMqqt;
         if(mqtt){
@@ -173,7 +166,6 @@ int main (int argc, char* argv[])
                 cout <<  "Could not load MQQT configuration configuration " << robot_conf << "\nError: " << rterr.what() << endl;
                 _exit(EXIT_FAILURE);
               }
-          
         }
         /*
         * Create State machine
@@ -183,7 +175,6 @@ int main (int argc, char* argv[])
         stm->wait();
 
         cout <<  "State machine finished" << endl;
-        mytime("Child finished");
 
         sleep(2);
         delete stm;
@@ -192,7 +183,7 @@ int main (int argc, char* argv[])
           mosqpp::lib_cleanup();
         }
 
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Child finished");
+        logger::log(logger::LLOG::DEBUG, "main", std::string(__func__) + " Child finished");
         logger::release();
 
         _exit(EXIT_SUCCESS);
@@ -200,8 +191,7 @@ int main (int argc, char* argv[])
       break;
 
     default: //parent
-      cout <<  "State machine child created " <<  stmPid << endl;
-      mytime("State machine child created ");
+      cout <<  "State machine created " <<  stmPid << endl;
 
       if( signal(SIGUSR1, sigHandlerParent) == SIG_ERR){
         cout <<  "Parent handler error " <<  stmPid << endl;
@@ -212,6 +202,12 @@ int main (int argc, char* argv[])
         kill(stmPid, SIGINT);
       }
 
+      sleep(2);
+
+      //send command to start
+      kill(stmPid, SIGUSR1);
+
+      //wait  untill child will not be finished
       for(;;){
         pid_t chdPid = wait(NULL);
         if(chdPid == -1){
@@ -224,7 +220,6 @@ int main (int argc, char* argv[])
           cout <<  "Child finished " <<  chdPid << endl;
       }
       cout <<  "Project1 finished" << endl;
-      mytime("Project1 finished");
   }
 
   exit(EXIT_SUCCESS);
