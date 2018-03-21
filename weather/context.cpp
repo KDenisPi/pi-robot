@@ -25,7 +25,7 @@ bool Context::load_initial_data(const std::string& filename){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Parse JSON from: " + filename);
 
         jsoncons::json conf = jsoncons::json::parse(ijson);
-        auto version = jsonhelper::get_attr<std::string>(conf, "version", "0.9");
+        version = jsonhelper::get_attr<std::string>(conf, "version", "0.9");
 
         spg30_base_co2 = jsonhelper::get_attr<uint16_t>(conf, "base_co2", 0);
         spg30_base_tvoc = jsonhelper::get_attr<uint16_t>(conf, "base_tvoc", 0);
@@ -76,7 +76,7 @@ bool Context::save_initial_data(const std::string& filename){
 
     //check if previous file exist and 
     jsoncons::json conf = jsoncons::json::object{
-        {"version", "0.9"},
+        {"version", version},
         {"base_co2", std::to_string(spg30_base_co2)},
         {"base_tvoc", std::to_string(spg30_base_tvoc)}
     };

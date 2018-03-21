@@ -15,6 +15,7 @@
 #include "StateMachine.h"
 #include "context.h"
 #include "WeatherStFactory.h"
+#include "WebSettings.h"
 
 
 using namespace std;
@@ -167,6 +168,13 @@ int main (int argc, char* argv[])
                 _exit(EXIT_FAILURE);
               }
         }
+
+        /*
+        * Web interface for settings and status
+        */
+        std::shared_ptr<weather::WebSettings> web(new weather::WebSettings(8080));
+        web->start();
+
         /*
         * Create State machine
         */

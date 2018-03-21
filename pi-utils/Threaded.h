@@ -101,6 +101,6 @@ public:
     std::mutex cv_m;	
 };
 
-} /* namespace pirobot */
+} /* namespace piutils */
 
 #endif /* PI_LIBRARY_THREADED_H_ */

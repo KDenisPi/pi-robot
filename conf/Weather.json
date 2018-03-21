@@ -4,8 +4,16 @@
     
     "items":[
         {
-            "type": "TSL2561",
-            "name": "TSL2561"
-        }        
+            "type": "SI7021",
+            "name": "SI7021"
+        },
+        {
+            "type": "SGP30",
+            "name": "SGP30"
+        },
+        {
+            "type": "BMP280",
+            "name": "BMP280"
+        }
     ]    
 }

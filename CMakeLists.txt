@@ -16,12 +16,17 @@ set(SPDLOG_INCLUDE "${SPDLOG_HOME}/include")
 
 set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
 
+set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
+set(MONGOOSE_SRC "${MONGOOSE_HOME}/mongoose.c")
+
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
 message( STATUS "WIRINGPI_HOME ${WIRINGPI_HOME}")
 message( STATUS "WIRINGPI_LIB ${WIRINGPI_LIB}")
 message( STATUS "MOSQUITTO_LIB ${MOSQUITTO_LIB}")
 message( STATUS "SPDLOG_HOME ${SPDLOG_HOME}")
 message( STATUS "JSONCONS ${JSONCONS}")
+message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
+message( STATUS "MONGOOSE_SRC ${MONGOOSE_SRC}")
 
 
 find_library(WIPI_LIB wiringPi PATH ${WIRINGPI_LIB})
@@ -55,6 +60,8 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smachine)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-mqqt)
+add_subdirectory(${PROJECT_SOURCE_DIR}/pi-http)
+
 
 #add_subdirectory(${PROJECT_SOURCE_DIR}/version1)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/project1)

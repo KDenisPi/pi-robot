@@ -14,8 +14,10 @@ namespace weather {
 
 class Context : public smachine::Environment {
 public:
-    Context() {}
+    Context() : version("0.9") {}
     virtual ~Context() {}
+
+    std::string version;
 
     // Si7021 - I2C Humidity and Temperature Sensor
     float si7021_humidity;

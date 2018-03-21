@@ -45,5 +45,9 @@ cd ..
 echo jsoncons
 git clone https://github.com/danielaparker/jsoncons jsoncons 
 
+cd ..
+wget https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/mongoose/mongoose-5.1.tgz
+tar zxvf ./mongoose-5.1.tgz
+
 cd ../pi-robot
 
