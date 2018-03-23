@@ -91,7 +91,7 @@ Bmp280::~Bmp280(){
 uint8_t Bmp280::get_id(){
     I2CWrapper::lock();
     uint8_t id = I2CWrapper::I2CReadReg8(m_fd, BMP280_ID);
-    I2CWrapper::lock();
+    I2CWrapper::unlock();
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ID: " + std::to_string(id));
     return id;
@@ -103,14 +103,14 @@ void Bmp280::reset(){
 
     I2CWrapper::lock();
     I2CWrapper::I2CWriteReg8(m_fd, BMP280_RESET, BMP280_RESET_CODE);
-    I2CWrapper::lock();
+    I2CWrapper::unlock();
 }
 
 //Get status
 const uint8_t Bmp280::get_status(){
     I2CWrapper::lock();
     uint8_t status = I2CWrapper::I2CReadReg8(m_fd, BMP280_STATUS);
-    I2CWrapper::lock();
+    I2CWrapper::unlock();
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Status Measuring: " + ((status & BMP280_STATUS_MEASURING) ? "Yes" : "No") +
                     "  Data update: " + ((status & BMP280_STATUS_DATA_UPDATE) ? "Yes" : "No"));
@@ -137,7 +137,7 @@ bool Bmp280::set_measure_control(const uint8_t power_mode, const uint8_t pressur
 
     I2CWrapper::lock();
     I2CWrapper::I2CWriteReg8(m_fd, BMP280_CTRL_MEASURE, meas_ctrl);
-    I2CWrapper::lock();
+    I2CWrapper::unlock();
 
     return true;
 }
@@ -146,7 +146,7 @@ bool Bmp280::set_measure_control(const uint8_t power_mode, const uint8_t pressur
 const uint8_t Bmp280::get_measure_control(){
     I2CWrapper::lock();
     uint8_t meas_ctrl = I2CWrapper::I2CReadReg8(m_fd, BMP280_CTRL_MEASURE);
-    I2CWrapper::lock();
+    I2CWrapper::unlock();
 
     uint8_t mode = (meas_ctrl & 0x03);
     uint8_t osrs_p = ((meas_ctrl >> 2) & 0x07);
@@ -161,7 +161,7 @@ const uint8_t Bmp280::get_measure_control(){
 const uint8_t Bmp280::get_config(){
     I2CWrapper::lock();
     uint8_t config = I2CWrapper::I2CReadReg8(m_fd, BMP280_CONFIG);
-    I2CWrapper::lock();
+    I2CWrapper::unlock();
 
     uint8_t spi = (config & 0x01);
     uint8_t filter = ((config >> 2) & 0x07);
@@ -181,7 +181,7 @@ void Bmp280::set_config(const uint8_t spi, const uint8_t filter, const uint8_t s
 
     I2CWrapper::lock();
     I2CWrapper::I2CWriteReg8(m_fd, BMP280_CONFIG, config);
-    I2CWrapper::lock();
+    I2CWrapper::unlock();
 }
 
 //Return current pressure and temperature values
@@ -194,7 +194,7 @@ void Bmp280::get_results(float& pressure, float& temp, float& altitude){
 
     I2CWrapper::lock();
     int read_bytes = I2CWrapper::I2CReadData(m_fd, BMP280_PRESSURE_MSB, raw, 6);
-    I2CWrapper::lock();
+    I2CWrapper::unlock();
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Read bytes: " + std::to_string(read_bytes));
 
@@ -264,7 +264,7 @@ float Bmp280::calculate_Pressure(int32_t pressure){
     if (var1 == 0) {
         return 0;  // avoid exception caused by division by zero
     }
-    
+
     p = 1048576 - pressure;
     p = (((p<<31) - var2)*3125) / var1;
     var1 = (((int64_t)dig_P9) * (p>>13) * (p>>13)) >> 25;

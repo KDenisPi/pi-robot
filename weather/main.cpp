@@ -55,8 +55,10 @@ static void sigHandlerParent(int sign){
  cout <<  "Parent: Detected signal " << sign  << endl;
 
   if (sign == SIGINT || sign == SIGUSR1) {
-    if(stmPid)
+    if(stmPid){
+      cout <<  "Parent: Send signal to child  " << sign  << endl;
       kill(stmPid, sign);
+    }
   }
 }
 

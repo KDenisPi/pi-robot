@@ -22,11 +22,12 @@ void StInitialization::OnEntry(){
     si7021->get_results(context->si7021_humidity, context->si7021_temperature, context->si7021_abs_humidity);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Humidity: " + std::to_string(context->si7021_humidity) + " Temperature: " + std::to_string(context->si7021_temperature) + "C");
-    
+
     //use absolute humidity for SGP30
     auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
-    sgp30->set_humidity(context->si7021_abs_humidity);
-    sgp30->set_baseline(context->spg30_base_co2, context->spg30_base_tvoc);
+    //sgp30->set_humidity(context->si7021_abs_humidity);
+    //sgp30->set_baseline(context->spg30_base_co2, context->spg30_base_tvoc);
+
     sgp30->set_initialized(true);
 
    TIMER_CREATE(TIMER_WARM_INTERVAL, 15) //wait for 15 seconds before real use
@@ -38,6 +39,7 @@ bool StInitialization::OnTimer(const int id){
     switch(id){
         case TIMER_FINISH_ROBOT:
         {
+            TIMER_CANCEL(TIMER_WARM_INTERVAL);
             get_itf()->finish();
             return true;
         }

@@ -76,7 +76,7 @@ public:
 
     void set_initialized(const bool initialized){
         m_initialized = initialized;
-        cv.notify_one();
+        cv_data.notify_one();
     }
 
 private:
@@ -84,6 +84,8 @@ private:
     int m_fd;
 
     bool m_initialized;
+    std::mutex cv_m_data;
+    std::condition_variable cv_data;
 
     //lest measured values
     struct Sdp30_measure values;
@@ -105,18 +107,9 @@ private:
 
 public:
     //Get measure results
-    void get_results(uint16_t& co2, uint16_t& tvoc){
-        std::lock_guard<std::mutex> lk(cv_m);
-        co2 = values.uiCO2;
-        tvoc = values.uiTVOC;
-    }
-
+    void get_results(uint16_t& co2, uint16_t& tvoc);
     //Get measure results
-    void get_baseline(uint16_t& bs_co2, uint16_t& bs_tvoc){
-        std::lock_guard<std::mutex> lk(cv_m);
-        bs_co2 = baseline.uiCO2;
-        bs_tvoc = baseline.uiTVOC;
-    }
+    void get_baseline(uint16_t& bs_co2, uint16_t& bs_tvoc);
 };
 
 }//item

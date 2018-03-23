@@ -16,27 +16,42 @@
 
 namespace weather {
 
+#define MEASURE_INTERVAL 10
+#define RUN_INTERVAL 35
+
 //take measurement from all sensors
 void StMeasurement::measure(){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
     auto context = get_env<weather::Context>();
 
     //make measurement using Si7021 and then use this values for SGP30
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SI7021");
     auto si7021 = get_item<pirobot::item::Si7021>("SI7021");
     si7021->get_results(context->si7021_humidity, context->si7021_temperature, context->si7021_abs_humidity);
 
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SGP30");
     auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
-    sgp30->get_results(context->spg30_co2, context->spg30_tvoc);    
+    sgp30->get_results(context->spg30_co2, context->spg30_tvoc);
 
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- BMP280");
     auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
     bmp280->get_results(context->bmp280_pressure, context->bmp280_temperature, context->bmp280_altitude);
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
 }
 
 
 void StMeasurement::OnEntry(){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+
     measure();
 
-   TIMER_CREATE(TIMER_UPDATE_INTERVAL, 30) //wait for 15 seconds before real use
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Create Timer ID: " + std::to_string(TIMER_UPDATE_INTERVAL));
+    TIMER_CREATE(TIMER_UPDATE_INTERVAL, MEASURE_INTERVAL) //measurement interval
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Create Timer ID: " + std::to_string(TIMER_FINISH_ROBOT));
+    TIMER_CREATE(TIMER_FINISH_ROBOT, RUN_INTERVAL) //stop interval (test purpose)
 }
 
 bool StMeasurement::OnTimer(const int id){
@@ -45,6 +60,7 @@ bool StMeasurement::OnTimer(const int id){
     switch(id){
         case TIMER_FINISH_ROBOT:
         {
+            TIMER_CANCEL(TIMER_UPDATE_INTERVAL);
             get_itf()->finish();
             return true;
         }
@@ -53,6 +69,7 @@ bool StMeasurement::OnTimer(const int id){
         case TIMER_UPDATE_INTERVAL:
         {
             measure();
+            TIMER_CREATE(TIMER_UPDATE_INTERVAL, MEASURE_INTERVAL) //measurement interval
             return true;
         }
     }
