@@ -9,6 +9,7 @@
 
 #include "mongoose.h"
 #include "Threaded.h"
+#include "logger.h"
 
 namespace weather {
 
@@ -16,8 +17,8 @@ class WebSettings : public piutils::Threaded {
 
 public:
     WebSettings(const uint16_t port) {
-
         std::string sport = (port == 0 ? "8080" : std::to_string(port));
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Port: " + sport);
 
         _server = mg_create_server(this);
         mg_set_option(_server, "listening_port", sport.c_str());
@@ -27,7 +28,9 @@ public:
     /*
     *
     */
-    virtual ~WebSettings() {}
+    virtual ~WebSettings() {
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__));
+    }
 
     /*
     *
@@ -53,12 +56,15 @@ public:
     *
     */
     static void worker(WebSettings* p){
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " started");
 
         while(p->is_stop_signal()){
             mg_poll_server(p->_server, 1000);
         }
 
         mg_destroy_server(&p->_server);
+
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " finished");
     }
 
     struct mg_server* _server;

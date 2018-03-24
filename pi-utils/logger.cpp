@@ -43,7 +43,7 @@ void log(const LLOG level, const std::string pattern, const std::string message)
 }
 */
 
-Logger::Logger() : m_flush(false){
+Logger::Logger() : m_flush(false), _level(LLOG::DEBUG){
     size_t q_size = 2048; //queue size must be power of 2
     //spdlog::set_async_mode(q_size, spdlog::async_overflow_policy::block_retry);
     async_file = spdlog::daily_logger_st("async_file_logger", "/var/log/pi-robot/async_log");
@@ -67,6 +67,10 @@ Logger::~Logger() {
 
 
 void Logger::llog(const logger::LLOG level, const std::string& pattern, const std::string& message){
+
+    if(level > _level)//ignore levels higher than defined
+      return;
+
     log_message_type msg = std::make_pair(level, std::make_pair(pattern,message));
     m_buff->put(std::move(msg));
     cv.notify_one();
@@ -94,19 +98,19 @@ void Logger::write_log(const log_message_type& logm) const{
 void Logger::worker(Logger* owner){
     std::cout << "Logger worked started" << std::endl;
     auto fn = [owner]{return (owner->is_stop_signal() || owner->data_present());};
-    
+
     while(!owner->is_stop_signal()){
         //wait until stop signal will be received or we will have steps for processing
         {
             std::unique_lock<std::mutex> lk(owner->cv_m);
             owner->cv.wait(lk, fn);
         }
-        
+
         while( (!owner->is_stop_signal()||owner->is_flush()) && owner->data_present()){
             auto logm = owner->get();
             owner->write_log(logm);
         }
-        
+
         if(owner->is_flush())
             break;
     }
@@ -123,7 +127,7 @@ void log(const LLOG level, const std::string& pattern, const std::string& messag
         plog = std::shared_ptr<Logger>(p_plog); //new Logger());
     }
     if(!plog->is_flush()){
-        std::cout <<  message << std::endl;        
+        //std::cout <<  message << std::endl;
         plog->llog(level, pattern, message);
     }
 }
@@ -134,5 +138,16 @@ void release(){
      delete plog.get();
   }
 }
+
+void set_level(const LLOG level){
+  if(!plog){
+      std::cout << "Create Logger" << std::endl;
+      p_plog = new Logger();
+      plog = std::shared_ptr<Logger>(p_plog); //new Logger());
+  }
+
+  plog->set_level(level);
+}
+
 
 } /* namespace logger */

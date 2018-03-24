@@ -174,7 +174,7 @@ void Si7021::get_results(float& humidity, float& temperature, float& abs_humidit
     abs_humidity = get_absolute_humidity(temperature, humidity);
 
     //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MRH RAW: " + std::to_string(last_MRH) + " MRH: " + std::to_string(values._last_MRH));
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Temperature : " + std::to_string(temperature) + " Humidity: " + std::to_string(humidity) + "%");
+    logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Temperature : " + std::to_string(temperature) + " Humidity: " + std::to_string(humidity) + "%");
 }
 
 //calculate absolute humidity (grams/m3)

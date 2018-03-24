@@ -313,7 +313,7 @@ void Sgp30::get_results(uint16_t& co2, uint16_t& tvoc){
     std::lock_guard<std::mutex> lk(cv_m_data);
     co2 = values.uiCO2;
     tvoc = values.uiTVOC;
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " CO2: " + std::to_string(co2) + " TVOC: " + std::to_string(tvoc));
+    logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " CO2: " + std::to_string(co2) + " TVOC: " + std::to_string(tvoc));
 }
 
 //Get measure results
@@ -323,7 +323,7 @@ void Sgp30::get_baseline(uint16_t& bs_co2, uint16_t& bs_tvoc){
     std::lock_guard<std::mutex> lk(cv_m_data);
     bs_co2 = baseline.uiCO2;
     bs_tvoc = baseline.uiTVOC;
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Base: CO2: " + std::to_string(bs_co2) + " TVOC: " + std::to_string(bs_tvoc));
+    logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Base: CO2: " + std::to_string(bs_co2) + " TVOC: " + std::to_string(bs_tvoc));
 }
 
 

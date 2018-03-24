@@ -24,8 +24,9 @@ namespace logger {
         DEBUG = 3
     };
 
-void log(const LLOG level, const std::string& pattern, const std::string& message);    
+void log(const LLOG level, const std::string& pattern, const std::string& message);
 void release();
+void set_level(const LLOG level);
 
 typedef std::pair<std::string, std::string> log_message;
 typedef std::pair<logger::LLOG, log_message> log_message_type;
@@ -35,13 +36,6 @@ class Logger : public piutils::Threaded{
 public:
     Logger();
     virtual ~Logger();
-    
-    /*
-    virtual ~Logger() {
-        piutils::Threaded::stop();
-        async_file->flush();
-    }
-    */
 
     static void worker(Logger* p);
 
@@ -56,12 +50,16 @@ public:
     }
 
     void write_log(const log_message_type& message) const;
-    
+
     void set_flush(){
         m_flush = true;
     }
     const bool is_flush() const {
         return m_flush;
+    }
+
+    void set_level(const LLOG clevel){
+      _level = clevel;
     }
 
 private:
@@ -70,6 +68,7 @@ private:
 
     std::shared_ptr<log_type> m_buff;
     bool m_flush;
+    LLOG _level;
 };
 
 //extern Logger plog;
