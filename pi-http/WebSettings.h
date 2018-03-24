@@ -58,7 +58,7 @@ public:
     static void worker(WebSettings* p){
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " started");
 
-        while(p->is_stop_signal()){
+        while(!p->is_stop_signal()){
             mg_poll_server(p->_server, 1000);
         }
 

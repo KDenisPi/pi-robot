@@ -186,6 +186,8 @@ int main (int argc, char* argv[])
 
         cout <<  "State machine finished" << endl;
 
+        web->stop();
+
         sleep(2);
         delete stm;
 
