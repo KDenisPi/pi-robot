@@ -17,6 +17,9 @@ void StInitialization::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
     auto context = get_env<weather::Context>();
+    std::string data_file = "./initial.json";
+    context->load_initial_data(data_file);
+
     //make measurement using Si7021 and then use this values for SGP30
     auto si7021 = get_item<pirobot::item::Si7021>("SI7021");
     si7021->get_results(context->si7021_humidity, context->si7021_temperature, context->si7021_abs_humidity);

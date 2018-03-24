@@ -157,8 +157,8 @@ void Si7021::get_results(float& humidity, float& temperature, float& abs_humidit
 
     I2CWrapper::unlock();
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MRH Full:" + std::to_string(last_MRH) +  " MS: " + std::to_string(mrh[1]) + " LS: " + std::to_string(mrh[0]));
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Temp Full:" + std::to_string(last_Temp) +  " MS: " + std::to_string(temp[1]) + " LS: " + std::to_string(temp[0]));
+    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MRH Full:" + std::to_string(last_MRH) +  " MS: " + std::to_string(mrh[1]) + " LS: " + std::to_string(mrh[0]));
+    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Temp Full:" + std::to_string(last_Temp) +  " MS: " + std::to_string(temp[1]) + " LS: " + std::to_string(temp[0]));
 
     values._last_MRH = (125*last_MRH)/65536 - 6;
     //check border values
@@ -169,12 +169,12 @@ void Si7021::get_results(float& humidity, float& temperature, float& abs_humidit
 
     values._last_Temp = (175.72*last_Temp)/65536 - 46.85;
 
-    temperature = values._last_Temp;
-    humidity = values._last_MRH;
+    temperature = std::round(values._last_Temp*10)/10;
+    humidity = std::round(values._last_MRH);
     abs_humidity = get_absolute_humidity(temperature, humidity);
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MRH RAW: " + std::to_string(last_MRH) + " MRH: " + std::to_string(values._last_MRH));
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Temp RAW: " + std::to_string(last_Temp) + " Temp: " + std::to_string(values._last_Temp));
+    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MRH RAW: " + std::to_string(last_MRH) + " MRH: " + std::to_string(values._last_MRH));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Temperature : " + std::to_string(temperature) + " Humidity: " + std::to_string(humidity) + "%");
 }
 
 //calculate absolute humidity (grams/m3)

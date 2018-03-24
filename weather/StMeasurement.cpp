@@ -61,6 +61,16 @@ bool StMeasurement::OnTimer(const int id){
         case TIMER_FINISH_ROBOT:
         {
             TIMER_CANCEL(TIMER_UPDATE_INTERVAL);
+
+            auto context = get_env<weather::Context>();
+            //Stop SGP30 and save current values
+            auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
+            sgp30->stop();
+
+            sgp30->get_baseline(context->spg30_base_co2, context->spg30_base_tvoc);
+            std::string data_file = "./initial.json";
+            context->save_initial_data(data_file);
+
             get_itf()->finish();
             return true;
         }

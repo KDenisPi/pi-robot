@@ -78,7 +78,7 @@ private:
 
     std::mutex cv_m_data;
     std::condition_variable cv_data;
-    
+
     //lest measured values
     struct Sdp30_measure values;
     struct Sdp30_measure baseline;

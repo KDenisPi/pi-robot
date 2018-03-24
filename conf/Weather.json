@@ -13,7 +13,8 @@
         },
         {
             "type": "BMP280",
-            "name": "BMP280"
+            "name": "BMP280",
+            "i2c_addr": 119
         }
     ]    
 }

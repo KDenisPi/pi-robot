@@ -204,9 +204,9 @@ void Bmp280::get_results(float& pressure, float& temp, float& altitude){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " RAW Pressure: " + std::to_string(raw_pressure) + " Temperature: " + std::to_string(raw_temp));
 
     //order is important - we use temperature value for pressure calculation
-    temp = calculate_Temperature(raw_temp);
-    pressure = calculate_Pressure(raw_pressure);
-    altitude = read_Altitude(pressure);
+    temp = std::round((calculate_Temperature(raw_temp)*10))/10;
+    pressure = std::round(calculate_Pressure(raw_pressure)/133.3);
+    altitude = std::round(read_Altitude(pressure));
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pressure: " + std::to_string(pressure) + " Temperature: " + std::to_string(temp) + 
         " Altitude: " + std::to_string(altitude));
