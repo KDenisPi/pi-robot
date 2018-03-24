@@ -24,7 +24,7 @@ const uint8_t Sgp30::s_i2c_addr = 0x58;
 //
 //
 Sgp30::Sgp30(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i2c, const std::string& comment) :
-    Item(name, comment, ItemTypes::SGP30), _i2caddr(s_i2c_addr), m_initialized(false) {
+    Item(name, comment, ItemTypes::SGP30), _i2caddr(s_i2c_addr), _humidity(0) {
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
 
@@ -124,40 +124,50 @@ void Sgp30::init_air_quality(){
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ***************** Finished");
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "  Set baseline");
+    _set_baseline();
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "  Set humidity");
+    _set_humidity();
 }
 
 // Measure air quality
 void Sgp30::measure_air_quality(){
     uint8_t data[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     uint8_t crc_check[2] = {0x00, 0x00};
-    struct Sdp30_measure  measure;
-
-    measure.uiCO2  = values.uiCO2;
-    measure.uiTVOC = values.uiTVOC;
+    uint16_t uiCO2;
+    uint16_t uiTVOC;
+    bool co2_success, tvoc_success;
 
     read_data(data, 6, SGP30_MEASURE_AIR_QUALITY, 10);
 
     crc_check[0] = pirobot::crc::crc(&data[0], 2, 0xFF, 0x31);
     crc_check[1] = pirobot::crc::crc(&data[3], 2, 0xFF, 0x31);
 
-    if(crc_check[0] == data[2]){
-          measure.uiCO2 = convert_result(data);
+    co2_success = (crc_check[0] == data[2]);
+    tvoc_success = (crc_check[1] == data[5]);
+
+    uiCO2  = convert_result(data);
+    uiTVOC = convert_result(&data[3]);
+
+    // CO2 == 400 & TVOC == 0 are special values during initialization
+    if((uiCO2 == 400) && (uiTVOC == 0))
+        return;
+    
+    std::lock_guard<std::mutex> lk(cv_m_data);
+    if(co2_success){
+        values.uiCO2  = uiCO2;
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " CO2: " + std::to_string(values.uiCO2));
     }
     else
         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " CO2 CRC Invalid");
-
-    if(crc_check[1] == data[5]){
-        measure.uiTVOC = convert_result(&data[3]);
+        
+    if(tvoc_success){
+        values.uiTVOC = uiTVOC;
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " TVOC: " + std::to_string(values.uiTVOC));
     }
     else
         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " TVOC CRC Invalid");
-
-    std::lock_guard<std::mutex> lk(cv_m_data);
-    values.uiCO2  = measure.uiCO2;
-    values.uiTVOC = measure.uiTVOC;
-
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " CO2: " + std::to_string(values.uiCO2) + " TVOC: " + std::to_string(values.uiTVOC));
 }
 
 // Get baseline
@@ -210,24 +220,43 @@ int Sgp30::write_data(uint8_t* data, const int len, const uint16_t cmd, const in
 
 //Set humidity
 void Sgp30::set_humidity(const uint16_t humidity){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Humidity: " + std::to_string(humidity));
+    _humidity = humidity;
+}
+
+//Set humidity
+void Sgp30::_set_humidity(){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Humidity: " + std::to_string(_humidity));
+
+    if(_humidity == 0){
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Humidity does not set. Do nothing.");
+        return;
+    }
+
     uint8_t data[4] = {0x00, 0x00, 0x00, 0x00};
 
     int msb = (SGP30_SET_HUMIDITY >> 8);
     int lsb = (SGP30_SET_HUMIDITY & 0x00FF);
 
     data[0] = lsb;
-    data[1] = (humidity >> 8);
-    data[2] = (humidity & 0x00FF);
+    data[1] = (_humidity >> 8);
+    data[2] = (_humidity & 0x00FF);
     data[3] = pirobot::crc::crc(&data[1], 2, 0xFF, 0x31);
 
     write_data(data, 4, SGP30_SET_HUMIDITY, 10);
 }
 
-//Set baseline
 // NOTE: Set baseline use parameter TVOC, CO2 (other functions CO2, TVOC)
 void Sgp30::set_baseline(const uint16_t base_co2, const uint16_t base_tvoc){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Baseline CO2: " + std::to_string(base_co2) + " TVOC: " + std::to_string(base_tvoc));
+
+    baseline.uiCO2 = base_co2;
+    baseline.uiTVOC = base_tvoc;
+}
+
+//Set baseline
+// NOTE: Set baseline use parameter TVOC, CO2 (other functions CO2, TVOC)
+void Sgp30::_set_baseline(){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Baseline CO2: " + std::to_string(baseline.uiCO2) + " TVOC: " + std::to_string(baseline.uiTVOC));
 
     uint8_t data[7] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
@@ -236,18 +265,15 @@ void Sgp30::set_baseline(const uint16_t base_co2, const uint16_t base_tvoc){
 
     data[0] = lsb;
 
-    data[4] = (base_co2 >> 8);
-    data[5] = (base_co2 & 0x00FF);
+    data[4] = (baseline.uiCO2 >> 8);
+    data[5] = (baseline.uiCO2 & 0x00FF);
     data[6] = pirobot::crc::crc(&data[4], 2, 0xFF, 0x31);
 
-    data[1] = (base_tvoc >> 8);
-    data[2] = (base_tvoc & 0x00FF);
+    data[1] = (baseline.uiTVOC >> 8);
+    data[2] = (baseline.uiTVOC & 0x00FF);
     data[3] = pirobot::crc::crc(&data[1], 2, 0xFF, 0x31);
 
     write_data(data, 7, SGP30_SET_BASELINE, 10);
-
-    baseline.uiCO2 = base_co2;
-    baseline.uiTVOC = base_tvoc;
 }
 
 //
@@ -263,15 +289,8 @@ void Sgp30::stop(){
  */
  void Sgp30::worker(Sgp30* owner){
     std::string name = owner->name();
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker started. Name: " + name);
-
-    //auto fn = [owner]{return (owner->is_stop_signal() || owner->is_initialized());};
-    //std::unique_lock<std::mutex> lk(owner->cv_m_data);
-    //owner->cv_data.wait(lk, fn);
-    //waiting untill sensor initial values will not be initialized 
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " init_air_quality. Name: " + name);
-
     owner->init_air_quality();
 
     while(!owner->is_stop_signal()){
@@ -291,7 +310,7 @@ void Sgp30::stop(){
 void Sgp30::get_results(uint16_t& co2, uint16_t& tvoc){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
 
-    //std::lock_guard<std::mutex> lk(cv_m_data);
+    std::lock_guard<std::mutex> lk(cv_m_data);
     co2 = values.uiCO2;
     tvoc = values.uiTVOC;
 }
@@ -300,7 +319,7 @@ void Sgp30::get_results(uint16_t& co2, uint16_t& tvoc){
 void Sgp30::get_baseline(uint16_t& bs_co2, uint16_t& bs_tvoc){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
 
-    //std::lock_guard<std::mutex> lk(cv_m_data);
+    std::lock_guard<std::mutex> lk(cv_m_data);
     bs_co2 = baseline.uiCO2;
     bs_tvoc = baseline.uiTVOC;
 }

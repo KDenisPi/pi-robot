@@ -48,15 +48,17 @@ public:
 
     // Initialize
     virtual bool initialize() override{
-        return piutils::Threaded::start<pirobot::item::Sgp30>(this);
+        return true; //piutils::Threaded::start<pirobot::item::Sgp30>(this);
+    }
+
+    void start(){
+        piutils::Threaded::start<pirobot::item::Sgp30>(this);
     }
 
     // Worker function
     static void worker(Sgp30* p);
-
     // Stop
     virtual void stop() override;
-
     // Init air quality
     void init_air_quality();
     // Measure air quality
@@ -70,26 +72,17 @@ public:
     //Execute measure test, true - chip is OK
     bool measure_test();
 
-    const bool is_initialized() const {
-        return m_initialized;
-    }
-
-    void set_initialized(const bool initialized){
-        m_initialized = initialized;
-        cv_data.notify_one();
-    }
-
 private:
     uint8_t _i2caddr;
     int m_fd;
 
-    bool m_initialized;
     std::mutex cv_m_data;
     std::condition_variable cv_data;
-
+    
     //lest measured values
     struct Sdp30_measure values;
     struct Sdp30_measure baseline;
+    uint16_t _humidity;
 
     // Get feature set version
     void get_feature_set_version();
@@ -104,6 +97,11 @@ private:
         result = (result << 8 ) | data[1];
         return result;
     }
+
+    // Set baseline
+    void _set_baseline();
+    //Set humidity
+    void _set_humidity();
 
 public:
     //Get measure results

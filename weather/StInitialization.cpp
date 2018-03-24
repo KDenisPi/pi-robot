@@ -25,10 +25,9 @@ void StInitialization::OnEntry(){
 
     //use absolute humidity for SGP30
     auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
-    //sgp30->set_humidity(context->si7021_abs_humidity);
-    //sgp30->set_baseline(context->spg30_base_co2, context->spg30_base_tvoc);
-
-    sgp30->set_initialized(true);
+    sgp30->set_humidity(context->si7021_abs_humidity);
+    sgp30->set_baseline(context->spg30_base_co2, context->spg30_base_tvoc);
+    sgp30->start();
 
    TIMER_CREATE(TIMER_WARM_INTERVAL, 15) //wait for 15 seconds before real use
 }
