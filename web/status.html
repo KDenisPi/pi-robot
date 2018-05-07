@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="author" content="Denis Kudia">
+    </head>
+    <style>
+        .bg_color {
+            background-color: lightblue;
+        }
+        .info_header {
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: left;
+        }
+        .param_name {
+            font-weight: bold;
+            text-align: left;
+        }
+        .table_1 {
+            border: 0;
+        }
+    </style>
+    <body>
+            <table border="0" width="100%" cellspacing="0">
+            <tr height="90" class="bg_color">
+                    <td width="150"></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+            </tr>
+            <tr>
+                <td width="100" class="bg_color"></td>
+                <td>
+                    <table border="0" width="50%">
+                        <tr>
+                            <td class="info_header">System Information</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                    <table class="table_1" cellspacing="10">
+                                        <!--interfaceinfo-->
+                                        <tr>
+                                            <td class="param_name">Network Information:</td>
+                                            <td align="left">{NetInfo}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="param_name">Up time:</td>
+                                            <td align="left">00:00:00</td>
+                                        </tr>
+                                    </table>                                                
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="info_header">Sensor Information</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                    <table class="table_1" cellspacing="10">
+                                            <tr>
+                                                <!- Status of BMP280 ->
+                                                <td class="param_name">Digital Pressure Sensor BMP280:</td>
+                                                <td align="left">OK</td>
+                                                <td>Write errors:</td>
+                                                <td>0</td>
+                                                <td>Read errors:</td>
+                                                <td>0</td>
+                                            </tr>
+                                            <tr>
+                                                <!- Status of SGP30 ->
+                                                <td class="param_name">Sensirion Gas Platform SGP30:</td>
+                                                <td align="left">OK</td>
+                                                <td>Write errors:</td>
+                                                <td>0</td>
+                                                <td>Read errors:</td>
+                                                <td>0</td>
+                                            </tr>
+                                            <tr>
+                                                <!- Status of  Si7021->
+                                                <td class="param_name">Humidity and temperature Si7021:</td>
+                                                <td align="left">OK</td>
+                                                <td>Write errors:</td>
+                                                <td>0</td>
+                                                <td>Read errors:</td>
+                                                <td>0</td>
+                                            </tr>
+                                            <tr>
+                                                <!- Status of TSL2561 ->
+                                                <td class="param_name">Ligth-to-digital convertor TSL2561:</td>
+                                                <td align="left">OK</td>
+                                                <td>Write errors:</td>
+                                                <td>0</td>
+                                                <td>Read errors:</td>
+                                                <td>0</td>
+                                            </tr>
+                                    </table>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>
