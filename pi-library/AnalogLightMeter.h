@@ -129,15 +129,20 @@ public:
     * Debug support
     */
     virtual void activate_debug() override {
+        //Debug activated already
+        if(m_debug)
+            return;
+
         m_debug = true;
         m_debug_values = new unsigned short[m_debug_size];
     }
 
     void debug_save_value(unsigned short value){
         if(m_debug_data_counter<m_debug_size)
-        m_debug_values[m_debug_data_counter++] = value;
+            m_debug_values[m_debug_data_counter++] = value;
     }
     
+    //Save debug data to the file
     virtual void unload_debug_data(const std::string& dest_type, const std::string& destination) override;
     
 
@@ -151,7 +156,6 @@ private:
     int m_debug_size;
 };
 
-}
-}
-
+}//namespace anlglightmeter
+}//namespace pirobot
 #endif

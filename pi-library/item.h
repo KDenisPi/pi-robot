@@ -67,15 +67,7 @@ struct ItemConfig{
 
 class Item {
 public:
-    Item(const std::shared_ptr<pirobot::gpio::Gpio> gpio, int itype) :
-    m_gpio(gpio),
-    m_name(),
-    m_comment(),
-    m_type(itype),
-    notify(nullptr),
-    m_debug(false)
-    {};
-
+    //Constructor for general Items
     Item( const std::string& name,
           const std::string& comment,
           int itype) :
@@ -85,37 +77,42 @@ public:
     notify(nullptr),
     m_debug(false)
     {};
-    
+
+    //Constructor for GPIO base Items
+    Item(const std::shared_ptr<pirobot::gpio::Gpio> gpio, int itype) : Item(gpio, "", "", itype) {};
+ 
     Item(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
           const std::string& name,
           const std::string& comment,
           int itype
-        ):
-        m_gpio(gpio),
-        m_name(name),
-        m_comment(comment),
-        m_type(itype),
-        notify(nullptr),
-        m_debug(false)
-    {};
+        ): Item(name, comment, itype)
+    {
+        m_gpio = gpio;
+    };
 
     virtual ~Item() {};
 
+    //Item initialization function
     virtual bool initialize() {return true;};
+    //Item stop  function
     virtual void stop() {};
-
+    //activate debug functionality for the item
     virtual void activate_debug() {};
+
     // Parameters: 
     // dest_type - type of destination. "file" will be supported only by now
     virtual void unload_debug_data(const std::string& dest_type, const std::string& destination) {};
-    bool const is_debug() const {return m_debug;}
+    inline bool const is_debug() const {return m_debug;}
 
-    void set_name(const std::string& name) {m_name = name;}
-    void set_comment(const std::string& comment) {m_comment = comment;}
+    inline void set_name(const std::string& name) {m_name = name;}
+    inline void set_comment(const std::string& comment) {m_comment = comment;}
 
     inline const std::string name() const { return m_name; }
     inline const std::string comment() const { return m_comment;}
     inline const int type() const { return m_type;}
+
+    //returm item state
+    virtual const bool is_ok() const {return true;}
 
     virtual const std::string to_string() {
         return name();
@@ -123,10 +120,13 @@ public:
 
     virtual const std::string printConfig() = 0;
 
-    const std::shared_ptr<pirobot::gpio::Gpio> get_gpio() const {
+    inline const std::shared_ptr<pirobot::gpio::Gpio> get_gpio() const {
         return m_gpio;
     }
 
+    //
+    // Static function for working with item type
+    //
     static const std::string type_name(const int typen) {
         return std::string(ItemNames[typen]); 
     }
@@ -142,6 +142,7 @@ public:
 
     static const char* ItemNames[];
 
+    //Should we set callback function during initialization for this Item or not
     inline bool have_notify(){
         if(m_type == ItemTypes::BUTTON || 
             m_type == ItemTypes::TILT_SWITCH ||
@@ -153,6 +154,7 @@ public:
         return false;
     }
 
+    //callback function for upper level notification
     std::function<void(int, std::string&, void*)> notify;
 
 private:

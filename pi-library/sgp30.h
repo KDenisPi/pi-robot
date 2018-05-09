@@ -15,6 +15,7 @@
 #include "I2C.h"
 #include "Threaded.h"
 #include "crc.h"
+#include "statistics.h"
 
 namespace pirobot {
 namespace item {
@@ -34,7 +35,7 @@ struct Sdp30_measure {
     uint16_t uiTVOC;
 };
 
-class Sgp30 : public item::Item, public piutils::Threaded {
+class Sgp30 : public item::Item, public piutils::Threaded, pirobot::stat::Statistics {
 
 public:
     Sgp30(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i2c, const std::string& comment = "");
