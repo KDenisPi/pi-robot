@@ -23,7 +23,9 @@ public:
 	/*
 	 * Create Environment object
 	 */
-	virtual smachine::Environment* get_environment() override;
+	virtual smachine::Environment* get_environment() override {
+		return new Context();		
+	}
 
 	virtual const std::string get_first_state() override {
 		return "StInitialization";

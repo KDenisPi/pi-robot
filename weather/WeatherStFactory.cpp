@@ -27,13 +27,6 @@ WeatherStFactory::~WeatherStFactory() {
 }
 
 /*
- * Create Environment object
- */
-smachine::Environment* WeatherStFactory::get_environment(){
-	return new Context();
-}
-
-/*
  *
  */
 const std::shared_ptr<smachine::state::State> WeatherStFactory::get_state(const std::string state_name,	smachine::StateMachineItf* itf)

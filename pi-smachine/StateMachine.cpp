@@ -39,6 +39,7 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
 
     if( !start()){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " State machine could not start!");
+        //TODO: exit from application
     }
 
     //set callback function for hardware calls

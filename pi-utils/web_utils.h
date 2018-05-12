@@ -21,7 +21,7 @@ public:
     //
     // Load page content
     //
-    static const PageContent load_page(const char* filename){
+    static const PageContent load_page(const std::string& filename){
         PageContent page;
         std::ifstream istrm(filename, std::ios::binary);
         

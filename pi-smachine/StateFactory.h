@@ -13,7 +13,6 @@
 #include "State.h"
 #include "Environment.h"
 
-
 namespace smachine {
 
 class StateFactory {
@@ -28,6 +27,9 @@ public:
 	 */
 	virtual Environment* get_environment() = 0;
 
+	/*
+	* Return the first state of State Machine
+	*/
 	virtual const std::string get_first_state() = 0;
 };
 

@@ -38,44 +38,45 @@ public:
         }
         return m_thread_id_str;
     }
-/*
-*
-*/
+
+    /*
+    *
+    */
     inline bool is_stopped(){ 
         bool joinable = m_thread.joinable();
         return !joinable;
     }
 
-/*
-*
-*/
-template<class T>
-bool start(T* owner){
-    bool ret = true;
+    /*
+    *
+    */
+    template<class T>
+    bool start(T* owner){
+        bool ret = true;
 
-    if( is_stopped() ){
-        m_thread = std::thread(T::worker, owner);
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        if( is_stopped() ){
+            m_thread = std::thread(T::worker, owner);
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+
+        return ret;
     }
 
-    return ret;
-}
-
-/*
-*
-*/
+    /*
+    *
+    */
     void stop(const bool set_stop=true);
 
-/*
-*
-*/
+    /*
+    *
+    */
     inline const bool is_stop_signal(){
         return m_stopSignal;
     }
 
-/*
-*
-*/
+    /*
+    *
+    */
     inline void set_stop_signal(const bool signal){ 
         std::lock_guard<std::mutex> lk(cv_m);
         m_stopSignal = signal;

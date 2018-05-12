@@ -69,6 +69,15 @@ public:
     virtual std::shared_ptr<pirobot::PiRobot> get_robot() override {return m_pirobot;}
     virtual std::shared_ptr<Environment> get_env() override {return m_env; }
 
+	/*
+	* Get Data Interface
+	*/
+/*
+	template<class T> std::shared_ptr<T> get_datainterface(){
+		return std::static_pointer_cast<T>(_dataItf);
+	}
+*/
+
     /*
     * Start State machine execution from the beginning
     */

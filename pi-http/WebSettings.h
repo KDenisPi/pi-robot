@@ -1,26 +1,28 @@
 /*
 * WebSettings.h
 *
-* Web interface for Weather settings and status
+* Web interface for settings and status
 *
 */
-#ifndef WEATHER_WEB_SETTINGS_H
-#define WEATHER_WEB_SETTINGS_H
+#ifndef HTTP_WEB_SETTINGS_H
+#define HTTP_WEB_SETTINGS_H
 
 #include "mongoose.h"
 #include "Threaded.h"
 #include "logger.h"
 #include "web_utils.h"
 #include "networkinfo.h"
+#include "StateMachineItf.h"
 
-namespace weather {
+namespace http {
+namespace web {
 
 using PageContent = std::string;
 
 class WebSettings : public piutils::Threaded {
 
 public:
-    WebSettings(const uint16_t port) {
+    WebSettings(const uint16_t port, std::shared_ptr<smachine::StateMachineItf> itf) : _itf(itf) {
         std::string sport = (port == 0 ? "8080" : std::to_string(port));
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Port: " + sport);
 
@@ -40,7 +42,7 @@ public:
     *
     */
     void start(){
-        piutils::Threaded::start<weather::WebSettings>(this);
+        piutils::Threaded::start<http::web::WebSettings>(this);
     }
 
     /*
@@ -49,8 +51,8 @@ public:
     static int index_html(struct mg_connection *conn) {
 
         mg_send_header(conn, "Content-Type:", "text/html; charset=utf-8");
-        //try to load page content
-        PageContent page = piutils::webutils::WebUtils::load_page("./web/status.html");
+
+        const std::string page = static_cast<WebSettings*>(conn->server_param)->get_page(conn);
         //check loaded size
         if(page.size()==0){
             mg_send_status(conn, 404);
@@ -58,12 +60,10 @@ public:
                  conn->uri,
                  conn->query_string == NULL ? "(none)" : conn->query_string);
 
-            return 0;        
+            return 0;
         }
 
-        const std::string ip_info =   static_cast<WebSettings*>(conn->server_param)->prepare_ip_list();
-        const std::string new_page = piutils::webutils::WebUtils::replace_value(page, "{NetInfo}", ip_info);
-        mg_send_data(conn, new_page.c_str(), new_page.size());
+        mg_send_data(conn, page.c_str(), page.size());
         /*
         mg_printf_data(conn, "Hello! Requested URI is [%s], query string is [%s]",
                  conn->uri,
@@ -89,10 +89,15 @@ public:
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " finished");
     }
 
-private:
+    //
+    virtual const std::string get_index_page(){
+        return "./web/status.html";
+    }
+
+    virtual const std::string get_page(const struct mg_connection *conn) = 0;
 
     //Prepare list of IP addresses
-    const std::string prepare_ip_list(){  
+    const std::string prepare_ip_list(){
         piutils::netinfo::NetInfo netInfo;
         std::string result;
 
@@ -114,9 +119,14 @@ private:
         return result;
     }
 
-    struct mg_server* _server;
+ private:
+   struct mg_server* _server;
+
+    //data interface
+    std::shared_ptr<smachine::StateMachineItf> _itf;
 };
 
+}//namespace web
 }//namespace weather
 
 #endif

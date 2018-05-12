@@ -15,12 +15,12 @@
 #include "StateMachine.h"
 #include "context.h"
 #include "WeatherStFactory.h"
-#include "WebSettings.h"
+#include "WebSettingsWeather.h"
 
 
 using namespace std;
 
-smachine::StateMachine* stm;
+std::shared_ptr<smachine::StateMachine> stm;
 void mytime(const std::string& message);
 
 pid_t stmPid;
@@ -141,7 +141,7 @@ int main (int argc, char* argv[])
         }
 
         logger::log(logger::LLOG::DEBUG, "main", std::string(__func__) + " Create child");
-	logger::set_level(logger::LLOG::INFO);
+        logger::set_level(logger::LLOG::INFO);
         /*
         * Create PI Robot instance
         */
@@ -172,24 +172,27 @@ int main (int argc, char* argv[])
         }
 
         /*
-        * Web interface for settings and status
-        */
-        std::shared_ptr<weather::WebSettings> web(new weather::WebSettings(8080));
-        web->start();
-
-        /*
         * Create State machine
         */
-        stm = new smachine::StateMachine(factory, pirobot, clMqqt);
-        cout <<  "Created state machine. Waiting for finishing" << endl;
+        cout <<  "Create state machine." << endl;
+        stm = std::shared_ptr<smachine::StateMachine>(new smachine::StateMachine(factory, pirobot, clMqqt));
+
+        /*
+        * Web interface for settings and status
+        */
+        cout <<  "Created Web interface" << endl;
+        std::shared_ptr<weather::web::WebWeather> web(new weather::web::WebWeather(8080, stm));
+        web->http::web::WebSettings::start();
+
+        cout <<  "Waiting for State Machine finishing" << endl;
         stm->wait();
 
         cout <<  "State machine finished" << endl;
-
-        web->stop();
+        web->http::web::WebSettings::stop();
 
         sleep(2);
-        delete stm;
+        //delete stm;
+        stm.reset();
 
         if(mqtt){
           mosqpp::lib_cleanup();
@@ -231,7 +234,7 @@ int main (int argc, char* argv[])
         else
           cout <<  "Child finished " <<  chdPid << endl;
       }
-      cout <<  "Project1 finished" << endl;
+      cout <<  "Weather project finished" << endl;
   }
 
   exit(EXIT_SUCCESS);

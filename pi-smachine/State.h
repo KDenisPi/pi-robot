@@ -43,10 +43,14 @@ public:
 		return (m_name == state.m_name);
 	}
 
+	//Get Item by name
 	template<class T> std::shared_ptr<T> get_item(const std::string name){
 		return std::static_pointer_cast<T>(get_itf()->get_robot()->get_item(name));
 	}
 
+	/*
+	* Get Environment
+	*/
 	template<class T> std::shared_ptr<T> get_env(){
 		return std::static_pointer_cast<T>(get_itf()->get_env());
 	}

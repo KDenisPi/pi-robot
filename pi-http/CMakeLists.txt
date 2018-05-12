@@ -5,7 +5,9 @@ project(pi-http)
 
 set(CMAKE_BIULD_TYPE Debug)
 
-include_directories(BEFORE ${MONGOOSE_HOME})
+include_directories(BEFORE ${MONGOOSE_HOME}
+   ${PROJECT_SOURCE_DIR}/../weather
+)
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_HTTP_SOURCES_MAIN)
 
