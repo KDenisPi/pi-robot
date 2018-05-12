@@ -5,7 +5,7 @@ project(pi-smachine)
 
 #find_library(RT_LIB rt PATH)
 
-include_directories(BEFORE ${WIRINGPI_LIB}
+include_directories(BEFORE ${WIRINGPI_INC}
    ${PROJECT_SOURCE_DIR}/../pi-library
    ${PROJECT_SOURCE_DIR}/../pi-utils
    ${PROJECT_SOURCE_DIR}/../pi-mqqt

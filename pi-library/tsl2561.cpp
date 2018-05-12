@@ -10,9 +10,9 @@
  */
 
 #include "wiringPi.h"
-#include "logger.h"
 #include "I2CWrapper.h"
 #include "tsl2561.h"
+#include "logger.h"
 
 namespace pirobot {
 namespace item {

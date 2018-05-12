@@ -7,9 +7,10 @@ set(VER_MJR 0)
 set(VER_MIN 1)
 
 set(CMAKE_BIULD_TYPE Debug)
+
 set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-library pi-smachine pi-mqqt pi-http pthread)
 
-include_directories(BEFORE ${WIRINGPI_LIB}
+include_directories(BEFORE ${WIRINGPI_INC}
     ${MOSQUITTO_HOME}/lib/cpp
     ${MOSQUITTO_HOME}/lib
     ${PROJECT_SOURCE_DIR}/../pi-utils
@@ -26,5 +27,7 @@ message( STATUS "EXTRA_LIBS (proj):  ${EXTRA_LIBS}" )
 aux_source_directory(${PROJECT_SOURCE_DIR} WEATHER_SOURCES)
 
 add_executable(weather ${WEATHER_SOURCES})
-target_link_libraries(weather ${EXTRA_LIBS})
+#target_link_libraries(weather ${EXTRA_LIBS})
+target_link_libraries(weather ${EXTRA_LIBS} ${WIPI_LIB} ${WIPI_LIB_DEV} crypt)
+
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)

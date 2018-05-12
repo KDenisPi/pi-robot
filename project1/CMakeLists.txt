@@ -9,7 +9,7 @@ set(VER_MIN 1)
 set(CMAKE_BIULD_TYPE Debug)
 set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-library pi-smachine pi-mqqt pthread)
 
-include_directories(BEFORE ${WIRINGPI_LIB}
+include_directories(BEFORE ${WIRINGPI_INC}
     ${MOSQUITTO_HOME}/lib/cpp
     ${MOSQUITTO_HOME}/lib
     ${PROJECT_SOURCE_DIR}/../pi-utils

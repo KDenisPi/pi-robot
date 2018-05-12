@@ -10,6 +10,7 @@ echo Open SSL
 git clone https://github.com/openssl/openssl openssl
 cd ./openssl
 export set OPENSSL_ROOT_DIR=$PWD
+./config
 make
 #make test
 

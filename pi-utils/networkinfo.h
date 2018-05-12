@@ -79,7 +79,7 @@ private:
     T _ip_data;
 
     const std::string to_string(const struct in_addr& data){
-        char buffer[24];
+        char buffer[50];
         std::sprintf(buffer, NIPQUAD_FMT, NIPQUAD(data));
         std::string result(buffer);
 
@@ -87,7 +87,7 @@ private:
     }
 
     const std::string to_string(const struct in6_addr& data){
-        char buffer[24];
+        char buffer[50];
         std::sprintf(buffer, NIP6_FMT, NIP6(data));
         std::string result(buffer);
 
