@@ -74,15 +74,18 @@ int Sgp30::read_data(uint8_t* data, const int len, const uint16_t cmd, const int
     //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MSB: " + std::to_string(msb) + " LSB:" + std::to_string(lsb));
 
     I2CWrapper::lock();
-    I2CWrapper::I2CWriteReg8(m_fd, msb, lsb);
+    int status = I2CWrapper::I2CWriteReg8(m_fd, msb, lsb);
+    _stat_info.write(status);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
 
-    int res_len = I2CWrapper::I2CReadData(m_fd, msb, data, len);
+    status = I2CWrapper::I2CReadData(m_fd, msb, data, len);
+    _stat_info.read(status);
+
     I2CWrapper::unlock();
 
-    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Len: " + std::to_string(res_len));
-    return res_len;
+    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Len: " + std::to_string(status));
+    return status;
 }
 
 //
@@ -209,13 +212,15 @@ int Sgp30::write_data(uint8_t* data, const int len, const uint16_t cmd, const in
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MSB: " + std::to_string(msb) + " LSB:" + std::to_string(lsb));
 
     I2CWrapper::lock();
-    int res_len = I2CWrapper::I2CWriteData(m_fd, msb, data, len);
+    int status = I2CWrapper::I2CWriteData(m_fd, msb, data, len);
     I2CWrapper::unlock();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Data Len: " + std::to_string(res_len));
+    _stat_info.write(status);
 
-    return res_len;
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Data Len: " + std::to_string(status));
+
+    return status;
 }
 
 //Set humidity

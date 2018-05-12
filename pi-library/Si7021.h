@@ -7,11 +7,12 @@
  *  Created on: Feb 18, 2018
  *      Author: Denis Kudia
  */
-#include "item.h"
-#include "I2C.h"
-
 #ifndef PI_LIBRARY_SI7021_H
 #define PI_LIBRARY_SI7021_H
+
+#include "item.h"
+#include "I2C.h"
+#include "statistics.h"
 
 namespace pirobot {
 namespace item {
@@ -84,6 +85,8 @@ private:
     void firmware();
     //calculate absolute humidity
     float get_absolute_humidity(const float temperature, const float humidity);
+
+    pirobot::stat::Statistics _stat_info;
 
 public:    
     //Detect Measurement Resolution from User Register value

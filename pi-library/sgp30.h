@@ -35,7 +35,7 @@ struct Sdp30_measure {
     uint16_t uiTVOC;
 };
 
-class Sgp30 : public item::Item, public piutils::Threaded, pirobot::stat::Statistics {
+class Sgp30 : public item::Item, public piutils::Threaded {
 
 public:
     Sgp30(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i2c, const std::string& comment = "");
@@ -87,6 +87,9 @@ private:
 
     // Get feature set version
     void get_feature_set_version();
+
+    //statistics
+    pirobot::stat::Statistics _stat_info;
 
     // Read data 
     int read_data(uint8_t* data, const int len, const uint16_t cmd, const int delay);

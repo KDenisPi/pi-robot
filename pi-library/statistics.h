@@ -15,7 +15,8 @@ namespace stat{
 enum StatCode {
     READ_BYTES = 0,
     READ_ERRORS,
-    WRITE_BYTES,
+    READ_SUCCESS,
+    WRITE_SUCCESS,
     WRITE_ERRORS
 };
 
@@ -33,22 +34,21 @@ public:
     }
 
     //increment counter by index
-    inline const unsigned int inc(const unsigned int index){
+    inline const void inc(const unsigned int index){
         //TODO: Exception?
         if(index >= _max_size)
-            return 0;
+            return;
         
-        return ++_counters[index];
+        _counters[index] += 1;
     }
 
     //increment counter by index
-    inline const unsigned int add(const unsigned int index, const int value){
+    inline const void add(const unsigned int index, const int value){
         //TODO: Exception?
         if(index >= _max_size)
-            return 0;
+            return;
 
         _counters[index] += value;
-        return _counters[index];
     }
 
     //get counter value
@@ -73,11 +73,12 @@ public:
     //
     //Process some predefined statistic counters (read, write)
     //
-    inline void read(const int read_result){
-        if(read_result < 0)
-            inc(StatCode::READ_ERRORS);
-        else
-            add(StatCode::READ_BYTES, read_result);
+    inline void read(const int status){
+        inc((status < 0 ? StatCode::READ_ERRORS : StatCode::READ_SUCCESS));
+    }
+
+    inline void write(const int status){
+        inc((status < 0 ? StatCode::WRITE_ERRORS : StatCode::WRITE_SUCCESS));
     }
 
 private:

@@ -65,9 +65,12 @@ Si7021::~Si7021(){
 //Read user register value
 //
 uint8_t Si7021::get_user_reg(){
+
     I2CWrapper::lock();
     _user_reg = I2CWrapper::I2CReadReg8(m_fd, SI7021_READ_UR_1);
     I2CWrapper::unlock();
+
+    _stat_info.read(_user_reg);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Value: " + std::to_string(_user_reg));
     return _user_reg;
@@ -80,8 +83,10 @@ void Si7021::set_user_reg(const uint8_t value){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Value: " + std::to_string(_user_reg));
 
     I2CWrapper::lock();
-    I2CWrapper::I2CWriteReg8(m_fd, SI7021_WRITE_UR_1, value);
+    int status = I2CWrapper::I2CWriteReg8(m_fd, SI7021_WRITE_UR_1, value);
     I2CWrapper::unlock();
+
+    _stat_info.write(status);
 }
 
 //Reset
@@ -89,8 +94,10 @@ void Si7021::reset(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
 
     I2CWrapper::lock();
-    I2CWrapper::I2CWrite(m_fd, SI7021_RESET);
+    int status = I2CWrapper::I2CWrite(m_fd, SI7021_RESET);
     I2CWrapper::unlock();
+
+    _stat_info.write(status);
 
     //wait 15ms before use
     std::this_thread::sleep_for(std::chrono::milliseconds(15));
@@ -100,11 +107,17 @@ void Si7021::reset(){
 //Read firmware value
 //
 void Si7021::firmware(){
+
     I2CWrapper::lock();
-    I2CWrapper::I2CWriteReg8(m_fd, SI7021_READ_FIRMWARE_1, SI7021_READ_FIRMWARE_2);
+    int status = I2CWrapper::I2CWriteReg8(m_fd, SI7021_READ_FIRMWARE_1, SI7021_READ_FIRMWARE_2);
+    _stat_info.read(status);
+
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     uint8_t _firmware = I2CWrapper::I2CRead(m_fd);
     I2CWrapper::unlock();
+
+    _stat_info.read(_firmware);
+
     //possible values  0xFF - 1.0 , 0x20 - 2.0
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Firmaware version: " + (_firmware == 0xFF ? "1.0" : "2.0") + " RAW: " + std::to_string(_firmware));
 }
@@ -114,13 +127,13 @@ void Si7021::firmware(){
 // On/Off heater
 //
 void Si7021::set_heater(const bool enable){
+
     if( (enable && is_Heater_Enabled()) || (!enable && !is_Heater_Enabled()) ){
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Nothing to do : Current: " + std::to_string(is_Heater_Enabled()) + " New: " + std::to_string(enable));
     }
 
     uint8_t user_reg = (enable ? (_user_reg | SI7021_UR_HTRE ) : (user_reg & (~SI7021_UR_HTRE)));
     set_user_reg(user_reg);
-
     get_user_reg();//temporal solution
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " On-chip Heater: " + ( is_Heater_Enabled() ? "Disable" : "Enable"));
@@ -136,26 +149,31 @@ void Si7021::get_results(float& humidity, float& temperature, float& abs_humidit
     I2CWrapper::lock();
 
     // Measure Relative Humidity - send command
-    I2CWrapper::I2CWrite(m_fd, SI7021_MRH_NHMM);
+    int status = I2CWrapper::I2CWrite(m_fd, SI7021_MRH_NHMM);
 
+    _stat_info.write(status);
     //accordingly specification it takes us 12ms for MRH and 11ms for Temp = 30ms
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
 
     //read two bytes
     mrh[1] = I2CWrapper::I2CRead(m_fd);
     mrh[0] = I2CWrapper::I2CRead(m_fd);
-
     last_MRH = mrh[1]*256 + mrh[0];
 
     //TGemperature already measured durint MRH detecting - just read value
-    I2CWrapper::I2CWrite(m_fd, SI7021_RT_NHMM);
+    status = I2CWrapper::I2CWrite(m_fd, SI7021_RT_NHMM);
 
     temp[1] = I2CWrapper::I2CRead(m_fd);
     temp[0] = I2CWrapper::I2CRead(m_fd);
-
     last_Temp = temp[1]*256 + temp[0];
 
     I2CWrapper::unlock();
+
+    _stat_info.write(status);
+    _stat_info.read(mrh[0]);   
+    _stat_info.read(mrh[1]);
+    _stat_info.read(temp[0]);
+    _stat_info.read(temp[1]);
 
     //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MRH Full:" + std::to_string(last_MRH) +  " MS: " + std::to_string(mrh[1]) + " LS: " + std::to_string(mrh[0]));
     //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Temp Full:" + std::to_string(last_Temp) +  " MS: " + std::to_string(temp[1]) + " LS: " + std::to_string(temp[0]));
