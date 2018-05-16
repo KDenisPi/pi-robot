@@ -62,6 +62,8 @@ const uint8_t Tsl2561::get_timing(){
     _tsl2561IntegrationTime = get_integration_time();
     _tsl2561Gain = get_gain();
 
+    _stat_info.read(_timing);
+
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timing: Integration time: " + get_integration_time_name()+ " Gain: " + get_gain_name());
 
     return _timing;
@@ -73,11 +75,13 @@ void  Tsl2561::set_timing(const tsl2561IntegrationTime_t integ, const tsl2561Gai
     _timing = (gain << 4) | (manual << 3) | integ;
 
     I2CWrapper::lock();
-    I2CWrapper::I2CWriteReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_TIMING, _timing);
+    int status = I2CWrapper::I2CWriteReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_TIMING, _timing);
     I2CWrapper::unlock();
 
     _tsl2561IntegrationTime = get_integration_time();
     _tsl2561Gain = get_gain();
+
+    _stat_info.write(status);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timing: Integration time: " + get_integration_time_name()+ " Gain: " + get_gain_name());
 }
@@ -87,6 +91,8 @@ const uint8_t Tsl2561::get_id(){
     I2CWrapper::lock();
     uint8_t id = I2CWrapper::I2CReadReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_ID);
     I2CWrapper::unlock();
+
+    _stat_info.read(id);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ID: " + std::to_string(id) + " Part number: " + (((id >> 4)&0001) ? "TSL2561" : "TSL2560") + " Revision: " + std::to_string((id&0x0F)));
 
@@ -131,8 +137,10 @@ uint16_t Tsl2561::read16(const uint8_t reg){
     int rlen = I2CWrapper::I2CReadData(m_fd, TSL2561_COMMAND_BIT | TSL2561_BLOCK_BIT | reg, buff, 2);
     I2CWrapper::unlock();
 
+    _stat_info.read(rlen);
+
     result = buff[1];
-    return (result << 8) | buff[0]; 
+    return (result << 8) | buff[0];
 }
 
 //Calculate Lux from RAW values
@@ -249,9 +257,9 @@ uint32_t Tsl2561::calculateLux(uint16_t broadband, uint16_t ir)
 /*!
     @brief  Gets the broadband (mixed lighting) and IR only values from
             the TSL2561, adjusting gain if auto-gain is enabled
-    @param  broadband Pointer to a uint16_t we will fill with a sensor 
+    @param  broadband Pointer to a uint16_t we will fill with a sensor
                       reading from the IR+visible light diode.
-    @param  ir Pointer to a uint16_t we will fill with a sensor the 
+    @param  ir Pointer to a uint16_t we will fill with a sensor the
                IR-only light diode.
 */
 /**************************************************************************/
@@ -336,7 +344,7 @@ const bool Tsl2561::get_results(uint32_t& lux){
     lux = calculateLux(_data_vis_ir, _data_ir_only);
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Lux: " + std::to_string(lux));
 
-    return (lux < 65535); //if we have 65535 it seems value is overflow    
+    return (lux < 65535); //if we have 65535 it seems value is overflow
 }
 
 //Set Power On/Off

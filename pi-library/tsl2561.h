@@ -1,10 +1,10 @@
 /*
  * tsl2561.h
  * I2C Light-to-Digital Converter
- *  
- * 
- *  Note: This device can use three different addresses 0x29, 0x39 (default), 0x49 
- * 
+ *
+ *
+ *  Note: This device can use three different addresses 0x29, 0x39 (default), 0x49
+ *
  *  Created on: Mar 5, 2018
  *      Author: Denis Kudia
  */
@@ -14,6 +14,7 @@
 
 #include "item.h"
 #include "I2C.h"
+#include "statistics.h"
 
 namespace pirobot {
 namespace item {
@@ -28,7 +29,7 @@ namespace item {
 #define TSL2561_ADDR_HIGH         (0x49)    ///< Default address (pin pulled high)
 
 // Lux calculations differ slightly for CS package
-//#define TSL2561_PACKAGE_CS                ///< Chip scale package     
+//#define TSL2561_PACKAGE_CS                ///< Chip scale package
 #define TSL2561_PACKAGE_T_FN_CL             ///< Dual Flat No-Lead package
 
 #define TSL2561_COMMAND_BIT       (0x80)    ///< Must be 1
@@ -116,7 +117,7 @@ namespace item {
 #define TSL2561_DELAY_INTTIME_402MS   (450)   ///< Wait 450ms for 402ms integration
 
 /** TSL2561 I2C Registers */
-#define TSL2561_REGISTER_CONTROL           0x00 // Control/power register 
+#define TSL2561_REGISTER_CONTROL           0x00 // Control/power register
 #define TSL2561_REGISTER_TIMING            0x01 // Set integration time register
 #define TSL2561_REGISTER_THRESHHOLDL_LOW   0x02 // Interrupt low threshold low-byte
 #define TSL2561_REGISTER_THRESHHOLDL_HIGH  0x03 // Interrupt low threshold high-byte
@@ -156,7 +157,7 @@ enum tsl2561Manual_t {
 class Tsl2561 : public item::Item {
 
 public:
-    Tsl2561(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i2c, 
+    Tsl2561(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i2c,
         const uint8_t i2c_addr = s_i2c_addr, const std::string& comment = "");
 
     virtual ~Tsl2561();
@@ -171,7 +172,7 @@ public:
     void power_on(){
         set_power(true);
     }
-    
+
     //set power off
     void power_off(){
         set_power(false);
@@ -200,7 +201,7 @@ public:
             return "101ms";
         else if(integration_time == tsl2561IntegrationTime_t::TSL2561_INTEGRATIONTIME_402MS)
             return "402ms";
-        
+
         return "Manual";
     }
 
@@ -225,7 +226,7 @@ private:
 
     tsl2561IntegrationTime_t _tsl2561IntegrationTime;
     tsl2561Gain_t _tsl2561Gain;
-    bool _tsl2561AutoGain = true; 
+    bool _tsl2561AutoGain = true;
 
     uint16_t _data_vis_ir;
     uint16_t _data_ir_only;
@@ -241,6 +242,9 @@ private:
         const uint8_t gain = (_timing >> 4 ) & 0x01;
         return ((gain == tsl2561Gain_t::TSL2561_GAIN_1X) ? tsl2561Gain_t::TSL2561_GAIN_1X : tsl2561Gain_t::TSL2561_GAIN_16X);
     }
+
+    //statistics
+    pirobot::stat::Statistics _stat_info;
 
     //switch poser to ON/OFF
     void set_power(const bool on_off);
