@@ -44,12 +44,13 @@ public:
     inline const std::string name() const {return m_name;}
     inline const bool is_event(const std::string ename) const {return (this->name().compare(ename) == 0);}
     inline const struct EventData& data() const {return m_data;}
-    
+    inline const std::string to_string() const {return name() + " ID: " + id_str();}
+
 private:
        EVENT_TYPE m_type;
        int m_id;
        std::string m_name;
-public:       
+public:
        struct EventData m_data;
 };
 
