@@ -7,7 +7,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
-#include <mcp23x0817.h>
+#include <bitset>
 
 #include "I2CWrapper.h"
 #include "GpioProviderMCP23017.h"
@@ -21,185 +21,141 @@ const char TAG[] = "MCP23017";
 const int GpioProviderMCP23017::s_pins = 16;
 const uint8_t GpioProviderMCP23017::s_i2c_addr = 0x20;
 
-
-GpioProviderMCP23017::GpioProviderMCP23017(const std::string& name, std::shared_ptr<pirobot::i2c::I2C> i2c, const uint8_t i2c_addr, const int pins) :
-          GpioProvider(name, pins), _i2caddr(i2c_addr), m_OLATA(0), m_OLATB(0), m_fd(-1)
+//
+//
+//
+GpioProviderMCP230xx::GpioProviderMCP230xx(const std::string& name, std::shared_ptr<pirobot::i2c::I2C> i2c, const uint8_t i2c_addr, const int pins) :
+  GpioProvider(name, pins), _i2caddr(i2c_addr), m_fd(-1)
 {
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
-    int current_mode = 0;
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
 
-    //register I2C user
-    i2c->add_user(name, _i2caddr);
-
-    I2CWrapper::lock();
-
-    m_fd = I2CWrapper::I2CSetup(_i2caddr);
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Descr: " + std::to_string(m_fd));
-
-    I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IOCON, 0x3A);
-    I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IOCONB, 0x3A);
-
-    I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IODIRA, 0x00);
-    I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IODIRB, 0x00);
-
-    m_OLATA = I2CWrapper::I2CReadReg8 (m_fd, MCP23x17_GPIOA);
-    m_OLATB = I2CWrapper::I2CReadReg8 (m_fd, MCP23x17_GPIOB);
-
-    I2CWrapper::unlock();
-
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ---> OLATA: " + std::to_string(m_OLATA));
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ---> OLATB: " + std::to_string(m_OLATB));
+  //register I2C user
+  i2c->add_user(name, _i2caddr);
 }
 
-GpioProviderMCP23017::~GpioProviderMCP23017() {
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started " + to_string());
-
+//
+//
+//
+GpioProviderMCP230xx::~GpioProviderMCP230xx() {
+  if(m_fd != -1){
     I2CWrapper::lock();
-    if(m_fd != -1){
-          close(m_fd);
-    }
+    close(m_fd);
+    m_fd = -1;
     I2CWrapper::unlock();
+  }
 }
 
 /*
  *
  */
-const int GpioProviderMCP23017::dgtRead(const int pin){
-    int mask, value, gpio ;
-    int rpin = getRealPin(pin);
-    if (rpin < 8){          // Bank A
-      gpio  = MCP23x17_GPIOA ;
-      mask  = 1 << rpin ;
-    }
-    else
-    {
-      gpio  = MCP23x17_GPIOB ;
-      mask = 1 << (rpin & 0x07) ;
-    }
+const int GpioProviderMCP230xx::dgtRead(const int pin){
+    int mask = (1 << (pin & 0x07));
+    int gpio = get_GPIO_addr(pin);
+
     I2CWrapper::lock();
-    value = I2CWrapper::I2CReadReg8 (m_fd, gpio) ;
+    int value = I2CWrapper::I2CReadReg8 (m_fd, gpio) ;
     I2CWrapper::unlock();
-/*    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pin: " + std::to_string(rpin) +
-       " Reg: " + std::to_string(gpio) + " Value: " + std::to_string(value)); 
-*/    if ((value & mask) == 0)
-      return SGN_LEVEL::SGN_LOW ;
-    else
-      return SGN_LEVEL::SGN_HIGH ;
+
+    return ((value & mask) == 0 ? SGN_LEVEL::SGN_LOW : SGN_LEVEL::SGN_HIGH);
 }
 
 /*
  *
  */
-void GpioProviderMCP23017::dgtWrite(const int pin, const int value){
-    int bit, current_mode ;
-    int rpin = getRealPin(pin);     // Pin now 0-15
-    /*
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pin: " + std::to_string(pin) + 
-            " Real: " + std::to_string(rpin) + " Value: " + std::to_string(value));
-    */
-    bit = 1 << (rpin & 0x07) ;
-    if(rpin < 8)               // Bank A
-    {
-      current_mode = m_OLATA;
-      if(value == SGN_LEVEL::SGN_LOW)
-           current_mode &= (~bit) ;
-      else
-           current_mode |=   bit ;
+void GpioProviderMCP230xx::dgtWrite(const int pin, const int value){
+  int mask = (1 << (pin & 0x07));
+  int current_mode = get_OLAT(pin);
+  int gpio = get_GPIO_addr(pin);
 
-      I2CWrapper::lock();
-      I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_GPIOA, current_mode);
-      I2CWrapper::unlock();
-      m_OLATA = current_mode ;
-    }
-    else                    // Bank B
-    {
-      current_mode = m_OLATB;
-      if(value == SGN_LEVEL::SGN_LOW)
-         current_mode &= (~bit) ;
-      else
-         current_mode |=   bit ;
+  I2CWrapper::lock();
+  I2CWrapper::I2CWriteReg8(m_fd, gpio, current_mode);
+  I2CWrapper::unlock();
 
-      I2CWrapper::lock();
-      I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_GPIOB, current_mode);
-      I2CWrapper::unlock();
-      m_OLATB = current_mode ;
-    }
-/*
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OLATA: " + std::to_string(m_OLATA) +
-                     " OLATB: " = std::to_string(m_OLATB) );
-*/
+  set_OLAT(pin, current_mode);
 }
 /*
 *
 */
-void GpioProviderMCP23017::setmode(const int pin, const gpio::GPIO_MODE mode){
-    int reg_addr, mask, current_mode, new_mode;
-    int rpin = getRealPin(pin);
+void GpioProviderMCP230xx::setmode(const int pin, const gpio::GPIO_MODE mode){
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pin: " + std::to_string(pin) + " Mode: " + std::to_string(mode));
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pin: " + std::to_string(pin) +
-              " Real: " + std::to_string(rpin) + " Mode: " + std::to_string(mode));
+  int reg_addr = get_IODIR_addr(pin);
+  int mask = (1 << (pin & 0x07));
 
-    if (rpin < 8)          // Bank A
-         reg_addr  = MCP23x17_IODIRA ;
-    else
-    {
-         reg_addr  = MCP23x17_IODIRB ;
-         rpin &= 0x07 ;
-    }
-    mask = 1 << rpin ;
+  I2CWrapper::lock();
 
-    I2CWrapper::lock();
-    current_mode  = I2CWrapper::I2CReadReg8(m_fd, reg_addr);
-    //I2CWrapper::unlock();
+  int current_mode  = I2CWrapper::I2CReadReg8(m_fd, reg_addr);
+  if (mode == GPIO_MODE::OUT)
+    current_mode &= (~mask);
+  else
+    current_mode |= mask;
 
-    new_mode = current_mode;
-    if (mode == GPIO_MODE::OUT)
-         new_mode &= (~mask) ;
-    else
-         new_mode |=   mask ;
+  I2CWrapper::I2CWriteReg8 (m_fd, reg_addr, current_mode) ;
+  I2CWrapper::unlock();
 
-    //I2CWrapper::lock();
-    I2CWrapper::I2CWriteReg8 (m_fd, reg_addr, new_mode) ;
-    I2CWrapper::unlock();
-
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Mode curr: " + std::to_string(current_mode) +
-         " New mode: " + std::to_string(new_mode)); 
+  std::bitset<8> bmode(current_mode);
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Mode curr: " + std::to_string(current_mode) +
+        " Bit mask: " + bmode.to_string());
 }
 /*
  *
  */
-void GpioProviderMCP23017::pullUpDownControl(const int pin, const gpio::PULL_MODE pumode){
+void GpioProviderMCP230xx::pullUpDownControl(const int pin, const gpio::PULL_MODE pumode){
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" Pin: ") + std::to_string(pin) + " UP mode: " + std::to_string(pumode));
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" for pin: ") +
-              std::to_string(pin) + " UP mode: " + std::to_string(pumode));
+  int reg_addr = get_GPPU_addr(pin);
+  int mask = (1 << (pin & 0x07));
 
-    int mask, current_mode, reg_addr, new_mode;
-    int rpin = getRealPin(pin);
-    if (rpin < 8)          // Bank A
-         reg_addr  = MCP23x17_GPPUA ;
-    else
-    {
-         reg_addr  = MCP23x17_GPPUB ;
-        rpin &= 0x07 ;
-    }
-    mask = 1 << rpin;
+  I2CWrapper::lock();
+  int current_mode  = I2CWrapper::I2CReadReg8 (m_fd, reg_addr);
 
-    I2CWrapper::lock();
-    current_mode  = I2CWrapper::I2CReadReg8 (m_fd, reg_addr);
-    //I2CWrapper::unlock();
+  if (pumode == PULL_MODE::PULL_UP)
+    current_mode |= mask ;
+  else
+    current_mode &= (~mask);
 
-    new_mode = current_mode;
-    if (pumode == PULL_MODE::PULL_UP)
-      new_mode |=   mask ;
-    else
-      new_mode &= (~mask) ;
+  I2CWrapper::I2CWriteReg8 (m_fd, reg_addr, current_mode);
+  I2CWrapper::unlock();
 
-    //I2CWrapper::lock();
-    I2CWrapper::I2CWriteReg8 (m_fd, reg_addr, new_mode) ;
-    I2CWrapper::unlock();
+  std::bitset<8> bmode(current_mode);
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Mode curr: " + std::to_string(current_mode) +
+        " Bit mask: " + bmode.to_string());
+}
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Mode curr: " + std::to_string(current_mode) +
-               " New mode: " + std::to_string(new_mode));
+//
+//
+//
+GpioProviderMCP23017::GpioProviderMCP23017(const std::string& name, std::shared_ptr<pirobot::i2c::I2C> i2c, const uint8_t i2c_addr, const int pins) :
+  GpioProviderMCP230xx(name, i2c, i2c_addr, pins), m_OLATA(0), m_OLATB(0)
+{
+  //
+  // Confifure device and set initial values
+  //
+
+  I2CWrapper::lock();
+  m_fd = I2CWrapper::I2CSetup(_i2caddr);
+
+  I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IOCON, 0x3A);
+  I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IOCONB, 0x3A);
+
+  I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IODIRA, 0x00);
+  I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IODIRB, 0x00);
+
+  m_OLATA = I2CWrapper::I2CReadReg8 (m_fd, MCP23x17_GPIOA);
+  m_OLATB = I2CWrapper::I2CReadReg8 (m_fd, MCP23x17_GPIOB);
+
+  I2CWrapper::unlock();
+
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Descr: " + std::to_string(m_fd));
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ---> OLATA: " + std::to_string(m_OLATA));
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ---> OLATB: " + std::to_string(m_OLATB));
+}
+
+//
+//
+//
+GpioProviderMCP23017::~GpioProviderMCP23017() {
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started " + this->to_string());
 }
 
 } /* namespace gpio */

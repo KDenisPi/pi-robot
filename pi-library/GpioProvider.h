@@ -38,14 +38,14 @@ enum GPIO_PROVIDER_TYPE {
         PROV_FAKE,     //Fake provider for test purpose only
         PROV_SIMPLE,   // Rasberry Pi
         PROV_PCA9685,  // PCA 9685
-        PROV_MCP23017   // MCP 2317
+        PROV_MCP23017, // MCP 23017
+        PROV_MCP23008  // MCP 23008
 };
 
 class GpioProvider : public pirobot::provider::Provider {
 public:
 	GpioProvider(const std::string& name, const int pin_count = 0, const std::string comment = "") :
-		Provider(pirobot::provider::PROVIDER_TYPE::PROV_GPIO, name, comment),
-		m_pstart(0), m_pcount(pin_count)
+		Provider(pirobot::provider::PROVIDER_TYPE::PROV_GPIO, name, comment), m_pcount(pin_count)
 	{}
 
 	virtual ~GpioProvider() {}
@@ -63,13 +63,8 @@ public:
 	 *
 	 */
 	bool is_valid_pin(int pin) const {
-		assert(pin >= m_pstart);
 		assert(pin < m_pcount);
-
-		if((pin >= m_pstart) && (pin < (m_pstart+m_pcount)))
-			return true;
-
-		return false;
+		return (pin < m_pcount);
 	}
 
 	virtual const std::string to_string() = 0;
@@ -82,12 +77,9 @@ public:
 
 
 private:
-	int m_pstart; //number of the first GPIO pin assigned for this provider. Real pin number (pin - pstart)
 	int m_pcount;
-
 };
 
-
-}
-}
+} //namespace gpio
+} //namespace pirobot
 #endif /* PI_LIBRARY_GPIOPROVIDER_H_ */
