@@ -1,6 +1,6 @@
 /*
  * StMeasurement.cpp
- * 
+ *
  *  Created on: March 18, 2018
  *      Author: Denis Kudia
  */
@@ -60,16 +60,7 @@ bool StMeasurement::OnTimer(const int id){
     switch(id){
         case TIMER_FINISH_ROBOT:
         {
-            TIMER_CANCEL(TIMER_UPDATE_INTERVAL);
-
-            auto context = get_env<weather::Context>();
-            //Stop SGP30 and save current values
-            auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
-            sgp30->stop();
-
-            sgp30->get_baseline(context->spg30_base_co2, context->spg30_base_tvoc);
-            std::string data_file = "./initial.json";
-            context->save_initial_data(data_file);
+            finish();
 
             get_itf()->finish();
             return true;
@@ -88,8 +79,23 @@ bool StMeasurement::OnTimer(const int id){
 }
 
 bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEvent: " + event->to_string());
 
     return false;
+}
+
+//stop measurement and save current state
+void StMeasurement::finish(){
+            TIMER_CANCEL(TIMER_UPDATE_INTERVAL);
+
+            auto context = get_env<weather::Context>();
+            //Stop SGP30 and save current values
+            auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
+            sgp30->stop();
+
+            sgp30->get_baseline(context->spg30_base_co2, context->spg30_base_tvoc);
+            std::string data_file = "./initial.json";
+            context->save_initial_data(data_file);
 }
 
 }//namespace weather

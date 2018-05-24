@@ -8,55 +8,51 @@
 #ifndef PI_LIBRARY_GPIOPROVIDERMCP23017_H_
 #define PI_LIBRARY_GPIOPROVIDERMCP23017_H_
 
-#include <memory>
-
-#include <mcp23x0817.h>
-
-#include "I2C.h"
-#include "GpioProvider.h"
+#include "logger.h"
+#include "I2CWrapper.h"
+#include "GpioProviderMCP230xx.h"
 
 namespace pirobot {
 namespace gpio {
-
-class GpioProviderMCP230xx: public GpioProvider{
-public:
-    GpioProviderMCP230xx(const std::string& name, std::shared_ptr<pirobot::i2c::I2C> i2c, const uint8_t i2c_addr, const int pins);
-    virtual ~GpioProviderMCP230xx();
-
-    virtual const int dgtRead(const int pin) override;
-    virtual void dgtWrite(const int pin, const int value) override;
-    virtual void setmode(const int pin, const gpio::GPIO_MODE mode) override;
-    virtual void pullUpDownControl(const int pin, const gpio::PULL_MODE pumode) override;
-
-    virtual const std::string printConfig() override {
-        return to_string() + "\n";
-    }
-
-private:
-    //Get address for GPIO register
-    virtual const uint8_t get_GPIO_addr(const int pin) = 0;
-    //Get address IODIR (IO direction) register
-    virtual const uint8_t get_IODIR_addr(const int pin) = 0;
-    //Get address GPPU (Pull-Up) register
-    virtual const uint8_t get_GPPU_addr(const int pin) = 0;
-
-    //Get current value for register data
-    virtual unsigned int get_OLAT(const int pin) = 0;
-    //Save current value register data
-    virtual void set_OLAT(const int pin, const unsigned int value) = 0;
-
-protected:
-    uint8_t _i2caddr;
-    int m_fd;
-};
 
 //
 //Class for MCP23017 (I2C GPIO extender with 16 pins)
 //
 class GpioProviderMCP23017: public GpioProviderMCP230xx {
 public:
-    GpioProviderMCP23017(const std::string& name, std::shared_ptr<pirobot::i2c::I2C> i2c, const uint8_t i2c_addr = s_i2c_addr, const int pins = s_pins);
-    virtual ~GpioProviderMCP23017();
+    GpioProviderMCP23017(const std::string& name, std::shared_ptr<pirobot::i2c::I2C> i2c, const uint8_t i2c_addr = s_i2c_addr, const int pins = s_pins):
+        GpioProviderMCP230xx(name, i2c, i2c_addr, pins), m_OLATA(0), m_OLATB(0)
+    {
+        //
+        // Confifure device and set initial values
+        //
+
+        I2CWrapper::lock();
+        m_fd = I2CWrapper::I2CSetup(_i2caddr);
+
+        I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IOCON, 0x3A);
+        I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IOCONB, 0x3A);
+
+        I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IODIRA, 0x00);
+        I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IODIRB, 0x00);
+
+        m_OLATA = I2CWrapper::I2CReadReg8 (m_fd, MCP23x17_GPIOA);
+        m_OLATB = I2CWrapper::I2CReadReg8 (m_fd, MCP23x17_GPIOB);
+
+        I2CWrapper::unlock();
+
+        logger::log(logger::LLOG::DEBUG, "MCP23017", std::string(__func__) + " Descr: " + std::to_string(m_fd));
+        logger::log(logger::LLOG::DEBUG, "MCP23017", std::string(__func__) + " ---> OLATA: " + std::to_string(m_OLATA));
+        logger::log(logger::LLOG::DEBUG, "MCP23017", std::string(__func__) + " ---> OLATB: " + std::to_string(m_OLATB));
+    }
+
+    //
+    //
+    //
+    virtual ~GpioProviderMCP23017() {
+        logger::log(logger::LLOG::DEBUG, "MCP23017", std::string(__func__) + " Started " + this->to_string());
+    }
+
 
     /*
     *
@@ -91,7 +87,7 @@ private:
         return (pin < 8 ? m_OLATA : m_OLATB);
     }
     //Save current value register data
-    virtual void set_OLAT(const int pin, const unsigned int value){
+    virtual void set_OLAT(const unsigned int value, const int pin){
         if(pin < 8) m_OLATA = value;
          else m_OLATB = value;
     }
@@ -99,6 +95,9 @@ private:
     unsigned int m_OLATA;
     unsigned int m_OLATB;
 };
+
+const int GpioProviderMCP23017::s_pins = 16;
+const uint8_t GpioProviderMCP23017::s_i2c_addr = 0x20;
 
 } /* namespace gpio */
 } /* namespace pirobot */

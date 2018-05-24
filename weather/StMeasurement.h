@@ -1,6 +1,6 @@
 /*
  * StMeasurement.h
- * 
+ *
  *  Created on: March 18, 2018
  *      Author: Denis Kudia
  */
@@ -23,6 +23,8 @@ public:
 
     //take measurement from all sensors
     void measure();
+    //stop measurement and save current state
+    void finish();
 
 };
 
