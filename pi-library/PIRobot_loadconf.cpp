@@ -32,6 +32,7 @@
 #include "sgp30.h"
 #include "bmp280.h"
 #include "tsl2561.h"
+#include "lcd.h"
 
 namespace pirobot {
 const char TAG[] = "PiRobot";
@@ -412,6 +413,41 @@ bool PiRobot::configure(const std::string& cfile){
                                     get_gpio(gpio_phase_2_name),
                                     get_gpio(gpio_phase_3_name),
                                     item_name, item_comment, direction)));
+                    }
+                    break;
+
+                    case item::ItemTypes::LCD:
+                    {
+                            /*
+
+                            */
+                            std::string gpio_rs_name = f_get_gpio_name(json_item, "gpio_rs", item_name);
+                            std::string gpio_enable_name = f_get_gpio_name(json_item, "gpio_enable", item_name);
+
+                            std::string gpio_data_4_name = f_get_gpio_name(json_item, "gpio_data_4", item_name);
+                            std::string gpio_data_5_name = f_get_gpio_name(json_item, "gpio_data_5", item_name);
+                            std::string gpio_data_6_name = f_get_gpio_name(json_item, "gpio_data_6", item_name);
+                            std::string gpio_data_7_name = f_get_gpio_name(json_item, "gpio_data_7", item_name);
+
+                            std::string gpio_backlite_name = f_get_gpio_name(json_item, "gpio_backlite", item_name);
+
+                            auto lines  =  jsonhelper::get_attr<int>(json_item, "lines", 1);
+                            auto bitmode  =  jsonhelper::get_attr<int>(json_item, "bitmode", 4);
+                            auto dots  =  jsonhelper::get_attr<int>(json_item, "dots", 8);
+
+                            if(bitmode == 4){
+                                items_add(item_name,
+                                    std::shared_ptr<pirobot::item::Item>(new pirobot::item::lcd::Lcd(
+                                        get_gpio(gpio_rs_name),
+                                        get_gpio(gpio_enable_name),
+                                        get_gpio(gpio_data_4_name),
+                                        get_gpio(gpio_data_5_name),
+                                        get_gpio(gpio_data_6_name),
+                                        get_gpio(gpio_data_7_name),
+                                        get_gpio(gpio_backlite_name),
+                                        item_name, item_comment, 
+                                        lines, bitmode, dots)));
+                            }
                     }
                     break;
 

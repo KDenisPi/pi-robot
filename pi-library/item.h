@@ -35,6 +35,7 @@ enum ItemTypes{
     SGP30,
     BMP280,
     TSL2561,
+    LCD,
     LAST_ITEM
 };
 
@@ -88,20 +89,20 @@ public:
         ): Item(name, comment, itype)
     {
         m_gpio = gpio;
-    };
+    }
 
-    virtual ~Item() {};
+    virtual ~Item() {}
 
     //Item initialization function
-    virtual bool initialize() {return true;};
+    virtual bool initialize() {return true;}
     //Item stop  function
-    virtual void stop() {};
+    virtual void stop() {}
     //activate debug functionality for the item
-    virtual void activate_debug() {};
+    virtual void activate_debug() {}
 
     // Parameters: 
     // dest_type - type of destination. "file" will be supported only by now
-    virtual void unload_debug_data(const std::string& dest_type, const std::string& destination) {};
+    virtual void unload_debug_data(const std::string& dest_type, const std::string& destination) {}
     inline bool const is_debug() const {return m_debug;}
 
     inline void set_name(const std::string& name) {m_name = name;}

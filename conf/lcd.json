@@ -1,0 +1,37 @@
+{
+	"version" : "1.0",
+    "real_world" : true,
+    
+    "providers": [
+        {"type": "MCP23008", "name": "MCP23008_1", "i2c_addr" : 34}
+    ],
+
+    "gpios": [
+        {"name": "lcd_rs", "provider": "MCP23008_1", "pin": 1, "mode": "OUT"},
+        {"name": "lcd_enable", "provider": "MCP23008_1", "pin": 2, "mode": "OUT"},
+
+        {"name": "lcd_data_4", "provider": "MCP23008_1", "pin": 3, "mode": "OUT"},
+        {"name": "lcd_data_5", "provider": "MCP23008_1", "pin": 4, "mode": "OUT"},
+        {"name": "lcd_data_6", "provider": "MCP23008_1", "pin": 5, "mode": "OUT"},
+        {"name": "lcd_data_7", "provider": "MCP23008_1", "pin": 6, "mode": "OUT"},
+        {"name": "lcd_backlite", "provider": "MCP23008_1", "pin": 7, "mode": "OUT"}
+    ],
+
+    "items":[
+        {
+            "type":"LCD",
+            "name":"Lcd",
+            "comment":"",
+            "gpio_rs": {"name": "lcd_rs"},
+            "gpio_enable": {"name": "lcd_enable"},
+            "gpio_data_4": {"name": "lcd_data_4"},
+            "gpio_data_5": {"name": "lcd_data_5"},
+            "gpio_data_6": {"name": "lcd_data_6"},
+            "gpio_data_7": {"name": "lcd_data_7"},
+            "gpio_backlite": {"name": "lcd_backlite"},
+            "lines": 1,
+            "bitmode": 4,
+            "dots": 8
+        }
+    ]    
+}

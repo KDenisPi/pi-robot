@@ -34,6 +34,7 @@
         {"type": "FAKE", "name": "FAKE", "pins": 16}, 
         {"type": "PWM", "name": "AdafruitPWM", "i2c_addr" : 64},//0x40
         {"type": "MCP23017", "name": "MCP23017_1", "i2c_addr" : 32}, //0x20 
+        {"type": "MCP23008", "name": "MCP23008_1", "i2c_addr" : 34}, //0x22 
         {"type": "PCA9685", "name":"PCA9685", "pwm": "AdafruitPWM", "frequency": 60.0},  
 
         {"type": "SPI", "channels": 1, "speed_1": 1000000, "speed_2": 500000, "mode_1": 0, "mode_2": 0}
@@ -207,6 +208,28 @@
             "name": "item_name",
             "i2c_addr": 57, //0x29 (41), 0x39 (57) (default), 0x49 (73)
             "comment": "" //optional
+        },
+        //
+        // LCD (LCD_)
+        //
+        {
+            "type":"LCD", 
+            "name":"item_name", 
+            "comment": "",
+            "gpio_rs": {"provider": "provider_name", "pin": 0},
+            "gpio_enable": {"provider": "provider_name", "pin": 0},
+            "gpio_data_0": {"provider": "provider_name", "pin": 0},
+            "gpio_data_1": {"provider": "provider_name", "pin": 0},
+            "gpio_data_2": {"provider": "provider_name", "pin": 0},
+            "gpio_data_3": {"provider": "provider_name", "pin": 0},
+            "gpio_data_4": {"provider": "provider_name", "pin": 0},
+            "gpio_data_5": {"provider": "provider_name", "pin": 0},
+            "gpio_data_6": {"provider": "provider_name", "pin": 0},
+            "gpio_data_7": {"provider": "provider_name", "pin": 0},
+            "gpio_backlite": {"provider": "provider_name", "pin": 0},
+            "lines": 1, //possible values 1,2
+            "bitmode": 4, //possible values 4/8
+            "dots": 8, //possible values 8 - 5x8, 10 - 5x10
         }
     ]
 }
