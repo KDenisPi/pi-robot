@@ -75,7 +75,6 @@ public:
 	virtual void pullUpDownControl(const int pin, const gpio::PULL_MODE pumode) {};
 	virtual void setPulse(const int pin, const uint16_t pulselen) {};
 
-
 private:
 	int m_pcount;
 };

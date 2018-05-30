@@ -8,6 +8,8 @@
 #ifndef PI_LIBRARY_LCD_H_
 #define PI_LIBRARY_LCD_H_
 
+#include <thread>
+
 #include "item.h"
 
 namespace pirobot {
@@ -67,19 +69,19 @@ public:
         const uint8_t lines = LCD_2LINE,
         const uint8_t bitmode = LCD_4BITMODE,
         const uint8_t dots = LCD_5x8DOTS
-    ) : Item(name, comment, ItemTypes::LCD), 
-        m_gpio_rs(rs), 
-        m_gpio_rw(nullptr), 
+    ) : Item(name, comment, ItemTypes::LCD),
+        m_gpio_rs(rs),
+        m_gpio_rw(nullptr),
         m_gpio_enable(enb),
-        m_gpio_data_4(data_4),
-        m_gpio_data_5(data_5),
-        m_gpio_data_6(data_6),
-        m_gpio_data_7(data_7),
         m_gpio_backlite(backlite),
         _lines( lines==1 ? LCD_2LINE : LCD_1LINE),
         _bitmode(bitmode==4 ? LCD_4BITMODE : LCD_8BITMODE),
         _dots(dots==8 ? LCD_5x8DOTS : LCD_5x10DOTS)
     {
+        m_gpio_data[4] = data_4;
+        m_gpio_data[5] = data_5;
+        m_gpio_data[6] = data_6;
+        m_gpio_data[7] = data_7;
 
     }
 
@@ -114,21 +116,140 @@ public:
 
         _displayfunction = _lines | _dots | _bitmode;
 
-        //switch to command mode 
-        m_gpio_rs->Low();
+        // SEE PAGE 45/46 FOR INITIALIZATION SPECIFICATION!
+        // according to datasheet, we need at least 40ms after power rises above 2.7V
+        // before sending commands. Arduino can turn on way befer 4.5V so we'll wait 50
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
+        //switch to command mode
+        m_gpio_rs->Low();
         m_gpio_enable->Low();
         if(m_gpio_rw){
             m_gpio_rw->Low();
         }
 
-        // SEE PAGE 45/46 FOR INITIALIZATION SPECIFICATION!
-        // according to datasheet, we need at least 40ms after power rises above 2.7V
-        // before sending commands. Arduino can turn on way befer 4.5V so we'll wait 50
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        
+        //use 4-bit mode
+        if(_bitmode == LCD_4BITMODE){
+            write4bits(0x03); //0011 - command set + 8-bit
+            std::this_thread::sleep_for(std::chrono::microseconds(4500));
+
+            write4bits(0x03); //0011 - command set + 8-bit
+            std::this_thread::sleep_for(std::chrono::microseconds(4500));
+
+            write4bits(0x03); //0011 - command set + 8-bit
+            std::this_thread::sleep_for(std::chrono::microseconds(150));
+
+            write4bits(0x02); //0010 - command set + 4-bit
+        }
+        else{
+            write8bits(LCD_FUNCTIONSET | _displayfunction);
+            std::this_thread::sleep_for(std::chrono::microseconds(4500));
+
+            write8bits(LCD_FUNCTIONSET | _displayfunction);
+            std::this_thread::sleep_for(std::chrono::microseconds(4500));
+
+            write8bits(LCD_FUNCTIONSET | _displayfunction);
+            std::this_thread::sleep_for(std::chrono::microseconds(150));
+        }
+
+        command(LCD_FUNCTIONSET | _displayfunction);
     }
-   
+
+private:
+
+    void command(const uint4_t cmd){
+        m_gpio_rs->Low(); //set 0 - command
+        if(_bitmode == LCD_4BITMODE){
+            write4bits(cmd >> 4);
+            write4bits(cmd&0x0F);
+        }
+        else
+            write8bits(cmd);
+    }
+    //
+    //Pulse enable bit
+    //
+    void pulse_enable(){
+        m_gpio_enable->Low();
+        std::this_thread::sleep_for(std::chrono::microseconds(1));
+        m_gpio_enable->High();
+        std::this_thread::sleep_for(std::chrono::microseconds(1));
+        m_gpio_enable->Low();
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
+    }
+
+    //
+    //Write 4-bits
+    //
+    void write4bits(const uint8_t value){
+
+        //
+        //I2C based providers
+        //It will not work if we have more than one provider here
+        //
+        //TODO: Check providers and switch to pin based provider then
+        //
+        if(m_gpio_data[7]->get_provider_type() == pirobot::gpio::GPIO_PROVIDER_TYPE::PROV_MCP23017 ||
+            m_gpio_data[7]->get_provider_type() == pirobot::gpio::GPIO_PROVIDER_TYPE::PROV_MCP23008){
+
+            auto provider = std::static_pointer_cast<pirobot::gpio::GpioProviderMCP230xx>(m_gpio_data[7]->get_provider());
+            uint8_t cur_value = provider->dgtRead8(m_gpio_data[7]->getPin());
+
+            for(int i=0; i<4; i++){
+                int pin = m_gpio_data[i+4]->getPin();
+                uint8_t mask = (1 << pin); //we use GPIOs 4-7 here
+                cur_value &= ~mask; //clear current value for bit
+                cur_value |= ((value >> i) & 0x1) << pin; //set value
+            }
+
+            provider->dgtWrite8(cur_value, m_gpio_data[7]->getPin());
+            //pulse enable pin
+            pulse_enable();
+
+        }
+        else{
+            //
+            //If we connected to the separate pins
+            //
+            for(int i=0; i<4; i++){
+                if((value >> i) & 0x1) m_gpio_data[i]->High();
+                    else m_gpio_data[i]->Low();
+            }
+            //pulse enable pin
+            pulse_enable();
+        }
+    }
+
+    //
+    //Write 8-bits
+    //
+    void write8bits(const uint8_t value){
+        //
+        //I2C based providers
+        //It will not work if we have more than one provider here
+        //
+        //TODO: Check providers and switch to pin based provider then
+        //
+        if(m_gpio_data[7]->get_provider_type() == pirobot::gpio::GPIO_PROVIDER_TYPE::PROV_MCP23017 ||
+            m_gpio_data[7]->get_provider_type() == pirobot::gpio::GPIO_PROVIDER_TYPE::PROV_MCP23008){
+
+            auto provider = std::static_pointer_cast<pirobot::gpio::GpioProviderMCP230xx>(m_gpio_data[7]->get_provider());
+            provider->dgtWrite8(value, m_gpio_data[7]->getPin());
+            //pulse enable pin
+            pulse_enable();
+        }
+        else{
+            //
+            //If we connected to the separate pins
+            //
+            for(int i=0; i<8; i++){
+                if((value >> i) & 0x1) m_gpio_data[i]->High();
+                    else m_gpio_data[i]->Low();
+            }
+            //pulse enable pin
+            pulse_enable();
+        }
+    }
 
 private:
     uint8_t _lines;
@@ -143,14 +264,7 @@ private:
 
     std::shared_ptr<pirobot::gpio::Gpio> m_gpio_backlite; //if we use Ardafuit module we have special backlite control pin
 
-    std::shared_ptr<pirobot::gpio::Gpio> m_gpio_data_0;
-    std::shared_ptr<pirobot::gpio::Gpio> m_gpio_data_1;
-    std::shared_ptr<pirobot::gpio::Gpio> m_gpio_data_2;
-    std::shared_ptr<pirobot::gpio::Gpio> m_gpio_data_3;
-    std::shared_ptr<pirobot::gpio::Gpio> m_gpio_data_4;
-    std::shared_ptr<pirobot::gpio::Gpio> m_gpio_data_5;
-    std::shared_ptr<pirobot::gpio::Gpio> m_gpio_data_6;
-    std::shared_ptr<pirobot::gpio::Gpio> m_gpio_data_7;
+    std::shared_ptr<pirobot::gpio::Gpio> m_gpio_data[8];
 };
 
 }//namespace lcd

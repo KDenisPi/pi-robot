@@ -38,10 +38,11 @@ class Gpio
     const std::string to_string();
 
     const GPIO_PROVIDER_TYPE get_provider_type() const { return m_prov->get_type(); }
+    const std::shared_ptr<gpio::GpioProvider> get_provider() {return m_prov;}
 
   /*
-  * Change GPIO state 
-  */  
+  * Change GPIO state
+  */
     inline void High() { set_level(gpio::SGN_LEVEL::SGN_HIGH);}
     inline void Low() { set_level(gpio::SGN_LEVEL::SGN_LOW);}
   /*
