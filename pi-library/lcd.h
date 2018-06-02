@@ -152,13 +152,56 @@ public:
             std::this_thread::sleep_for(std::chrono::microseconds(150));
         }
 
-        command(LCD_FUNCTIONSET | _displayfunction);
+        command(_displayfunction);
     }
+
+    //
+    //Display contril commands
+    //
+
+    //Display On
+    void diplay_on(){
+        _displaycontrol |= LCD_DISPLAYON;
+        command(LCD_FUNCTIONSET | _displaycontrol);
+    }
+
+    //Display Off
+    void display_off(){
+        _displaycontrol &= ~LCD_DISPLAYON;
+        command(LCD_FUNCTIONSET | _displaycontrol);
+    }
+
+    //Cursor On
+    void cursor_on(){
+        _displaycontrol |= LCD_CURSORON;
+        command(LCD_FUNCTIONSET | _displaycontrol);
+    }
+
+    //Cursor Off
+    void cursor_off(){
+        _displaycontrol &= ~LCD_CURSORON;
+        command(LCD_FUNCTIONSET | _displaycontrol);
+    }
+
+    //Cursor blink On
+    void cursor_blink_on(){
+        _displaycontrol |= LCD_BLINKON;
+        command(LCD_FUNCTIONSET | _displaycontrol);
+    }
+
+    //Cursor blink Off
+    void cursor_blink_off(){
+        _displaycontrol &= ~LCD_BLINKON;
+        command(LCD_FUNCTIONSET | _displaycontrol);
+    }
+
 
 private:
 
-    void command(const uint4_t cmd){
+    void command(const uint8_t cmd){
+
         m_gpio_rs->Low(); //set 0 - command
+
         if(_bitmode == LCD_4BITMODE){
             write4bits(cmd >> 4);
             write4bits(cmd&0x0F);
@@ -166,6 +209,7 @@ private:
         else
             write8bits(cmd);
     }
+
     //
     //Pulse enable bit
     //
@@ -257,6 +301,7 @@ private:
     uint8_t _dots;
 
     uint8_t _displayfunction;
+    uint8_t _displaycontrol;  //cursor on/off, cursor blink on/off, display on/off
 
     std::shared_ptr<pirobot::gpio::Gpio> m_gpio_rs;
     std::shared_ptr<pirobot::gpio::Gpio> m_gpio_rw;
