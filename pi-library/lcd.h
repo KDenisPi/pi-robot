@@ -11,6 +11,7 @@
 #include <thread>
 
 #include "item.h"
+#include "logger.h"
 
 namespace pirobot {
 namespace item {
@@ -78,6 +79,8 @@ public:
         _bitmode(bitmode==4 ? LCD_4BITMODE : LCD_8BITMODE),
         _dots(dots==8 ? LCD_5x8DOTS : LCD_5x10DOTS)
     {
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+        
         m_gpio_data[4] = data_4;
         m_gpio_data[5] = data_5;
         m_gpio_data[6] = data_6;
@@ -89,17 +92,21 @@ public:
 
     //
     virtual ~Lcd(){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
         stop();
     }
 
     virtual const std::string printConfig() override {
-        std::string conf =  name() + "\n" + " BitMode: " + (_bitmode==LCD_4BITMODE ? "4-Bit" : "8-Bit") +
-            " Lines: " + (_lines==LCD_2LINE ? "2" : "1") + " Dots: " + (_dots==LCD_5x8DOTS ? "5x8" : "5x10");
+        std::string conf =  name() + "\n" + " BitMode: " + (_displayfunction & LCD_4BITMODE ? "4-Bit" : "8-Bit") +
+            " Lines: " + (_displayfunction & LCD_2LINE ? "2" : "1") + " Dots: " + (_displayfunction & LCD_5x8DOTS ? "5x8" : "5x10") + "\n" + 
+            "Display: " + (_displaycontrol & LCD_DISPLAYON ? "On" : "Off") + " Cursor :" + (_displaycontrol & LCD_CURSORON ? "On" : "Off") + 
+            "Blink: " + (_displaycontrol & LCD_BLINKON ? "On" : "Off");
         return conf;
     }
 
     //Item stop  function
     virtual void stop() override {
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
         //if we have Backlite pin then switch it Off
         if(m_gpio_backlite){
             m_gpio_backlite->Low();
@@ -109,6 +116,7 @@ public:
 
     //Item initialization function
     virtual bool initialize() override {
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
         //if we have Backlite pin then switch it on
         if(m_gpio_backlite){
             m_gpio_backlite->High();
@@ -158,43 +166,120 @@ public:
     //
     //Display contril commands
     //
+    void display_ctrl(const uint8_t parameters){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+        _displaycontrol |= parameters;
+        command(LCD_DISPLAYCONTROL | _displaycontrol);
+    }
 
     //Display On
     void diplay_on(){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
         _displaycontrol |= LCD_DISPLAYON;
-        command(LCD_FUNCTIONSET | _displaycontrol);
+        command(LCD_DISPLAYCONTROL | _displaycontrol);
     }
 
     //Display Off
     void display_off(){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
         _displaycontrol &= ~LCD_DISPLAYON;
-        command(LCD_FUNCTIONSET | _displaycontrol);
+        command(LCD_DISPLAYCONTROL | _displaycontrol);
     }
 
     //Cursor On
     void cursor_on(){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
         _displaycontrol |= LCD_CURSORON;
-        command(LCD_FUNCTIONSET | _displaycontrol);
+        command(LCD_DISPLAYCONTROL | _displaycontrol);
     }
 
     //Cursor Off
     void cursor_off(){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
         _displaycontrol &= ~LCD_CURSORON;
-        command(LCD_FUNCTIONSET | _displaycontrol);
+        command(LCD_DISPLAYCONTROL | _displaycontrol);
     }
 
     //Cursor blink On
     void cursor_blink_on(){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
         _displaycontrol |= LCD_BLINKON;
-        command(LCD_FUNCTIONSET | _displaycontrol);
+        command(LCD_DISPLAYCONTROL | _displaycontrol);
     }
 
     //Cursor blink Off
     void cursor_blink_off(){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
         _displaycontrol &= ~LCD_BLINKON;
-        command(LCD_FUNCTIONSET | _displaycontrol);
+        command(LCD_DISPLAYCONTROL | _displaycontrol);
     }
 
+    void scroll_display_left(){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+        command(LCD_CURSORSHIFT | LCD_DISPLAYMOVE | LCD_MOVELEFT);
+    }
+
+    void scroll_display_right(){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+        command(LCD_CURSORSHIFT | LCD_DISPLAYMOVE | LCD_MOVERIGHT);
+    }
+
+    // This is for text that flows Left to Right
+    void left_to_right(void) {
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+        _displaymode |= LCD_ENTRYLEFT;
+        command(LCD_ENTRYMODESET | _displaymode);
+    }
+
+    // This is for text that flows Right to Left
+    void right_to_left(void) {
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+        _displaymode &= ~LCD_ENTRYLEFT;
+        command(LCD_ENTRYMODESET | _displaymode);
+    }
+
+    // This will 'right justify' text from the cursor
+    void autoscroll(void) {
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+        _displaymode |= LCD_ENTRYSHIFTINCREMENT;
+        command(LCD_ENTRYMODESET | _displaymode);
+    }
+
+    // This will 'left justify' text from the cursor
+    void no_autoscroll(void) {
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+        _displaymode &= ~LCD_ENTRYSHIFTINCREMENT;
+        command(LCD_ENTRYMODESET | _displaymode);
+    }
+
+    // Switch black light on (for Adafruit only)
+    void backlight_on(){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+        if(m_gpio_backlite){
+            m_gpio_backlite->High();
+        }
+    }
+
+    // Switch black light off (for Adafruit only)
+    void backlight_off(){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+        if(m_gpio_backlite){
+            m_gpio_backlite->Low();
+        }
+    }
+
+    // Clear display
+    void clear_display(){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+        command(LCD_CLEARDISPLAY);
+    }
+
+    // Return home
+    void return_home(){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+        command(LCD_RETURNHOME);
+    }
+    
 
 private:
 
@@ -214,6 +299,8 @@ private:
     //Pulse enable bit
     //
     void pulse_enable(){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+
         m_gpio_enable->Low();
         std::this_thread::sleep_for(std::chrono::microseconds(1));
         m_gpio_enable->High();
@@ -301,7 +388,8 @@ private:
     uint8_t _dots;
 
     uint8_t _displayfunction;
-    uint8_t _displaycontrol;  //cursor on/off, cursor blink on/off, display on/off
+    uint8_t _displaycontrol;    //cursor on/off, cursor blink on/off, display on/off
+    uint8_t _displaymode;       //cursor movind left to right, right to left, auto scroll on/off
 
     std::shared_ptr<pirobot::gpio::Gpio> m_gpio_rs;
     std::shared_ptr<pirobot::gpio::Gpio> m_gpio_rw;
