@@ -345,6 +345,7 @@ bool StateMachine::process_event(const std::shared_ptr<Event> event){
 void StateMachine::process_pop_state(){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " pop state");
     auto state =  get_states()->front();
+    const std::string substate_name = state->get_name();
     try{
         /*
          *
@@ -358,6 +359,9 @@ void StateMachine::process_pop_state(){
 
         const std::string stack = print_state_stack();
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + stack);
+
+        auto front_state = get_states()->front();
+        front_state->OnSubstateExit(substate_name);
     }
     catch(std::exception& exc){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + exc.what());

@@ -14,6 +14,9 @@
 #include "WeatherStFactory.h"
 #include "StInitialization.h"
 #include "StMeasurement.h"
+#include "StInitializeSensors.h"
+#include "StInitializeLcd.h"
+
 
 namespace weather {
 
@@ -36,6 +39,12 @@ const std::shared_ptr<smachine::state::State> WeatherStFactory::get_state(const 
 	}
 	else if(state_name.compare("StMeasurement") == 0){
 		return std::shared_ptr<smachine::state::State>(new weather::StMeasurement(itf));
+	}
+	else if(state_name.compare("StInitializeSensors") == 0){
+		return std::shared_ptr<smachine::state::State>(new weather::StInitializeSensors(itf));
+	}
+	else if(state_name.compare("StInitializeLcd") == 0){
+		return std::shared_ptr<smachine::state::State>(new weather::StInitializeLcd(itf));
 	}
 	
 

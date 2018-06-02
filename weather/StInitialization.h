@@ -20,6 +20,7 @@ public:
     virtual void OnEntry() override;
     virtual bool OnTimer(const int id) override;
     virtual bool OnEvent(const std::shared_ptr<smachine::Event> event) override;
+	virtual void OnSubstateExit(const std::string substate_name) override;
 
 };
 

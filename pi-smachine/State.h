@@ -20,6 +20,7 @@ namespace state {
 #define TIMER_CREATE(id, interval)  get_itf()->timer_start(id, interval);
 #define TIMER_CANCEL(id)  get_itf()->timer_cancel(id);
 #define CHANGE_STATE(state) get_itf()->state_change(state);
+#define POP_STATE() get_itf()->state_pop();
 /*
  * Return true from OnEvent and OnTimer if received Event or Timer
  * was processed inside function
@@ -34,6 +35,8 @@ public:
 	virtual bool OnEvent(const std::shared_ptr<smachine::Event> event) {return false;};
 	virtual void OnExit() {}
 	virtual bool OnTimer(const int id) {return false;};
+	//called when child state call POP
+	virtual void OnSubstateExit(const std::string substate_name) {}
 
 	StateMachineItf* get_itf() const { return m_itf;}
 	std::shared_ptr<pirobot::PiRobot> get_robot() const { return m_itf->get_robot();}
