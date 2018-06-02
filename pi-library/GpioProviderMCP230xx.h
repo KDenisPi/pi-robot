@@ -13,6 +13,7 @@
 #include <mcp23x0817.h>
 
 #include "I2C.h"
+#include "I2CWrapper.h"
 #include "GpioProvider.h"
 
 namespace pirobot {

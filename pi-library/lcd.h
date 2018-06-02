@@ -11,6 +11,7 @@
 #include <thread>
 
 #include "item.h"
+#include "GpioProviderMCP230xx.h"
 #include "logger.h"
 
 namespace pirobot {
@@ -107,11 +108,9 @@ public:
     //Item stop  function
     virtual void stop() override {
         logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
-        //if we have Backlite pin then switch it Off
-        if(m_gpio_backlite){
-            m_gpio_backlite->Low();
-        }
 
+        //if we have Backlite pin then switch it Off
+        backlight_off();
     }
 
     //Item initialization function

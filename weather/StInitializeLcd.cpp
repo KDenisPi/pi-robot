@@ -7,15 +7,19 @@
 
 #include "StInitializeLcd.h"
 #include "context.h"
+#include "lcd.h"
 
 
 namespace weather {
 
 void StInitializeLcd::OnEntry(){
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+
+    auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+    lcd->display_ctrl(LCD_DISPLAYON|LCD_CURSORON|LCD_BLINKON);
 
     //CHANGE_STATE("StMeasurement");
-   TIMER_CREATE(TIMER_WARM_INTERVAL, 30) //wait for 15 seconds before real use
+   TIMER_CREATE(TIMER_LCD_INTERVAL, 30) //wait for 15 seconds before real use
 }
 
 bool StInitializeLcd::OnTimer(const int id){
@@ -24,14 +28,17 @@ bool StInitializeLcd::OnTimer(const int id){
     switch(id){
         case TIMER_FINISH_ROBOT:
         {
-            TIMER_CANCEL(TIMER_WARM_INTERVAL);
+            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+            lcd->backlight_off();
+            
             get_itf()->finish();
             return true;
         }
-        //switch to main state
-        case TIMER_WARM_INTERVAL:
+        case TIMER_LCD_INTERVAL:
         {
-            get_itf()->finish();
+            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+            lcd->cursor_blink_off();
+            TIMER_CREATE(TIMER_FINISH_ROBOT, 30)
             return true;
         }
     }
