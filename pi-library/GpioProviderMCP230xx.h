@@ -33,13 +33,13 @@ public:
         return to_string() + "\n";
     }
 
-	// Return current state of GPIOs
-	uint8_t dgtRead8(const int pin = 0){
-		return get_OLAT(pin);
-	}
+    // Return current state of GPIOs
+    uint8_t dgtRead8(const int pin = 0){
+       return get_OLAT(pin);
+    }
 
     //Write 8-bit value
-	void dgtWrite8(const uint8_t value, const int pin = 0){
+    void dgtWrite8(const uint8_t value, const int pin = 0){
         int gpio = get_GPIO_addr(pin);
 
         I2CWrapper::lock();
@@ -47,7 +47,7 @@ public:
         I2CWrapper::unlock();
 
         set_OLAT(value, pin);
-	}
+    }
 
 private:
     //Get address for GPIO register

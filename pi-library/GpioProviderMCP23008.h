@@ -55,7 +55,7 @@ public:
 
     virtual const GPIO_PROVIDER_TYPE get_type() const override { return GPIO_PROVIDER_TYPE::PROV_MCP23008; }
 
-	static const int s_pins;
+    static const int s_pins;
     static const uint8_t s_i2c_addr;
 
 private:
@@ -76,11 +76,17 @@ private:
 
     //Get current value for register data
     virtual unsigned int get_OLAT(const int pin){
+        I2CWrapper::lock();
+        m_OLAT = I2CWrapper::I2CReadReg8 (m_fd, MCP23x08_GPIO);
+        I2CWrapper::unlock();
+
+        logger::log(logger::LLOG::DEBUG, "MCP23008", std::string(__func__) + " OLAT " + std::to_string(m_OLAT));
         return m_OLAT;
     }
     //Save current value register data
     virtual void set_OLAT(const unsigned int value, const int pin = -1){
         m_OLAT = value;
+        logger::log(logger::LLOG::DEBUG, "MCP23008", std::string(__func__) + " OLAT " + std::to_string(m_OLAT));
     }
 
     unsigned int m_OLAT;

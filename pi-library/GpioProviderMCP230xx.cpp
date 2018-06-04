@@ -65,7 +65,10 @@ void GpioProviderMCP230xx::dgtWrite(const int pin, const int value){
   int current_mode = get_OLAT(pin);
   int gpio = get_GPIO_addr(pin);
 
-  current_mode = current_mode | mask;
+  if(value)
+    current_mode |= mask;
+  else
+    current_mode &= (~mask);
 
   I2CWrapper::lock();
   I2CWrapper::I2CWriteReg8(m_fd, gpio, current_mode);

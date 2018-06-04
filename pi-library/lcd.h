@@ -9,6 +9,7 @@
 #define PI_LIBRARY_LCD_H_
 
 #include <thread>
+#include <bitset>
 
 #include "item.h"
 #include "GpioProviderMCP230xx.h"
@@ -81,7 +82,7 @@ public:
         _dots(dots==8 ? LCD_5x8DOTS : LCD_5x10DOTS)
     {
         logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
-        
+
         m_gpio_data[4] = data_4;
         m_gpio_data[5] = data_5;
         m_gpio_data[6] = data_6;
@@ -117,23 +118,27 @@ public:
     virtual bool initialize() override {
         logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
         //if we have Backlite pin then switch it on
-        if(m_gpio_backlite){
-            m_gpio_backlite->High();
-        }
+        backlight_on();
 
         _displayfunction = _lines | _dots | _bitmode;
 
         // SEE PAGE 45/46 FOR INITIALIZATION SPECIFICATION!
         // according to datasheet, we need at least 40ms after power rises above 2.7V
         // before sending commands. Arduino can turn on way befer 4.5V so we'll wait 50
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50)); //50
 
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__) + " Switch RS:Off, Enb: Off, RW: Off");
         //switch to command mode
         m_gpio_rs->Low();
         m_gpio_enable->Low();
         if(m_gpio_rw){
             m_gpio_rw->Low();
         }
+
+        auto provider = std::static_pointer_cast<pirobot::gpio::GpioProviderMCP230xx>(m_gpio_data[7]->get_provider());
+        uint8_t cur_value = provider->dgtRead8(m_gpio_data[7]->getPin());
+        std::bitset<8> bcur(cur_value);
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__) + " ---- GPIOs: " + bcur.to_string());
 
         //use 4-bit mode
         if(_bitmode == LCD_4BITMODE){
@@ -159,15 +164,28 @@ public:
             std::this_thread::sleep_for(std::chrono::microseconds(150));
         }
 
-        command(_displayfunction);
+        command(LCD_FUNCTIONSET | _displayfunction);
+
+
+        _displaycontrol = LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF;
+        display_ctrl(_displaycontrol);
+
+        clear_display();
+
+        _displaymode = LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT;
+        command(LCD_ENTRYMODESET | _displaymode);
+
+        return_home();
+
+        return true;
     }
 
     //
     //Display contril commands
     //
     void display_ctrl(const uint8_t parameters){
-        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
         _displaycontrol |= parameters;
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__) + " DisplayCtrl: " + std::to_string(_displaycontrol));
         command(LCD_DISPLAYCONTROL | _displaycontrol);
     }
 
@@ -278,7 +296,7 @@ public:
         logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
         command(LCD_RETURNHOME);
     }
-    
+
 
 private:
 
@@ -325,14 +343,28 @@ private:
             auto provider = std::static_pointer_cast<pirobot::gpio::GpioProviderMCP230xx>(m_gpio_data[7]->get_provider());
             uint8_t cur_value = provider->dgtRead8(m_gpio_data[7]->getPin());
 
+            std::bitset<8> bval(value), bcur(cur_value);
+            logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__) + " Original: " + bval.to_string() + " Write: " + bcur.to_string());
+
             for(int i=0; i<4; i++){
                 int pin = m_gpio_data[i+4]->getPin();
                 uint8_t mask = (1 << pin); //we use GPIOs 4-7 here
                 cur_value &= ~mask; //clear current value for bit
                 cur_value |= ((value >> i) & 0x1) << pin; //set value
+
+                logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__) + " Set Pin: " + std::to_string(m_gpio_data[i+4]->getPin()) + " To: " + (((value >> i) & 0x1) == 1 ? "High" : "Low"));
+/*
+                if((value >> i) & 0x1)
+                  m_gpio_data[i+4]->High();
+                else
+                 m_gpio_data[i+4]->Low();
+*/
             }
 
+            //std::bitset<8> bcur_new(cur_value);
+            //logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__) + " Original: " + bval.to_string() + " Write: " + bcur_new.to_string());
             provider->dgtWrite8(cur_value, m_gpio_data[7]->getPin());
+
             //pulse enable pin
             pulse_enable();
 
