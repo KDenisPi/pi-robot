@@ -29,7 +29,7 @@
             "gpio_data_6": {"name": "lcd_data_6"},
             "gpio_data_7": {"name": "lcd_data_7"},
             "gpio_backlite": {"name": "lcd_backlite"},
-            "lines": 1,
+            "lines": 2,
             "bitmode": 4,
             "dots": 8
         }

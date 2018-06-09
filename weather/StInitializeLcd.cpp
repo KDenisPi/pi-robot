@@ -16,11 +16,11 @@ void StInitializeLcd::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
     auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
-    lcd->display_ctrl(LCD_DISPLAYON|LCD_CURSORON|LCD_BLINKON);
+    lcd->display_ctrl(LCD_DISPLAYON|LCD_CURSORON|LCD_BLINKOFF);
 
     //CHANGE_STATE("StMeasurement");
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Display On, Cursor On, Blink On");
-    TIMER_CREATE(TIMER_LCD_INTERVAL, 15) //wait for 15 seconds before real use
+    TIMER_CREATE(TIMER_LCD_INTERVAL, 2) //wait for 15 seconds before real use
 }
 
 bool StInitializeLcd::OnTimer(const int id){
@@ -31,6 +31,8 @@ bool StInitializeLcd::OnTimer(const int id){
         {
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer FINISH_ROBOT");
             auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+            lcd->clear_display();
+            lcd->display_off();
             lcd->backlight_off();
 
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer FINISH_ROBOT Finish");
@@ -42,7 +44,12 @@ bool StInitializeLcd::OnTimer(const int id){
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer LCD_INTERVAL");
             auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
             //lcd->backlight_off();
-            lcd->cursor_blink_off();
+            //lcd->cursor_blink_off();
+            lcd->set_cursor(0,0);
+            lcd->write_string("Hello Denis! Hello Natasha!");
+            lcd->set_cursor(1,0);
+            lcd->write_string("Hello Alina!");
+            lcd->scroll_display_left(5);
 
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer LCD_INTERVAL Blink Off, Start FINISH_TIMER");
             TIMER_CREATE(TIMER_FINISH_ROBOT, 15)

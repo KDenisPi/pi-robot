@@ -233,9 +233,11 @@ public:
         command(LCD_DISPLAYCONTROL | _displaycontrol);
     }
 
-    void scroll_display_left(){
-        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
-        command(LCD_CURSORSHIFT | LCD_DISPLAYMOVE | LCD_MOVELEFT);
+    void scroll_display_left(const int positions=1){
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__) + " Positoins: " + std::to_string(positions));
+        for(int i=0; i<positions; i++){
+            command(LCD_CURSORSHIFT | LCD_DISPLAYMOVE | LCD_MOVELEFT);
+        }
     }
 
     void scroll_display_right(){
@@ -302,7 +304,7 @@ public:
     //
     //Set cursor position
     //
-    void set_cursor(uint8_t col, uint8_t row)
+    void set_cursor(uint8_t row, uint8_t col)
     {
         int row_offsets[] = { 0x00, 0x40};
 
@@ -317,6 +319,7 @@ public:
             if(row >= 40) return;
         }
 
+        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__) + " Row: " + std::to_string(row) + " Col: " + std::to_string(col));
         command(LCD_SETDDRAMADDR | (col + row_offsets[row]));
     }
 
@@ -330,10 +333,18 @@ public:
     //
     //Write char
     //
-    void write_char(uint8_t ch){
+    const void write_char(uint8_t ch){
         data(ch);
     }
 
+    //
+    //Write string
+    //
+    const void write_string(const std::string mesg){
+       for(auto chr : mesg){
+         write_char(chr);
+       }
+    }
 private:
     void data(const uint8_t dat){
 
