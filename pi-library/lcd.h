@@ -77,11 +77,13 @@ public:
         m_gpio_rw(nullptr),
         m_gpio_enable(enb),
         m_gpio_backlite(backlite),
-        _lines( lines==1 ? LCD_2LINE : LCD_1LINE),
+        _lines( lines==2 ? LCD_2LINE : LCD_1LINE),
         _bitmode(bitmode==4 ? LCD_4BITMODE : LCD_8BITMODE),
         _dots(dots==8 ? LCD_5x8DOTS : LCD_5x10DOTS)
     {
         logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+
+        _numlines = (lines>2 ? 2 : lines);
 
         m_gpio_data[4] = data_4;
         m_gpio_data[5] = data_5;
@@ -100,8 +102,8 @@ public:
 
     virtual const std::string printConfig() override {
         std::string conf =  name() + "\n" + " BitMode: " + (_displayfunction & LCD_4BITMODE ? "4-Bit" : "8-Bit") +
-            " Lines: " + (_displayfunction & LCD_2LINE ? "2" : "1") + " Dots: " + (_displayfunction & LCD_5x8DOTS ? "5x8" : "5x10") + "\n" + 
-            "Display: " + (_displaycontrol & LCD_DISPLAYON ? "On" : "Off") + " Cursor :" + (_displaycontrol & LCD_CURSORON ? "On" : "Off") + 
+            " Lines: " + (_displayfunction & LCD_2LINE ? "2" : "1") + " Dots: " + (_displayfunction & LCD_5x8DOTS ? "5x8" : "5x10") + "\n" +
+            "Display: " + (_displaycontrol & LCD_DISPLAYON ? "On" : "Off") + " Cursor :" + (_displaycontrol & LCD_CURSORON ? "On" : "Off") +
             "Blink: " + (_displaycontrol & LCD_BLINKON ? "On" : "Off");
         return conf;
     }
@@ -297,8 +299,54 @@ public:
         command(LCD_RETURNHOME);
     }
 
+    //
+    //Set cursor position
+    //
+    void set_cursor(uint8_t col, uint8_t row)
+    {
+        int row_offsets[] = { 0x00, 0x40};
+
+        if ( row > _numlines ) {
+            row = _numlines-1;    // we count rows starting w/0
+        }
+
+        if(is_one_line()){
+            if(row >= 80) return;
+        }
+        else {
+            if(row >= 40) return;
+        }
+
+        command(LCD_SETDDRAMADDR | (col + row_offsets[row]));
+    }
+
+    //
+    //If display has one line
+    //
+    const bool is_one_line() const {
+        return (_lines == LCD_1LINE);
+    }
+
+    //
+    //Write char
+    //
+    void write_char(uint8_t ch){
+        data(ch);
+    }
 
 private:
+    void data(const uint8_t dat){
+
+        m_gpio_rs->High(); //set 1 - data
+
+        if(_bitmode == LCD_4BITMODE){
+            write4bits(dat >> 4);
+            write4bits(dat&0x0F);
+        }
+        else
+            write8bits(dat);
+    }
+
 
     void command(const uint8_t cmd){
 
@@ -344,7 +392,7 @@ private:
             uint8_t cur_value = provider->dgtRead8(m_gpio_data[7]->getPin());
 
             std::bitset<8> bval(value), bcur(cur_value);
-            logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__) + " Original: " + bval.to_string() + " Write: " + bcur.to_string());
+            //logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__) + " Original: " + bval.to_string() + " Write: " + bcur.to_string());
 
             for(int i=0; i<4; i++){
                 int pin = m_gpio_data[i+4]->getPin();
@@ -352,22 +400,12 @@ private:
                 cur_value &= ~mask; //clear current value for bit
                 cur_value |= ((value >> i) & 0x1) << pin; //set value
 
-                logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__) + " Set Pin: " + std::to_string(m_gpio_data[i+4]->getPin()) + " To: " + (((value >> i) & 0x1) == 1 ? "High" : "Low"));
-/*
-                if((value >> i) & 0x1)
-                  m_gpio_data[i+4]->High();
-                else
-                 m_gpio_data[i+4]->Low();
-*/
+                //logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__) + " Set Pin: " + std::to_string(m_gpio_data[i+4]->getPin()) + " To: " + (((value >> i) & 0x1) == 1 ? "High" : "Low"));
             }
 
-            //std::bitset<8> bcur_new(cur_value);
-            //logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__) + " Original: " + bval.to_string() + " Write: " + bcur_new.to_string());
             provider->dgtWrite8(cur_value, m_gpio_data[7]->getPin());
-
             //pulse enable pin
             pulse_enable();
-
         }
         else{
             //
@@ -417,6 +455,7 @@ private:
     uint8_t _lines;
     uint8_t _bitmode;
     uint8_t _dots;
+    uint8_t _numlines;
 
     uint8_t _displayfunction;
     uint8_t _displaycontrol;    //cursor on/off, cursor blink on/off, display on/off
