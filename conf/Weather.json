@@ -1,7 +1,29 @@
 {
-	"version" : "1.0",
+    "version" : "1.0",
     "real_world" : true,
-    
+
+    "providers": [
+        {"type": "MCP23008", "name": "MCP23008_1", "i2c_addr" : 34}
+    ],
+
+    "gpios": [
+        {"name": "led_green",   "provider": "SIMPLE", "pin": 0, "mode": "OUT"},
+        {"name": "led_red",     "provider": "SIMPLE", "pin": 2, "mode": "OUT"},
+        {"name": "led_white",   "provider": "SIMPLE", "pin": 3, "mode": "OUT"},
+
+        {"name": "btn_1", "provider": "SIMPLE", "pin": 21, "mode": "IN"},
+        {"name": "btn_2", "provider": "SIMPLE", "pin": 22, "mode": "IN"},
+
+        {"name": "lcd_rs",      "provider": "MCP23008_1", "pin": 1, "mode": "OUT"},
+        {"name": "lcd_enable",  "provider": "MCP23008_1", "pin": 2, "mode": "OUT"},
+
+        {"name": "lcd_data_4",  "provider": "MCP23008_1", "pin": 3, "mode": "OUT"},
+        {"name": "lcd_data_5",  "provider": "MCP23008_1", "pin": 4, "mode": "OUT"},
+        {"name": "lcd_data_6",  "provider": "MCP23008_1", "pin": 5, "mode": "OUT"},
+        {"name": "lcd_data_7",  "provider": "MCP23008_1", "pin": 6, "mode": "OUT"},
+        {"name": "lcd_backlite","provider": "MCP23008_1", "pin": 7, "mode": "OUT"}
+    ],
+
     "items":[
         {
             "type": "SI7021",
@@ -15,6 +37,55 @@
             "type": "BMP280",
             "name": "BMP280",
             "i2c_addr": 119
+        },
+        {
+            "type": "TSL2561",
+            "name": "TSL2561"
+        },
+        {
+            "type":"LCD",
+            "name":"Lcd",
+            "comment":"",
+            "gpio_rs": {"name": "lcd_rs"},
+            "gpio_enable": {"name": "lcd_enable"},
+            "gpio_data_4": {"name": "lcd_data_4"},
+            "gpio_data_5": {"name": "lcd_data_5"},
+            "gpio_data_6": {"name": "lcd_data_6"},
+            "gpio_data_7": {"name": "lcd_data_7"},
+            "gpio_backlite": {"name": "lcd_backlite"},
+            "lines": 2,
+            "bitmode": 4,
+            "dots": 8
+        },
+        {
+            "type":"LED",
+            "name":"led_green",
+            "comment": "",
+            "gpio": {"name": "led_green"}
+        },
+        {
+            "type":"LED",
+            "name":"led_red",
+            "comment": "",
+            "gpio": {"name": "led_red"}
+        },
+        {
+            "type":"LED",
+            "name":"led_white",
+            "comment": "",
+            "gpio": {"name": "led_white"}
+        },
+        {
+            "type":"BUTTON",
+            "name":"btn_1",
+            "comment":"",
+            "gpio": {"name": "btn_1"}
+        },
+        {
+            "type":"BUTTON",
+            "name":"btn_2",
+            "comment":"",
+            "gpio": {"name": "btn_2"}
         }
-    ]    
+    ]
 }
