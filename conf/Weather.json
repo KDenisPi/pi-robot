@@ -79,11 +79,13 @@
             "type":"BUTTON",
             "name":"btn_1",
             "comment":"",
+            "pull_mode": "PULL_DOWN",
             "gpio": {"name": "btn_1"}
         },
         {
             "type":"BUTTON",
             "name":"btn_2",
+            "pull_mode": "PULL_DOWN",
             "comment":"",
             "gpio": {"name": "btn_2"}
         }

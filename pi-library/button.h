@@ -50,6 +50,7 @@ public:
     const BUTTON_STATE get_state_by_level(gpio::SGN_LEVEL level)const {
       if(inverse_value)
         return (level == gpio::SGN_LEVEL::SGN_LOW ? BUTTON_STATE::BTN_PUSHED : BUTTON_STATE::BTN_NOT_PUSHED);
+
       return (level == gpio::SGN_LEVEL::SGN_HIGH ? BUTTON_STATE::BTN_PUSHED : BUTTON_STATE::BTN_NOT_PUSHED);
     }
 
@@ -59,7 +60,7 @@ public:
 private:
     gpio::PULL_MODE m_pullmode;
     BUTTON_STATE m_state; //
-        bool inverse_value;
+    bool inverse_value;
 };
 
 } /* namespace item */

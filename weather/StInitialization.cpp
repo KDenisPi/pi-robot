@@ -12,11 +12,11 @@
 namespace weather {
 
 void StInitialization::OnEntry(){
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
     //CHANGE_STATE("StMeasurement");
     CHANGE_STATE("StInitializeLcd");
-    
+
 }
 
 bool StInitialization::OnTimer(const int id){
@@ -28,6 +28,7 @@ bool StInitialization::OnTimer(const int id){
             get_itf()->finish();
             return true;
         }
+        break;
     }
 
     return false;

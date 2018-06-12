@@ -375,7 +375,7 @@ private:
     //Pulse enable bit
     //
     void pulse_enable(){
-        logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+        //logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
 
         m_gpio_enable->Low();
         std::this_thread::sleep_for(std::chrono::microseconds(1));

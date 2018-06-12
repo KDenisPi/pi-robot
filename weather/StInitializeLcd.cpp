@@ -8,7 +8,7 @@
 #include "StInitializeLcd.h"
 #include "context.h"
 #include "lcd.h"
-
+#include "led.h"
 
 namespace weather {
 
@@ -17,6 +17,13 @@ void StInitializeLcd::OnEntry(){
 
     auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
     lcd->display_ctrl(LCD_DISPLAYON|LCD_CURSORON|LCD_BLINKOFF);
+
+    auto led_red = get_item<pirobot::item::Led>("led_red");
+    auto led_green = get_item<pirobot::item::Led>("led_green");
+    auto led_white = get_item<pirobot::item::Led>("led_white");
+    led_red->On();
+    led_green->On();
+    led_white->On();
 
     //CHANGE_STATE("StMeasurement");
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Display On, Cursor On, Blink On");
@@ -30,6 +37,14 @@ bool StInitializeLcd::OnTimer(const int id){
         case TIMER_FINISH_ROBOT:
         {
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer FINISH_ROBOT");
+
+            auto led_red = get_item<pirobot::item::Led>("led_red");
+            auto led_green = get_item<pirobot::item::Led>("led_green");
+            auto led_white = get_item<pirobot::item::Led>("led_white");
+            led_red->Off();
+            led_green->Off();
+            led_white->Off();
+
             auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
             lcd->clear_display();
             lcd->display_off();
