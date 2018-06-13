@@ -20,7 +20,7 @@ namespace smachine {
 
 const char TAG[] = "smash";
 
-StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory, 
+StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
     const std::shared_ptr<pirobot::PiRobot> pirobot, const std::shared_ptr<mqqt::MqqtItf> mqqt) :
         m_factory(factory),
         m_pirobot(pirobot),
@@ -28,7 +28,7 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
         m_topic("stm")
 {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-    
+
     m_timers = std::shared_ptr<Timers>(new Timers(this));
     m_states = std::shared_ptr<std::list<std::shared_ptr<state::State>>>(new std::list<std::shared_ptr<state::State>>);
 
@@ -65,7 +65,7 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
 * Start State machine execution from the beginning
 */
 void StateMachine::run(){
-    //Add first event 
+    //Add first event
      logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
      put_event(std::shared_ptr<Event>(new Event(EVT_CHANGE_STATE, "StateInit")));
 }
@@ -73,7 +73,7 @@ void StateMachine::run(){
 const std::string StateMachine::get_first_state(){
     return m_factory->get_first_state();
 }
- 
+
 
 
 void StateMachine::state_push(const std::shared_ptr<state::State> state){
@@ -174,7 +174,7 @@ void StateMachine::finish(){
  */
 void StateMachine::state_change(const std::string& new_state){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Generate event Change state to: " + new_state);
-    
+
     report_state("Generate event Change state to: " + new_state);
 
     std::shared_ptr<Event> event(new EventChangeState(new_state));
@@ -215,14 +215,14 @@ void StateMachine::worker(StateMachine* stm){
     bool finish = false;
 
     auto fn = [stm]{return (stm->is_stop_signal() || !stm->empty());};
-    
+
     for(;;){
         //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker check event queue");
 
         {
             std::unique_lock<std::mutex> lk(stm->cv_m);
             stm->cv.wait(lk, fn);
-        }        
+        }
 
         /*
         TODO: Add condition variable here
@@ -254,7 +254,7 @@ void StateMachine::worker(StateMachine* stm){
                  */
             case EVT_POP_STATE:
                 logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Pop state event detected.");
-                stm->process_pop_state();
+                stm->process_pop_state(event);
                 break;
 
             case EVT_TIMER:
@@ -305,7 +305,7 @@ void StateMachine::process_finish_event(){
 /*
  *
  */
-bool StateMachine::process_timer_event(const std::shared_ptr<Event> event){
+bool StateMachine::process_timer_event(const std::shared_ptr<Event>& event){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " timer ID: " + event->id_str());
     for (const auto& state : *(get_states())) {
         bool processed = state->OnTimer(event->id());
@@ -323,7 +323,7 @@ bool StateMachine::process_timer_event(const std::shared_ptr<Event> event){
 /*
  *
  */
-bool StateMachine::process_event(const std::shared_ptr<Event> event){
+bool StateMachine::process_event(const std::shared_ptr<Event>& event){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Event: " + event->name());
         for (const auto& state : *(get_states())) {
                 bool processed = state->OnEvent(event);
@@ -342,7 +342,7 @@ bool StateMachine::process_event(const std::shared_ptr<Event> event){
 /*
  *
  */
-void StateMachine::process_pop_state(){
+void StateMachine::process_pop_state(const std::shared_ptr<Event>& event){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " pop state");
     auto state =  get_states()->front();
     const std::string substate_name = state->get_name();
@@ -375,7 +375,7 @@ void StateMachine::process_pop_state(){
  * 2. If such state is present already - delete all states before it
  * 3. If fabric could not construct defined state do nothing
  */
-void StateMachine::process_change_state(const std::shared_ptr<Event> event){
+void StateMachine::process_change_state(const std::shared_ptr<Event>& event){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
     try{
         std::string cname = event->name();

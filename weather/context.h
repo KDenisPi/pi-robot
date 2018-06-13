@@ -8,7 +8,10 @@
 #ifndef WEATHER_CONTEXT_H_
 #define WEATHER_CONTEXT_H_
 
+#include <chrono>
+
 #include "Environment.h"
+#include "lcdstrings.h"
 
 namespace weather {
 
@@ -45,6 +48,16 @@ public:
     //
     bool load_initial_data(const std::string& filename);
     bool save_initial_data(const std::string& filename);
+
+    //Return string for UI interface
+    const std::string& get_str(const int id) const {
+        return _strs.get(id);
+    }
+
+    std::chrono::time_point<std::chrono::system_clock> _btn1_down;
+    std::chrono::time_point<std::chrono::system_clock> _btn2_down;
+private:
+    LcdStrings _strs;
 };
 
 }

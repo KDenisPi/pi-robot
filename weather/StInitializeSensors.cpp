@@ -1,6 +1,6 @@
 /*
  * StInitializeSensors.cpp
- * 
+ *
  *  Created on: June 01, 2018
  *      Author: Denis Kudia
  */
@@ -17,6 +17,7 @@ void StInitializeSensors::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
     auto context = get_env<weather::Context>();
+
     std::string data_file = "./initial.json";
     context->load_initial_data(data_file);
 

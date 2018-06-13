@@ -37,7 +37,7 @@ class Timers;
 
 class StateMachine : public StateMachineItf, public piutils::Threaded {
 public:
-    StateMachine(const std::shared_ptr<StateFactory> factory, 
+    StateMachine(const std::shared_ptr<StateFactory> factory,
         const std::shared_ptr<pirobot::PiRobot> pirobot,
         const std::shared_ptr<mqqt::MqqtItf> mqqt);
     virtual ~StateMachine();
@@ -61,7 +61,7 @@ public:
     virtual void finish() override;
     virtual void state_change(const std::string& new_state) override;
 	virtual const std::string get_first_state() override;
-    
+
     virtual void state_pop() override;
     virtual void timer_start(const int timer_id, const time_t interval, const bool interval_timer) override;
     virtual void timer_cancel(const int timer_id) override;
@@ -83,10 +83,10 @@ public:
     */
     void run();
 
-    bool process_timer_event(const std::shared_ptr<Event> event);
-    bool process_event(const std::shared_ptr<Event> event);
-    void process_pop_state();
-    void process_change_state(const std::shared_ptr<Event> event);
+    bool process_timer_event(const std::shared_ptr<Event>& event);
+    bool process_event(const std::shared_ptr<Event>& event);
+    void process_pop_state(const std::shared_ptr<Event>& event);
+    void process_change_state(const std::shared_ptr<Event>& event);
     void process_finish_event();
 
 
@@ -139,14 +139,14 @@ private:
     //MQQT support flag
     bool m_mqqt_active;
     std::shared_ptr<mqqt::MqqtItf> m_mqqt;
-    const std::string m_topic; 
+    const std::string m_topic;
 
     //Send State Mashine state to MQQT server. Topic is "stm"
     void report_state(const std::string& message){
         publish(m_topic, message);
     }
 
-public:    
+public:
     const bool is_mqqt() const {return m_mqqt_active;}
 
     virtual const mqqt::MQQT_CLIENT_ERROR publish(const std::string& topic, const std::string& payload) override{
@@ -162,7 +162,7 @@ public:
 
         return mqqt::MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
     }
-    
+
 };
 
 } /* namespace smachine */

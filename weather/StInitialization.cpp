@@ -1,12 +1,13 @@
 /*
  * StInitialization.cpp
- * 
+ *
  *  Created on: March 18, 2018
  *      Author: Denis Kudia
  */
 
 #include "StInitialization.h"
 #include "context.h"
+#include "button.h"
 
 
 namespace weather {
@@ -14,9 +15,7 @@ namespace weather {
 void StInitialization::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    //CHANGE_STATE("StMeasurement");
     CHANGE_STATE("StInitializeLcd");
-
 }
 
 bool StInitialization::OnTimer(const int id){
@@ -35,14 +34,49 @@ bool StInitialization::OnTimer(const int id){
 }
 
 bool StInitialization::OnEvent(const std::shared_ptr<smachine::Event> event){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "  Event: " + event->to_string());
+
+    auto ctxt = get_env<weather::Context>();
+
+    //Process button pressed
+    if( (smachine::EVENT_TYPE::EVT_BTN_DOWN == event->type()) ||
+          (smachine::EVENT_TYPE::EVT_BTN_UP == event->type())){
+        auto btn1 = get_item<pirobot::item::Button>("btn_1");
+        auto btn2 = get_item<pirobot::item::Button>("btn_2");
+
+        //Save time moment when button was pressed
+        if(event->name() == btn1->name()){
+            if(smachine::EVENT_TYPE::EVT_BTN_DOWN == event->type())
+                ctxt->_btn1_down = std::chrono::system_clock::now();
+            else{
+
+            }
+        }
+
+        if(event->name() == btn2->name()){
+            if(smachine::EVENT_TYPE::EVT_BTN_DOWN == event->type())
+                ctxt->_btn2_down = std::chrono::system_clock::now();
+            else{
+
+            }
+        }
+    }
+
 
     return false;
 }
 
+//
+//Process substite exit
+//
 void StInitialization::OnSubstateExit(const std::string substate_name) {
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started SubState: " + substate_name);
 
     if(substate_name == "StInitializeSensors"){
         CHANGE_STATE("StMeasurement");
+    }
+    else if(substate_name == "StInitializeLcd"){
+        CHANGE_STATE("StInitializeSensors");
     }
 }
 

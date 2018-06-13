@@ -1,6 +1,6 @@
 /*
  * StInitializeLcd.cpp
- * 
+ *
  *  Created on: June 01, 2018
  *      Author: Denis Kudia
  */
@@ -9,25 +9,24 @@
 #include "context.h"
 #include "lcd.h"
 #include "led.h"
+#include "lcdstrings.h"
 
 namespace weather {
 
 void StInitializeLcd::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
+    auto ctxt = get_env<weather::Context>();
     auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+
     lcd->display_ctrl(LCD_DISPLAYON|LCD_CURSORON|LCD_BLINKOFF);
+    lcd->write_string_at(0,0, ctxt->get_str(StrID::Starting), true);
 
-    auto led_red = get_item<pirobot::item::Led>("led_red");
+    //switch Green led ON
     auto led_green = get_item<pirobot::item::Led>("led_green");
-    auto led_white = get_item<pirobot::item::Led>("led_white");
-    led_red->On();
     led_green->On();
-    led_white->On();
 
-    //CHANGE_STATE("StMeasurement");
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Display On, Cursor On, Blink On");
-    TIMER_CREATE(TIMER_LCD_INTERVAL, 2) //wait for 15 seconds before real use
+    TIMER_CREATE(TIMER_LCD_INTERVAL, 5) //wait for 5 seconds before real use
 }
 
 bool StInitializeLcd::OnTimer(const int id){
@@ -38,15 +37,8 @@ bool StInitializeLcd::OnTimer(const int id){
         {
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer FINISH_ROBOT");
 
-            auto led_red = get_item<pirobot::item::Led>("led_red");
-            auto led_green = get_item<pirobot::item::Led>("led_green");
-            auto led_white = get_item<pirobot::item::Led>("led_white");
-            led_red->Off();
-            led_green->Off();
-            led_white->Off();
 
             auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
-            lcd->clear_display();
             lcd->display_off();
             lcd->backlight_off();
 
@@ -57,17 +49,11 @@ bool StInitializeLcd::OnTimer(const int id){
         case TIMER_LCD_INTERVAL:
         {
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer LCD_INTERVAL");
-            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
-            //lcd->backlight_off();
-            //lcd->cursor_blink_off();
-            lcd->set_cursor(0,0);
-            lcd->write_string("Hello Denis! Hello Natasha!");
-            lcd->set_cursor(1,0);
-            lcd->write_string("Hello Alina!");
-            lcd->scroll_display_left(5);
 
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer LCD_INTERVAL Blink Off, Start FINISH_TIMER");
-            TIMER_CREATE(TIMER_FINISH_ROBOT, 15)
+            auto led_green = get_item<pirobot::item::Led>("led_green");
+            led_green->Off();
+
+            POP_STATE();
             return true;
         }
     }
@@ -76,7 +62,7 @@ bool StInitializeLcd::OnTimer(const int id){
 }
 
 bool StInitializeLcd::OnEvent(const std::shared_ptr<smachine::Event> event){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "  Event: " + event->to_string());
 
     return false;
 }

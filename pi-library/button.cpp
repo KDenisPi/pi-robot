@@ -52,7 +52,7 @@ Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
     inverse_value = (get_gpio()->get_provider_type() == gpio::GPIO_PROVIDER_TYPE::PROV_MCP23017 ? true : false);
 
     set_name(type_name(type()) + "_over_" + get_gpio()->to_string());
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started. " + to_string() + " Inverse:" + std::to_string(inverse_value) + 
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started. " + to_string() + " Inverse:" + std::to_string(inverse_value) +
            " Provider: " + std::to_string(get_gpio()->get_provider_type()) + " GPIO:" + get_gpio()->to_string());
 }
 
@@ -72,7 +72,7 @@ Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
     if(name.empty())
         set_name(type_name(type())  + "_over_" + get_gpio()->to_string());
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started. " + to_string() + " Inverse:" + std::to_string(inverse_value) + 
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started. " + to_string() + " Inverse:" + std::to_string(inverse_value) +
            " Provider: " + std::to_string(get_gpio()->get_provider_type()) + " GPIO:" + get_gpio()->to_string());
 }
 
@@ -156,7 +156,7 @@ void Button::worker(Button* owner){
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** State changed!!!! " + owner->name() +
                 " New state:" + std::to_string(state));
 
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " New level:" + std::to_string(level) + " " + 
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " New level:" + std::to_string(level) + " " +
                     owner->to_string());
 
             if(owner->notify)

@@ -345,6 +345,18 @@ public:
          write_char(chr);
        }
     }
+
+    //
+    //Write string on the position
+    //
+    const void write_string_at(const int row, const int col, const std::string& msg, const bool cldisplay=false){
+        if(cldisplay)
+            clear_display();
+
+        set_cursor(row, col);
+        write_string(msg);
+    }
+
 private:
     void data(const uint8_t dat){
 
