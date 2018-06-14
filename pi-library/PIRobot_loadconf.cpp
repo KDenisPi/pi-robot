@@ -275,7 +275,7 @@ bool PiRobot::configure(const std::string& cfile){
                 auto item_name = jsonhelper::get_attr_mandatory<std::string>(json_item, "name");
                 auto item_comment = jsonhelper::get_attr<std::string>(json_item, "comment", "");
 
-                logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item Name: " + item_name + " Type: " + item_type + " Commend:" + item_comment);
+                logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item Name: " + item_name + " Type: " + item_type + " Comment:" + item_comment);
 
                 item::ItemTypes itype = item::Item::type_by_name(item_type);
 
@@ -599,6 +599,10 @@ bool PiRobot::configure(const std::string& cfile){
     }
 
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot configuration is finished");
+
+    //print loaded configuration
+    printConfig();
+
     return true;
 }
 

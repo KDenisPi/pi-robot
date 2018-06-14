@@ -80,20 +80,6 @@ bool StMeasurement::OnTimer(const int id){
 bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEvent: " + event->to_string());
 
-    auto ctxt = get_env<weather::Context>();
-
-    if(smachine::EVENT_TYPE::EVT_USER == event->type()){
-        //Show current IP address value
-        if(event->name() == EVT_SHOW_IP){
-            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
-            std::string ip4 = ctxt->get_str(StrID::Ip4Address) + ": " + ctxt->ip4_address;
-            std::string ip6 = ctxt->get_str(StrID::Ip6Address) + ": " + ctxt->ip6_address;
-            //write  IP information on LCD
-            //First line = IP4, second IP6
-            lcd->write_string_at(0,0, ip4, true);
-            lcd->write_string_at(1,0, ip6, true);
-        }
-    }
 
     return false;
 }
@@ -113,6 +99,7 @@ void StMeasurement::finish(){
             context->save_initial_data(data_file);
 
             auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+            lcd->clear_display();
             lcd->display_off();
             lcd->backlight_off();
 }

@@ -42,8 +42,8 @@ public:
     void load(){
         _msg[StrID::Starting] = "Starting...";
         _msg[StrID::Warming] = "Warming...";
-        _msg[StrID::Ip4Address] = "IP4 address";
-        _msg[StrID::Ip6Address] = "IP6 address";
+        _msg[StrID::Ip4Address] = "IP4 address:";
+        _msg[StrID::Ip6Address] = "IP6 address:";
         _msg[StrID::Finishing] = "Finishing...";
     }
 
