@@ -6,7 +6,6 @@
  */
 
 #include "context.h"
-#include "defines.h"
 #include "logger.h"
 #include "JsonHelper.h"
 
@@ -74,7 +73,7 @@ bool Context::save_initial_data(const std::string& filename){
 
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Save configuration to JSON: " + filename);
 
-    //check if previous file exist and 
+    //check if previous file exist and
     jsoncons::json conf = jsoncons::json::object{
         {"version", version},
         {"base_co2", std::to_string(spg30_base_co2)},
@@ -102,7 +101,7 @@ bool Context::save_initial_data(const std::string& filename){
     conf["si7021"] = std::move(si7021);
     conf["bmp280"] = std::move(bmp280);
     conf["tsl2651"] = std::move(tsl2651);
-   
+
     std::ofstream os_file(filename);
     os_file << conf;
 

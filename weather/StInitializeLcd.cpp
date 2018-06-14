@@ -33,19 +33,6 @@ bool StInitializeLcd::OnTimer(const int id){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnTimer ID: " + std::to_string(id));
 
     switch(id){
-        case TIMER_FINISH_ROBOT:
-        {
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer FINISH_ROBOT");
-
-
-            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
-            lcd->display_off();
-            lcd->backlight_off();
-
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer FINISH_ROBOT Finish");
-            get_itf()->finish();
-            return true;
-        }
         case TIMER_LCD_INTERVAL:
         {
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer LCD_INTERVAL");
@@ -63,7 +50,6 @@ bool StInitializeLcd::OnTimer(const int id){
 
 bool StInitializeLcd::OnEvent(const std::shared_ptr<smachine::Event> event){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "  Event: " + event->to_string());
-
     return false;
 }
 

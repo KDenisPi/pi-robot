@@ -13,30 +13,28 @@
 #include "sgp30.h"
 #include "bmp280.h"
 #include "tsl2561.h"
+#include "lcd.h"
 
 namespace weather {
-
-#define MEASURE_INTERVAL 10
-#define RUN_INTERVAL 35
 
 //take measurement from all sensors
 void StMeasurement::measure(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    auto context = get_env<weather::Context>();
+    auto ctxt = get_env<weather::Context>();
 
     //make measurement using Si7021 and then use this values for SGP30
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SI7021");
     auto si7021 = get_item<pirobot::item::Si7021>("SI7021");
-    si7021->get_results(context->si7021_humidity, context->si7021_temperature, context->si7021_abs_humidity);
+    si7021->get_results(ctxt->si7021_humidity, ctxt->si7021_temperature, ctxt->si7021_abs_humidity);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SGP30");
     auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
-    sgp30->get_results(context->spg30_co2, context->spg30_tvoc);
+    sgp30->get_results(ctxt->spg30_co2, ctxt->spg30_tvoc);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- BMP280");
     auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
-    bmp280->get_results(context->bmp280_pressure, context->bmp280_temperature, context->bmp280_altitude);
+    bmp280->get_results(ctxt->bmp280_pressure, ctxt->bmp280_temperature, ctxt->bmp280_altitude);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
 }
@@ -48,7 +46,8 @@ void StMeasurement::OnEntry(){
     measure();
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Create Timer ID: " + std::to_string(TIMER_UPDATE_INTERVAL));
-    TIMER_CREATE(TIMER_UPDATE_INTERVAL, MEASURE_INTERVAL) //measurement interval
+    auto ctxt = get_env<weather::Context>();
+    TIMER_CREATE(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval) //measurement interval
 }
 
 bool StMeasurement::OnTimer(const int id){
@@ -67,7 +66,10 @@ bool StMeasurement::OnTimer(const int id){
         case TIMER_UPDATE_INTERVAL:
         {
             measure();
-            TIMER_CREATE(TIMER_UPDATE_INTERVAL, MEASURE_INTERVAL) //measurement interval
+
+            auto ctxt = get_env<weather::Context>();
+            TIMER_CREATE(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval) //measurement interval
+
             return true;
         }
     }
@@ -84,11 +86,13 @@ bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
         //Show current IP address value
         if(event->name() == EVT_SHOW_IP){
             auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
-            std::string ip4 = ctxt->get_str(StrID::Ip6Address) + ": " + ctxt->ip4_address;
-            lcd->write_string_at(0,0, , true);
-
+            std::string ip4 = ctxt->get_str(StrID::Ip4Address) + ": " + ctxt->ip4_address;
+            std::string ip6 = ctxt->get_str(StrID::Ip6Address) + ": " + ctxt->ip6_address;
+            //write  IP information on LCD
+            //First line = IP4, second IP6
+            lcd->write_string_at(0,0, ip4, true);
+            lcd->write_string_at(1,0, ip6, true);
         }
-
     }
 
     return false;
@@ -97,6 +101,7 @@ bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
 //stop measurement and save current state
 void StMeasurement::finish(){
             TIMER_CANCEL(TIMER_UPDATE_INTERVAL);
+            TIMER_CANCEL(TIMER_IP_CHECK_INTERVAL);
 
             auto context = get_env<weather::Context>();
             //Stop SGP30 and save current values
@@ -106,6 +111,10 @@ void StMeasurement::finish(){
             sgp30->get_baseline(context->spg30_base_co2, context->spg30_base_tvoc);
             std::string data_file = "./initial.json";
             context->save_initial_data(data_file);
+
+            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+            lcd->display_off();
+            lcd->backlight_off();
 }
 
 }//namespace weather

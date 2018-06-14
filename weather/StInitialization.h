@@ -13,6 +13,7 @@
 #include "defines.h"
 #include "Event.h"
 #include "networkinfo.h"
+#include "logger.h"
 
 namespace weather {
 
@@ -26,7 +27,7 @@ public:
     virtual void OnEntry() override;
     virtual bool OnTimer(const int id) override;
     virtual bool OnEvent(const std::shared_ptr<smachine::Event> event) override;
-	virtual void OnSubstateExit(const std::string substate_name) override;
+    virtual void OnSubstateExit(const std::string substate_name) override;
 
 private:
     std::chrono::time_point<std::chrono::system_clock> _btn1_down;
@@ -36,6 +37,8 @@ private:
 
     //Genarate a new event on base how many time button was pressed
     void generate_button_press(const std::string& name, const int duration){
+        logger::log(logger::LLOG::DEBUG, "StInit", std::string(__func__) + "  Name: " + name + " Duration: " + std::to_string(duration));
+
         if(duration <= 0)
             return;
 
@@ -49,7 +52,7 @@ private:
 
         if( name == "btn_1"){
             if(duration < 3){
-                std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, "LCD_ON"));
+                std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
                 EVENT(event);
             }
             else if(duration >= 5){

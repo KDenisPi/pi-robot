@@ -12,6 +12,7 @@
 
 #include "Environment.h"
 #include "lcdstrings.h"
+#include "defines.h"
 
 namespace weather {
 
@@ -42,6 +43,13 @@ public:
 
     // TSL2561 - I2C Light-to-Digital Converter
     uint32_t tsl2651_lux;
+
+    //
+    //Timer intervals
+    //
+    int measure_check_interval = MEASURE_INTERVAL;
+    int measure_show_interval = MEASURE_SHOW_INTERVAL;
+    int ip_check_interval = IP_CHECK_INTERVAL;
 
     //
     // Load/Save initial context data from/to file

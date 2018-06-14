@@ -27,6 +27,16 @@ bool StInitialization::OnTimer(const int id){
             return true;
         }
         break;
+        //IP check interval
+        case TIMER_IP_CHECK_INTERVAL:
+        {
+            //detect IP address and save it for future using
+            detect_ip_address();
+
+            auto ctxt = get_env<weather::Context>();
+            TIMER_CREATE(TIMER_IP_CHECK_INTERVAL, ctxt->ip_check_interval);
+        }
+        break;
     }
 
     return false;
@@ -83,6 +93,9 @@ void StInitialization::OnSubstateExit(const std::string substate_name) {
 
         //detect IP address and save it for future using
         detect_ip_address();
+
+        auto ctxt = get_env<weather::Context>();
+        TIMER_CREATE(TIMER_IP_CHECK_INTERVAL, ctxt->ip_check_interval);
 
         CHANGE_STATE("StInitializeSensors");
     }
