@@ -37,12 +37,10 @@ public:
         if(line == 0){
             float temp = (ctxt->si7021_temperature + ctxt->bmp280_temperature)/2;
             float temp_f = ctxt->temp_C_to_F(temp);
-            sprintf(buff, "T %.0fC (%.0fF)", temp, temp_f);
+            sprintf(buff, "Temp: %.0fC (%.0fF)", temp, temp_f);
         }
         else if(line == 1){
-            float hm = ctxt->si7021_humidity*100; //humidity in %
-            sprintf(buff, "RH %.0f%c P %.0f mm Hg) ", hm, '%', ctxt->bmp280_pressure);
-
+            sprintf(buff, "RH:%.0f%c P:%.0f mm", ctxt->si7021_humidity, '%', ctxt->bmp280_pressure);
         }
 
         std::string result(buff);

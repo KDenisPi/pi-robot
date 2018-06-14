@@ -102,13 +102,16 @@ bool StMeasurement::OnTimer(const int id){
 
 bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEvent: " + event->to_string());
-
-
     return false;
 }
 
 //stop measurement and save current state
 void StMeasurement::finish(){
+
+            auto ctxt = get_env<weather::Context>();
+            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+            lcd->write_string_at(0,0, ctxt->get_str(StrID::Finishing), true);
+
             TIMER_CANCEL(TIMER_UPDATE_INTERVAL);
             TIMER_CANCEL(TIMER_IP_CHECK_INTERVAL);
             TIMER_CANCEL(TIMER_SHOW_DATA_INTERVAL);
@@ -122,7 +125,6 @@ void StMeasurement::finish(){
             std::string data_file = "./initial.json";
             context->save_initial_data(data_file);
 
-            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
             lcd->clear_display();
             lcd->display_off();
             lcd->backlight_off();
