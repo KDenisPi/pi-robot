@@ -44,6 +44,10 @@ public:
     // TSL2561 - I2C Light-to-Digital Converter
     uint32_t tsl2651_lux;
 
+    const float temp_C_to_F(const float temp) const {
+        return temp*1.8 + 32;
+    }
+
     //
     //Timer intervals
     //
