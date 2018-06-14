@@ -52,7 +52,11 @@ public:
      *
      * set force to true if need to clear queue and push event
      */
-    void put_event(const std::shared_ptr<Event> event, bool force = false);
+    void put_event(const std::shared_ptr<Event>& event, bool force = false);
+
+	virtual void add_event(const std::shared_ptr<Event>& event) override {
+        this->put_event(event, false);
+    }
 
     /*
      *

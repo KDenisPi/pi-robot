@@ -15,6 +15,7 @@
 #include "PiRobot.h"
 #include "Environment.h"
 #include "MqqtDefines.h"
+#include "Event.h"
 
 namespace smachine {
 
@@ -28,6 +29,8 @@ public:
 	// create event for state changing
 	virtual void state_change(const std::string& new_state) = 0;
 	virtual const std::string get_first_state() = 0;
+
+	virtual void add_event(const std::shared_ptr<Event>& event) = 0;
 	//
 	virtual void state_pop() = 0;
 	// create timer

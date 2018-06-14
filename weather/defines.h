@@ -22,5 +22,8 @@ enum ID {
     TIMER_USER_INTERVAL     = 1004
 };
 
+#define EVT_SHOW_IP "SHOW_IP"
+
+
 }
 #endif /* WEATHER_DEFINES_H_ */

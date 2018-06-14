@@ -21,6 +21,7 @@ namespace state {
 #define TIMER_CANCEL(id)  get_itf()->timer_cancel(id);
 #define CHANGE_STATE(state) get_itf()->state_change(state);
 #define POP_STATE() get_itf()->state_pop();
+#define EVENT(evt) get_itf()->add_event(evt);
 /*
  * Return true from OnEvent and OnTimer if received Event or Timer
  * was processed inside function

@@ -49,9 +49,6 @@ void StMeasurement::OnEntry(){
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Create Timer ID: " + std::to_string(TIMER_UPDATE_INTERVAL));
     TIMER_CREATE(TIMER_UPDATE_INTERVAL, MEASURE_INTERVAL) //measurement interval
-
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Create Timer ID: " + std::to_string(TIMER_FINISH_ROBOT));
-    TIMER_CREATE(TIMER_FINISH_ROBOT, RUN_INTERVAL) //stop interval (test purpose)
 }
 
 bool StMeasurement::OnTimer(const int id){
@@ -80,6 +77,19 @@ bool StMeasurement::OnTimer(const int id){
 
 bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEvent: " + event->to_string());
+
+    auto ctxt = get_env<weather::Context>();
+
+    if(smachine::EVENT_TYPE::EVT_USER == event->type()){
+        //Show current IP address value
+        if(event->name() == EVT_SHOW_IP){
+            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+            std::string ip4 = ctxt->get_str(StrID::Ip6Address) + ": " + ctxt->ip4_address;
+            lcd->write_string_at(0,0, , true);
+
+        }
+
+    }
 
     return false;
 }

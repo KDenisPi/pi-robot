@@ -17,10 +17,12 @@ namespace weather {
 
 class Context : public smachine::Environment {
 public:
-    Context() : version("0.9") {}
+    Context() : version("0.9"), ip4_address("0.0.0.0"), ip6_address("00:00:00:00:00:00") {}
     virtual ~Context() {}
 
     std::string version;
+    std::string ip4_address;
+    std::string ip6_address;
 
     // Si7021 - I2C Humidity and Temperature Sensor
     float si7021_humidity;
@@ -54,8 +56,6 @@ public:
         return _strs.get(id);
     }
 
-    std::chrono::time_point<std::chrono::system_clock> _btn1_down;
-    std::chrono::time_point<std::chrono::system_clock> _btn2_down;
 private:
     LcdStrings _strs;
 };

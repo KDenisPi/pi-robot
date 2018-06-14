@@ -23,11 +23,34 @@ enum EVENT_TYPE {
    EVT_LM_HIGH      = 7,
    EVT_LM_LOW       = 8,
    EVT_LM_VALUE     = 9,
-   EVT_FINISH       = 10    //End of work
+   EVT_USER         = 10,
+   EVT_FINISH       = 11    //End of work
 };
 
-struct EventData{
-    unsigned short ushort_[2];
+class EventData{
+public:
+    EventData(){
+        _ushort[0] = 0;
+        _ushort[1] = 0;
+        _int = 0;
+    }
+
+    EventData(EventData&& evtd){
+        _ushort[0] = evtd._ushort[0];
+        _ushort[1] = evtd._ushort[1];
+        _int = evtd._int;
+    }
+
+    virtual ~EventData(){}
+
+    EventData& operator=(EventData&& evtd){
+        _ushort[0] = evtd._ushort[0];
+        _ushort[1] = evtd._ushort[1];
+        _int = evtd._int;
+    }
+
+    unsigned short _ushort[2];
+    int _int;
 };
 
 class Event {
@@ -41,10 +64,17 @@ public:
     inline const EVENT_TYPE type() const {return m_type;}
     inline const int id() const {return m_id;}
     inline const std::string id_str() const {return std::to_string(m_id);}
-    inline const std::string name() const {return m_name;}
+    inline const std::string& name() const {return m_name;}
     inline const bool is_event(const std::string ename) const {return (this->name().compare(ename) == 0);}
     inline const struct EventData& data() const {return m_data;}
     inline const std::string to_string() const {return name() + " ID: " + id_str();}
+
+    Event& operator=(Event&& evnt){
+        m_type = evnt.type();
+        m_id = evnt.id();
+        m_name = std::move(evnt.name());
+        m_data = std::move(evnt.m_data);
+    }
 
 private:
        EVENT_TYPE m_type;

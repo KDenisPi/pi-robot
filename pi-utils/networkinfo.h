@@ -2,7 +2,7 @@
 * Receiving network interfaces information
 *
 * Created by Denis Kudia
-* 
+*
 */
 #ifndef _PIUTILS_NETWORKINFO
 #define _PIUTILS_NETWORKINFO
@@ -202,7 +202,7 @@ public:
     /*
 
     */
-    const std::list<ItfInfo> get_default_ip(const IpType ip_type, const std::string label = "") {
+    const std::list<ItfInfo> get_default_ip(const IpType ip_type, const std::string& label = "") {
         std::list<ItfInfo> result;
         for(auto it = _itf.begin(); it != _itf.end(); ++it){
             auto itf_label = it->second->get_label();

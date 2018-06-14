@@ -6,7 +6,6 @@
  */
 
 #include "StInitialization.h"
-#include "context.h"
 #include "button.h"
 
 
@@ -47,21 +46,26 @@ bool StInitialization::OnEvent(const std::shared_ptr<smachine::Event> event){
         //Save time moment when button was pressed
         if(event->name() == btn1->name()){
             if(smachine::EVENT_TYPE::EVT_BTN_DOWN == event->type())
-                ctxt->_btn1_down = std::chrono::system_clock::now();
+                _btn1_down = std::chrono::system_clock::now();
             else{
-
+                _btn1_up = std::chrono::system_clock::now();
+                int btn_pressed_duration = std::chrono::duration_cast<std::chrono::seconds>(_btn1_up -_btn1_down).count();
+                generate_button_press(event->name(), btn_pressed_duration);
             }
         }
 
         if(event->name() == btn2->name()){
             if(smachine::EVENT_TYPE::EVT_BTN_DOWN == event->type())
-                ctxt->_btn2_down = std::chrono::system_clock::now();
+                _btn2_down = std::chrono::system_clock::now();
             else{
-
+                _btn2_up = std::chrono::system_clock::now();
+                int btn_pressed_duration = std::chrono::duration_cast<std::chrono::seconds>(_btn2_up -_btn2_down).count();
+                generate_button_press(event->name(), btn_pressed_duration);
             }
         }
-    }
 
+        return true;
+    }
 
     return false;
 }
@@ -76,6 +80,10 @@ void StInitialization::OnSubstateExit(const std::string substate_name) {
         CHANGE_STATE("StMeasurement");
     }
     else if(substate_name == "StInitializeLcd"){
+
+        //detect IP address and save it for future using
+        detect_ip_address();
+
         CHANGE_STATE("StInitializeSensors");
     }
 }
