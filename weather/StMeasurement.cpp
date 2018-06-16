@@ -40,6 +40,25 @@ void StMeasurement::measure(){
     auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
     bmp280->get_results(ctxt->bmp280_pressure, ctxt->bmp280_temperature, ctxt->bmp280_altitude);
 
+    auto tsl2561 = get_item<pirobot::item::Tsl2561>("TSL2561");
+    int32_t tsl2651_lux = ctxt->tsl2651_lux;
+    tsl2561->get_results(ctxt->tsl2651_lux);
+    int lux_diff = ctxt->tsl2651_lux - tsl2651_lux;
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
+        " New: " + std::to_string(ctxt->tsl2651_lux) + " Diff: " + std::to_string(lux_diff));
+
+    if(lux_diff > 50){
+        std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
+        //EVENT(event);
+    }
+
+    if(lux_diff < -50){
+        std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
+        //EVENT(event);
+    }
+
+
     int co2_lvl = ctxt->get_CO2_level();
     int tvoc_lvl = ctxt->get_TVOC_level();
 
@@ -100,23 +119,27 @@ bool StMeasurement::OnTimer(const int id){
 
         case TIMER_SHOW_DATA_INTERVAL:
         {
-            auto ctxt = get_env<weather::Context>();
-
-            auto str_0 = measure_view(0);
-            auto str_1 = measure_view(1);
-
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Line 0: " + str_0 + " Line 1: " + str_1);
-
-            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
-            lcd->write_string_at(0,0, str_0, true);
-            lcd->write_string_at(1,0, str_1, false);
-
-            TIMER_CREATE(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval) //update measurement information on LCD interval
+            update_lcd();
             return true;
         }
     }
 
     return false;
+}
+
+void StMeasurement::update_lcd(){
+    auto ctxt = get_env<weather::Context>();
+
+    auto str_0 = measure_view(0);
+    auto str_1 = measure_view(1);
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Line 0: " + str_0 + " Line 1: " + str_1);
+
+    auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+    lcd->write_string_at(0,0, str_0, true);
+    lcd->write_string_at(1,0, str_1, false);
+
+    TIMER_CREATE(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval) //update measurement information on LCD interval
 }
 
 bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
@@ -143,6 +166,24 @@ bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
             auto red_blinker = get_item<pirobot::item::Blinking<pirobot::item::Led>>("red_blinker");
             red_blinker->Off();
 
+            return true;
+        }
+
+        if(event->name() == EVT_LCD_ON || event->name() == EVT_LCD_OFF){
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Event: " + event->name());
+
+            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+
+            if(event->name() == EVT_LCD_OFF && lcd->is_display_on()){
+                //Stop update LCD timer
+                TIMER_CANCEL(TIMER_SHOW_DATA_INTERVAL);
+                lcd->display_off();
+            }
+
+            if(event->name() == EVT_LCD_ON && !lcd->is_display_on()){
+                lcd->display_on();
+                update_lcd();
+            }
             return true;
         }
     }

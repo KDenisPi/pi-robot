@@ -55,7 +55,11 @@ private:
                 std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
                 EVENT(event);
             }
-            else if(duration > 1 && duration < 5){
+            else if(duration > 1 && duration <= 4){
+                std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_SHOW_IP));
+                EVENT(event);
+            }
+            else if(duration >= 5){
                 std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_SHOW_IP));
                 EVENT(event);
             }

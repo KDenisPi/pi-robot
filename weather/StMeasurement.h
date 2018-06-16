@@ -27,6 +27,8 @@ public:
     //stop measurement and save current state
     void finish();
 
+    void update_lcd();
+
     //Prepare output string for measurement results
     const std::string measure_view(const int line=0){
         char buff[512];

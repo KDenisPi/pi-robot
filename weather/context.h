@@ -112,12 +112,23 @@ public:
         return _strs.get(id);
     }
 
+    const bool is_lcd() const {
+        return _lcd_on;
+    }
+
+    void set_lcd(const bool lcd_on_off){
+        _lcd_on = lcd_on_off;
+    }
+
 private:
     LcdStrings _strs;
 
     //What should be used for temperature showing
     // true - celcius, false - fahrenheit
     bool _temp_C = true;
+
+    //if LCD switched ON
+    bool _lcd_on = true;
 
     //Concetration CO2 and/or TVOC
     int _CO2_level;

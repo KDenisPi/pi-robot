@@ -26,6 +26,7 @@ enum ID {
 
 #define EVT_SHOW_IP "SHOW_IP"
 #define EVT_LCD_ON  "LCD_ON"
+#define EVT_LCD_OFF "LCD_OFF"
 #define EVT_HIGH_LEVEL_ON   "HIGH_ON"
 #define EVT_HIGH_LEVEL_OFF  "HIGH_OFF"
 

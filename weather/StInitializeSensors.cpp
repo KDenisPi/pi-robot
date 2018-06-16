@@ -10,27 +10,33 @@
 
 #include "Si7021.h"
 #include "sgp30.h"
+#include "lcd.h"
 
 namespace weather {
 
 void StInitializeSensors::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    auto context = get_env<weather::Context>();
+    auto ctxt = get_env<weather::Context>();
+    auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
 
+    lcd->write_string_at(0,0, ctxt->get_str(StrID::Warming), true);
+
+    //load initial data
     std::string data_file = "./initial.json";
-    context->load_initial_data(data_file);
+    ctxt->load_initial_data(data_file);
 
     //make measurement using Si7021 and then use this values for SGP30
     auto si7021 = get_item<pirobot::item::Si7021>("SI7021");
-    si7021->get_results(context->si7021_humidity, context->si7021_temperature, context->si7021_abs_humidity);
+    si7021->get_results(ctxt->si7021_humidity, ctxt->si7021_temperature, ctxt->si7021_abs_humidity);
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Humidity: " + std::to_string(context->si7021_humidity) + " Temperature: " + std::to_string(context->si7021_temperature) + "C");
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Humidity: " + std::to_string(ctxt->si7021_humidity) +
+        " Temperature: " + std::to_string(ctxt->si7021_temperature) + "C");
 
     //use absolute humidity for SGP30
     auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
-    sgp30->set_humidity(context->si7021_abs_humidity);
-    sgp30->set_baseline(context->spg30_base_co2, context->spg30_base_tvoc);
+    sgp30->set_humidity(ctxt->si7021_abs_humidity);
+    sgp30->set_baseline(ctxt->spg30_base_co2, ctxt->spg30_base_tvoc);
     sgp30->start();
 
    TIMER_CREATE(TIMER_WARM_INTERVAL, 15) //wait for 15 seconds before real use

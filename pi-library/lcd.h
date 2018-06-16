@@ -192,7 +192,7 @@ public:
     }
 
     //Display On
-    void diplay_on(){
+    void display_on(){
         logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
         _displaycontrol |= LCD_DISPLAYON;
         command(LCD_DISPLAYCONTROL | _displaycontrol);
@@ -203,6 +203,10 @@ public:
         logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
         _displaycontrol &= ~LCD_DISPLAYON;
         command(LCD_DISPLAYCONTROL | _displaycontrol);
+    }
+
+    const bool is_display_on() const {
+        return (_displaycontrol & LCD_DISPLAYON);
     }
 
     //Cursor On
@@ -350,6 +354,12 @@ public:
     //Write string on the position
     //
     const void write_string_at(const int row, const int col, const std::string& msg, const bool cldisplay=false){
+
+        if(!is_display_on()){
+            //if display off - do nothing
+            return;
+        }
+
         if(cldisplay)
             clear_display();
 
