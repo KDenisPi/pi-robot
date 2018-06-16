@@ -9,7 +9,7 @@
 
 #ifndef PI_LIBRARY_AnalogLightMeter_H_
 #define PI_LIBRARY_AnalogLightMeter_H_
-  
+
 #include <fstream>
 
 #include "item.h"
@@ -33,7 +33,7 @@ public:
         const bool debug_mode = false,
         const int debug_buffer_size = 2048
         ):
-        item::Item(name, comment, item::ItemTypes::AnalogLightMeter), 
+        item::Item(name, comment, item::ItemTypes::AnalogLightMeter),
         m_provider(provider),
         m_value_diff_for_event(value_diff_for_event),
         m_debug_size(debug_buffer_size),
@@ -67,7 +67,7 @@ public:
 
     /*
     * Provide callback for receiving data from analog provider
-    * Free this call as quick as you can otherwise you will block next data reading 
+    * Free this call as quick as you can otherwise you will block next data reading
     */
     virtual void data(const unsigned short value) override;
 
@@ -141,10 +141,10 @@ public:
         if(m_debug_data_counter<m_debug_size)
             m_debug_values[m_debug_data_counter++] = value;
     }
-    
+
     //Save debug data to the file
     virtual void unload_debug_data(const std::string& dest_type, const std::string& destination) override;
-    
+
 
 private:
     std::shared_ptr<piutils::circbuff::CircularBuffer<unsigned short>> m_buff;

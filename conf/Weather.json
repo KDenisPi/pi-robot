@@ -76,6 +76,15 @@
             "gpio": {"name": "led_white"}
         },
         {
+            "type":"BLINKER",
+            "name":"red_blinker",
+            "comment": "",
+            "led": "led_red",
+            "tm_on": 500,
+            "tm_off": 500,
+            "blinks": 0
+        },
+        {
             "type":"BUTTON",
             "name":"btn_1",
             "comment":"",

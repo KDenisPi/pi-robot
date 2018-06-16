@@ -14,6 +14,7 @@
 #include "tsl2561.h"
 #include "lcd.h"
 #include "led.h"
+#include "blinking.h"
 
 namespace weather {
 
@@ -38,6 +39,24 @@ void StMeasurement::measure(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- BMP280");
     auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
     bmp280->get_results(ctxt->bmp280_pressure, ctxt->bmp280_temperature, ctxt->bmp280_altitude);
+
+    int co2_lvl = ctxt->get_CO2_level();
+    int tvoc_lvl = ctxt->get_TVOC_level();
+
+    // update CO2 & TVOC levels
+    ctxt->update_CO2_TVOC_levels();
+
+    //Level switch from Low to High
+    if((co2_lvl<4 && tvoc_lvl<4) && (ctxt->get_CO2_level()==4 || ctxt->get_TVOC_level()==4)){
+        std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_ON));
+        EVENT(event);
+    }
+
+    //Level switch from High to Low
+    if((co2_lvl==4 || tvoc_lvl==4) && (ctxt->get_CO2_level()<4 && ctxt->get_TVOC_level()<4)){
+        std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_OFF));
+        EVENT(event);
+    }
 
     led_green->Off();
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
@@ -102,6 +121,32 @@ bool StMeasurement::OnTimer(const int id){
 
 bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEvent: " + event->to_string());
+
+    auto ctxt = get_env<weather::Context>();
+
+    if(smachine::EVENT_TYPE::EVT_USER == event->type()){
+        //High level CO2 or TVOC detected
+        if(event->name() == EVT_HIGH_LEVEL_ON){
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " High level detected!!");
+
+            //Start blink Red LED
+            auto red_blinker = get_item<pirobot::item::Blinking<pirobot::item::Led>>("red_blinker");
+            red_blinker->On();
+
+            return true;
+        }
+        //Level CO2 or TVOC returned to normal
+        if(event->name() == EVT_HIGH_LEVEL_OFF){
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Level returned to normal");
+
+            //Stop blink Red LED
+            auto red_blinker = get_item<pirobot::item::Blinking<pirobot::item::Led>>("red_blinker");
+            red_blinker->Off();
+
+            return true;
+        }
+    }
+
     return false;
 }
 

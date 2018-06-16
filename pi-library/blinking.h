@@ -44,7 +44,7 @@ public:
 
     virtual const std::string to_string() override {
         return name();
-    } 
+    }
 
     virtual const std::string printConfig() override {
         return name();
@@ -73,6 +73,27 @@ public:
        return piutils::Threaded::start<Blinking>(this);
     }
 
+    //
+    //
+    //
+    inline void wait_loop(const unsigned int tm_interval){
+        unsigned int _tm = tm_interval;
+        unsigned int loop_delay = get_loop_delay();
+
+        //If interval less than 2 sec - wait full interval
+        //wait in loop with loop delay inerval
+        if(tm_interval < 2000){
+            std::this_thread::sleep_for(std::chrono::milliseconds(tm_interval));
+        }
+        else{
+            while(is_on() && _tm > 0){
+                unsigned int tm_delay = (loop_delay > _tm ? loop_delay : _tm);
+                _tm -= tm_delay;
+                std::this_thread::sleep_for(std::chrono::milliseconds(tm_delay));
+            }
+        }
+    }
+
     /*
     * Blinking worker function
     */
@@ -82,35 +103,36 @@ public:
         unsigned int loop_delay = owner->get_loop_delay();
         std::string name = owner->name();
 
-        while(!owner->is_stop_signal()){
-           int blinks = (owner->get_blinks() > 0 ? owner->get_blinks() : 10);
-           while(owner->is_on() && blinks > 0){
-                //Switch On
-                owner->item_on();
-                unsigned int tm_on = owner->get_on();
-                //wait in loop with loop delay inerval
-                while(owner->is_on() && tm_on > 0){
-                    unsigned int tm_delay = (loop_delay > tm_on ? loop_delay : tm_on);
-                    tm_on -= tm_delay;
-                    std::this_thread::sleep_for(std::chrono::milliseconds(tm_delay));
-                    //delay(tm_delay);
-                }
-                //Switch Off
-                owner->item_off();
-                unsigned int tm_off = owner->get_off();
-                //wait in loop with loop delay inerval
-                while(owner->is_on() && tm_off > 0){
-                    unsigned int tm_delay = (loop_delay > tm_off ? loop_delay : tm_off);
-                    tm_off -= tm_delay;
-                    //delay(tm_delay);
-                    std::this_thread::sleep_for(std::chrono::milliseconds(tm_delay));
-                }
+        auto fn = [owner]{return (owner->is_stop_signal() || owner->is_on());};
 
-                blinks--;
-                if(blinks == 0 && owner->get_blinks() == 0){
-                    blinks = 10;
-                }
-           }
+        while(!owner->is_stop_signal()){
+
+            {
+                std::unique_lock<std::mutex> lk(owner->cv_m);
+                owner->cv.wait(lk, fn);
+            }
+
+            logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Blinking started. ");
+
+            int blinks = (owner->get_blinks() > 0 ? owner->get_blinks() : 10);
+            while(!owner->is_stop_signal() && owner->is_on() && blinks > 0){
+                    //Switch On
+                    owner->item_on();
+
+                    unsigned int tm_on = owner->get_on();
+                    owner->wait_loop(tm_on);
+
+                    //Switch Off
+                    owner->item_off();
+                    unsigned int tm_off = owner->get_off();
+                    owner->wait_loop(tm_off);
+
+                    blinks--;
+                    //for infinity loops always increment counter
+                    if(blinks == 0 && owner->get_blinks() == 0){
+                        blinks = 10;
+                    }
+            }
 
            //check if current loop is finished and send signal to parent
            if((owner->is_on() && blinks == 0)){
@@ -122,7 +144,6 @@ public:
            }
 
            std::this_thread::sleep_for(std::chrono::milliseconds(loop_delay));
-           //delay(loop_delay);
         }
 
         logger::log(logger::LLOG::DEBUG, TAG_, std::string(__func__) + " Worker finished. " + owner->to_string());
