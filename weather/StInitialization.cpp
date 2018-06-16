@@ -60,7 +60,7 @@ bool StInitialization::OnEvent(const std::shared_ptr<smachine::Event> event){
             else{
                 _btn1_up = std::chrono::system_clock::now();
                 int btn_pressed_duration = std::chrono::duration_cast<std::chrono::seconds>(_btn1_up -_btn1_down).count();
-                generate_button_press(event->name(), btn_pressed_duration);
+                generate_button_press(event->name(), (btn_pressed_duration == 0 ? 1 : btn_pressed_duration));
             }
         }
 
@@ -70,7 +70,7 @@ bool StInitialization::OnEvent(const std::shared_ptr<smachine::Event> event){
             else{
                 _btn2_up = std::chrono::system_clock::now();
                 int btn_pressed_duration = std::chrono::duration_cast<std::chrono::seconds>(_btn2_up -_btn2_down).count();
-                generate_button_press(event->name(), btn_pressed_duration);
+                generate_button_press(event->name(), (btn_pressed_duration==0 ? 1 : btn_pressed_duration));
             }
         }
 

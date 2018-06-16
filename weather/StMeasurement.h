@@ -42,7 +42,7 @@ public:
                 float temp = (ctxt->si7021_temperature + ctxt->bmp280_temperature)/2;
                 float temp_f = ctxt->temp_C_to_F(temp);
                 sprintf(buff, ctxt->get_str(StrID::Line1).c_str(), (ctxt->show_temperature_in_celcius() ? temp : temp_f),
-                    (ctxt->show_temperature_in_celcius() ? 'C' : 'F'), co2_label);
+                    (ctxt->show_temperature_in_celcius() ? 'C' : 'F'), co2_label.c_str());
             }
             else{
                 sprintf(buff, co2_label.c_str(), "CO2");

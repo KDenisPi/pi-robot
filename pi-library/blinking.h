@@ -63,7 +63,11 @@ public:
         m_blinks = blinks;
     }
 
-    void On() { m_on = true; }
+    void On(){
+       m_on = true;
+       cv.notify_one();
+     }
+
     void Off() { m_on = false; }
 
     const bool is_on() const { return m_on; }

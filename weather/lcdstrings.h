@@ -52,10 +52,10 @@ public:
         _msg[StrID::Ip6Address] = "IP6 address:";
         _msg[StrID::Finishing] = "Finishing...";
         _msg[StrID::Good] = "Good";
-        _msg[StrID::Moderate] = "Moderate";
+        _msg[StrID::Moderate] = "Not bad";
         _msg[StrID::Poor] = "Poor";
         _msg[StrID::Dangerous] = "%s Dangerous";
-        _msg[StrID::Line1] = "Temp: %.0f%c CO2: %s";
+        _msg[StrID::Line1] = "T:%.0f%c CO2:%s";
         _msg[StrID::Line2] = "RH:%.0f%c P:%.0f mm";
     }
 
