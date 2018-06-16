@@ -48,14 +48,14 @@ void StMeasurement::measure(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
         " New: " + std::to_string(ctxt->tsl2651_lux) + " Diff: " + std::to_string(lux_diff));
 
-    if(lux_diff > 50){
+    if(lux_diff > 600){
         std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
-        //EVENT(event);
+        EVENT(event);
     }
 
-    if(lux_diff < -50){
+    if(lux_diff < -600){
         std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
-        //EVENT(event);
+        EVENT(event);
     }
 
 

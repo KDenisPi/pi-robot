@@ -56,7 +56,7 @@ public:
         _msg[StrID::Poor] = "Poor";
         _msg[StrID::Dangerous] = "%s Dangerous";
         _msg[StrID::Line1] = "T:%.0f%c CO2:%s";
-        _msg[StrID::Line2] = "RH:%.0f%c P:%.0f mm";
+        _msg[StrID::Line2] = "H:%.0f%c P:%.0fmm";
     }
 
 private:
