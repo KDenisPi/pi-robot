@@ -26,6 +26,8 @@ void StMeasurement::measure(){
 
     auto led_green = get_item<pirobot::item::Led>("led_green");
     led_green->On();
+    TIMER_CREATE(TIMER_MEASURE_LIGHT_INTERVAL, ctxt->measure_light_interval) //measurement interval
+    
 
     //make measurement using Si7021 and then use this values for SGP30
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SI7021");
@@ -40,6 +42,9 @@ void StMeasurement::measure(){
     auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
     bmp280->get_results(ctxt->bmp280_pressure, ctxt->bmp280_temperature, ctxt->bmp280_altitude);
 
+    //
+    //detect luminosity and of light was changed from On to Off or from Off to On - create event
+    //
     auto tsl2561 = get_item<pirobot::item::Tsl2561>("TSL2561");
     int32_t tsl2651_lux = ctxt->tsl2651_lux;
     tsl2561->get_results(ctxt->tsl2651_lux);
@@ -48,16 +53,17 @@ void StMeasurement::measure(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
         " New: " + std::to_string(ctxt->tsl2651_lux) + " Diff: " + std::to_string(lux_diff));
 
-    if(lux_diff > 600){
-        std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
-        EVENT(event);
-    }
+    if(ctxt->light_off_on_diff < m_abs(lux_diff)){
+        if(lux_diff>0){
+            std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
+            EVENT(event);
+        }
 
-    if(lux_diff < -600){
-        std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
-        EVENT(event);
+        if(lux_diff<0){
+            std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
+            EVENT(event);
+        }
     }
-
 
     int co2_lvl = ctxt->get_CO2_level();
     int tvoc_lvl = ctxt->get_TVOC_level();
@@ -77,7 +83,6 @@ void StMeasurement::measure(){
         EVENT(event);
     }
 
-    led_green->Off();
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
 }
 
@@ -122,11 +127,21 @@ bool StMeasurement::OnTimer(const int id){
             update_lcd();
             return true;
         }
+
+        case TIMER_MEASURE_LIGHT_INTERVAL:
+        {
+            auto led_green = get_item<pirobot::item::Led>("led_green");
+            led_green->Off();
+            return true;
+        }
     }
 
     return false;
 }
 
+//
+// Update informationon LCD screen
+//
 void StMeasurement::update_lcd(){
     auto ctxt = get_env<weather::Context>();
 
@@ -169,11 +184,15 @@ bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
             return true;
         }
 
+        //light was switched On or Off
         if(event->name() == EVT_LCD_ON || event->name() == EVT_LCD_OFF){
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Event: " + event->name());
 
             auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
 
+            //
+            //TODO: Switch backlight Off/On too
+            //
             if(event->name() == EVT_LCD_OFF && lcd->is_display_on()){
                 //Stop update LCD timer
                 TIMER_CANCEL(TIMER_SHOW_DATA_INTERVAL);

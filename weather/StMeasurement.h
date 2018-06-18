@@ -13,6 +13,8 @@
 
 namespace weather {
 
+#define m_abs(x) (x>=0 ? x : x)
+
 class StMeasurement : public smachine::state::State {
 public:
     StMeasurement(smachine::StateMachineItf* itf) : smachine::state::State(itf, "StMeasurement") {}
@@ -26,7 +28,7 @@ public:
     void measure();
     //stop measurement and save current state
     void finish();
-
+    //update information on LCD screen
     void update_lcd();
 
     //Prepare output string for measurement results

@@ -47,6 +47,8 @@ public:
     // TSL2561 - I2C Light-to-Digital Converter
     uint32_t tsl2651_lux;
 
+    int light_off_on_diff = 600; //difference between light OFF and lights ON
+
     const bool show_temperature_in_celcius() const {
         return _temp_C;
     }
@@ -97,6 +99,7 @@ public:
     //
     int measure_check_interval = MEASURE_INTERVAL;
     int measure_show_interval = MEASURE_SHOW_INTERVAL;
+    int measure_light_interval = MEASURE_LIGHT_INTERVAL;
     int ip_check_interval = IP_CHECK_INTERVAL;
 
     //
