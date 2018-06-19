@@ -18,7 +18,9 @@
 
 namespace weather {
 
-//take measurement from all sensors
+//
+// Take measurement from all sensors
+//
 void StMeasurement::measure(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
@@ -27,7 +29,7 @@ void StMeasurement::measure(){
     auto led_green = get_item<pirobot::item::Led>("led_green");
     led_green->On();
     TIMER_CREATE(TIMER_MEASURE_LIGHT_INTERVAL, ctxt->measure_light_interval) //measurement interval
-    
+
 
     //make measurement using Si7021 and then use this values for SGP30
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SI7021");
@@ -86,7 +88,9 @@ void StMeasurement::measure(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
 }
 
-
+//
+// State entry function
+//
 void StMeasurement::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
@@ -100,6 +104,9 @@ void StMeasurement::OnEntry(){
 
 }
 
+//
+// Process Timer events
+//
 bool StMeasurement::OnTimer(const int id){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnTimer ID: " + std::to_string(id));
 
@@ -210,7 +217,9 @@ bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
     return false;
 }
 
-//stop measurement and save current state
+//
+// Stop measurement and save current state
+//
 void StMeasurement::finish(){
 
             auto ctxt = get_env<weather::Context>();
