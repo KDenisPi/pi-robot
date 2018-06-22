@@ -89,7 +89,7 @@ private:
         //
         //If IP address was changed or just detected - generate EVENT
         //
-        if((ctxt->ip4_address != ip4_address) || (ctxt->ip6_address != ip6_address)){
+        if((!ip4_address.empty() && ctxt->ip4_address != ip4_address) || (!ip6_address.empty() && ctxt->ip6_address != ip6_address)){
             logger::log(logger::LLOG::DEBUG, "StInit", std::string(__func__) + " IP address changed IP4: " + ctxt->ip4_address + " IP6: " + ctxt->ip6_address);
 
             std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_SHOW_IP));

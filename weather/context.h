@@ -21,8 +21,8 @@ namespace weather {
 
 class Context : public smachine::Environment {
 public:
-    Context() : version("0.9"), ip4_address("0.0.0.0"),
-        ip6_address("00:00:00:00:00:00"), _CO2_level(0), _TVOC_level(0) {}
+    Context() : version("0.9"), ip4_address(""),
+        ip6_address(""), _CO2_level(0), _TVOC_level(0) {}
 
     virtual ~Context() {}
 

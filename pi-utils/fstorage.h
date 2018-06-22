@@ -36,13 +36,14 @@ public:
     FStorage(const std::string& dpath = "/var/data/pi-robot/data", const bool use_local_time = false) :
         _dpath(dpath), _local_time(use_local_time), _fd(-1)
     {
-
+        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Path: " + _dpath + " Local time: " + std::to_string(_local_time));
     }
 
     //
     //
     //
     virtual ~FStorage() {
+        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__));
         close_file();
     }
 
@@ -50,6 +51,8 @@ public:
     // Create initial infrastructure
     //
     int initilize(){
+        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__));
+
         //initilize time structure
         piutils::get_time(_time);
 
@@ -63,6 +66,7 @@ public:
             }
         }
 
+        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Result: " + std::to_string(res));
         return res;
     }
 
@@ -74,7 +78,8 @@ public:
 
         //check file descriptor
         if(_fd < 0){
-
+            //TODO: remove for PRO
+            logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " File closed.");
             return -1;
         }
 
@@ -97,14 +102,15 @@ public:
         }
 
         ssize_t wr_bytes = write(_fd, data, dsize);
-        if(wr_bytes == -1)
-            return errno;
-
-        if(wr_bytes != dsize){
-
+        if(wr_bytes == -1){
+            res = errno;
+            logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Error: " + std::to_string(res));
+        }
+        else if(wr_bytes != dsize){
+            logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Different size");
         }
 
-        return 0;
+        return res;
     }
 
 
@@ -112,6 +118,8 @@ public:
     // Stop
     //
     void stop(){
+        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__));
+
         close_file();
     }
 
@@ -129,6 +137,8 @@ private:
     // Close
     //
     inline int close_file(){
+        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__));
+
         if(_fd){
             //TODO: Add flush
 
@@ -156,24 +166,33 @@ private:
     //
     //
     inline int create_file(){
+        int res  = 0;
+
         create_filename();
+        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Trying create file: " + _file_path);
+
         //open data file
         _fd = open(_file_path.c_str(), O_WRONLY|O_CREAT|O_APPEND, file_mode);
-        return (_fd == -1 ? errno : 0);
+        if(_fd == -1 ){
+            res = errno;
+            logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Filed create file: " + _file_path + " Error: " + std::to_string(res));
+        }
+        return res;
     }
 
     //
     //
     //
     int check_path(const std::string& dpath){
-        int res;
+        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Path: " + dpath);
 
+        int res = 0;
         size_t pos = dpath.find_first_of("/", 0);
         while(pos != std::string::npos){
             if(pos > 0){
                 const std::string sub_path = dpath.substr(0, pos);
                 res = create_folder(sub_path);
-                if(res < 0)
+                if(res != 0)
                     return res;
             }
             pos = dpath.find_first_of("/", pos + 1);
@@ -187,12 +206,19 @@ private:
     //
     //
     int create_folder(const std::string& sub_path){
+        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Folder: " + sub_path);
+
         //check if parent folder exist
         int res = access(sub_path.c_str(), F_OK);
         if(res < 0){
             //if not then try to create it
             res = mkdir(sub_path.c_str(), dir_mode);
             //could not create folder - return error
+            if(res < 0){
+                res = errno;
+                logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Could not create folder : " + sub_path +
+                    " Error: " + std::to_string(res));
+            }
         }
         return res;
     }
