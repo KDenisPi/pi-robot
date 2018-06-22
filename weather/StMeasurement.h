@@ -43,9 +43,8 @@ public:
             const std::string co2_label = ctxt->get_level_label(co2_level);
 
             if(co2_level < 4){
-                float temp = (ctxt->si7021_temperature + ctxt->bmp280_temperature)/2;
-                float temp_f = ctxt->temp_C_to_F(temp);
-                sprintf(buff, ctxt->get_str(StrID::Line1).c_str(), (ctxt->show_temperature_in_celcius() ? temp : temp_f),
+                float temp = ctxt->data.temp();
+                sprintf(buff, ctxt->get_str(StrID::Line1).c_str(), temp,
                     (ctxt->show_temperature_in_celcius() ? 'C' : 'F'), co2_label.c_str());
             }
             else{
@@ -56,7 +55,7 @@ public:
             const int tvoc_level = ctxt->get_TVOC_level();
             const std::string tvoc_label = ctxt->get_level_label(tvoc_level);
             if(tvoc_level<4)
-                sprintf(buff, ctxt->get_str(StrID::Line2).c_str(), ctxt->si7021_humidity, '%', ctxt->bmp280_pressure);
+                sprintf(buff, ctxt->get_str(StrID::Line2).c_str(), ctxt->data.si7021_humidity, '%', ctxt->data.bmp280_pressure);
             else
                 sprintf(buff, tvoc_label.c_str(), "TVOC");
         }

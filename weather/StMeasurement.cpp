@@ -34,26 +34,26 @@ void StMeasurement::measure(){
     //make measurement using Si7021 and then use this values for SGP30
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SI7021");
     auto si7021 = get_item<pirobot::item::Si7021>("SI7021");
-    si7021->get_results(ctxt->si7021_humidity, ctxt->si7021_temperature, ctxt->si7021_abs_humidity);
+    si7021->get_results(ctxt->data.si7021_humidity, ctxt->data.si7021_temperature, ctxt->data.si7021_abs_humidity);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SGP30");
     auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
-    sgp30->get_results(ctxt->spg30_co2, ctxt->spg30_tvoc);
+    sgp30->get_results(ctxt->data.spg30_co2, ctxt->data.spg30_tvoc);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- BMP280");
     auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
-    bmp280->get_results(ctxt->bmp280_pressure, ctxt->bmp280_temperature, ctxt->bmp280_altitude);
+    bmp280->get_results(ctxt->data.bmp280_pressure, ctxt->data.bmp280_temperature, ctxt->data.bmp280_altitude);
 
     //
     //detect luminosity and of light was changed from On to Off or from Off to On - create event
     //
     auto tsl2561 = get_item<pirobot::item::Tsl2561>("TSL2561");
-    int32_t tsl2651_lux = ctxt->tsl2651_lux;
-    tsl2561->get_results(ctxt->tsl2651_lux);
-    int lux_diff = ctxt->tsl2651_lux - tsl2651_lux;
+    int32_t tsl2651_lux = ctxt->data.tsl2651_lux;
+    tsl2561->get_results(ctxt->data.tsl2651_lux);
+    int lux_diff = ctxt->data.tsl2651_lux - tsl2651_lux;
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
-        " New: " + std::to_string(ctxt->tsl2651_lux) + " Diff: " + std::to_string(lux_diff));
+        " New: " + std::to_string(ctxt->data.tsl2651_lux) + " Diff: " + std::to_string(lux_diff));
 
     if(ctxt->light_off_on_diff < m_abs(lux_diff)){
         if(lux_diff>0){
@@ -235,7 +235,7 @@ void StMeasurement::finish(){
             auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
             sgp30->stop();
 
-            sgp30->get_baseline(context->spg30_base_co2, context->spg30_base_tvoc);
+            sgp30->get_baseline(context->data.spg30_base_co2, context->data.spg30_base_tvoc);
             std::string data_file = "./initial.json";
             context->save_initial_data(data_file);
 

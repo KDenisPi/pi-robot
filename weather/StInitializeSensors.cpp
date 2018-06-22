@@ -28,15 +28,15 @@ void StInitializeSensors::OnEntry(){
 
     //make measurement using Si7021 and then use this values for SGP30
     auto si7021 = get_item<pirobot::item::Si7021>("SI7021");
-    si7021->get_results(ctxt->si7021_humidity, ctxt->si7021_temperature, ctxt->si7021_abs_humidity);
+    si7021->get_results(ctxt->data.si7021_humidity, ctxt->data.si7021_temperature, ctxt->data.si7021_abs_humidity);
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Humidity: " + std::to_string(ctxt->si7021_humidity) +
-        " Temperature: " + std::to_string(ctxt->si7021_temperature) + "C");
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Humidity: " + std::to_string(ctxt->data.si7021_humidity) +
+        " Temperature: " + std::to_string(ctxt->data.si7021_temperature) + "C");
 
     //use absolute humidity for SGP30
     auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
-    sgp30->set_humidity(ctxt->si7021_abs_humidity);
-    sgp30->set_baseline(ctxt->spg30_base_co2, ctxt->spg30_base_tvoc);
+    sgp30->set_humidity(ctxt->data.si7021_abs_humidity);
+    sgp30->set_baseline(ctxt->data.spg30_base_co2, ctxt->data.spg30_base_tvoc);
     sgp30->start();
 
    TIMER_CREATE(TIMER_WARM_INTERVAL, 15) //wait for 15 seconds before real use

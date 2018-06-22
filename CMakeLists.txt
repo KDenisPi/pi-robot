@@ -44,7 +44,7 @@ set(CMAKE_BIULD_TYPE Debug)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-include_directories(BEFORE 
+include_directories(BEFORE
 ${SPDLOG_INCLUDE}
 )
 
@@ -73,6 +73,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smachine)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/version1)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/project1)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/spi_test)
+add_subdirectory(${PROJECT_SOURCE_DIR}/storage)
 add_subdirectory(${PROJECT_SOURCE_DIR}/weather)
 
 

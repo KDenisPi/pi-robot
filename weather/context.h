@@ -14,6 +14,8 @@
 #include "lcdstrings.h"
 #include "defines.h"
 #include "logger.h"
+#include "smallthings.h"
+#include "measurement.h"
 
 namespace weather {
 
@@ -28,24 +30,7 @@ public:
     std::string ip4_address;
     std::string ip6_address;
 
-    // Si7021 - I2C Humidity and Temperature Sensor
-    float si7021_humidity;
-    float si7021_temperature;
-    float si7021_abs_humidity;
-
-    // SPG30 - I2C Sensurion Gas Platform
-    uint16_t spg30_co2;
-    uint16_t spg30_tvoc;
-    uint16_t spg30_base_co2;
-    uint16_t spg30_base_tvoc;
-
-    // BMP280 - I2C Digital Presure Sensor
-    float bmp280_pressure;
-    float bmp280_temperature;
-    float bmp280_altitude;
-
-    // TSL2561 - I2C Light-to-Digital Converter
-    uint32_t tsl2651_lux;
+    Measurement data;
 
     int light_off_on_diff = 600; //difference between light OFF and lights ON
 
@@ -53,22 +38,18 @@ public:
         return _temp_C;
     }
 
-    const float temp_C_to_F(const float temp) const {
-        return temp*1.8 + 32;
-    }
-
     //Update CO2 & TVOC levels
     void update_CO2_TVOC_levels(){
         int i;
         for(i = 0; i < 5; i++){
-            if(spg30_co2 <_co2_levels[i]){
+            if(data.spg30_co2 <_co2_levels[i]){
                 _CO2_level = i;
                 break;
             }
         }
 
         for(i = 0; i < 5; i++){
-            if(spg30_tvoc <_tvoc_levels[i]){
+            if(data.spg30_tvoc <_tvoc_levels[i]){
                 _TVOC_level = i;
                 break;
             }
