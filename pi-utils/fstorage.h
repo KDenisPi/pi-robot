@@ -33,8 +33,8 @@ public:
     //
     //
     //
-    FStorage(const std::string& dpath = "/var/data/pi-robot/data", const bool use_local_time = false) :
-        _dpath(dpath), _local_time(use_local_time), _fd(-1)
+    FStorage() :
+        _dpath(""), _local_time(false), _fd(-1)
     {
         logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Path: " + _dpath + " Local time: " + std::to_string(_local_time));
     }
@@ -50,8 +50,17 @@ public:
     //
     // Create initial infrastructure
     //
-    int initilize(){
-        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__));
+    int initilize(const std::string& dpath = "/var/data/pi-robot/data", const bool use_local_time = false){
+        logger::log(logger::LLOG::INFO, "fstor", std::string(__func__) + " Path: " + _dpath + " Local time: " + std::to_string(_local_time));
+
+        _local_time = use_local_time;
+        if(!dpath.empty())
+            _dpath = dpath;
+
+        if(_dpath.empty()){
+            logger::log(logger::LLOG::ERROR, "fstor", std::string(__func__) + " Failed. Destination path is not defined.");
+            return -1;
+        }
 
         //initilize time structure
         piutils::get_time(_time);
@@ -104,7 +113,7 @@ public:
         ssize_t wr_bytes = write(_fd, data, dsize);
         if(wr_bytes == -1){
             res = errno;
-            logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Error: " + std::to_string(res));
+            logger::log(logger::LLOG::ERROR, "fstor", std::string(__func__) + " Error: " + std::to_string(res));
         }
         else if(wr_bytes != dsize){
             logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Different size");
@@ -169,13 +178,13 @@ private:
         int res  = 0;
 
         create_filename();
-        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Trying create file: " + _file_path);
+        logger::log(logger::LLOG::INFO, "fstor", std::string(__func__) + " Trying create file: " + _file_path);
 
         //open data file
         _fd = open(_file_path.c_str(), O_WRONLY|O_CREAT|O_APPEND, file_mode);
         if(_fd == -1 ){
             res = errno;
-            logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Filed create file: " + _file_path + " Error: " + std::to_string(res));
+            logger::log(logger::LLOG::ERROR, "fstor", std::string(__func__) + " Filed create file: " + _file_path + " Error: " + std::to_string(res));
         }
         return res;
     }
@@ -206,7 +215,7 @@ private:
     //
     //
     int create_folder(const std::string& sub_path){
-        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Folder: " + sub_path);
+        logger::log(logger::LLOG::INFO, "fstor", std::string(__func__) + " Folder: " + sub_path);
 
         //check if parent folder exist
         int res = access(sub_path.c_str(), F_OK);
@@ -216,7 +225,7 @@ private:
             //could not create folder - return error
             if(res < 0){
                 res = errno;
-                logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Could not create folder : " + sub_path +
+                logger::log(logger::LLOG::ERROR, "fstor", std::string(__func__) + " Could not create folder : " + sub_path +
                     " Error: " + std::to_string(res));
             }
         }

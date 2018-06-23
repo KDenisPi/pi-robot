@@ -16,6 +16,14 @@
 #include "led.h"
 #include "blinking.h"
 
+/*
+    TODO:
+        1. Deep switch off for LCD
+        2. Initialize LCD after wake-up
+        3. Switch LCD on if important event detected
+
+*/
+
 namespace weather {
 
 //
@@ -131,6 +139,19 @@ bool StMeasurement::OnTimer(const int id){
 
         case TIMER_SHOW_DATA_INTERVAL:
         {
+            //Save result to file
+            auto ctxt = get_env<weather::Context>();
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Write measurement");
+            const char* data = ctxt->data.to_string();
+            ctxt->_fstorage.write_data(data, strlen(data));
+
+            //
+            //TODO: Add MQQT here
+            //
+
+            //
+            //Update measurement on LCD screen
+            //
             update_lcd();
             return true;
         }
@@ -221,27 +242,30 @@ bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
 // Stop measurement and save current state
 //
 void StMeasurement::finish(){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-            auto ctxt = get_env<weather::Context>();
-            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
-            lcd->write_string_at(0,0, ctxt->get_str(StrID::Finishing), true);
+    auto ctxt = get_env<weather::Context>();
+    auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+    lcd->write_string_at(0,0, ctxt->get_str(StrID::Finishing), true);
 
-            TIMER_CANCEL(TIMER_UPDATE_INTERVAL);
-            TIMER_CANCEL(TIMER_IP_CHECK_INTERVAL);
-            TIMER_CANCEL(TIMER_SHOW_DATA_INTERVAL);
+    TIMER_CANCEL(TIMER_UPDATE_INTERVAL);
+    TIMER_CANCEL(TIMER_IP_CHECK_INTERVAL);
+    TIMER_CANCEL(TIMER_SHOW_DATA_INTERVAL);
 
-            auto context = get_env<weather::Context>();
-            //Stop SGP30 and save current values
-            auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
-            sgp30->stop();
+    auto context = get_env<weather::Context>();
+    //Stop SGP30 and save current values
+    auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
+    sgp30->stop();
 
-            sgp30->get_baseline(context->data.spg30_base_co2, context->data.spg30_base_tvoc);
-            std::string data_file = "./initial.json";
-            context->save_initial_data(data_file);
+    sgp30->get_baseline(context->data.spg30_base_co2, context->data.spg30_base_tvoc);
+    std::string data_file = "./initial.json";
+    context->save_initial_data(data_file);
 
-            lcd->clear_display();
-            lcd->display_off();
-            lcd->backlight_off();
+    lcd->clear_display();
+    lcd->display_off();
+    lcd->backlight_off();
+
+    ctxt->_fstorage.stop();
 }
 
 }//namespace weather

@@ -16,6 +16,7 @@
 #include "logger.h"
 #include "smallthings.h"
 #include "measurement.h"
+#include "fstorage.h"
 
 namespace weather {
 
@@ -30,7 +31,11 @@ public:
     std::string ip4_address;
     std::string ip6_address;
 
+    // Measurement data
     Measurement data;
+    // File based data storage
+    piutils::fstor::FStorage _fstorage;
+
 
     int light_off_on_diff = 600; //difference between light OFF and lights ON
 

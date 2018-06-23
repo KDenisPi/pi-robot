@@ -20,11 +20,21 @@
 
 using namespace std;
 
+/*
+* State Machine instance
+*/
 std::shared_ptr<smachine::StateMachine> stm;
-void mytime(const std::string& message);
 
+/*
+* State Machine process ID
+*/
 pid_t stmPid;
 
+
+/*
+* Test purpose function
+*/
+void mytime(const std::string& message);
 void mytime(const std::string& message){
     char mtime[30];
     std::chrono::time_point<std::chrono::system_clock> tp;
@@ -62,8 +72,11 @@ static void sigHandlerParent(int sign){
   }
 }
 
-const char* err_message = "Error. No configuration file.\nUsage weather --conf coniguration_file [--mqqt-conf mqqt_configuration_file ]";
+const char* err_message = "Error. No configuration file.\nUsage weather --conf coniguration_file [--mqqt-conf mqqt_configuration_file]";
 
+/*
+*
+*/
 std::string validate_file_parameter(const int idx, const int argc, char* argv[]){
   std::string filename;
   if(idx == argc){
@@ -83,7 +96,7 @@ std::string validate_file_parameter(const int idx, const int argc, char* argv[])
 }
 
 /*
-* program --conf path_to_configuration [--mqqt mqqt_server_ip_addres]
+* program --conf path_to_configuration [--mqqt-conf mqqt_configuration_file]
 *    --mqqt - optional if MQQT client should be used
 */
 int main (int argc, char* argv[])
