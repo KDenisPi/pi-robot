@@ -16,6 +16,17 @@ void StInitialization::OnEntry(){
 
     auto ctxt = get_env<weather::Context>();
 
+    auto led_gr = get_item<pirobot::item::Led>("led_green");
+    auto led_wt = get_item<pirobot::item::Led>("led_white");
+    auto led_rd = get_item<pirobot::item::Led>("led_red");
+
+    led_gr->On();
+    led_wt->On();
+    led_rd->On();
+    
+    TIMER_CREATE(TIMER_FINISH_ROBOT, 10);
+    return;
+
     //
     //Initialize file based storage
     //

@@ -1,0 +1,31 @@
+{
+    "version" : "1.0",
+    "real_world" : true,
+
+    "gpios": [
+        {"name": "led_white",   "provider": "SIMPLE", "pin": 0, "mode": "OUT"},
+        {"name": "led_red",     "provider": "SIMPLE", "pin": 2, "mode": "OUT"},
+        {"name": "led_green",   "provider": "SIMPLE", "pin": 3, "mode": "OUT"}
+    ],
+
+    "items":[
+        {
+            "type":"LED",
+            "name":"led_green",
+            "comment": "",
+            "gpio": {"name": "led_green"}
+        },
+        {
+            "type":"LED",
+            "name":"led_red",
+            "comment": "",
+            "gpio": {"name": "led_red"}
+        },
+        {
+            "type":"LED",
+            "name":"led_white",
+            "comment": "",
+            "gpio": {"name": "led_white"}
+        }
+    ]
+}

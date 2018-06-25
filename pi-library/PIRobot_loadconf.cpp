@@ -41,14 +41,13 @@ const char TAG[] = "PiRobot";
  *
  */
 bool PiRobot::configure(const std::string& cfile){
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot configuration is starting..");
-
     std::string conf = (cfile.empty() ? get_configuration() : cfile);
     if(conf.empty()){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " No Robot configuration");
         return false;
     }
 
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Loading Robot hardware configuration ...");
     std::ifstream ijson(conf);
     try{
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Parse JSON from: " + conf);
@@ -65,6 +64,8 @@ bool PiRobot::configure(const std::string& cfile){
         if(is_real_world()) //Under PI
         {
             int wiPi = wiringPiSetup();
+            logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " WiringPiSetup: " + std::to_string(wiPi));
+
             //Rasbery based GPIO provider present always
             providers["SIMPLE"] = std::shared_ptr<pirobot::gpio::GpioProvider>(new pirobot::gpio::GpioProviderSimple());
             providers["I2C"] = std::shared_ptr<pirobot::provider::Provider>(new pirobot::i2c::I2C());
