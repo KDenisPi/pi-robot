@@ -52,10 +52,13 @@ Led::~Led() {
 
 bool Led::initialize(void)
 {
-	if((m_state != m_init_state) || m_init_always ){
-		set_state(m_init_state);
-	}
-	return true;
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " State: " + std::to_string(m_state) + " Init:" + std::to_string(m_init_state));
+
+  get_gpio()->pullUpDnControl(gpio::PULL_MODE::PULL_OFF);
+  if((m_state != m_init_state) || m_init_always ){
+     set_state(m_init_state);
+  }
+  return true;
 }
 
 /*
@@ -73,10 +76,9 @@ const std::string Led::printConfig(){
 }
 
 void Led::set_state(const LED_STATE state){
-/*
-  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " State from: " + std::to_string(m_state) +
-     " to:" + std::to_string(state));
-*/
+
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " State from: " + std::to_string(m_state) + " to:" + std::to_string(state));
+
   get_gpio()->digitalWrite(state);
   m_state = state;
 }

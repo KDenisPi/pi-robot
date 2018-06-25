@@ -11,6 +11,7 @@
 #include "Si7021.h"
 #include "sgp30.h"
 #include "lcd.h"
+#include "led.h"
 
 namespace weather {
 
@@ -19,6 +20,14 @@ void StInitializeSensors::OnEntry(){
 
     auto ctxt = get_env<weather::Context>();
     auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+
+    auto led_gr = get_item<pirobot::item::Led>("led_green");
+    auto led_wt = get_item<pirobot::item::Led>("led_white");
+    auto led_rd = get_item<pirobot::item::Led>("led_red");
+
+    led_gr->On();
+    led_wt->On();
+    led_rd->On();
 
     lcd->write_string_at(0,0, ctxt->get_str(StrID::Warming), true);
 
@@ -55,6 +64,16 @@ bool StInitializeSensors::OnTimer(const int id){
         //switch to main state
         case TIMER_WARM_INTERVAL:
         {
+            auto ctxt = get_env<weather::Context>();
+
+            auto led_gr = get_item<pirobot::item::Led>("led_green");
+            auto led_wt = get_item<pirobot::item::Led>("led_white");
+            auto led_rd = get_item<pirobot::item::Led>("led_red");
+
+            led_gr->Off();
+            led_wt->Off();
+            led_rd->Off();
+
             POP_STATE();
             return true;
         }

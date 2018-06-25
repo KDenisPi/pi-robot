@@ -52,8 +52,7 @@ void GpioProviderSimple::pullUpDownControl(const int pin, const PULL_MODE pumode
 }
 
 void GpioProviderSimple::setPulse(const int pin, const uint16_t pulselen){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" to pin: ") + std::to_string(pin) +
-            " pulselen: " + std::to_string(pulselen));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" to pin: ") + std::to_string(pin) + " pulselen: " + std::to_string(pulselen));
     //TODO: Implement pulse for servo
 }
 
