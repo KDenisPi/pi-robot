@@ -51,6 +51,7 @@ ${SPDLOG_INCLUDE}
 #C++ 11
 #add_cxx_flags( "-std=c++11" )
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -std=c++11 -fexceptions")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
