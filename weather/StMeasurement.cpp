@@ -56,15 +56,24 @@ void StMeasurement::measure(){
     //
     //detect luminosity and of light was changed from On to Off or from Off to On - create event
     //
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561");
     auto tsl2561 = get_item<pirobot::item::Tsl2561>("TSL2561");
     int32_t tsl2651_lux = ctxt->data.tsl2651_lux;
-    tsl2561->get_results(ctxt->data.tsl2651_lux);
+
+    if( !tsl2561->get_results(ctxt->data.tsl2651_lux)){
+        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " TSL2561 - Incorrect value detected");
+        //if value is incorrect - ignore it
+        ctxt->data.tsl2651_lux = tsl2651_lux;
+    }
     int lux_diff = ctxt->data.tsl2651_lux - tsl2651_lux;
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
-        " New: " + std::to_string(ctxt->data.tsl2651_lux) + " Diff: " + std::to_string(m_abs(lux_diff)) + " LhDiff:" + std::to_string(ctxt->light_off_on_diff));
+    float mdiff = m_abs(m_change(ctxt->data.tsl2651_lux, tsl2651_lux));
 
-    if(ctxt->light_off_on_diff < m_abs(lux_diff)){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
+        " New: " + std::to_string(ctxt->data.tsl2651_lux) + " Diff: " + std::to_string(m_abs(lux_diff)) + " LhDiff:" + std::to_string(ctxt->light_off_on_diff) +
+        " MDiff: " + std::to_string(mdiff));
+
+    if(ctxt->light_off_on_diff < m_abs(lux_diff) || mdiff > 2){
         if(lux_diff>0){
             std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
             EVENT(event);
@@ -173,17 +182,23 @@ bool StMeasurement::OnTimer(const int id){
 //
 void StMeasurement::update_lcd(){
     auto ctxt = get_env<weather::Context>();
+    auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+
+    //Check if LCD switched off - do nothing
+    if(!lcd->is_on()){
+        return;
+    }
 
     auto str_0 = measure_view(0);
     auto str_1 = measure_view(1);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Line 0: " + str_0 + " Line 1: " + str_1);
 
-    auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
     lcd->write_string_at(0,0, str_0, true);
     lcd->write_string_at(1,0, str_1, false);
 
-    TIMER_CREATE(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval) //update measurement information on LCD interval
+    //update measurement information on LCD interval
+    TIMER_CREATE(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval)
 }
 
 bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
@@ -195,6 +210,12 @@ bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
         //High level CO2 or TVOC detected
         if(event->name() == EVT_HIGH_LEVEL_ON){
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " High level detected!!");
+
+            //
+            // Always switch LCD to ON
+            //
+            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+            lcd->On();
 
             //Start blink Red LED
             auto red_blinker = get_item<pirobot::item::Blinking<pirobot::item::Led>>("red_blinker");
@@ -225,16 +246,19 @@ bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
             auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
 
             //
-            //TODO: Switch backlight Off/On too
+            //Switch LCD OFF
             //
-            if(event->name() == EVT_LCD_OFF && lcd->is_display_on()){
+            if(event->name() == EVT_LCD_OFF && lcd->is_on()){
                 //Stop update LCD timer
                 TIMER_CANCEL(TIMER_SHOW_DATA_INTERVAL);
-                lcd->display_off();
+                lcd->Off();
             }
 
-            if(event->name() == EVT_LCD_ON && !lcd->is_display_on()){
-                lcd->display_on();
+            //
+            //Switch LCD ON
+            //
+            if(event->name() == EVT_LCD_ON && !lcd->is_on()){
+                lcd->On();
                 update_lcd();
             }
             return true;
@@ -268,8 +292,7 @@ void StMeasurement::finish(){
     context->save_initial_data(data_file);
 
     lcd->clear_display();
-    lcd->display_off();
-    lcd->backlight_off();
+    lcd->Off();
 
     ctxt->_fstorage.stop();
 }

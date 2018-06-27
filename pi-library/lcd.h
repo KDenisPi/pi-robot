@@ -90,6 +90,8 @@ public:
         m_gpio_data[6] = data_6;
         m_gpio_data[7] = data_7;
 
+        _displaycontrol = LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF;
+        _displaymode = LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT;
     }
 
     //TODO: Add interface for 8-bit mode and rw GPIO supported
@@ -113,14 +115,17 @@ public:
         logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
 
         //if we have Backlite pin then switch it Off
-        backlight_off();
+        Off();
     }
 
     //Item initialization function
     virtual bool initialize() override {
         logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+
         //if we have Backlite pin then switch it on
-        backlight_on();
+        if(m_gpio_backlite){
+            m_gpio_backlite->High();
+        }
 
         _displayfunction = _lines | _dots | _bitmode;
 
@@ -130,6 +135,7 @@ public:
         std::this_thread::sleep_for(std::chrono::milliseconds(50)); //50
 
         logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__) + " Switch RS:Off, Enb: Off, RW: Off");
+
         //switch to command mode
         m_gpio_rs->Low();
         m_gpio_enable->Low();
@@ -168,15 +174,20 @@ public:
 
         command(LCD_FUNCTIONSET | _displayfunction);
 
-
-        _displaycontrol = LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF;
+        /*
+        * Set display control settings
+        */
         display_ctrl(_displaycontrol);
 
+        //Clear diaplay
         clear_display();
 
-        _displaymode = LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT;
+        /*
+        * Set display mode settings
+        */
         command(LCD_ENTRYMODESET | _displaymode);
 
+        //Return cursor to home
         return_home();
 
         return true;
@@ -277,17 +288,45 @@ public:
         command(LCD_ENTRYMODESET | _displaymode);
     }
 
+    //
+    // Check if Backlight switched On
+    // Then check if display switched On
+    //
+    const bool is_on() const {
+        if(m_gpio_backlite && !m_gpio_backlite->is_High()){
+            return false;
+        }
+
+        return is_display_on();
+    }
+
     // Switch black light on (for Adafruit only)
-    void backlight_on(){
+    void On(){
         logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
-        if(m_gpio_backlite){
-            m_gpio_backlite->High();
+
+        //
+        // If backlight was switched Off we need to reinitialize LCD
+        //
+        if(m_gpio_backlite && !m_gpio_backlite->is_High()){
+            initialize();
+        }
+        else{
+            //
+            //If Backlite functionality is not available just switch display On
+            //
+            display_on();
         }
     }
 
     // Switch black light off (for Adafruit only)
-    void backlight_off(){
+    void Off(){
         logger::log(logger::LLOG::DEBUG, "LCD", std::string(__func__));
+
+        //
+        //If Backlite functionality is not available just switch display off
+        //
+        display_off();
+
         if(m_gpio_backlite){
             m_gpio_backlite->Low();
         }

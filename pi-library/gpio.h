@@ -45,6 +45,11 @@ class Gpio
   */
     inline void High() { set_level(gpio::SGN_LEVEL::SGN_HIGH);}
     inline void Low() { set_level(gpio::SGN_LEVEL::SGN_LOW);}
+
+    const bool is_High() {
+      auto level = get_level();
+      return (level == gpio::SGN_LEVEL::SGN_HIGH);
+    }
   /*
   * Get GPIO level
   */
