@@ -14,6 +14,7 @@
 namespace weather {
 
 #define m_abs(x) (x>=0 ? x : -x)
+#define m_change(x,y) (x>y ? x/y : y/x)
 
 class StMeasurement : public smachine::state::State {
 public:
