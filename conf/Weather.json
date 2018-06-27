@@ -7,9 +7,9 @@
     ],
 
     "gpios": [
-        {"name": "led_white",   "provider": "SIMPLE", "pin": 0, "mode": "OUT"},
-        {"name": "led_red",     "provider": "SIMPLE", "pin": 2, "mode": "OUT"},
-        {"name": "led_green",   "provider": "SIMPLE", "pin": 3, "mode": "OUT"},
+        {"name": "led_green",   "provider": "SIMPLE", "pin": 0, "mode": "OUT"},
+        {"name": "led_white",   "provider": "SIMPLE", "pin": 2, "mode": "OUT"},
+        {"name": "led_red",     "provider": "SIMPLE", "pin": 3, "mode": "OUT"},
 
         {"name": "btn_1", "provider": "SIMPLE", "pin": 21, "mode": "IN"},
         {"name": "btn_2", "provider": "SIMPLE", "pin": 22, "mode": "IN"},
