@@ -154,7 +154,7 @@ int main (int argc, char* argv[])
         }
 
         logger::log(logger::LLOG::DEBUG, "main", std::string(__func__) + " Create child");
-        logger::set_level(logger::LLOG::INFO); //DEBUG);//INFO);
+        logger::set_level(logger::LLOG::DEBUG);//INFO);
         /*
         * Create PI Robot instance
         */

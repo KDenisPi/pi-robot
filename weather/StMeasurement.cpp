@@ -67,7 +67,9 @@ void StMeasurement::measure(){
     }
     int lux_diff = ctxt->data.tsl2651_lux - tsl2651_lux;
 
-    float mdiff = m_abs(m_change(ctxt->data.tsl2651_lux, tsl2651_lux));
+    float mdiff = 0.0;
+    if(ctxt->data.tsl2651_lux != 0 && tsl2651_lux!=0)  
+       mdiff = m_abs(m_change(ctxt->data.tsl2651_lux, tsl2651_lux));
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
         " New: " + std::to_string(ctxt->data.tsl2651_lux) + " Diff: " + std::to_string(m_abs(lux_diff)) + " LhDiff:" + std::to_string(ctxt->light_off_on_diff) +

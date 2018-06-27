@@ -310,12 +310,11 @@ public:
         if(m_gpio_backlite && !m_gpio_backlite->is_High()){
             initialize();
         }
-        else{
-            //
-            //If Backlite functionality is not available just switch display On
-            //
-            display_on();
-        }
+
+        //
+        //If Backlite functionality is not available just switch display On
+        //
+        display_on();
     }
 
     // Switch black light off (for Adafruit only)
