@@ -133,7 +133,7 @@ void StMeasurement::OnEntry(){
 
     TIMER_CREATE(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval) //measurement interval
     TIMER_CREATE(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval) //update measurement information on LCD interval
-
+    TIMER_CREATE(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval) //save information
 }
 
 //
@@ -161,18 +161,23 @@ bool StMeasurement::OnTimer(const int id){
             return true;
         }
 
-        case TIMER_SHOW_DATA_INTERVAL:
+        case TIMER_WRITE_DATA_INTERVAL:
         {
             //Save result to file
+
+            //
+            //TODO: Add MQQT here
+            //
             auto ctxt = get_env<weather::Context>();
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Write measurement");
             const char* data = ctxt->data.to_string();
             ctxt->_fstorage.write_data(data, strlen(data));
 
-            //
-            //TODO: Add MQQT here
-            //
+            TIMER_CREATE(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval) //save information
+        }
 
+        case TIMER_SHOW_DATA_INTERVAL:
+        {
             //
             //Update measurement on LCD screen
             //
@@ -295,6 +300,7 @@ void StMeasurement::finish(){
     TIMER_CANCEL(TIMER_UPDATE_INTERVAL);
     TIMER_CANCEL(TIMER_IP_CHECK_INTERVAL);
     TIMER_CANCEL(TIMER_SHOW_DATA_INTERVAL);
+    TIMER_CANCEL(TIMER_WRITE_DATA_INTERVAL);
 
     auto context = get_env<weather::Context>();
     //Stop SGP30 and save current values

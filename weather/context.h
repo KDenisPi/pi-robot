@@ -85,6 +85,7 @@ public:
     //
     int measure_check_interval = MEASURE_INTERVAL;
     int measure_show_interval = MEASURE_SHOW_INTERVAL;
+    int measure_write_interval = MEASURE_WRITE_INTERVAL;
     int measure_light_interval = MEASURE_LIGHT_INTERVAL;
     int ip_check_interval = IP_CHECK_INTERVAL;
 
