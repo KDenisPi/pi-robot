@@ -27,9 +27,9 @@ public:
 
         //try to load page content
         std::string page = piutils::webutils::WebUtils::load_page(get_index_page());
-        const std::string ip_info =  ctxt->add_ip_v4;
+        const std::string ip_info = ctxt->ip4_address;
         const std::string new_page_1 = piutils::webutils::WebUtils::replace_value(page, "{NetInfo}", ip_info);
-        const std::string _new_page = piutils::webutils::WebUtils::replace_value(page, "{Uptime}", ctxt->get_uptime());
+        const std::string _new_page = piutils::webutils::WebUtils::replace_value(new_page_1, "{Uptime}", ctxt->get_uptime());
 
         return _new_page;
     }

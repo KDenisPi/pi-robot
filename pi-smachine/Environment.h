@@ -10,6 +10,8 @@
 
 #include <chrono>
 #include <mutex>
+#include <string>
+#include <cstdio>
 
 namespace smachine {
 
@@ -26,16 +28,19 @@ public:
     /*
     * Uptime detection
     */
-    virtual const string get_uptime(){
+    virtual const std::string get_uptime(){
         char buff[512];
 
-        std::chrono::time_point<std::chrono::system_clock> _now_time; = std::chrono::system_clock::now();
+        std::chrono::time_point<std::chrono::system_clock> _now_time = std::chrono::system_clock::now();
         auto interval = _now_time -_start_time;
-        std::chrono::seconds sec = std::chrono::duration_cast<std::chrono::seconds>(interval).count();
+        int sec = std::chrono::duration_cast<std::chrono::seconds>(interval).count();
         int min = std::chrono::duration_cast<std::chrono::minutes>(interval).count();
         int hr = std::chrono::duration_cast<std::chrono::hours>(interval).count();
 
-        sprinf(buff, "%u:%u:%u", hr, min, sec);
+        if(hr > 0) sec = sec % 3600;
+        if(min > 0) sec = sec % 60;
+
+        sprintf(buff, "%u:%.2u:%.2u", hr, min, sec);
         return std::string(buff);
     }
 
