@@ -208,8 +208,8 @@ void StMeasurement::update_lcd(){
         return;
     }
 
-    auto str_0 = measure_view(0);
-    auto str_1 = measure_view(1);
+    auto str_0 = ctxt->measure_view(0);
+    auto str_1 = ctxt->measure_view(1);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Line 0: " + str_0 + " Line 1: " + str_1);
 

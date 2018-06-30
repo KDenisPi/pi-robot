@@ -23,7 +23,10 @@ namespace weather {
 class Context : public smachine::Environment {
 public:
     Context() : version("0.9"), ip4_address(""),
-        ip6_address(""), _CO2_level(0), _TVOC_level(0) {}
+        ip6_address(""), _CO2_level(0), _TVOC_level(0) {
+
+        _start_time = std::chrono::system_clock::now();
+    }
 
     virtual ~Context() {}
 
@@ -41,6 +44,22 @@ public:
 
     const bool show_temperature_in_celcius() const {
         return _temp_C;
+    }
+
+    /*
+    * Uptime detection
+    */
+    const string get_uptime(){
+        char buff[512];
+
+        std::chrono::time_point<std::chrono::system_clock> _now_time; = std::chrono::system_clock::now();
+        auto interval = _now_time -_start_time;
+        std::chrono::seconds sec = std::chrono::duration_cast<std::chrono::seconds>(interval).count();
+        int min = std::chrono::duration_cast<std::chrono::minutes>(interval).count();
+        int hr = std::chrono::duration_cast<std::chrono::hours>(interval).count();
+
+        sprinf(buff, "%u:%u:%u", hr, min, sec);
+        return std::string(buff);
     }
 
     //Update CO2 & TVOC levels
@@ -110,8 +129,42 @@ public:
         _lcd_on = lcd_on_off;
     }
 
+    //Prepare output string for measurement results
+    const std::string measure_view(const int line=0){
+        char buff[512];
+        memset(buff, 0x00, sizeof(buff));
+
+        if(line == 0){
+            const int co2_level = get_CO2_level();
+            const std::string co2_label = get_level_label(co2_level);
+
+            if(co2_level < 4){
+                float temp = data.temp();
+                sprintf(buff, get_str(StrID::Line1).c_str(), temp,
+                    (show_temperature_in_celcius() ? 'C' : 'F'), co2_label.c_str());
+            }
+            else{
+                sprintf(buff, co2_label.c_str(), "CO2");
+            }
+        }
+        else if(line == 1){
+            const int tvoc_level = get_TVOC_level();
+            const std::string tvoc_label = get_level_label(tvoc_level);
+            if(tvoc_level<4)
+                sprintf(buff, get_str(StrID::Line2).c_str(), data.si7021_humidity, '%', data.bmp280_pressure);
+            else
+                sprintf(buff, tvoc_label.c_str(), "TVOC");
+        }
+
+        std::string result(buff);
+        return result;
+    }
+
+
 private:
     LcdStrings _strs;
+
+    std::chrono::time_point<std::chrono::system_clock> _start_time;
 
     //What should be used for temperature showing
     // true - celcius, false - fahrenheit
