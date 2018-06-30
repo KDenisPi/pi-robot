@@ -35,7 +35,15 @@ pid_t stmPid;
 */
 bool daemon_mode = true;
 
+/*
+* Default debug level
+*/
 logger::LLOG dlevel = logger::LLOG::INFO;
+
+/*
+*
+*/
+std::string firstState = "StInitialization";
 
 /*
 * Test purpose function
@@ -78,7 +86,8 @@ static void sigHandlerParent(int sign){
   }
 }
 
-const char* err_message = "Error. No configuration file.\nUsage weather --conf coniguration_file [--mqqt-conf mqqt_configuration_file] [--nodaemon] [--dlevel INFO|DEBUG|NECECCARY|ERROR]";
+const char* err_message = "Error. No configuration file.";
+const char* help_message = "weather --conf coniguration_file [--mqqt-conf mqqt_configuration_file] [--nodaemon] [--dlevel INFO|DEBUG|NECECCARY|ERROR]";
 
 /*
 *
@@ -87,6 +96,7 @@ std::string validate_file_parameter(const int idx, const int argc, char* argv[])
   std::string filename;
   if(idx == argc){
     cout <<  err_message << endl;
+    cout <<  help_message << endl;
     _exit(EXIT_FAILURE);
   }
 
@@ -136,10 +146,16 @@ int main (int argc, char* argv[])
         else if(strcmp(argv[i], "NECECCARY") == 0) dlevel = logger::LLOG::NECECCARY;
       }
     }
+    else if(strcmp(argv[i], "--fstate") == 0){
+      if(++i < argc){
+        firstState = argv[i];
+      }
+    }
   }
 
   if(robot_conf.empty()){
     cout <<  err_message << endl;
+    cout <<  help_message << endl;
     _exit(EXIT_FAILURE);
   }
 
@@ -200,7 +216,7 @@ int main (int argc, char* argv[])
 
         //Create State factory for State Machine
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create State Factory support");
-        std::shared_ptr<weather::WeatherStFactory> factory(new weather::WeatherStFactory());
+        std::shared_ptr<weather::WeatherStFactory> factory(new weather::WeatherStFactory(firstState));
 
         std::shared_ptr<mqqt::MqqtItf> clMqqt;
         if(mqtt){

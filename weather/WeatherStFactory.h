@@ -15,8 +15,8 @@ namespace weather {
 
 class WeatherStFactory: public smachine::StateFactory {
 public:
-	WeatherStFactory();
-	virtual ~WeatherStFactory();
+	WeatherStFactory(const std::string& firstState = "StInitialization") : smachine::StateFactory(firstState) {}
+	virtual ~WeatherStFactory() {}
 
 	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, smachine::StateMachineItf* itf) noexcept(false) override;
 
@@ -24,13 +24,8 @@ public:
 	 * Create Environment object
 	 */
 	virtual smachine::Environment* get_environment() override {
-		return new Context();		
+		return new Context();
 	}
-
-	virtual const std::string get_first_state() override {
-		return "StInitialization";
-	}
-
 };
 
 } /* namespace weather */

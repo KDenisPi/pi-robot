@@ -54,15 +54,15 @@ Logger::Logger() : m_flush(false), _level(LLOG::DEBUG){
     m_buff = std::shared_ptr<log_type>(new log_type(2048));
     piutils::Threaded::start<Logger>(this);
 
-    std::cout << "Logger created" << std::endl;
+    //std::cout << "Logger created" << std::endl;
 }
 
 Logger::~Logger() {
-    std::cout << "Logger released. Start" << std::endl; 
+    //std::cout << "Logger released. Start" << std::endl;
     set_flush();
     piutils::Threaded::stop();
     async_file->flush();
-    std::cout << "Logger released" << std::endl;
+    //std::cout << "Logger released" << std::endl;
 }
 
 
@@ -96,7 +96,7 @@ void Logger::write_log(const log_message_type& logm) const{
 *
 */
 void Logger::worker(Logger* owner){
-    std::cout << "Logger worked started" << std::endl;
+    //std::cout << "Logger worked started" << std::endl;
     auto fn = [owner]{return (owner->is_stop_signal() || owner->data_present());};
 
     while(!owner->is_stop_signal()){
@@ -114,7 +114,7 @@ void Logger::worker(Logger* owner){
         if(owner->is_flush())
             break;
     }
-    std::cout << "Logger worked finished" << std::endl;
+    //std::cout << "Logger worked finished" << std::endl;
 }
 
 /*
@@ -122,7 +122,7 @@ void Logger::worker(Logger* owner){
 */
 void log(const LLOG level, const std::string& pattern, const std::string& message){
     if(!plog){
-        std::cout << "Create Logger" << std::endl;
+        //std::cout << "Create Logger" << std::endl;
         p_plog = new Logger();
         plog = std::shared_ptr<Logger>(p_plog); //new Logger());
     }
@@ -133,7 +133,7 @@ void log(const LLOG level, const std::string& pattern, const std::string& messag
 }
 
 void release(){
-  std::cout << "Release Logger" << std::endl;
+  //std::cout << "Release Logger" << std::endl;
   if(plog){
      delete plog.get();
   }
@@ -141,7 +141,7 @@ void release(){
 
 void set_level(const LLOG level){
   if(!plog){
-      std::cout << "Create Logger" << std::endl;
+      //std::cout << "Create Logger" << std::endl;
       p_plog = new Logger();
       plog = std::shared_ptr<Logger>(p_plog); //new Logger());
   }

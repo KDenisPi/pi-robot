@@ -6,13 +6,3 @@
  */
 
 #include "StateFactory.h"
-
-namespace smachine {
-
-StateFactory::StateFactory() {
-}
-
-StateFactory::~StateFactory() {
-}
-
-} /* namespace smachine */

@@ -17,8 +17,13 @@ namespace smachine {
 
 class StateFactory {
 public:
-	StateFactory();
-	virtual ~StateFactory();
+	StateFactory(const std::string& firstState) : _firstState(firstState) {
+
+	}
+
+	virtual ~StateFactory() {
+
+	}
 
 	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, smachine::StateMachineItf* itf) noexcept(false) = 0;
 
@@ -30,7 +35,12 @@ public:
 	/*
 	* Return the first state of State Machine
 	*/
-	virtual const std::string get_first_state() = 0;
+	const std::string get_first_state() const {
+		return _firstState;
+	}
+
+private:
+	std::string _firstState;
 };
 
 } /* namespace smachine */

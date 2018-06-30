@@ -17,8 +17,8 @@ namespace spi_test {
 
 class MyStateFactory: public smachine::StateFactory {
 public:
-	MyStateFactory();
-	virtual ~MyStateFactory();
+	MyStateFactory() : smachine::StateFactory("StateEnvAnalize") {}
+	virtual ~MyStateFactory() {}
 
 	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, smachine::StateMachineItf* itf) noexcept(false) override;
 
@@ -26,10 +26,6 @@ public:
 	 * Create Environment object
 	 */
 	virtual smachine::Environment* get_environment() override;
-	virtual const std::string get_first_state() override {
-		return "StateEnvAnalize";
-	}
-
 };
 
 } /* namespace project1 */

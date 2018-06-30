@@ -16,18 +16,9 @@
 #include "StMeasurement.h"
 #include "StInitializeSensors.h"
 #include "StInitializeLcd.h"
-
+#include "StNoHardware.h"
 
 namespace weather {
-
-WeatherStFactory::WeatherStFactory() {
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-
-}
-
-WeatherStFactory::~WeatherStFactory() {
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-}
 
 /*
  *
@@ -46,7 +37,9 @@ const std::shared_ptr<smachine::state::State> WeatherStFactory::get_state(const 
 	else if(state_name.compare("StInitializeLcd") == 0){
 		return std::shared_ptr<smachine::state::State>(new weather::StInitializeLcd(itf));
 	}
-	
+	else if(state_name.compare("StNoHardware") == 0){
+		return std::shared_ptr<smachine::state::State>(new weather::StNoHardware(itf));
+	}
 
 	logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Generate exception no such State");
 	throw std::runtime_error("No such state");

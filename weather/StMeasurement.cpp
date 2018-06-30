@@ -34,75 +34,87 @@ void StMeasurement::measure(){
 
     auto ctxt = get_env<weather::Context>();
 
-    auto led_green = get_item<pirobot::item::Led>("led_green");
-    led_green->On();
+    try {
 
-    TIMER_CREATE(TIMER_MEASURE_LIGHT_INTERVAL, ctxt->measure_light_interval) //measurement interval
+        auto led_green = get_item<pirobot::item::Led>("led_green");
+        led_green->On();
 
+        TIMER_CREATE(TIMER_MEASURE_LIGHT_INTERVAL, ctxt->measure_light_interval) //measurement interval
 
-    //make measurement using Si7021 and then use this values for SGP30
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SI7021");
-    auto si7021 = get_item<pirobot::item::Si7021>("SI7021");
-    si7021->get_results(ctxt->data.si7021_humidity, ctxt->data.si7021_temperature, ctxt->data.si7021_abs_humidity);
+        //make measurement using Si7021 and then use this values for SGP30
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SI7021");
+        auto si7021 = get_item<pirobot::item::Si7021>("SI7021");
+        si7021->get_results(ctxt->data.si7021_humidity, ctxt->data.si7021_temperature, ctxt->data.si7021_abs_humidity);
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SGP30");
-    auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
-    sgp30->get_results(ctxt->data.spg30_co2, ctxt->data.spg30_tvoc);
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SGP30");
+        auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
+        sgp30->get_results(ctxt->data.spg30_co2, ctxt->data.spg30_tvoc);
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- BMP280");
-    auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
-    bmp280->get_results(ctxt->data.bmp280_pressure, ctxt->data.bmp280_temperature, ctxt->data.bmp280_altitude);
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- BMP280");
+        auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
+        bmp280->get_results(ctxt->data.bmp280_pressure, ctxt->data.bmp280_temperature, ctxt->data.bmp280_altitude);
 
-    //
-    //detect luminosity and of light was changed from On to Off or from Off to On - create event
-    //
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561");
-    auto tsl2561 = get_item<pirobot::item::Tsl2561>("TSL2561");
-    int32_t tsl2651_lux = ctxt->data.tsl2651_lux;
+        //
+        //detect luminosity and of light was changed from On to Off or from Off to On - create event
+        //
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561");
+        auto tsl2561 = get_item<pirobot::item::Tsl2561>("TSL2561");
+        int32_t tsl2651_lux = ctxt->data.tsl2651_lux;
 
-    if( !tsl2561->get_results(ctxt->data.tsl2651_lux)){
-        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " TSL2561 - Incorrect value detected");
-        //if value is incorrect - ignore it
-        ctxt->data.tsl2651_lux = tsl2651_lux;
-    }
-    int lux_diff = ctxt->data.tsl2651_lux - tsl2651_lux;
+        if( !tsl2561->get_results(ctxt->data.tsl2651_lux)){
+            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " TSL2561 - Incorrect value detected");
+            //if value is incorrect - ignore it
+            ctxt->data.tsl2651_lux = tsl2651_lux;
+        }
+        int lux_diff = ctxt->data.tsl2651_lux - tsl2651_lux;
 
-    float mdiff = 0.0;
-    if(ctxt->data.tsl2651_lux != 0 && tsl2651_lux!=0)  
-       mdiff = m_abs(m_change(ctxt->data.tsl2651_lux, tsl2651_lux));
+        float mdiff = 0.0;
+        if(ctxt->data.tsl2651_lux != 0 && tsl2651_lux!=0)
+        mdiff = m_abs(m_change(ctxt->data.tsl2651_lux, tsl2651_lux));
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
-        " New: " + std::to_string(ctxt->data.tsl2651_lux) + " Diff: " + std::to_string(m_abs(lux_diff)) + " LhDiff:" + std::to_string(ctxt->light_off_on_diff) +
-        " MDiff: " + std::to_string(mdiff));
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
+            " New: " + std::to_string(ctxt->data.tsl2651_lux) + " Diff: " + std::to_string(m_abs(lux_diff)) + " LhDiff:" + std::to_string(ctxt->light_off_on_diff) +
+            " MDiff: " + std::to_string(mdiff));
 
-    if(ctxt->light_off_on_diff < m_abs(lux_diff) || mdiff > 2){
-        if(lux_diff>0){
-            std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
+        if(ctxt->light_off_on_diff < m_abs(lux_diff) || mdiff > 2){
+            if(lux_diff>0){
+                std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
+                EVENT(event);
+            }
+
+            if(lux_diff<0){
+                std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
+                EVENT(event);
+            }
+        }
+
+        int co2_lvl = ctxt->get_CO2_level();
+        int tvoc_lvl = ctxt->get_TVOC_level();
+
+        // update CO2 & TVOC levels
+        ctxt->update_CO2_TVOC_levels();
+
+        //Level switch from Low to High
+        if((co2_lvl<4 && tvoc_lvl<4) && (ctxt->get_CO2_level()==4 || ctxt->get_TVOC_level()==4)){
+            std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_ON));
             EVENT(event);
         }
 
-        if(lux_diff<0){
-            std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
+        //Level switch from High to Low
+        if((co2_lvl==4 || tvoc_lvl==4) && (ctxt->get_CO2_level()<4 && ctxt->get_TVOC_level()<4)){
+            std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_OFF));
             EVENT(event);
         }
+
     }
-
-    int co2_lvl = ctxt->get_CO2_level();
-    int tvoc_lvl = ctxt->get_TVOC_level();
-
-    // update CO2 & TVOC levels
-    ctxt->update_CO2_TVOC_levels();
-
-    //Level switch from Low to High
-    if((co2_lvl<4 && tvoc_lvl<4) && (ctxt->get_CO2_level()==4 || ctxt->get_TVOC_level()==4)){
-        std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_ON));
-        EVENT(event);
+    catch(std::runtime_error& exc){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + exc.what());
     }
-
-    //Level switch from High to Low
-    if((co2_lvl==4 || tvoc_lvl==4) && (ctxt->get_CO2_level()<4 && ctxt->get_TVOC_level()<4)){
-        std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_OFF));
-        EVENT(event);
+    catch(std::exception& exc){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + exc.what());
+    }
+    catch(...){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Unknown exception");
     }
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");

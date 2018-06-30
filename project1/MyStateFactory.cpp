@@ -20,13 +20,10 @@ const char TAG[] = "myfact";
 
 namespace project1 {
 
-MyStateFactory::MyStateFactory() {
+MyStateFactory::MyStateFactory()
+	: smachine::StateFactory("StateWeather") {
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-}
-
-MyStateFactory::~MyStateFactory() {
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 }
 
 /*
@@ -54,7 +51,7 @@ const std::shared_ptr<smachine::state::State> MyStateFactory::get_state(const st
 	else if(state_name.compare("StateWeather") == 0){
 		return std::shared_ptr<smachine::state::State>(new project1::state::StateWeather(itf));
 	}
-	
+
 
 	logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Generate exception no such State");
 	throw std::runtime_error("No such state");

@@ -14,15 +14,6 @@ const char TAG[] = "myfact";
 
 namespace spi_test {
 
-MyStateFactory::MyStateFactory() {
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-
-}
-
-MyStateFactory::~MyStateFactory() {
-	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-}
-
 /*
  * Create Environment object
  */

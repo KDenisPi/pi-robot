@@ -59,6 +59,26 @@ public:
     // TSL2561 - I2C Light-to-Digital Converter
     uint32_t tsl2651_lux;
 
+    Measurement& operator=(const Measurement& m){
+        this->si7021_humidity = m.si7021_humidity;
+        this->si7021_temperature = m.si7021_temperature;
+        this->si7021_abs_humidity = m.si7021_abs_humidity;
+
+        // SPG30 - I2C Sensurion Gas Platform
+        this->spg30_co2 = m.spg30_co2;
+        this->spg30_tvoc = m.spg30_tvoc;
+        this->spg30_base_co2 = m.spg30_base_co2;
+        this->spg30_base_tvoc = m.spg30_base_tvoc;
+
+        // BMP280 - I2C Digital Presure Sensor
+        this->bmp280_pressure = m.bmp280_pressure;
+        this->bmp280_temperature = m.bmp280_temperature;
+        this->bmp280_altitude = m.bmp280_altitude;
+
+        // TSL2561 - I2C Light-to-Digital Converter
+        this->tsl2651_lux = m.tsl2651_lux;
+    }
+
     const float temp_C_to_F(const float temp) const {
         return temp*1.8 + 32;
     }

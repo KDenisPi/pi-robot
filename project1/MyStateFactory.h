@@ -18,7 +18,7 @@ namespace project1 {
 class MyStateFactory: public smachine::StateFactory {
 public:
 	MyStateFactory();
-	virtual ~MyStateFactory();
+	virtual ~MyStateFactory() {}
 
 	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, smachine::StateMachineItf* itf) noexcept(false) override;
 
@@ -26,11 +26,6 @@ public:
 	 * Create Environment object
 	 */
 	virtual smachine::Environment* get_environment() override;
-
-	virtual const std::string get_first_state() override {
-		return "StateWeather"; //"StateNoHardware"; //"StateEnvAnalize";
-	}
-
 };
 
 } /* namespace project1 */
