@@ -69,6 +69,9 @@ private:
     std::shared_ptr<log_type> m_buff;
     bool m_flush;
     LLOG _level;
+
+    size_t _q_size = 2048; //queue size must be power of 2
+
 };
 
 //extern Logger plog;

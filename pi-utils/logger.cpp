@@ -44,14 +44,13 @@ void log(const LLOG level, const std::string pattern, const std::string message)
 */
 
 Logger::Logger() : m_flush(false), _level(LLOG::DEBUG){
-    size_t q_size = 2048; //queue size must be power of 2
     //spdlog::set_async_mode(q_size, spdlog::async_overflow_policy::block_retry);
     async_file = spdlog::daily_logger_st("async_file_logger", "/var/log/pi-robot/async_log");
     async_file->set_level(spdlog::level::debug);
     //async_file->flush_on(spdlog::level::err);
     async_file->set_pattern("%H:%M:%S %z|%t|%L|%v");
 
-    m_buff = std::shared_ptr<log_type>(new log_type(2048));
+    m_buff = std::shared_ptr<log_type>(new log_type(_q_size));
     piutils::Threaded::start<Logger>(this);
 
     //std::cout << "Logger created" << std::endl;
