@@ -8,8 +8,6 @@
 #ifndef WEATHER_CONTEXT_H_
 #define WEATHER_CONTEXT_H_
 
-#include <chrono>
-
 #include "Environment.h"
 #include "lcdstrings.h"
 #include "defines.h"
@@ -24,8 +22,6 @@ class Context : public smachine::Environment {
 public:
     Context() : version("0.9"), ip4_address(""),
         ip6_address(""), _CO2_level(0), _TVOC_level(0) {
-
-        _start_time = std::chrono::system_clock::now();
     }
 
     virtual ~Context() {}
@@ -44,22 +40,6 @@ public:
 
     const bool show_temperature_in_celcius() const {
         return _temp_C;
-    }
-
-    /*
-    * Uptime detection
-    */
-    const string get_uptime(){
-        char buff[512];
-
-        std::chrono::time_point<std::chrono::system_clock> _now_time; = std::chrono::system_clock::now();
-        auto interval = _now_time -_start_time;
-        std::chrono::seconds sec = std::chrono::duration_cast<std::chrono::seconds>(interval).count();
-        int min = std::chrono::duration_cast<std::chrono::minutes>(interval).count();
-        int hr = std::chrono::duration_cast<std::chrono::hours>(interval).count();
-
-        sprinf(buff, "%u:%u:%u", hr, min, sec);
-        return std::string(buff);
     }
 
     //Update CO2 & TVOC levels
@@ -163,8 +143,6 @@ public:
 
 private:
     LcdStrings _strs;
-
-    std::chrono::time_point<std::chrono::system_clock> _start_time;
 
     //What should be used for temperature showing
     // true - celcius, false - fahrenheit
