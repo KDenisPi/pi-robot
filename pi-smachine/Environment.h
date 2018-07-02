@@ -20,16 +20,27 @@ namespace smachine {
  */
 class Environment{
 public:
-	Environment() {
+    Environment() {
         _start_time = std::chrono::system_clock::now();
-	}
-	virtual ~Environment() {}
+    }
+    virtual ~Environment() {}
+
+    /*
+    * Start time in Local/UTC
+    */
+   virtual const std::string get_start_time(const bool utc = false) const {
+        char buff[128];
+        std::time_t time_now = std::chrono::system_clock::to_time_t(_start_time);
+        std::strftime(buff, sizeof(buff), "%T %Y-%m-%d", (utc ? std::gmtime(&time_now) : std::localtime(&time_now));
+
+        return std::string(buff);
+   }
 
     /*
     * Uptime detection
     */
     virtual const std::string get_uptime(){
-        char buff[512];
+        char buff[128];
 
         std::chrono::time_point<std::chrono::system_clock> _now_time = std::chrono::system_clock::now();
         auto interval = _now_time -_start_time;
@@ -37,17 +48,17 @@ public:
         int min = std::chrono::duration_cast<std::chrono::minutes>(interval).count();
         int hr = std::chrono::duration_cast<std::chrono::hours>(interval).count();
 
-        if(hr > 0) sec = sec % 3600;
-        if(min > 0) sec = sec % 60;
+        min = min % 60;
+        sec = sec % 60;
 
         sprintf(buff, "%u:%.2u:%.2u", hr, min, sec);
         return std::string(buff);
     }
 
-	/*
-	 * Use this mutex if you needed to share data operations
-	 */
-	std::recursive_mutex mutex_sm;
+    /*
+     * Use this mutex if you needed to share data operations
+     */
+    std::recursive_mutex mutex_sm;
 
     std::chrono::time_point<std::chrono::system_clock> _start_time;
  };
