@@ -36,6 +36,7 @@ public:
     //
     bool storage_start();
     bool storage_stop();
+    void storage_write(Measurement& meas);
 
 private:
     // File based data storage

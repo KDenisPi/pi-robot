@@ -157,6 +157,11 @@ bool StMeasurement::storage_stop(){
     return true;
 }
 
+void StMeasurement::storage_write(Measurement& meas){
+    _fstorage.write(meas);
+    _sqlstorage.write(meas);
+}
+
 //
 // State entry function
 //
@@ -218,6 +223,7 @@ bool StMeasurement::OnTimer(const int id){
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Write measurement");
 
             Measurement data = ctxt->data;
+            storage_write(data);
 
             TIMER_CREATE(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval) //save information
         }
