@@ -15,6 +15,62 @@
 
 namespace weather {
 
+class MData {
+public:
+    MData() { clear();}
+    virtual ~MData() {}
+
+    char dtime[64];
+    unsigned int data[7];
+
+    MData& operator=(const MData& m){
+        strcpy(this->dtime, m.dtime);
+        for(int i = 0; i < 7; i++){
+            this->data[i] = m.data[i];
+        }
+
+        return *this;
+    }
+
+    void clear(){
+        memset(dtime, sizeof(dtime), 0x00);
+        for(int i = 0; i < 7; i++){
+            data[i] = 0;
+        }
+    }
+
+    const char* to_string(){
+        //
+        // Output format:
+        // 1. Date&time YYYY/MM/DD HH:MM:SS
+        // 2. Humidity (0-100%)
+        // 3. Temperature (C or F, 3-digits, signed)
+        // 4. Pessure (mm Hg, 3-digits)
+        // 5. Luximity (Lux, 0-40000, 5-digits)
+        // 6. CO2 (0 – 60'000 ppm, 5-digits)
+        // 7. TVOC (0 – 60'000 ppb, 5-digits)
+        // 8. Altitude (0-5000, 4-digits)
+        //
+        sprintf(_buff, "%s,%u,%u,%u,%u,%u,%u,%u\n",
+            dtime,
+            data[0],
+            data[1],
+            data[2],
+            data[3],
+            data[4],
+            data[5],
+            data[6]
+        );
+
+        return _buff;
+    }
+
+    static const int buff_size = 128;
+
+private:
+    char _buff[buff_size];
+};
+
 class Measurement {
 public:
     Measurement() {
@@ -59,6 +115,9 @@ public:
     // TSL2561 - I2C Light-to-Digital Converter
     uint32_t tsl2651_lux;
 
+    /*
+    *
+    */
     Measurement& operator=(const Measurement& m){
         this->si7021_humidity = m.si7021_humidity;
         this->si7021_temperature = m.si7021_temperature;
@@ -77,8 +136,27 @@ public:
 
         // TSL2561 - I2C Light-to-Digital Converter
         this->tsl2651_lux = m.tsl2651_lux;
+
+        std::tm tm;
+        piutils::get_time(tm);
+
+        sprintf(_mdata.dtime, "%d/%d/%d %02d:%02d:%02d",
+            1900+tm.tm_year, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+        _mdata.data[0] = std::round(si7021_humidity);
+        _mdata.data[1] = std::round(temp());
+        _mdata.data[2] = std::round(bmp280_pressure);
+        _mdata.data[3] = tsl2651_lux;
+        _mdata.data[4] = spg30_co2;
+        _mdata.data[5] = spg30_tvoc;
+        _mdata.data[6] = std::round(bmp280_altitude);
+
+        return *this;
     }
 
+    /*
+    * Convert temperature from celcius to F
+    */
     const float temp_C_to_F(const float temp) const {
         return temp*1.8 + 32;
     }
@@ -92,38 +170,12 @@ public:
         return (celcius ? tempr : temp_C_to_F(tempr));
     }
 
-    const char* to_string(){
-        std::tm tm;
-        piutils::get_time(tm);
-
-
-        //
-        // Output format:
-        // 1. Date&time YYYY/MM/DD HH:MM:SS
-        // 2. Humidity (0-100%)
-        // 3. Temperature (C or F, 3-digits, signed)
-        // 4. Pessure (mm Hg, 3-digits)
-        // 5. Luximity (Lux, 0-40000, 5-digits)
-        // 6. CO2 (0 – 60'000 ppm, 5-digits)
-        // 7. TVOC (0 – 60'000 ppb, 5-digits)
-        // 8. Altitude (0-5000, 4-digits)
-        //
-        sprintf(_buff, "%d/%d/%d %02d:%02d:%02d,%.0f,%.0f,%.0f,%d,%d,%d,%.0f\n",
-            1900+tm.tm_year, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,
-            si7021_humidity,
-            temp(),
-            bmp280_pressure,
-            tsl2651_lux,
-            spg30_co2,
-            spg30_tvoc,
-            bmp280_altitude);
-
-        return _buff;
+    void get_data(MData& data){
+        data = _mdata;
     }
 
-    static const int buff_size = 128;
 private:
-    char _buff[buff_size];
+    MData _mdata;
 };
 
 }//namespace weather

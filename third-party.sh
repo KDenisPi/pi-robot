@@ -16,7 +16,7 @@ make
 cd ..
 
 #
-#Mosquitto MQQT server 
+#Mosquitto MQQT server
 #
 echo Moaquitto MQQT server
 git clone http://github.com/eclipse/mosquitto mosquitto
@@ -35,20 +35,27 @@ cd ./wiringPi
 ./build
 
 #
-#
+# Logger
 #
 cd ..
-echo SPDLOG 
+echo SPDLOG
 git clone https://github.com/gabime/spdlog.git spdlog
 
 #
-#
+# JSON
 #
 echo jsoncons
-git clone https://github.com/danielaparker/jsoncons jsoncons 
+git clone https://github.com/danielaparker/jsoncons jsoncons
 
 wget https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/mongoose/mongoose-5.1.tgz
 tar zxvf ./mongoose-5.1.tgz
+
+#
+# SQLite
+#
+cd ..
+wget https://www.sqlite.org/2018/sqlite-amalgamation-3240000.zip
+unzip sqlite-amalgamation-3240000.zip
 
 cd ../pi-robot
 

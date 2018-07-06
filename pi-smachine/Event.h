@@ -47,6 +47,8 @@ public:
         _ushort[0] = evtd._ushort[0];
         _ushort[1] = evtd._ushort[1];
         _int = evtd._int;
+
+        return *this;
     }
 
     unsigned short _ushort[2];
@@ -74,6 +76,8 @@ public:
         m_id = evnt.id();
         m_name = std::move(evnt.name());
         m_data = std::move(evnt.m_data);
+
+        return *this;
     }
 
 private:

@@ -128,7 +128,6 @@ public:
     //
     void stop(){
         logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__));
-
         close_file();
     }
 

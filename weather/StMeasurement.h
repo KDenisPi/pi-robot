@@ -10,6 +10,7 @@
 
 #include "StateMachine.h"
 #include "context.h"
+#include "DataStorage.h"
 
 namespace weather {
 
@@ -32,6 +33,14 @@ public:
     //update information on LCD screen
     void update_lcd();
 
+    //
+    bool storage_start();
+    bool storage_stop();
+
+private:
+    // File based data storage
+    weather::data::FileStorage _fstorage;
+    weather::data::SqlStorage _sqlstorage;
 };
 
 }//weather namespace

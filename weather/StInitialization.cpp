@@ -15,17 +15,6 @@ namespace weather {
 void StInitialization::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    auto ctxt = get_env<weather::Context>();
-
-    //
-    //Initialize file based storage
-    //
-    int res = ctxt->_fstorage.initilize();
-    if(res != 0){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not initialize file storage");
-         TIMER_CREATE(TIMER_FINISH_ROBOT, 5);
-    }
-
     CHANGE_STATE("StInitializeLcd");
 }
 

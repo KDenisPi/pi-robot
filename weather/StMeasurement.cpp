@@ -41,18 +41,20 @@ void StMeasurement::measure(){
 
         TIMER_CREATE(TIMER_MEASURE_LIGHT_INTERVAL, ctxt->measure_light_interval) //measurement interval
 
+        Measurement data;
+
         //make measurement using Si7021 and then use this values for SGP30
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SI7021");
         auto si7021 = get_item<pirobot::item::Si7021>("SI7021");
-        si7021->get_results(ctxt->data.si7021_humidity, ctxt->data.si7021_temperature, ctxt->data.si7021_abs_humidity);
+        si7021->get_results(data.si7021_humidity, data.si7021_temperature, data.si7021_abs_humidity);
 
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SGP30");
         auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
-        sgp30->get_results(ctxt->data.spg30_co2, ctxt->data.spg30_tvoc);
+        sgp30->get_results(data.spg30_co2, data.spg30_tvoc);
 
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- BMP280");
         auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
-        bmp280->get_results(ctxt->data.bmp280_pressure, ctxt->data.bmp280_temperature, ctxt->data.bmp280_altitude);
+        bmp280->get_results(data.bmp280_pressure, data.bmp280_temperature, data.bmp280_altitude);
 
         //
         //detect luminosity and of light was changed from On to Off or from Off to On - create event
@@ -61,19 +63,20 @@ void StMeasurement::measure(){
         auto tsl2561 = get_item<pirobot::item::Tsl2561>("TSL2561");
         int32_t tsl2651_lux = ctxt->data.tsl2651_lux;
 
-        if( !tsl2561->get_results(ctxt->data.tsl2651_lux)){
+        if( !tsl2561->get_results(data.tsl2651_lux)){
             logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " TSL2561 - Incorrect value detected");
             //if value is incorrect - ignore it
-            ctxt->data.tsl2651_lux = tsl2651_lux;
+            data.tsl2651_lux = tsl2651_lux;
         }
-        int lux_diff = ctxt->data.tsl2651_lux - tsl2651_lux;
+
+        int lux_diff = data.tsl2651_lux - tsl2651_lux;
 
         float mdiff = 0.0;
-        if(ctxt->data.tsl2651_lux != 0 && tsl2651_lux!=0)
-        mdiff = m_abs(m_change(ctxt->data.tsl2651_lux, tsl2651_lux));
+        if(data.tsl2651_lux != 0 && tsl2651_lux!=0)
+            mdiff = m_abs(m_change(data.tsl2651_lux, tsl2651_lux));
 
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
-            " New: " + std::to_string(ctxt->data.tsl2651_lux) + " Diff: " + std::to_string(m_abs(lux_diff)) + " LhDiff:" + std::to_string(ctxt->light_off_on_diff) +
+            " New: " + std::to_string(data.tsl2651_lux) + " Diff: " + std::to_string(m_abs(lux_diff)) + " LhDiff:" + std::to_string(ctxt->light_off_on_diff) +
             " MDiff: " + std::to_string(mdiff));
 
         if(ctxt->light_off_on_diff < m_abs(lux_diff) || mdiff > 2){
@@ -87,6 +90,9 @@ void StMeasurement::measure(){
                 EVENT(event);
             }
         }
+
+        //update measurement information
+        ctxt->data = data;
 
         int co2_lvl = ctxt->get_CO2_level();
         int tvoc_lvl = ctxt->get_TVOC_level();
@@ -120,17 +126,57 @@ void StMeasurement::measure(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
 }
 
+/*
+*
+*/
+bool StMeasurement::storage_start(){
+    auto ctxt = get_env<weather::Context>();
+
+    if(!_fstorage.start(ctxt)){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not initialize file storage");
+        TIMER_CREATE(TIMER_FINISH_ROBOT, 5);
+        return false;
+    }
+
+    if(!_sqlstorage.start(ctxt)){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not initialize SQL storage");
+        TIMER_CREATE(TIMER_FINISH_ROBOT, 5);
+        return false;
+    }
+
+    return true;
+}
+
+/*
+*
+*/
+bool StMeasurement::storage_stop(){
+    _fstorage.stop();
+    _sqlstorage.stop();
+
+    return true;
+}
+
 //
 // State entry function
 //
 void StMeasurement::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
+    //
+    //Initialize storages
+    //
+    if( !storage_start()){
+        return;
+    }
+
+    auto ctxt = get_env<weather::Context>();
+    //initial measurement
     measure();
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Create Timer ID: " + std::to_string(TIMER_UPDATE_INTERVAL));
-    auto ctxt = get_env<weather::Context>();
 
+    //Create timers
     TIMER_CREATE(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval) //measurement interval
     TIMER_CREATE(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval) //update measurement information on LCD interval
     TIMER_CREATE(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval) //save information
@@ -170,8 +216,8 @@ bool StMeasurement::OnTimer(const int id){
             //
             auto ctxt = get_env<weather::Context>();
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Write measurement");
-            const char* data = ctxt->data.to_string();
-            ctxt->_fstorage.write_data(data, strlen(data));
+
+            Measurement data = ctxt->data;
 
             TIMER_CREATE(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval) //save information
         }
@@ -314,7 +360,8 @@ void StMeasurement::finish(){
     lcd->clear_display();
     lcd->Off();
 
-    ctxt->_fstorage.stop();
+    //Stop all used storages
+    storage_stop();
 }
 
 }//namespace weather

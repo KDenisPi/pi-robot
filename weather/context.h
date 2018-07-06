@@ -14,7 +14,6 @@
 #include "logger.h"
 #include "smallthings.h"
 #include "measurement.h"
-#include "fstorage.h"
 
 namespace weather {
 
@@ -24,17 +23,33 @@ public:
         ip6_address(""), _CO2_level(0), _TVOC_level(0) {
     }
 
-    virtual ~Context() {}
+    virtual ~Context() noexcept {}
 
+    // Version
     std::string version;
+
+    //IP addressed
     std::string ip4_address;
     std::string ip6_address;
 
+    /*
+    *  Configuration data, paths etc
+    */
+
+    //file based storage folder
+    std::string _fstor_path = "/var/data/pi-robot/data";
+    bool _fstor_local_time = false;
+
+    //log locaation
+    std::string _log_path = "/var/log/pi-robot";
+    std::string _log_name = "async_file_logger";
+    std::string _log_file = "async_log";
+
+    //database filename and location
+    std::string _db_name = "/var/data/pi-robot/weather.db";
+
     // Measurement data
     Measurement data;
-    // File based data storage
-    piutils::fstor::FStorage _fstorage;
-
 
     int light_off_on_diff = 600; //difference between light OFF and lights ON
 

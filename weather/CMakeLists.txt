@@ -8,18 +8,20 @@ set(VER_MIN 1)
 
 set(CMAKE_BIULD_TYPE Debug)
 
-set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-library pi-smachine pi-mqqt pi-http pthread)
+set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqqt pi-http pthread dl)
 
 include_directories(BEFORE ${WIRINGPI_INC}
     ${MOSQUITTO_HOME}/lib/cpp
     ${MOSQUITTO_HOME}/lib
     ${PROJECT_SOURCE_DIR}/../pi-utils
+    ${PROJECT_SOURCE_DIR}/../pi-sql
     ${PROJECT_SOURCE_DIR}/../pi-library
     ${PROJECT_SOURCE_DIR}/../pi-smachine
     ${PROJECT_SOURCE_DIR}/../pi-mqqt
     ${PROJECT_SOURCE_DIR}/../pi-http
     ${MONGOOSE_HOME}
     ${JSONCONS}
+    ${SQLITE3_HOME}
 )
 
 message( STATUS "EXTRA_LIBS (proj):  ${EXTRA_LIBS}" )

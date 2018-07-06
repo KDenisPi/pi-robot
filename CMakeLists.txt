@@ -1,6 +1,4 @@
 cmake_minimum_required(VERSION 3.0)
-#set(CMAKE_CXX_COMPILER "/usr/bin/g++-4.8")
-#set(CMAKE_C_COMPILER "/usr/bin/gcc-4.8")
 
 #project name
 project(pi-robot)
@@ -21,6 +19,8 @@ set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
 
 set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
 set(MONGOOSE_SRC "${MONGOOSE_HOME}/mongoose.c")
+
+set(SQLITE3_HOME "${THIRD_PARTY_HOME}/sqlite-amalgamation-3240000")
 
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
 message( STATUS "WIRINGPI_HOME ${WIRINGPI_HOME}")
@@ -52,6 +52,7 @@ ${SPDLOG_INCLUDE}
 #add_cxx_flags( "-std=c++11" )
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -std=c++11 -fexceptions")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
@@ -65,6 +66,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS} ${MOSQT_LIB} ${MOSQT_LIB_CPP})
 message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
+add_subdirectory(${PROJECT_SOURCE_DIR}/pi-sql)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-mqqt)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-http)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)

@@ -40,6 +40,7 @@ public:
     StateMachine(const std::shared_ptr<StateFactory> factory,
         const std::shared_ptr<pirobot::PiRobot> pirobot,
         const std::shared_ptr<mqqt::MqqtItf> mqqt);
+
     virtual ~StateMachine();
 
     /*
@@ -147,20 +148,28 @@ private:
 
     //Send State Mashine state to MQQT server. Topic is "stm"
     void report_state(const std::string& message){
-        publish(m_topic, message);
+        mqqt_publish(m_topic, message);
     }
 
 public:
     const bool is_mqqt() const {return m_mqqt_active;}
 
-    virtual const mqqt::MQQT_CLIENT_ERROR publish(const std::string& topic, const std::string& payload) override{
+	virtual bool mqqt_start() override{
+        return is_mqqt();
+    }
+
+	virtual void mqqt_stop() override{
+        m_mqqt->stop();
+    }
+
+    virtual const mqqt::MQQT_CLIENT_ERROR mqqt_publish(const std::string& topic, const std::string& payload) override{
         if(is_mqqt())
             return m_mqqt->publish(topic, payload);
 
         return mqqt::MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
     }
 
-    virtual const mqqt::MQQT_CLIENT_ERROR publish(const std::string& topic, const int payloadsize, const void* payload) override{
+    virtual const mqqt::MQQT_CLIENT_ERROR mqqt_publish(const std::string& topic, const int payloadsize, const void* payload) override{
         if(is_mqqt())
             return m_mqqt->publish(topic, payloadsize, payload);
 
