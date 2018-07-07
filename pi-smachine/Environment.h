@@ -13,6 +13,9 @@
 #include <string>
 #include <cstdio>
 
+#include "logger.h"
+#include "JsonHelper.h"
+
 namespace smachine {
 
 /*
@@ -53,6 +56,41 @@ public:
 
         sprintf(buff, "%u:%.2u:%.2u", hr, min, sec);
         return std::string(buff);
+    }
+
+    /*
+    *
+    */
+    bool configure(const std::string& conf){
+        if(conf.empty()){
+            logger::log(logger::LLOG::ERROR, "Env", std::string(__func__) + " No Robot configuration");
+            return false;
+        }
+
+        logger::log(logger::LLOG::NECECCARY, "Env", std::string(__func__) + " Loading Robot hardware configuration ...");
+        std::ifstream ijson(conf);
+        try{
+            logger::log(logger::LLOG::NECECCARY, "Env", std::string(__func__) + " Parse JSON from: " + conf);
+
+            jsoncons::json conf = jsoncons::json::parse(ijson);
+
+            if(conf.has_key("context"))
+            {
+                auto json_context  =  conf["context"];
+            }
+
+            if(conf.has_key("mqqt"))
+            {
+                auto json_mqqt  =  conf["mqqt"];
+            }
+        }
+        catch(jsoncons::parse_error& perr){
+            logger::log(logger::LLOG::ERROR, "Env", std::string(__func__) + " Invalid configuration " +
+                perr.what() + " Line: " + std::to_string(perr.line_number()) + " Column: " + std::to_string(perr.column_number()));
+        }
+
+        logger::log(logger::LLOG::NECECCARY, "Env", std::string(__func__) + " Robot configuration is finished");
+
     }
 
     /*
