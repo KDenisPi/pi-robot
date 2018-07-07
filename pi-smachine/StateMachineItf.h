@@ -40,14 +40,6 @@ public:
 
 	virtual std::shared_ptr<pirobot::PiRobot> get_robot() = 0;
 	virtual std::shared_ptr<Environment> get_env() = 0;
-
-	/*
-	* MQQT client support
-	*/
-	virtual bool mqqt_start() = 0;
-	virtual void mqqt_stop() = 0;
-    virtual const mqqt::MQQT_CLIENT_ERROR mqqt_publish(const std::string& topic, const std::string& payload) = 0;
-    virtual const mqqt::MQQT_CLIENT_ERROR mqqt_publish(const std::string& topic, const int payloadsize, const void* payload) = 0;
 };
 
 } /* namespace smachine */

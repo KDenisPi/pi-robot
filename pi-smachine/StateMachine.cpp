@@ -21,11 +21,9 @@ namespace smachine {
 const char TAG[] = "smash";
 
 StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
-    const std::shared_ptr<pirobot::PiRobot> pirobot, const std::shared_ptr<mqqt::MqqtItf> mqqt) :
+    const std::shared_ptr<pirobot::PiRobot> pirobot) :
         m_factory(factory),
-        m_pirobot(pirobot),
-        m_mqqt_active(false),
-        m_topic("stm")
+        m_pirobot(pirobot)
 {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
@@ -47,15 +45,6 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Created callback notification function");
         pirobot->stm_notification = std::bind(&StateMachine::process_robot_notification,
                 this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-    }
-
-    // MQQT support
-    if(mqqt){
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Detected MQQT server support");
-        m_mqqt_active = true;
-        m_mqqt = mqqt;
-
-        m_mqqt->start();
     }
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
@@ -122,11 +111,6 @@ StateMachine::~StateMachine() {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Stopping Timers");
     m_timers->stop();
 
-    if(is_mqqt()){
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Stopping MQQT client");
-        m_mqqt->stop();
-    }
-
     //Erase not processed states
     m_states->erase(m_states->begin(), m_states->end());
 
@@ -174,9 +158,6 @@ void StateMachine::finish(){
  */
 void StateMachine::state_change(const std::string& new_state){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Generate event Change state to: " + new_state);
-
-    report_state("Generate event Change state to: " + new_state);
-
     std::shared_ptr<Event> event(new EventChangeState(new_state));
     put_event(event);
 }

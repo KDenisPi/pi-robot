@@ -38,8 +38,7 @@ class Timers;
 class StateMachine : public StateMachineItf, public piutils::Threaded {
 public:
     StateMachine(const std::shared_ptr<StateFactory> factory,
-        const std::shared_ptr<pirobot::PiRobot> pirobot,
-        const std::shared_ptr<mqqt::MqqtItf> mqqt);
+        const std::shared_ptr<pirobot::PiRobot> pirobot);
 
     virtual ~StateMachine();
 
@@ -73,15 +72,6 @@ public:
 
     virtual std::shared_ptr<pirobot::PiRobot> get_robot() override {return m_pirobot;}
     virtual std::shared_ptr<Environment> get_env() override {return m_env; }
-
-	/*
-	* Get Data Interface
-	*/
-/*
-	template<class T> std::shared_ptr<T> get_datainterface(){
-		return std::static_pointer_cast<T>(_dataItf);
-	}
-*/
 
     /*
     * Start State machine execution from the beginning
@@ -119,7 +109,9 @@ private:
     void stop();
 
     //
-    bool empty() const {return m_events.empty();}
+    bool empty() const {
+        return m_events.empty();
+    }
 
     inline std::shared_ptr<std::list<std::shared_ptr<state::State>>> get_states() const {return m_states;}
 
@@ -140,42 +132,6 @@ private:
     std::shared_ptr<StateFactory> m_factory;
     //Environment
     std::shared_ptr<Environment> m_env;
-
-    //MQQT support flag
-    bool m_mqqt_active;
-    std::shared_ptr<mqqt::MqqtItf> m_mqqt;
-    const std::string m_topic;
-
-    //Send State Mashine state to MQQT server. Topic is "stm"
-    void report_state(const std::string& message){
-        mqqt_publish(m_topic, message);
-    }
-
-public:
-    const bool is_mqqt() const {return m_mqqt_active;}
-
-	virtual bool mqqt_start() override{
-        return is_mqqt();
-    }
-
-	virtual void mqqt_stop() override{
-        m_mqqt->stop();
-    }
-
-    virtual const mqqt::MQQT_CLIENT_ERROR mqqt_publish(const std::string& topic, const std::string& payload) override{
-        if(is_mqqt())
-            return m_mqqt->publish(topic, payload);
-
-        return mqqt::MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
-    }
-
-    virtual const mqqt::MQQT_CLIENT_ERROR mqqt_publish(const std::string& topic, const int payloadsize, const void* payload) override{
-        if(is_mqqt())
-            return m_mqqt->publish(topic, payloadsize, payload);
-
-        return mqqt::MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
-    }
-
 };
 
 } /* namespace smachine */

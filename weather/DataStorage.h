@@ -10,6 +10,10 @@
 #ifndef WEATHER_DATA_STORAGE_H_
 #define WEATHER_DATA_STORAGE_H_
 
+#include "MosquittoClient.h"
+#include "MqqtClient.h"
+#include "CircularBuffer.h"
+
 #include "fstorage.h"
 #include "measurement.h"
 #include "context.h"
@@ -64,19 +68,96 @@ public:
 */
 class MqqtStorage : public DataStorage {
 public:
-    MqqtStorage() {}
-    virtual ~MqqtStorage() {}
+    /*
+    *
+    */
+    MqqtStorage() {
+            int res = mosqpp::lib_init();
+            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQQT library intialized Res: " + std::to_string(res));
+    }
 
+    /*
+    *
+    */
+    virtual ~MqqtStorage() {
+          mosqpp::lib_cleanup();
+    }
+
+    /*
+    *
+    */
     virtual bool start(const std::shared_ptr<Context> ctxt) override {
-        return true;
+
+          try{
+
+            if(ctxt->_mqqt_conf.empty()){
+                return false;
+            }
+            // Load MQQT server configuration
+            mqqt::MqqtServerInfo info = mqqt::MqqtServerInfo::load(ctxt->_mqqt_conf);
+            m_mqqt = std::shared_ptr<mqqt::MqqtItf>(new mqqt::MqqtClient<mqqt::MosquittoClient>(info));
+
+            m_mqqt_active = m_mqqt->start();
+            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQQT configuration loaded");
+          }
+          catch(std::runtime_error& rterr){
+            logger::log(logger::LLOG::ERROR, "main", std::string(__func__) +
+                "Could not load MQQT configuration configuration " + ctxt->_mqqt_conf + " Error: " + rterr.what());
+            m_mqqt_active = false;
+          }
+
+        return m_mqqt_active;
     }
 
+    /*
+    *
+    */
     virtual void stop() override{
+        m_mqqt->stop();
     }
 
-    virtual bool write(Measurement& data) override {
-        return true;
+    /*
+    *
+    */
+    virtual bool write(Measurement& meas) override {
+        MData data;
+        meas.get_data(data);
+
+        const char* sdata = data.to_string();
+        mqqt::MQQT_CLIENT_ERROR res = mqqt_publish(_topic, strlen(sdata), sdata);
+
+        return (res == mqqt::MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS);
     }
+
+    /*
+    *
+    */
+    const bool is_mqqt() const {
+        return m_mqqt_active;
+    }
+
+private:
+    virtual const mqqt::MQQT_CLIENT_ERROR mqqt_publish(const std::string& topic, const std::string& payload) {
+        if(is_mqqt())
+            return m_mqqt->publish(topic, payload);
+
+        return mqqt::MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
+    }
+
+    virtual const mqqt::MQQT_CLIENT_ERROR mqqt_publish(const std::string& topic, const int payloadsize, const void* payload) {
+        if(is_mqqt())
+            return m_mqqt->publish(topic, payloadsize, payload);
+
+        return mqqt::MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
+    }
+
+
+    //MQQT support flag
+    bool m_mqqt_active = false;
+    std::shared_ptr<mqqt::MqqtItf> m_mqqt;
+
+    std::string _topic = "weather";
+
 };
 
 /*
@@ -98,7 +179,8 @@ public:
     virtual bool write(Measurement& meas) override{
         MData data;
         sqlite3_stmt *stmt = nullptr;
-        int res = sqlite3_prepare_v2(db(), "INSERT INTO measurement(mdate, hum, temp, pressure, lux, co2, tvoc, altitude) values(?1,?2,?3,?4,?5,?6,?7,?8)", -1, &stmt, NULL);
+        int res = sqlite3_prepare_v2(db(),
+            "INSERT INTO measurement(mdate, hum, temp, pressure, lux, co2, tvoc, altitude) values(?1,?2,?3,?4,?5,?6,?7,?8)", -1, &stmt, NULL);
 
         meas.get_data(data);
         res = sqlite3_bind_text(stmt, 1, data.dtime, strlen(data.dtime), SQLITE_STATIC);

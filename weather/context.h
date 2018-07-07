@@ -32,19 +32,6 @@ public:
     std::string ip4_address;
     std::string ip6_address;
 
-    /*
-    *  Configuration data, paths etc
-    */
-
-    //file based storage folder
-    std::string _fstor_path = "/var/data/pi-robot/data";
-    bool _fstor_local_time = false;
-
-    //log locaation
-    std::string _log_path = "/var/log/pi-robot";
-    std::string _log_name = "async_file_logger";
-    std::string _log_file = "async_log";
-
     //database filename and location
     std::string _db_name = "/var/data/pi-robot/weather.db";
 

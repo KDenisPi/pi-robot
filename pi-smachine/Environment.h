@@ -59,8 +59,25 @@ public:
      * Use this mutex if you needed to share data operations
      */
     std::recursive_mutex mutex_sm;
-
     std::chrono::time_point<std::chrono::system_clock> _start_time;
+
+    /*
+    *  Configuration data, paths etc
+    */
+
+    //file based storage folder
+    std::string _fstor_path = "/var/data/pi-robot/data";
+    bool _fstor_local_time = false;
+
+    //log location
+    std::string _log_path = "/var/log/pi-robot";
+    std::string _log_name = "async_file_logger";
+    std::string _log_file = "async_log";
+
+    //MQQT client configuration file
+    std::string _mqqt_conf;
+    bool use_mqqt = false;
+
  };
 
 }

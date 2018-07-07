@@ -5,10 +5,6 @@
 #include <signal.h>
 #include <sys/wait.h>
 
-#include "MosquittoClient.h"
-#include "MqqtClient.h"
-#include "CircularBuffer.h"
-
 #include "version.h"
 #include "defines.h"
 
@@ -87,7 +83,7 @@ static void sigHandlerParent(int sign){
 }
 
 const char* err_message = "Error. No configuration file.";
-const char* help_message = "weather --conf coniguration_file [--mqqt-conf mqqt_configuration_file] [--nodaemon] [--dlevel INFO|DEBUG|NECECCARY|ERROR]";
+const char* help_message = "weather --conf cfg_file [--mqqt-conf mqqt_cfg] [--nodaemon] [--dlevel INFO|DEBUG|NECECCARY|ERROR] [--fstate FirstStateName]";
 
 /*
 *
@@ -218,30 +214,11 @@ int main (int argc, char* argv[])
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create State Factory support");
         std::shared_ptr<weather::WeatherStFactory> factory(new weather::WeatherStFactory(firstState));
 
-        std::shared_ptr<mqqt::MqqtItf> clMqqt;
-        if(mqtt){
-          logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQQT detected");
-          try{
-            int res = mosqpp::lib_init();
-            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQQT library intialized Res: " + std::to_string(res));
-
-            // Load MQQT server configuration
-            mqqt::MqqtServerInfo info = mqqt::MqqtServerInfo::load(mqqt_conf);
-            clMqqt = std::shared_ptr<mqqt::MqqtItf>(new mqqt::MqqtClient<mqqt::MosquittoClient>(info));
-            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQQT configuration loaded");
-          }
-          catch(std::runtime_error& rterr){
-            logger::log(logger::LLOG::ERROR, "main", std::string(__func__) +
-                "Could not load MQQT configuration configuration " + robot_conf + " Error: " + rterr.what());
-            _exit(EXIT_FAILURE);
-          }
-        }
-
         /*
         * Create State machine
         */
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create state machine.");
-        stm = std::shared_ptr<smachine::StateMachine>(new smachine::StateMachine(factory, pirobot, clMqqt));
+        stm = std::shared_ptr<smachine::StateMachine>(new smachine::StateMachine(factory, pirobot));
 
         /*
         * Web interface for settings and status
@@ -258,10 +235,6 @@ int main (int argc, char* argv[])
 
         sleep(2);
         stm.reset();
-
-        if(mqtt){
-          mosqpp::lib_cleanup();
-        }
 
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Child finished");
         logger::release();
