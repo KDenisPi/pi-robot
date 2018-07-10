@@ -88,23 +88,13 @@ public:
     */
     virtual bool start(const std::shared_ptr<Context> ctxt) override {
 
-          try{
+        if(ctxt->_mqqt_conf.is_enable()){
+            return false;
+        }
 
-            if(ctxt->_mqqt_conf.empty()){
-                return false;
-            }
-            // Load MQQT server configuration
-            mqqt::MqqtServerInfo info = mqqt::MqqtServerInfo::load(ctxt->_mqqt_conf);
-            m_mqqt = std::shared_ptr<mqqt::MqqtItf>(new mqqt::MqqtClient<mqqt::MosquittoClient>(info));
-
-            m_mqqt_active = m_mqqt->start();
-            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQQT configuration loaded");
-          }
-          catch(std::runtime_error& rterr){
-            logger::log(logger::LLOG::ERROR, "main", std::string(__func__) +
-                "Could not load MQQT configuration configuration " + ctxt->_mqqt_conf + " Error: " + rterr.what());
-            m_mqqt_active = false;
-          }
+        m_mqqt = std::shared_ptr<mqqt::MqqtItf>(new mqqt::MqqtClient<mqqt::MosquittoClient>(ctxt->_mqqt_conf));
+        m_mqqt_active = m_mqqt->start();
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQQT configuration loaded Active: " + std::to_string(m_mqqt_active));
 
         return m_mqqt_active;
     }

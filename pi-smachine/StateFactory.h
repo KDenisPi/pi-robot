@@ -39,8 +39,20 @@ public:
 		return _firstState;
 	}
 
+	/*
+	* Configuration file used for environment initilizing
+	*/
+	const std::string& get_configuration(){
+		return _conf_file;
+	}
+
+	void set_configuration(const std::string& conf_file){
+		_conf_file = conf_file;
+	}
+
 private:
 	std::string _firstState;
+	std::string _conf_file;
 };
 
 } /* namespace smachine */

@@ -2,6 +2,26 @@
     "version" : "1.0",
     "real_world" : true,
 
+    "context": {
+        "log_path": "/var/log/pi-robot",
+        "log_name": "async_file_logger",
+        "log_file": "async_log"
+    },
+
+    "mqqt" : {
+        "enable": "false",
+        "host" : "",
+        "client_id": "NoHardware",
+        "port": 8883,
+        "keep_alive": 10,
+        "qos": 0,
+
+        "tls": true,
+        "tls_ca_file" : "/home/denis/pi-robot/mqqt_tls/m2mqtt_ca.crt",
+        "tls_insecure": true,
+        "tls_version": "tlsv1"
+    },
+
     "providers": [
         {"type": "MCP23008", "name": "MCP23008_1", "i2c_addr" : 34}
     ],

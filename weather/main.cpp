@@ -213,6 +213,7 @@ int main (int argc, char* argv[])
         //Create State factory for State Machine
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create State Factory support");
         std::shared_ptr<weather::WeatherStFactory> factory(new weather::WeatherStFactory(firstState));
+        factory->set_configuration(robot_conf);
 
         /*
         * Create State machine

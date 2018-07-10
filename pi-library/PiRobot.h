@@ -78,7 +78,7 @@ private:
     * Get provider by name
     */
     std::shared_ptr<provider::Provider> get_provider(const std::string& name) const noexcept(false);
-    
+
     /*
     * Check if provider exists by name
     */
@@ -90,20 +90,20 @@ private:
     /*
     * Create GPIO for the provider. Provider should created before using add_provider function
     */
-    void add_gpio(const std::string& name, const std::string& provider_name, 
+    void add_gpio(const std::string& name, const std::string& provider_name,
         const pirobot::gpio::GPIO_MODE gpio_mode, const int pin) noexcept(false);
-    
+
     /*
     *
     */
-    void add_item(const pirobot::item::ItemConfig& iconfig)  noexcept(false);   
+    void add_item(const pirobot::item::ItemConfig& iconfig)  noexcept(false);
 
 public:
     /*
      *
      */
     void notify_stm(int itype, std::string& name, void* data);
-    
+
     std::function<void(int, std::string&, void*)> stm_notification;
 
     void printConfig();
@@ -112,12 +112,12 @@ public:
     *
     */
     const bool is_real_world() const { return m_realWorld;}
-    
+
    /*
    *
    */
    void set_configuration(const std::string& conf_file){
-    m_configuration = conf_file;
+        m_configuration = conf_file;
    }
 
    const std::string& get_configuration() const{
@@ -140,11 +140,11 @@ private:
     bool m_realWorld;
     std::recursive_mutex mutex_sm;
 
-    std::string m_configuration; //full defined path to the hardware configuration file 
+    std::string m_configuration; //full defined path to the hardware configuration file
 
     //Folder for saving measuremets oer components supported it
     std::string m_debug_data_folder;
-    
+
     std::map <std::string,
         std::shared_ptr<gpio::Gpio>,
         std::less<std::string>,

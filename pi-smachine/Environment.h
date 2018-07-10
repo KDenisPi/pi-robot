@@ -15,6 +15,7 @@
 
 #include "logger.h"
 #include "JsonHelper.h"
+#include "MqqtServerInfo.h"
 
 namespace smachine {
 
@@ -63,34 +64,73 @@ public:
     */
     bool configure(const std::string& conf){
         if(conf.empty()){
-            logger::log(logger::LLOG::ERROR, "Env", std::string(__func__) + " No Robot configuration");
+            logger::log(logger::LLOG::ERROR, "Env", std::string(__func__) + " No Robot environment configuration");
             return false;
         }
 
-        logger::log(logger::LLOG::NECECCARY, "Env", std::string(__func__) + " Loading Robot hardware configuration ...");
+        logger::log(logger::LLOG::NECECCARY, "Env", std::string(__func__) + " Loading Robot environment configuration ...");
         std::ifstream ijson(conf);
         try{
             logger::log(logger::LLOG::NECECCARY, "Env", std::string(__func__) + " Parse JSON from: " + conf);
 
             jsoncons::json conf = jsoncons::json::parse(ijson);
 
+            /*
+            * Load general application parameters
+            */
             if(conf.has_key("context"))
             {
                 auto json_context  =  conf["context"];
+                _log_path = jsonhelper::get_attr<std::string>(json_context, "log_path", "/var/log/pi-robot");
+                _log_name = jsonhelper::get_attr<std::string>(json_context, "log_name", "async_file_logger");
+                _log_file = jsonhelper::get_attr<std::string>(json_context, "log_file", "async_log");
+
             }
 
+            /*
+            * Load MQQT configuration
+            */
             if(conf.has_key("mqqt"))
             {
                 auto json_mqqt  =  conf["mqqt"];
+                //host name is mandatory
+                auto mqqt_enable = jsonhelper::get_attr<bool>(json_mqqt, "enable", false);
+                auto host = jsonhelper::get_attr_mandatory<std::string>(json_mqqt, "host");
+                auto clientid = jsonhelper::get_attr<std::string>(json_mqqt, "client_id", "");
+
+                auto keep_alive = jsonhelper::get_attr<int>(json_mqqt, "keep_alive", 10);
+                auto qos = jsonhelper::get_attr<int>(json_mqqt, "qos", 0);
+
+                auto tls = jsonhelper::get_attr<bool>(json_mqqt, "tls", false);
+                //default port for TLS is 8883 otherwise 1883
+                auto port = jsonhelper::get_attr<int>(json_mqqt, "port", (tls ? 8883 : 1883));
+
+                _mqqt_conf.set_host(host);
+                _mqqt_conf.set_port(port);
+                _mqqt_conf.set_clientid(clientid);
+                _mqqt_conf.set_tls(tls);
+                _mqqt_conf.set_enable( host.empty() ? false : mqqt_enable);
+
+                if(tls){
+                    auto tls_ca_file = jsonhelper::get_attr_mandatory<std::string>(json_mqqt, "tls_ca_file");
+                    auto tls_insecure = jsonhelper::get_attr<bool>(json_mqqt, "tls_insecure", false);
+                    auto tls_version = jsonhelper::get_attr<std::string>(json_mqqt, "tls_version", "tlsv1.2");
+
+                    _mqqt_conf.set_cafile(tls_ca_file);
+                    _mqqt_conf.set_tls_insecure(tls_insecure);
+                    _mqqt_conf.set_tls_version(tls_version);
+                }
             }
         }
         catch(jsoncons::parse_error& perr){
             logger::log(logger::LLOG::ERROR, "Env", std::string(__func__) + " Invalid configuration " +
                 perr.what() + " Line: " + std::to_string(perr.line_number()) + " Column: " + std::to_string(perr.column_number()));
+
+            return false;
         }
 
-        logger::log(logger::LLOG::NECECCARY, "Env", std::string(__func__) + " Robot configuration is finished");
-
+        logger::log(logger::LLOG::NECECCARY, "Env", std::string(__func__) + " Robot environment configuration loaded");
+        return true;
     }
 
     /*
@@ -113,9 +153,7 @@ public:
     std::string _log_file = "async_log";
 
     //MQQT client configuration file
-    std::string _mqqt_conf;
-    bool use_mqqt = false;
-
+    mqqt::MqqtServerInfo _mqqt_conf;
  };
 
 }

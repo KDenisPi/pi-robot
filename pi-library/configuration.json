@@ -1,6 +1,26 @@
 {
     "version": "1.0", //Optional, for future using
 
+    "context": {
+        "log_path": "/var/log/pi-robot",
+        "log_name": "async_file_logger",
+        "log_file": "async_log"
+    },
+
+    "mqqt" : {
+        "enable": "false",
+        "host" : "",
+        "client_id": "NoHardware",
+        "port": 8883,
+        "keep_alive": 10,
+        "qos": 0,
+
+        "tls": true,
+        "tls_ca_file" : "/home/denis/pi-robot/mqqt_tls/m2mqtt_ca.crt",
+        "tls_insecure": true,
+        "tls_version": "tlsv1"
+    },
+
     //
     // Flag if this configuration should be used with real hardware or with emulator
     // Possible values: true - hardware, false - emulator
@@ -12,7 +32,7 @@
     //
     // Note: SIMPLE provider is added always by default if real_world is true
     //       For emulator we cannot use any providers instead of FAKE or SPI
-    // 
+    //
     // Attributes:
     //
     // Optional
@@ -28,26 +48,26 @@
     // mode  - channel mode. Possible values (0,1,2,3). Default value 0
     //
     // Note: Two GPIO allocated on board (SIMPLE) with numbers 10, 11 allocated for SPI and cannot beused for another purposes
-   
+
     "providers": [
         //{"type": "SIMPLE", "pins": 12},
-        {"type": "FAKE", "name": "FAKE", "pins": 16}, 
+        {"type": "FAKE", "name": "FAKE", "pins": 16},
         {"type": "PWM", "name": "AdafruitPWM", "i2c_addr" : 64},//0x40
-        {"type": "MCP23017", "name": "MCP23017_1", "i2c_addr" : 32}, //0x20 
-        {"type": "MCP23008", "name": "MCP23008_1", "i2c_addr" : 34}, //0x22 
-        {"type": "PCA9685", "name":"PCA9685", "pwm": "AdafruitPWM", "frequency": 60.0},  
+        {"type": "MCP23017", "name": "MCP23017_1", "i2c_addr" : 32}, //0x20
+        {"type": "MCP23008", "name": "MCP23008_1", "i2c_addr" : 34}, //0x22
+        {"type": "PCA9685", "name":"PCA9685", "pwm": "AdafruitPWM", "frequency": 60.0},
 
         {"type": "SPI", "channels": 1, "speed_1": 1000000, "speed_2": 500000, "mode_1": 0, "mode_2": 0}
     ],
 
     //
-    // GPIOs 
+    // GPIOs
     // name - optional. If name is not defined than provider_name_pin will be used
     // mode - GPIO mode can be "IN" or "OUT"
     // provider - provider is "name" attribute for provider object defined above
     //
     "gpios": [{"name": "gpio_name", "provider": "provider_name", "pin": 0, "mode": "IN/OUT"}],
-    
+
     //
     // Items (all elements another then providers, and gpios)
     //
@@ -58,9 +78,9 @@
         // LED
         //
         {
-            "type":"LED", 
-            "name":"item_name", 
-            "comment": "", 
+            "type":"LED",
+            "name":"item_name",
+            "comment": "",
             "gpio": {"provider": "provider_name", "pin": 0}
         },
 
@@ -80,8 +100,8 @@
         // DRV 8835
         //
         {
-            "type":"DRV8835", 
-            "name":"item_name", 
+            "type":"DRV8835",
+            "name":"item_name",
             "comment": "",
             "mode":"IN_IN/PH_EN", //mode (see above), optional PH_EN by default
             "gpio": {"provider": "provider_name", "pin": 0}
@@ -91,9 +111,9 @@
         // DC Motor
         //
         {
-            "type":"DCMotor", 
-            "name":"item_name", 
-            "comment": "", 
+            "type":"DCMotor",
+            "name":"item_name",
+            "comment": "",
             "drv8835": "drv8835_name",
             "gpio": {"provider": "provider_name", "pin": 0}, //Direction control
             "gpio_pwm": {"provider": "provider_name", "pin": 0},
@@ -104,8 +124,8 @@
         // Stepper over ULN2003 (ULN2003Stepper)
         //
         {
-            "type":"ULN2003Stepper", 
-            "name":"item_name", 
+            "type":"ULN2003Stepper",
+            "name":"item_name",
             "comment": "",
             "gpio_phase_0": {"provider": "provider_name", "pin": 0},
             "gpio_phase_1": {"provider": "provider_name", "pin": 0},
@@ -116,7 +136,7 @@
 
         //
         // AnlgDgtConvertor based on MCP320X (AC/DC converter)
-        // 
+        //
         {
             "type": "AnlgDgtConvertor",
             "name":"item_name",
@@ -131,8 +151,8 @@
         // Blinker based on LED
         //
         {
-            "type":"BLINKER", 
-            "name":"item_name", 
+            "type":"BLINKER",
+            "name":"item_name",
             "comment": "",
             "led": "LED_item_name",
             "tm_on": 250, //time on interval in milliseconds
@@ -144,8 +164,8 @@
         // Analog Light Meter
         //
         {
-            "type": "AnalogLightMeter", 
-            "name": "item_name", 
+            "type": "AnalogLightMeter",
+            "name": "item_name",
             "comment": "", //optional
             "ad_convertor": "AnlgDgtConvertor_name",
             "analog_input_index": 0, //Pin index
@@ -165,7 +185,7 @@
             "delay": 100
         },
         //
-        // Si7021 
+        // Si7021
         // I2C Humidity and Temperature Sensor
         //
         {
@@ -174,7 +194,7 @@
             "comment": "" //optional
         },
         //
-        // SGP30 
+        // SGP30
         // I2C Sensirion Gas Platform (CO2, TVOC)
         //
         {
@@ -183,7 +203,7 @@
             "comment": "" //optional
         },
         //
-        // BMP280 
+        // BMP280
         // I2C Digital Pressure Sensor
         //
         {
@@ -200,7 +220,7 @@
             "comment": "" //optional
         },
         //
-        // TSL2561 
+        // TSL2561
         // I2C Light-to-Digital Converter
         //
         {
@@ -213,8 +233,8 @@
         // LCD (LCD_)
         //
         {
-            "type":"LCD", 
-            "name":"item_name", 
+            "type":"LCD",
+            "name":"item_name",
             "comment": "",
             "gpio_rs": {"provider": "provider_name", "pin": 0},
             "gpio_enable": {"provider": "provider_name", "pin": 0},

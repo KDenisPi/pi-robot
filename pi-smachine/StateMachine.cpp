@@ -30,14 +30,19 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
     m_timers = std::shared_ptr<Timers>(new Timers(this));
     m_states = std::shared_ptr<std::list<std::shared_ptr<state::State>>>(new std::list<std::shared_ptr<state::State>>);
 
+    /*
+    * Create project environment and load value for parameters
+    */
     m_env = std::shared_ptr<Environment>(m_factory->get_environment());
+    bool ctxt_init = m_env->configure(m_factory->get_configuration());
+    //TODO: throw exception here?
 
     //Start timers
     m_timers->start();
 
     if( !start()){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " State machine could not start!");
-        //TODO: exit from application
+        //TODO: throw exception here?
     }
 
     //set callback function for hardware calls
