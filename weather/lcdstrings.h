@@ -24,7 +24,11 @@ enum StrID {
     Poor,
     Dangerous,
     Line1,
-    Line2
+    Line2,
+    Good_ru,
+    Moderate_ru,
+    Poor_ru,
+    Dangerous_ru
 };
 
 class LcdStrings {
@@ -57,6 +61,10 @@ public:
         _msg[StrID::Dangerous] = "%s Dangerous";
         _msg[StrID::Line1] = "T:%.0f%c CO2:%s";
         _msg[StrID::Line2] = "H:%.0f%c P:%.0fmm";
+        _msg[StrID::Good_ru] = "Хороший";
+        _msg[StrID::Moderate_ru] = "Нормальный";
+        _msg[StrID::Poor_ru] = "Повышенный";
+        _msg[StrID::Dangerous_ru] = "Опасный";
     }
 
 private:
