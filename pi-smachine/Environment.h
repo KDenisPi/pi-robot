@@ -84,7 +84,7 @@ public:
                 _log_path = jsonhelper::get_attr<std::string>(json_context, "log_path", "/var/log/pi-robot");
                 _log_name = jsonhelper::get_attr<std::string>(json_context, "log_name", "async_file_logger");
                 _log_file = jsonhelper::get_attr<std::string>(json_context, "log_file", "async_log");
-
+                _web_pages = jsonhelper::get_attr<std::string>(json_context, "web_pages", "../");
             }
 
             /*
@@ -151,6 +151,15 @@ public:
     std::string _log_path = "/var/log/pi-robot";
     std::string _log_name = "async_file_logger";
     std::string _log_file = "async_log";
+
+    /*
+    * Web pages location
+    */
+    std::string _web_pages = "../web";
+
+    const std::string get_web_root() const {
+        return _web_pages;
+    }
 
     //MQQT client configuration file
     mqqt::MqqtServerInfo _mqqt_conf;

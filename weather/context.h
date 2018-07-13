@@ -32,6 +32,14 @@ public:
     std::string ip4_address;
     std::string ip6_address;
 
+    /*
+    * UI language
+    */
+    std::string _language = "en";
+    const std::string get_language() const {
+        return _language;
+    }
+
     //database filename and location
     std::string _db_name = "/var/data/pi-robot/weather.db";
 

@@ -28,7 +28,8 @@ public:
 
         _server = mg_create_server(this);
         mg_set_option(_server, "listening_port", sport.c_str());
-        mg_add_uri_handler(_server, "/", WebSettings::index_html);
+
+        mg_add_uri_handler(_server, "/", WebSettings::html_pages);
     }
 
     /*
@@ -48,11 +49,12 @@ public:
     /*
     *
     */
-    static int index_html(struct mg_connection *conn) {
+    static int html_pages(struct mg_connection *conn) {
 
         mg_send_header(conn, "Content-Type:", "text/html; charset=utf-8");
 
         const std::string page = static_cast<WebSettings*>(conn->server_param)->get_page(conn);
+
         //check loaded size
         if(page.size()==0){
             mg_send_status(conn, 404);
@@ -64,15 +66,8 @@ public:
         }
 
         mg_send_data(conn, page.c_str(), page.size());
-        /*
-        mg_printf_data(conn, "Hello! Requested URI is [%s], query string is [%s]",
-                 conn->uri,
-                 conn->query_string == NULL ? "(none)" : conn->query_string);
-        */
-
         return 0;
     }
-
 
     /*
     *
@@ -87,11 +82,6 @@ public:
         mg_destroy_server(&p->_server);
 
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " finished");
-    }
-
-    //
-    virtual const std::string get_index_page(){
-        return "./web/status.html";
     }
 
     virtual const std::string get_page(const struct mg_connection *conn) = 0;
@@ -123,7 +113,7 @@ public:
 		return std::static_pointer_cast<T>(_itf->get_env());
 	}
 
- private:
+ protected:
    struct mg_server* _server;
 
     //data interface
