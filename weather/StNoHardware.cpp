@@ -13,7 +13,7 @@ namespace weather {
 void StNoHardware::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    TIMER_CREATE(TIMER_FINISH_ROBOT, 15) //wait for 15 seconds before finish
+    TIMER_CREATE(TIMER_FINISH_ROBOT, 55) //wait for 15 seconds before finish
 }
 
 bool StNoHardware::OnTimer(const int id){

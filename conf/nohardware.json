@@ -1,4 +1,8 @@
 {
 	"version" : "1.0",
-	"real_world" : false
+	"real_world" : false,
+
+	"context": {
+        "web_pages": "/home/deniskudia/sources/pi-robot/web"
+    }
 }

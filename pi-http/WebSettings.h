@@ -58,7 +58,7 @@ public:
         //check loaded size
         if(page.size()==0){
             mg_send_status(conn, 404);
-            mg_printf_data(conn, "Page not found!<br> Requested URI is [%s], query string is [%s]<br>Local path: ./web/status.html",
+            mg_printf_data(conn, "Page not found!<br> Requested URI is [%s], query string is [%s]",
                  conn->uri,
                  conn->query_string == NULL ? "(none)" : conn->query_string);
 

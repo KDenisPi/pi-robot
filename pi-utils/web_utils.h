@@ -64,7 +64,7 @@ public:
                 res += src.substr(s_pos, pos - s_pos + p_len);
             }
 
-            s_pos = e_pos + p_len;
+            s_pos = pos + p_len;
             pos = src.find(v_start, s_pos);
         }
 

@@ -9,6 +9,7 @@
 
 #include "WebSettings.h"
 #include "context.h"
+#include "logger.h"
 
 namespace weather {
 namespace web {
@@ -33,16 +34,16 @@ public:
     const std::string get_page_by_URI(const char *uri, const char * lg = "en") {
 
         if(strcmp(lg, "en") == 0){
-            if(strcmp(uri, "/") == 0 || strcmp(uri, "/index.html") == 0){
-                return "/en/index.html";
+            if(strcmp(uri, "/") == 0 || strcmp(uri, "/index.html") == 0 || strcmp(uri, "/default.html") == 0){
+                return "/en/default.html";
             }
             else if(strcmp(uri, "/status.html") == 0){
                 return "/en/status.html";
             }
         }
         else if(strcmp(lg, "ru") == 0){
-            if(strcmp(uri, "/") == 0 || strcmp(uri, "/index.html") == 0){
-                return "/ru/index.html";
+            if(strcmp(uri, "/") == 0 || strcmp(uri, "/index.html") == 0 || strcmp(uri, "/default.html") == 0){
+                return "/ru/default.html";
             }
             else if(strcmp(uri, "/status.html") == 0){
                 return "/ru/status.html";
@@ -56,17 +57,32 @@ public:
     *
     */
     virtual const std::string get_page(const struct mg_connection *conn) override {
+        logger::log(logger::LLOG::DEBUG, "Web", std::string(__func__));
 
         auto ctxt = get_context<weather::Context>();
         std::string lang = ctxt->get_language();
         std::string page_name = get_page_by_URI(conn->uri, lang.c_str());
+        std::string page_path = ctxt->get_web_root();
+
+        logger::log(logger::LLOG::DEBUG, "Web", std::string(__func__) + " Page: " + page_name + " URI: " +
+            (conn->uri == nullptr ? "Empty" : std::string(conn->uri)) + " Path: " + page_path);
+
+        if(page_name.empty()){
+            return page_name;
+        }
+
+        //
+        //Check file here
+        //
 
         //try to load page content
-        std::string page = piutils::webutils::WebUtils::load_page(ctxt->get_web_root() + page_name);
+        std::string page = piutils::webutils::WebUtils::load_page(page_path + page_name);
 
         std::map<std::string, std::string> values;
         values["<!--{NetInfo}-->"] =  ctxt->ip4_address;
         values["<!--{Uptime}-->"] = ctxt->get_uptime();
+
+        logger::log(logger::LLOG::DEBUG, "Web", std::string(__func__) + " IP: " + ctxt->ip4_address + " UpTime: " + ctxt->get_uptime());
 
         /*
         * Add another patterns depends on page
@@ -92,11 +108,16 @@ public:
         }
 
         const std::string _new_page = piutils::webutils::WebUtils::replace_values(page, values);
+        //logger::log(logger::LLOG::DEBUG, "Web", std::string(__func__) + "\n" + _new_page);
         return _new_page;
     }
 
 private:
     const std::string prepare_level_name(const std::string& level_name, const int level){
+        logger::log(logger::LLOG::DEBUG, "Web", std::string(__func__) + " Level:" + std::to_string(level));
+
+        if(level == 0)
+            return "<span style=\"color:green\">" + level_name + "</span>";
         if(level == 1)
             return "<span style=\"color:green\">" + level_name + "</span>";
         if(level == 2)
