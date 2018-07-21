@@ -7,6 +7,8 @@
 #ifndef HTTP_WEB_SETTINGS_H
 #define HTTP_WEB_SETTINGS_H
 
+#include <utility>
+
 #include "mongoose.h"
 #include "Threaded.h"
 #include "logger.h"
@@ -17,20 +19,29 @@
 namespace http {
 namespace web {
 
-using PageContent = std::string;
+const char* mime_html = "text/html; charset=utf-8";
+const char* mime_js = "application/javascript";
+const char* mime_plain = "text/plain";
 
 class WebSettings : public piutils::Threaded {
 
 public:
     WebSettings(const uint16_t port, std::shared_ptr<smachine::StateMachineItf> itf) : _itf(itf) {
+
+        initialize(port);
+
         std::string sport = (port == 0 ? "8080" : std::to_string(port));
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Port: " + sport);
-
-        _server = mg_create_server(this);
         mg_set_option(_server, "listening_port", sport.c_str());
-
-        mg_add_uri_handler(_server, "/", WebSettings::html_pages);
     }
+
+    /*
+    *
+    */
+   virtual void initialize(const uint16_t port){
+        _server = mg_create_server(this);
+        mg_add_uri_handler(_server, "/", WebSettings::html_pages);
+   }
 
     /*
     *
@@ -50,13 +61,11 @@ public:
     *
     */
     static int html_pages(struct mg_connection *conn) {
-
-        mg_send_header(conn, "Content-Type:", "text/html; charset=utf-8");
-
-        const std::string page = static_cast<WebSettings*>(conn->server_param)->get_page(conn);
+        auto page_info = static_cast<WebSettings*>(conn->server_param)->get_page(conn);
 
         //check loaded size
-        if(page.size()==0){
+        if(page_info.second.size()==0){
+            mg_send_header(conn, "Content-Type:", "text/html; charset=utf-8");
             mg_send_status(conn, 404);
             mg_printf_data(conn, "Page not found!<br> Requested URI is [%s], query string is [%s]",
                  conn->uri,
@@ -65,7 +74,8 @@ public:
             return 0;
         }
 
-        mg_send_data(conn, page.c_str(), page.size());
+        mg_send_header(conn, "Content-Type:", page_info.first.c_str());
+        mg_send_data(conn, page_info.second.c_str(), page_info.second.size());
         return 0;
     }
 
@@ -84,7 +94,10 @@ public:
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " finished");
     }
 
-    virtual const std::string get_page(const struct mg_connection *conn) = 0;
+    /*
+    *   Should be overloaded
+    */
+    virtual const std::pair<std::string, std::string> get_page(const struct mg_connection *conn) = 0;
 
     //Prepare list of IP addresses
     const std::string prepare_ip_list(){
@@ -114,7 +127,7 @@ public:
 	}
 
  protected:
-   struct mg_server* _server;
+    struct mg_server* _server;
 
     //data interface
     std::shared_ptr<smachine::StateMachineItf> _itf;

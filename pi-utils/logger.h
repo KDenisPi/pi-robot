@@ -28,9 +28,9 @@ void log(const LLOG level, const std::string& pattern, const std::string& messag
 void release();
 void set_level(const LLOG level);
 
-typedef std::pair<std::string, std::string> log_message;
-typedef std::pair<logger::LLOG, log_message> log_message_type;
-typedef piutils::circbuff::CircularBuffer<log_message_type> log_type;
+using log_message = std::pair<std::string, std::string>;
+using log_message_type = std::pair<logger::LLOG, log_message>;
+using log_type = piutils::circbuff::CircularBuffer<log_message_type>;
 
 class Logger : public piutils::Threaded{
 public:

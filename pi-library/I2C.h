@@ -14,7 +14,7 @@
 namespace pirobot {
 namespace i2c {
 
-typedef std::pair<std::string, uint8_t> i2c_user;
+using i2c_user = std::pair<std::string, uint8_t>;
 
 class I2C : public provider::Provider {
 
@@ -30,7 +30,7 @@ public:
     }
 
     /*
-    // Return list of items connected to I2C 
+    // Return list of items connected to I2C
     */
     const std::vector<std::pair<std::string, uint8_t>>& get_users(){
         return m_users;

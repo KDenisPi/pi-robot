@@ -156,9 +156,14 @@ public:
     * Web pages location
     */
     std::string _web_pages = "../web";
+    std::string _data_path = "/var/data/pi-robot";
 
     const std::string get_web_root() const {
         return _web_pages;
+    }
+
+    const std::string get_json_data() const {
+        return _data_path + "/json";
     }
 
     //MQQT client configuration file
