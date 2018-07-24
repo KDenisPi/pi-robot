@@ -20,27 +20,32 @@ namespace http {
 namespace web {
 
 const char* mime_html = "text/html; charset=utf-8";
-const char* mime_js = "application/javascript";
-const char* mime_plain = "text/plain";
+const char* mime_js = "application/javascript; charset=utf-8";
+const char* mime_plain = "text/plain; charset=utf-8";
+const char* mime_css = "text/css; charset=utf-8";
+const char* mime_json = "application/json; charset=utf-8";
 
 class WebSettings : public piutils::Threaded {
 
 public:
     WebSettings(const uint16_t port, std::shared_ptr<smachine::StateMachineItf> itf) : _itf(itf) {
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__));
 
-        initialize(port);
+        initialize();
 
         std::string sport = (port == 0 ? "8080" : std::to_string(port));
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Port: " + sport);
         mg_set_option(_server, "listening_port", sport.c_str());
+
+        mg_add_uri_handler(_server, "/", WebSettings::html_pages);
     }
 
     /*
     *
     */
-   virtual void initialize(const uint16_t port){
+   virtual void initialize(){
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__));
         _server = mg_create_server(this);
-        mg_add_uri_handler(_server, "/", WebSettings::html_pages);
    }
 
     /*
@@ -61,6 +66,11 @@ public:
     *
     */
     static int html_pages(struct mg_connection *conn) {
+
+        if(std::strstr(conn->uri, "/data") != NULL || std::strstr(conn->uri, ".json") != NULL){
+            return static_cast<WebSettings*>(conn->server_param)->data_files(conn);
+        }
+
         auto page_info = static_cast<WebSettings*>(conn->server_param)->get_page(conn);
 
         //check loaded size
@@ -75,6 +85,7 @@ public:
         }
 
         mg_send_header(conn, "Content-Type:", page_info.first.c_str());
+        mg_send_header(conn, "Content-Length:", std::to_string(page_info.second.length()).c_str());
         mg_send_data(conn, page_info.second.c_str(), page_info.second.size());
         return 0;
     }
@@ -98,6 +109,7 @@ public:
     *   Should be overloaded
     */
     virtual const std::pair<std::string, std::string> get_page(const struct mg_connection *conn) = 0;
+    virtual int data_files(struct mg_connection *conn) = 0;
 
     //Prepare list of IP addresses
     const std::string prepare_ip_list(){

@@ -17,23 +17,26 @@ namespace web {
 class WebWeather : public http::web::WebSettings {
 public:
     WebWeather(const uint16_t port, std::shared_ptr<smachine::StateMachineItf> itf) : http::web::WebSettings(port, itf){
-        mg_add_uri_handler(_server, "/data", WebWeather::data_files);
+        logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__));
+
+        initialize();
     }
 
     /*
     *
     */
     virtual ~WebWeather() {
-
+        logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__));
     }
 
     /*
     *
     */
-   virtual void initialize(const uint16_t port) override{
-        _server = mg_create_server(this);
-        mg_add_uri_handler(_server, "/", WebSettings::html_pages);
-        mg_add_uri_handler(_server, "/data", WebWeather::data_files);
+   virtual void initialize() override {
+        logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__));
+
+        //mg_add_uri_handler(_server, "/data", WebWeather::data_files);
+        //mg_add_uri_handler(_server, "/", WebSettings::html_pages);
    }
 
 
@@ -42,27 +45,45 @@ public:
     */
     const std::pair<std::string, std::string> get_page_by_URI(const char *uri) {
 
+        logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__) + " URI:" + (uri != nullptr ? uri : "Not defined"));
+
         auto ctxt = get_context<weather::Context>();
         std::string lang = ctxt->get_language();
         std::string page_path = ctxt->get_web_root();
+        std::string result, mime;
 
         if(std::strcmp(uri, "/") == 0 || strcmp(uri, "/index.html") == 0 || strcmp(uri, "/default.html") == 0){
-            if(lang == "en")
-                return std::make_pair(std::string(http::web::mime_html), page_path + "/en/default.html");
+            mime = std::string(http::web::mime_html);
+            if(lang == "en"){
+                result = page_path + "/en/default.html";
+            }
             else if(lang == "ru")
-                return std::make_pair(std::string(http::web::mime_html), page_path + "/ru/default.html");
+            {
+                result = page_path + "/ru/default.html";
+            }
         }
-        else if(std::strcmp(uri, "/status.html") == 0){
+        else if(std::strcmp(uri, "/status.html") == 0 || std::strcmp(uri, "/graph.html") == 0){
+            mime = std::string(http::web::mime_html);
+
             if(lang == "en")
-                return std::make_pair(std::string(http::web::mime_html), page_path + "/en/status.html");
+                result = page_path + "/en" + uri;
             else if(lang == "ru")
-                return std::make_pair(std::string(http::web::mime_html), page_path + "/ru/status.html");
+                result = page_path + "/ru" + uri;
         }
-        else if(std::strstr(uri, "metricsgraphics.js") != NULL){
-            return std::make_pair(std::string(http::web::mime_js), page_path + "/metricsgraphics.js");
+        else if(std::strstr(uri, "metricsgraphics.min.js") != NULL || std::strstr(uri, "metricsgraphics.js") != NULL){
+            mime = std::string(http::web::mime_js);
+            result = page_path + uri;
         }
         else if(std::strstr(uri, "metricsgraphics.css") != NULL){
-            return std::make_pair(std::string(http::web::mime_plain), page_path + "/metricsgraphics.css");
+            mime = std::string(http::web::mime_css);
+            result = page_path + uri;
+        }
+
+        logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__) + " Page: " + result + " MIME:" + mime);
+
+        if(piutils::chkfile(result)){
+            logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__) + " Found. Page: " + result + " MIME:" + mime);
+            return std::make_pair(mime, result);
         }
 
         return std::make_pair(std::string(), std::string());
@@ -71,20 +92,25 @@ public:
     /*
     *
     */
-    static int data_files(struct mg_connection *conn) {
+    virtual int data_files(struct mg_connection *conn) override {
+        logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__) + " URI:" + (conn->uri != nullptr ? conn->uri : "Not defined"));
+
         auto owner = static_cast<WebWeather*>(conn->server_param);
         auto ctxt = owner->get_context<weather::Context>();
 
         if(std::strstr(conn->uri, "json") != NULL){
             std::string json_path = ctxt->get_json_data();
             std::string full_name = json_path + conn->uri;
+
+            logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__) + " Path: " + full_name);
             //
             //check if file exist
             //
             if(piutils::chkfile(full_name)){
                 std::string page = piutils::webutils::WebUtils::load_page(full_name);
                 if(!page.empty()){
-                    mg_send_header(conn, "Content-Type:", "application/json");
+                    mg_send_header(conn, "Content-Type:", http::web::mime_json);
+                    mg_send_header(conn, "Content-Length:", std::to_string(page.length()).c_str());
                     mg_send_data(conn, page.c_str(), page.size());
                     return 0;
                 }
@@ -106,7 +132,7 @@ public:
     *
     */
     virtual const std::pair<std::string, std::string> get_page(const struct mg_connection *conn) override {
-        logger::log(logger::LLOG::DEBUG, "Web", std::string(__func__));
+        logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__) + " URI:" + (conn->uri != nullptr ? conn->uri : "Not defined"));
 
         auto page_name = get_page_by_URI(conn->uri);
 
@@ -157,7 +183,7 @@ public:
             return std::make_pair(page_name.first, _new_page);
         }
 
-        return std::make_pair("", "");
+        return std::make_pair(page_name.first, page);
     }
 
 private:

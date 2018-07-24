@@ -1,0 +1,71 @@
+<html lang='en'>
+<head>
+    <meta content='text/html; charset=utf-8' http-equiv='Content-Type'>
+    <base href="">
+
+    <link href='metricsgraphics.css' rel='stylesheet' type='text/css'>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+    <script src='https://d3js.org/d3.v5.min.js' charset='utf-8'></script>
+    <script src='metricsgraphics.min.js'></script>
+</head>
+
+<body>
+        <div class='row trunk-section'>
+                <div class='col-lg-7 text-center' id='fake_users1'></div>
+                <div class='col-lg-7 text-center' id='fake_users2'></div>
+                <div class='col-lg-7 text-center' id='fake_users3'></div>
+                <div class='col-lg-5'>
+                <div class='data-column'><a href='data/fake_users1.json'>data</a></div>
+
+<script>
+d3.json('data/fake_users1.json').then(function(data) {
+    data = MG.convert.date(data, 'date');
+    //console.log(data);
+
+    var data1 = MG.clone(data);
+    var data2 = MG.clone(data);
+    for (var i = 0; i < data.length; i++) {
+        data1[i].value = data[i].value1;
+        data2[i].value = data[i].value2;
+    }
+    //console.log(data1);
+    //console.log(data2);
+
+    MG.data_graphic({
+        title: "Temperature (C)",
+        data: data,
+        width: 600,
+        height: 200,
+        right: 40,
+        target: '#fake_users1',
+        x_accessor: 'date',
+        y_accessor: 'value'
+    });
+
+    MG.data_graphic({
+        title: "Humidity (%)",
+        data: data1,
+        width: 600,
+        height: 200,
+        right: 40,
+        target: '#fake_users2',
+        x_accessor: 'date',
+        y_accessor: 'value'
+    });
+
+    MG.data_graphic({
+        title: "Pressure (mm Hg)",
+        data: data2,
+        width: 600,
+        height: 200,
+        right: 40,
+        target: '#fake_users3',
+        x_accessor: 'date',
+        y_accessor: 'value'
+    });
+
+});
+</script>
+
+</body>
+</html>
