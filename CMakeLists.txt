@@ -12,8 +12,8 @@ set(WIRINGPI_LIB "/usr/local/lib")
 set(MOSQUITTO_HOME "${THIRD_PARTY_HOME}/mosquitto")
 set(MOSQUITTO_LIB "${MOSQUITTO_HOME}/build/lib")
 
-set(SPDLOG_HOME "${THIRD_PARTY_HOME}/spdlog")
-set(SPDLOG_INCLUDE "${SPDLOG_HOME}/include")
+#set(SPDLOG_HOME "${THIRD_PARTY_HOME}/spdlog")
+#set(SPDLOG_INCLUDE "${SPDLOG_HOME}/include")
 
 set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
 
@@ -44,9 +44,9 @@ set(CMAKE_BIULD_TYPE Debug)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-include_directories(BEFORE
-${SPDLOG_INCLUDE}
-)
+#include_directories(BEFORE
+#${SPDLOG_INCLUDE}
+#)
 
 #C++ 11
 #add_cxx_flags( "-std=c++11" )

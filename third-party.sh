@@ -39,7 +39,7 @@ cd ./wiringPi
 #
 cd ..
 echo SPDLOG
-git clone https://github.com/gabime/spdlog.git spdlog
+apt-get install libspdlog-dev
 
 #
 # JSON
@@ -53,7 +53,6 @@ tar zxvf ./mongoose-5.1.tgz
 #
 # SQLite
 #
-cd ..
 wget https://www.sqlite.org/2018/sqlite-amalgamation-3240000.zip
 unzip sqlite-amalgamation-3240000.zip
 

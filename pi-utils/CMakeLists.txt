@@ -3,10 +3,10 @@ cmake_minimum_required(VERSION 3.0)
 #project name
 project(pi-utils)
 
-include_directories(BEFORE
-    "${SPDLOG_INCLUDE}/spdlog"
-    ${SPDLOG_INCLUDE}
-)
+#include_directories(BEFORE
+#    "${SPDLOG_INCLUDE}/spdlog"
+#    ${SPDLOG_INCLUDE}
+#)
 
 
 set(CMAKE_BIULD_TYPE Debug)

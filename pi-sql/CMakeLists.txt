@@ -8,7 +8,6 @@ set(CMAKE_BIULD_TYPE Debug)
 include_directories(BEFORE
     ${PROJECT_SOURCE_DIR}/../pi-utils
     ${SQLITE3_HOME}
-    ${SPDLOG_INCLUDE}
 )
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_SQL_SOURCES)
