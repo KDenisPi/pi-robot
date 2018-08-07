@@ -23,8 +23,8 @@ void StInitializeLcd::OnEntry(){
     lcd->write_string_at(0,0, ctxt->get_str(StrID::Starting), true);
 
     //switch Green led ON
-    auto led_green = get_item<pirobot::item::Led>("led_green");
-    led_green->On();
+    auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
+    led_white_r->On();
 
     TIMER_CREATE(TIMER_LCD_INTERVAL, 5) //wait for 5 seconds before real use
 }
@@ -37,8 +37,8 @@ bool StInitializeLcd::OnTimer(const int id){
         {
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer LCD_INTERVAL");
 
-            auto led_green = get_item<pirobot::item::Led>("led_green");
-            led_green->Off();
+            auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
+            led_white_r->Off();
 
             POP_STATE();
             return true;

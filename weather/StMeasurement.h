@@ -38,6 +38,9 @@ public:
     bool storage_stop();
     void storage_write(Measurement& meas);
 
+    //
+    void headlights(const bool light_on);
+
 private:
     // File based data storage
 #ifdef USE_FILE_STORAGE    

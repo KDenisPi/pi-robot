@@ -21,13 +21,13 @@ void StInitializeSensors::OnEntry(){
     auto ctxt = get_env<weather::Context>();
     auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
 
-    auto led_gr = get_item<pirobot::item::Led>("led_green");
-    auto led_wt = get_item<pirobot::item::Led>("led_white");
-    auto led_rd = get_item<pirobot::item::Led>("led_red");
+    auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
+    auto led_white_l = get_item<pirobot::item::Led>("led_white_l");
+    auto led_red = get_item<pirobot::item::Led>("led_red");
 
-    led_gr->On();
-    led_wt->On();
-    led_rd->On();
+    led_white_r->On();
+    led_white_l->On();
+    led_red->On();
 
     lcd->write_string_at(0,0, ctxt->get_str(StrID::Warming), true);
 
@@ -66,13 +66,13 @@ bool StInitializeSensors::OnTimer(const int id){
         {
             auto ctxt = get_env<weather::Context>();
 
-            auto led_gr = get_item<pirobot::item::Led>("led_green");
-            auto led_wt = get_item<pirobot::item::Led>("led_white");
-            auto led_rd = get_item<pirobot::item::Led>("led_red");
+            auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
+            auto led_white_l = get_item<pirobot::item::Led>("led_white_l");
+            auto led_red = get_item<pirobot::item::Led>("led_red");
 
-            led_gr->Off();
-            led_wt->Off();
-            led_rd->Off();
+            led_white_r->Off();
+            led_white_l->Off();
+            led_red->Off();
 
             POP_STATE();
             return true;

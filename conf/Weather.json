@@ -27,9 +27,9 @@
     ],
 
     "gpios": [
-        {"name": "led_green",   "provider": "SIMPLE", "pin": 0, "mode": "OUT"},
-        {"name": "led_white",   "provider": "SIMPLE", "pin": 2, "mode": "OUT"},
-        {"name": "led_red",     "provider": "SIMPLE", "pin": 3, "mode": "OUT"},
+        {"name": "led_red",   "provider": "SIMPLE", "pin": 0, "mode": "OUT"},
+        {"name": "led_white_r",   "provider": "SIMPLE", "pin": 2, "mode": "OUT"},
+        {"name": "led_white_l",     "provider": "SIMPLE", "pin": 3, "mode": "OUT"},
 
         {"name": "btn_1", "provider": "SIMPLE", "pin": 21, "mode": "IN"},
         {"name": "btn_2", "provider": "SIMPLE", "pin": 22, "mode": "IN"},
@@ -79,9 +79,9 @@
         },
         {
             "type":"LED",
-            "name":"led_green",
+            "name":"led_white_r",
             "comment": "",
-            "gpio": {"name": "led_green"}
+            "gpio": {"name": "led_white_r"}
         },
         {
             "type":"LED",
@@ -91,9 +91,9 @@
         },
         {
             "type":"LED",
-            "name":"led_white",
+            "name":"led_white_l",
             "comment": "",
-            "gpio": {"name": "led_white"}
+            "gpio": {"name": "led_white_l"}
         },
         {
             "type":"BLINKER",

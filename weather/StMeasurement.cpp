@@ -26,6 +26,21 @@
 
 namespace weather {
 
+void StMeasurement::headlights(const bool light_on){
+    auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
+    auto led_white_l = get_item<pirobot::item::Led>("led_white_l");
+
+    if(light_on){
+        led_white_r->On();
+        led_white_l->On();
+    }
+    else{
+        led_white_r->Off();
+        led_white_l->Off();
+    }
+}
+
+
 //
 // Take measurement from all sensors
 //
@@ -36,8 +51,7 @@ void StMeasurement::measure(){
 
     try {
 
-        auto led_green = get_item<pirobot::item::Led>("led_green");
-        led_green->On();
+        headlights(true);
 
         TIMER_CREATE(TIMER_MEASURE_LIGHT_INTERVAL, ctxt->measure_light_interval) //measurement interval
 
@@ -255,8 +269,7 @@ bool StMeasurement::OnTimer(const int id){
 
         case TIMER_MEASURE_LIGHT_INTERVAL:
         {
-            auto led_green = get_item<pirobot::item::Led>("led_green");
-            led_green->Off();
+            headlights(false);
             return true;
         }
     }
