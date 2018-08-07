@@ -132,17 +132,21 @@ void StMeasurement::measure(){
 bool StMeasurement::storage_start(){
     auto ctxt = get_env<weather::Context>();
 
+#ifdef USE_FILE_STORAGE    
     if(!_fstorage.start(ctxt)){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not initialize file storage");
         TIMER_CREATE(TIMER_FINISH_ROBOT, 5);
         return false;
     }
+#endif
 
+#ifdef USE_SQL_STORAGE    
     if(!_sqlstorage.start(ctxt)){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not initialize SQL storage");
         TIMER_CREATE(TIMER_FINISH_ROBOT, 5);
         return false;
     }
+#endif
 
     return true;
 }
@@ -151,15 +155,27 @@ bool StMeasurement::storage_start(){
 *
 */
 bool StMeasurement::storage_stop(){
+
+#ifdef USE_FILE_STORAGE    
     _fstorage.stop();
+#endif
+
+#ifdef USE_SQL_STORAGE    
     _sqlstorage.stop();
+#endif    
 
     return true;
 }
 
 void StMeasurement::storage_write(Measurement& meas){
+
+#ifdef USE_FILE_STORAGE    
     _fstorage.write(meas);
+#endif
+
+#ifdef USE_SQL_STORAGE    
     _sqlstorage.write(meas);
+#endif    
 }
 
 //

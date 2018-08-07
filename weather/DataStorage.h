@@ -10,6 +10,8 @@
 #ifndef WEATHER_DATA_STORAGE_H_
 #define WEATHER_DATA_STORAGE_H_
 
+#define USE_FILE_STORAGE
+
 #include "MosquittoClient.h"
 #include "MqqtClient.h"
 #include "CircularBuffer.h"
@@ -17,7 +19,10 @@
 #include "fstorage.h"
 #include "measurement.h"
 #include "context.h"
+
+#ifdef USE_SQL_STORAGE    
 #include "pisqlite.h"
+#endif
 
 namespace weather{
 namespace data {
@@ -150,6 +155,8 @@ private:
 
 };
 
+#ifdef USE_SQL_STORAGE    
+
 /*
 * Implementation of SQL based data storage
 */
@@ -188,7 +195,7 @@ public:
         return true;
     }
 };
-
+#endif
 
 } //namespace data
 } //namespace weather
