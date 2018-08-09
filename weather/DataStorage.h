@@ -20,7 +20,7 @@
 #include "measurement.h"
 #include "context.h"
 
-#ifdef USE_SQL_STORAGE    
+#ifdef USE_SQL_STORAGE
 #include "pisqlite.h"
 #endif
 
@@ -45,7 +45,10 @@ class DataStorage {
 */
 class FileStorage : public DataStorage, piutils::fstor::FStorage {
 public:
-    FileStorage() {}
+    FileStorage() {
+        set_first_line("date,humidity,temperature,pressure,luximity,co2,tvoc,altitude\n");
+    }
+
     virtual ~FileStorage() {}
 
     virtual bool start(const std::shared_ptr<Context> ctxt) override {
@@ -155,7 +158,7 @@ private:
 
 };
 
-#ifdef USE_SQL_STORAGE    
+#ifdef USE_SQL_STORAGE
 
 /*
 * Implementation of SQL based data storage

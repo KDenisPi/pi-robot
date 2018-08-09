@@ -11,59 +11,75 @@
 
 <body>
         <div class='row trunk-section'>
-                <div class='col-lg-7 text-center' id='fake_users1'></div>
-                <div class='col-lg-7 text-center' id='fake_users2'></div>
-                <div class='col-lg-7 text-center' id='fake_users3'></div>
+                <div class='col-lg-7 text-center' id='id_temperature'></div>
+                <div class='col-lg-7 text-center' id='id_humidity'></div>
+                <div class='col-lg-7 text-center' id='id_pressure'></div>
+                <div class='col-lg-7 text-center' id='id_luximity'></div>
                 <div class='col-lg-5'>
                 <div class='data-column'><a href='data/fake_users1.json'>data</a></div>
 
 <script>
-d3.json('data/fake_users1.json').then(function(data) {
-    data = MG.convert.date(data, 'date');
+//d3.json('data/fake_users1.json').then(function(data) {
+d3.dsv(",", 'data/2018_8/2018_8_8.csv').then(function(data) {
+    data = MG.convert.date(data, 'date', '%Y/%m/%dT%H:%M:%SZ');
     //console.log(data);
 
-    var data1 = MG.clone(data);
-    var data2 = MG.clone(data);
+    var data_temp = MG.clone(data);
+    var data_pressure = MG.clone(data);
+    var data_luximity = MG.clone(data);
+    var data_humidity = MG.clone(data);
     for (var i = 0; i < data.length; i++) {
-        data1[i].value = data[i].value1;
-        data2[i].value = data[i].value2;
+        data_temp[i].value = data[i].temperature;
+        data_pressure[i].value = data[i].pressure;
+        data_luximity[i].value = data[i].luximity;
+        data_humidity[i].value = data[i].humidity;
     }
     //console.log(data1);
     //console.log(data2);
 
     MG.data_graphic({
         title: "Temperature (C)",
-        data: data,
+        data: data_temp,
         width: 600,
         height: 200,
         right: 40,
-        target: '#fake_users1',
+        target: '#id_temperature',
         x_accessor: 'date',
         y_accessor: 'value'
     });
 
     MG.data_graphic({
         title: "Humidity (%)",
-        data: data1,
+        data: data_humidity,
         width: 600,
         height: 200,
         right: 40,
-        target: '#fake_users2',
+        target: '#id_humidity',
         x_accessor: 'date',
         y_accessor: 'value'
     });
 
     MG.data_graphic({
         title: "Pressure (mm Hg)",
-        data: data2,
+        data: data_pressure,
         width: 600,
         height: 200,
         right: 40,
-        target: '#fake_users3',
+        target: '#id_pressure',
         x_accessor: 'date',
         y_accessor: 'value'
     });
 
+    MG.data_graphic({
+        title: "Luximity (lux)",
+        data: data_luximity,
+        width: 600,
+        height: 200,
+        right: 40,
+        target: '#id_luximity',
+        x_accessor: 'date',
+        y_accessor: 'value'
+    });
 });
 </script>
 

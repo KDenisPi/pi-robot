@@ -24,6 +24,7 @@ const char* mime_js = "application/javascript; charset=utf-8";
 const char* mime_plain = "text/plain; charset=utf-8";
 const char* mime_css = "text/css; charset=utf-8";
 const char* mime_json = "application/json; charset=utf-8";
+const char* mime_csv = "text/csv; charset=utf-8";
 
 class WebSettings : public piutils::Threaded {
 
@@ -67,7 +68,7 @@ public:
     */
     static int html_pages(struct mg_connection *conn) {
 
-        if(std::strstr(conn->uri, "/data") != NULL || std::strstr(conn->uri, ".json") != NULL){
+        if(std::strstr(conn->uri, "/data") != NULL || std::strstr(conn->uri, ".json") != NULL || std::strstr(conn->uri, ".csv") != NULL){
             return static_cast<WebSettings*>(conn->server_param)->data_files(conn);
         }
 

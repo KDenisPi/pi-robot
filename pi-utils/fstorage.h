@@ -108,6 +108,11 @@ public:
             res = create_file();
             if(res != 0)
                 return res;
+
+            //write first line
+            if(!_first_line.empty()){
+                ssize_t wr_bytes = write(_fd, _first_line.c_str(), _first_line.length());
+            }
         }
 
         ssize_t wr_bytes = write(_fd, data, dsize);
@@ -131,6 +136,10 @@ public:
         close_file();
     }
 
+    void set_first_line(const std::string& fline){
+        _first_line = fline;
+    }
+
 private:
     std::string _dpath;     //path to the root storage folder
     std::string _curr_path; //path to the current folder
@@ -139,6 +148,7 @@ private:
     std::tm _time;
     bool _local_time;
 
+    std::string _first_line;  //For CSV there are column headers
     int _fd;
 
     //

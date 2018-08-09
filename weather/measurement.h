@@ -45,7 +45,7 @@ public:
         // 1. Date&time YYYY/MM/DD HH:MM:SS
         // 2. Humidity (0-100%)
         // 3. Temperature (C or F, 3-digits, signed)
-        // 4. Pessure (mm Hg, 3-digits)
+        // 4. Pressure (mm Hg, 3-digits)
         // 5. Luximity (Lux, 0-40000, 5-digits)
         // 6. CO2 (0 – 60'000 ppm, 5-digits)
         // 7. TVOC (0 – 60'000 ppb, 5-digits)
@@ -140,7 +140,7 @@ public:
         std::tm tm;
         piutils::get_time(tm);
 
-        sprintf(_mdata.dtime, "%d/%d/%d %02d:%02d:%02d",
+        sprintf(_mdata.dtime, "%d/%d/%dT%02d:%02d:%02dZ",
             1900+tm.tm_year, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
         _mdata.data[0] = std::round(si7021_humidity);

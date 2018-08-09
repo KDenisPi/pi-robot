@@ -166,6 +166,10 @@ public:
         return _data_path + "/json";
     }
 
+    const std::string get_csv_data() const {
+        return _data_path;
+    }
+
     //MQQT client configuration file
     mqqt::MqqtServerInfo _mqqt_conf;
  };

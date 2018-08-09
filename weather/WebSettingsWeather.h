@@ -98,22 +98,31 @@ public:
         auto owner = static_cast<WebWeather*>(conn->server_param);
         auto ctxt = owner->get_context<weather::Context>();
 
+        std::string full_name;
+        std::string mime;
         if(std::strstr(conn->uri, "json") != NULL){
+            mime = http::web::mime_json;
             std::string json_path = ctxt->get_json_data();
-            std::string full_name = json_path + conn->uri;
+            full_name = json_path + conn->uri;
+        }
+        else if(std::strstr(conn->uri, "csv") != NULL){
+            mime = http::web::mime_csv;
+            std::string csv_path = ctxt->get_csv_data();
+            full_name = csv_path + conn->uri;
+        }
 
-            logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__) + " Path: " + full_name);
-            //
-            //check if file exist
-            //
-            if(piutils::chkfile(full_name)){
-                std::string page = piutils::webutils::WebUtils::load_page(full_name);
-                if(!page.empty()){
-                    mg_send_header(conn, "Content-Type:", http::web::mime_json);
-                    mg_send_header(conn, "Content-Length:", std::to_string(page.length()).c_str());
-                    mg_send_data(conn, page.c_str(), page.size());
-                    return 0;
-                }
+
+        logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__) + " Path: " + full_name);
+        //
+        //check if file exist
+        //
+        if(!full_name.empty() && piutils::chkfile(full_name)){
+            std::string page = piutils::webutils::WebUtils::load_page(full_name);
+            if(!page.empty()){
+                mg_send_header(conn, "Content-Type:", mime.c_str());
+                mg_send_header(conn, "Content-Length:", std::to_string(page.length()).c_str());
+                mg_send_data(conn, page.c_str(), page.size());
+                return 0;
             }
         }
 
@@ -162,13 +171,20 @@ public:
             * I do not know Is it right place for it or not
             */
             if(page_name.second.find("default") != std::string::npos){
+                char buff[64];
                 Measurement data = ctxt->data;
                 std::string lang = ctxt->get_language();
 
-                values["<!--{Temperature}-->"] = std::to_string(data.temp(ctxt->show_temperature_in_celcius()));
+                sprintf(buff, "%.0f", data.temp(ctxt->show_temperature_in_celcius()));
+                values["<!--{Temperature}-->"] = buff;
                 values["<!--{TempUnits}-->"] = (ctxt->show_temperature_in_celcius() ? " C" : " F" );
-                values["<!--{Humidity}-->"] = std::to_string(data.si7021_humidity);
-                values["<!--{Pressure}-->"] = std::to_string(data.bmp280_pressure);
+
+                sprintf(buff, "%.0f", data.si7021_humidity);
+                values["<!--{Humidity}-->"] = buff;
+
+                sprintf(buff, "%.0f", data.bmp280_pressure);
+                values["<!--{Pressure}-->"] = buff;
+
                 values["<!--{CO2}-->"] = std::to_string(data.spg30_co2);
                 values["<!--{TVOC}-->"] = std::to_string(data.spg30_tvoc);
 
