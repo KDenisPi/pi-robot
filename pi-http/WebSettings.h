@@ -22,7 +22,7 @@ namespace web {
 const char* mime_html = "text/html; charset=utf-8";
 const char* mime_js = "application/javascript; charset=utf-8";
 const char* mime_plain = "text/plain; charset=utf-8";
-const char* mime_css = "text/css; charset=utf-8";
+const char* mime_css = "text/css";
 const char* mime_json = "application/json; charset=utf-8";
 const char* mime_csv = "text/csv; charset=utf-8";
 

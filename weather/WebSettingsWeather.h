@@ -71,7 +71,7 @@ public:
             mime = std::string(http::web::mime_js);
             result = page_path + uri;
         }
-        else if(std::strstr(uri, "metricsgraphics.css") != NULL){
+        else if(std::strstr(uri, ".css") != NULL){
             mime = std::string(http::web::mime_css);
             result = page_path + uri;
         }

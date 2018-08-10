@@ -1,23 +1,76 @@
 <html lang='en'>
 <head>
     <meta content='text/html; charset=utf-8' http-equiv='Content-Type'>
+    <meta name="author" content="Denis Kudia">
     <base href="">
 
     <link href='metricsgraphics.css' rel='stylesheet' type='text/css'>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
     <script src='https://d3js.org/d3.v5.min.js' charset='utf-8'></script>
     <script src='metricsgraphics.min.js'></script>
+    <style>
+        .bg_color {
+            background-color: lightblue;
+        }
+        .info_header {
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: left;
+        }
+        .param_name {
+            font-weight: bold;
+            text-align: left;
+        }
+        .left_column {
+            background-color: lightblue;
+            width: 200pt;
+        }
+        .top_header {
+            background-color: lightblue;
+            height: 90pt;
+        }
+        .top_text {
+            font-size: 4em;
+            text-align: center;
+        }
+        .table_1 {
+            border: 0;
+        }
+        .info_text {
+            font-size: 4em;
+        }
+        .info_value {
+            font-size: 5em;
+            color: blue;
+        }
+        .comment_text {
+            font-size: 1.5em;
+        }
+    </style>
 </head>
 
 <body>
-        <div class='row trunk-section'>
-            <div class='col-lg-7 text-center' id='id_temperature'></div>
-            <div class='col-lg-7 text-center' id='id_humidity'></div>
-            <div class='col-lg-7 text-center' id='id_pressure'></div>
-            <div class='col-lg-7 text-center' id='id_luximity'></div>
-            <div class='col-lg-7 text-center' id='id_co2'></div>
-            <div class='col-lg-7 text-center' id='id_tvoc'></div>
-            <div class='col-lg-5'>
+    <table class="table_1" width="100%" cellspacing="0">
+        <tr class="top_header">
+                <td width="10"></td>
+                <td class="top_text">System information</td>
+                <td></td>
+                <td></td>
+        </tr>
+        <tr>
+            <td class="left_column"></td>
+            <td>
+                <div class='row trunk-section'>
+                <div class='col-lg-7 text-center' id='id_temperature'></div>
+                <div class='col-lg-7 text-center' id='id_humidity'></div>
+                <div class='col-lg-7 text-center' id='id_pressure'></div>
+                <div class='col-lg-7 text-center' id='id_luximity'></div>
+                <div class='col-lg-7 text-center' id='id_co2'></div>
+                <div class='col-lg-7 text-center' id='id_tvoc'></div>
+                <div class='col-lg-5'>
+            </td>
+        </tr>
+    </table>
 
 <script>
 //console.log(location.href);

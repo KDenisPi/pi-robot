@@ -1,0 +1,51 @@
+.bg_color {
+    background-color: lightblue;
+}
+
+.info_header {
+    font-size: 1.2em;
+    font-weight: bold;
+    text-align: left;
+}
+
+.param_name {
+    font-weight: bold;
+    text-align: left;
+}
+
+.left_column {
+    background-color: lightblue;
+    width: 200pt;
+}
+
+.top_header {
+    background-color: lightblue;
+    height: 90pt;
+}
+
+tr {
+    background-color: lightblue;
+    height: 90pt;
+}
+
+.top_text {
+    font-size: 4em;
+    text-align: center;
+}
+
+table {
+    border: 0;
+}
+
+.info_text {
+    font-size: 1.5em;
+}
+
+.info_value {
+    font-size: 2em;
+    color: blue;
+}
+
+.comment_text {
+    font-size: 1.5em;
+}
