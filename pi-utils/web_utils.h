@@ -68,6 +68,8 @@ public:
             pos = src.find(v_start, s_pos);
         }
 
+        res += src.substr(s_pos);
+
         return res;
     }
 
