@@ -16,11 +16,17 @@
                 <div class='col-lg-7 text-center' id='id_pressure'></div>
                 <div class='col-lg-7 text-center' id='id_luximity'></div>
                 <div class='col-lg-5'>
-                <div class='data-column'><a href='data/fake_users1.json'>data</a></div>
 
 <script>
+console.log(location.href);
+let url = new URL(location.href);
+let sparams = new URLSearchParams(url.search);
+console.log(sparams.get('file'));
+let data_file = sparams.get('file');
+
 //d3.json('data/fake_users1.json').then(function(data) {
-d3.dsv(",", 'data/2018_8/2018_8_8.csv').then(function(data) {
+//d3.dsv(",", 'data/2018_8/2018_8_8.csv').then(function(data) {
+d3.dsv(",", data_file).then(function(data) {
     data = MG.convert.date(data, 'date', '%Y/%m/%dT%H:%M:%SZ');
     //console.log(data);
 
