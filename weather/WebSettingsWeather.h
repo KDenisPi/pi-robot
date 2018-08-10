@@ -34,9 +34,6 @@ public:
     */
    virtual void initialize() override {
         logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__));
-
-        //mg_add_uri_handler(_server, "/data", WebWeather::data_files);
-        //mg_add_uri_handler(_server, "/", WebSettings::html_pages);
    }
 
 

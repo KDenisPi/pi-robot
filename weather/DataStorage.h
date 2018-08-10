@@ -46,7 +46,7 @@ class DataStorage {
 class FileStorage : public DataStorage, piutils::fstor::FStorage {
 public:
     FileStorage() {
-        set_first_line("date,humidity,temperature,pressure,luximity,co2,tvoc,altitude\n");
+        set_first_line("date,humidity,temperature,pressure,luximity,co,tvoc,altitude\n");
     }
 
     virtual ~FileStorage() {}

@@ -11,17 +11,19 @@
 
 <body>
         <div class='row trunk-section'>
-                <div class='col-lg-7 text-center' id='id_temperature'></div>
-                <div class='col-lg-7 text-center' id='id_humidity'></div>
-                <div class='col-lg-7 text-center' id='id_pressure'></div>
-                <div class='col-lg-7 text-center' id='id_luximity'></div>
-                <div class='col-lg-5'>
+            <div class='col-lg-7 text-center' id='id_temperature'></div>
+            <div class='col-lg-7 text-center' id='id_humidity'></div>
+            <div class='col-lg-7 text-center' id='id_pressure'></div>
+            <div class='col-lg-7 text-center' id='id_luximity'></div>
+            <div class='col-lg-7 text-center' id='id_co2'></div>
+            <div class='col-lg-7 text-center' id='id_tvoc'></div>
+            <div class='col-lg-5'>
 
 <script>
-console.log(location.href);
+//console.log(location.href);
 let url = new URL(location.href);
 let sparams = new URLSearchParams(url.search);
-console.log(sparams.get('file'));
+//console.log(sparams.get('file'));
 let data_file = sparams.get('file');
 
 //d3.json('data/fake_users1.json').then(function(data) {
@@ -30,61 +32,88 @@ d3.dsv(",", data_file).then(function(data) {
     data = MG.convert.date(data, 'date', '%Y/%m/%dT%H:%M:%SZ');
     //console.log(data);
 
-    var data_temp = MG.clone(data);
-    var data_pressure = MG.clone(data);
-    var data_luximity = MG.clone(data);
-    var data_humidity = MG.clone(data);
-    for (var i = 0; i < data.length; i++) {
-        data_temp[i].value = data[i].temperature;
-        data_pressure[i].value = data[i].pressure;
-        data_luximity[i].value = data[i].luximity;
-        data_humidity[i].value = data[i].humidity;
+    if( data.length == 0){
+        return;
     }
-    //console.log(data1);
-    //console.log(data2);
+
+    var max_temp = Math.max.apply(Math, data.map(function(item){return item.temperature;}));
+    var max_humidity = Math.max.apply(Math, data.map(function(item){return item.humidity;}));
+    var max_pressure = Math.max.apply(Math, data.map(function(item){return item.pressure;}));
+    var max_luximity = Math.max.apply(Math, data.map(function(item){return item.luximity;}));
+    var max_co = Math.max.apply(Math, data.map(function(item){return item.co;}));
+    var max_tvoc = Math.max.apply(Math, data.map(function(item){return item.tvoc;}));
+    //console.log(max_temp);
 
     MG.data_graphic({
         title: "Temperature (C)",
-        data: data_temp,
-        width: 600,
-        height: 200,
+        data: data,
+        width: 900,
+        height: 300,
         right: 40,
+        max_y: max_temp + 10,
         target: '#id_temperature',
         x_accessor: 'date',
-        y_accessor: 'value'
+        y_accessor: 'temperature'
     });
 
     MG.data_graphic({
         title: "Humidity (%)",
-        data: data_humidity,
-        width: 600,
-        height: 200,
+        data: data,
+        width: 900,
+        height: 300,
         right: 40,
+        max_y: 100,
         target: '#id_humidity',
         x_accessor: 'date',
-        y_accessor: 'value'
+        y_accessor: 'humidity'
     });
 
     MG.data_graphic({
         title: "Pressure (mm Hg)",
-        data: data_pressure,
-        width: 600,
-        height: 200,
+        data: data,
+        width: 900,
+        height: 300,
         right: 40,
+        max_y: 1000,
         target: '#id_pressure',
         x_accessor: 'date',
-        y_accessor: 'value'
+        y_accessor: 'pressure'
     });
 
     MG.data_graphic({
         title: "Luximity (lux)",
-        data: data_luximity,
-        width: 600,
-        height: 200,
+        data: data,
+        width: 900,
+        height: 300,
         right: 40,
+        max_y: max_luximity + 10,
         target: '#id_luximity',
         x_accessor: 'date',
-        y_accessor: 'value'
+        y_accessor: 'luximity'
+    });
+
+    MG.data_graphic({
+        title: "CO2 (ppm)",
+        data: data,
+        width: 900,
+        height: 300,
+        right: 40,
+        max_y: max_co*2,
+        target: '#id_co2',
+        x_accessor: 'date',
+        y_accessor: 'co'
+    });
+
+    MG.data_graphic({
+        title: "TVOC (ppb)",
+        data: data,
+        width: 900,
+        height: 300,
+        right: 40,
+        max_y: max_tvoc + 100,
+        target: '#id_tvoc',
+        x_accessor: 'date',
+        y_accessor: 'tvoc'
     });
 });
 </script>
