@@ -110,11 +110,6 @@ public:
             res = create_file();
             if(res != 0)
                 return res;
-
-            //write first line
-            if(!_first_line.empty()){
-                ssize_t wr_bytes = write(_fd, _first_line.c_str(), _first_line.length());
-            }
         }
 
         ssize_t wr_bytes = write(_fd, data, dsize);
@@ -210,9 +205,14 @@ private:
     //
     inline int create_file(){
         int res  = 0;
+        bool new_file = false;
 
         create_filename();
         logger::log(logger::LLOG::INFO, "fstor", std::string(__func__) + " Trying create file: " + _file_path);
+
+        if( access(_file_path.c_str(), F_OK) < 0 ){
+            new_file = true;
+        }
 
         //open data file
         _fd = open(_file_path.c_str(), O_WRONLY|O_CREAT|O_APPEND, file_mode);
@@ -220,6 +220,14 @@ private:
             res = errno;
             logger::log(logger::LLOG::ERROR, "fstor", std::string(__func__) + " Filed create file: " + _file_path + " Error: " + std::to_string(res));
         }
+        else{
+            //write first line
+            if(!_first_line.empty()){
+                logger::log(logger::LLOG::NECECCARY, "fstor", std::string(__func__) + " New file. Added first line";
+                ssize_t wr_bytes = write(_fd, _first_line.c_str(), _first_line.length());
+            }
+        }
+
         return res;
     }
 
