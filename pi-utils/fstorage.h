@@ -14,6 +14,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <ftw.h>
+#include <list>
 
 #include <chrono>
 #include <ctime>
@@ -140,7 +142,30 @@ public:
         _first_line = fline;
     }
 
+    static void collect_data_files(const std::string dir){
+        int flags = 0;
+        dfiles.clear();
+
+        int res = nftw(dir.c_str(), finfo, 20, flags);
+        if(res == -1){
+            dfiles.clear();
+        }
+    }
+
+    static int finfo(const char *fpath, const struct stat *sb, int tflag, struct FTW *ftwbuf){
+
+        //add files only
+        if(tflag == FTW_F){
+            dfiles.push_back(std::string(fpath));
+        }
+        return 0;
+    }
+
+    static std::list<std::string> dfiles;
+
 private:
+    std::string _names;
+
     std::string _dpath;     //path to the root storage folder
     std::string _curr_path; //path to the current folder
     std::string _file_path; //filename
