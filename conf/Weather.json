@@ -5,7 +5,8 @@
     "context": {
         "log_path": "/var/log/pi-robot",
         "log_name": "async_file_logger",
-        "log_file": "async_log"
+        "log_file": "async_log",
+        "web_pages": "/home/pi/pi-robot/web"
     },
 
     "mqqt" : {
