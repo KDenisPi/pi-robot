@@ -1,175 +1,243 @@
-<html lang='en'>
-<head>
-    <meta content='text/html; charset=utf-8' http-equiv='Content-Type'>
-    <meta name="author" content="Denis Kudia">
-    <base href="">
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="author" content="Denis Kudia">
+        <meta content='text/html; charset=utf-8' http-equiv='Content-Type'>
+        <base href="">
 
-    <link href='metricsgraphics.css' rel='stylesheet' type='text/css'>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
-    <script src='https://d3js.org/d3.v5.min.js' charset='utf-8'></script>
-    <script src='metricsgraphics.min.js'></script>
-    <style>
-        .bg_color {
-            background-color: lightblue;
-        }
-        .info_header {
-            font-size: 1.2em;
-            font-weight: bold;
-            text-align: left;
-        }
-        .param_name {
-            font-weight: bold;
-            text-align: left;
-        }
-        .left_column {
-            background-color: lightblue;
-            width: 200pt;
-        }
-        .top_header {
-            background-color: lightblue;
-            height: 90pt;
-        }
-        .top_text {
-            font-size: 4em;
-            text-align: center;
-        }
-        .table_1 {
-            border: 0;
-        }
-        .info_text {
-            font-size: 4em;
-        }
-        .info_value {
-            font-size: 5em;
-            color: blue;
-        }
-        .comment_text {
-            font-size: 1.5em;
-        }
-    </style>
-</head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <link href='metricsgraphics.css' rel='stylesheet' type='text/css'>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+        <script src='https://d3js.org/d3.v5.min.js' charset='utf-8'></script>
+        <script src='metricsgraphics.min.js'></script>
 
-<body>
-    <table class="table_1" width="100%" cellspacing="0">
-        <tr class="top_header">
-                <td width="10"></td>
-                <td class="top_text">Measurement results</td>
-                <td></td>
-                <td></td>
-        </tr>
-        <tr>
-            <td class="left_column"></td>
-            <td>
-                <div class='row trunk-section'>
-                <div class='col-lg-7 text-center' id='id_temperature'></div>
-                <div class='col-lg-7 text-center' id='id_humidity'></div>
-                <div class='col-lg-7 text-center' id='id_pressure'></div>
-                <div class='col-lg-7 text-center' id='id_luximity'></div>
-                <div class='col-lg-7 text-center' id='id_co2'></div>
-                <div class='col-lg-7 text-center' id='id_tvoc'></div>
-                <div class='col-lg-5'>
-            </td>
-        </tr>
-    </table>
 
-<script>
-//console.log(location.href);
-let url = new URL(location.href);
-let sparams = new URLSearchParams(url.search);
-//console.log(sparams.get('file'));
-let data_file = sparams.get('file');
+        <style>
+            .row_first {
+                margin-top: 10px;
+                margin-bottom: 10px;
+                font-size: 4em;
+                color:dodgerblue;
+            }
 
-//d3.json('data/fake_users1.json').then(function(data) {
-//d3.dsv(",", 'data/2018_8/2018_8_8.csv').then(function(data) {
-d3.dsv(",", data_file).then(function(data) {
-    data = MG.convert.date(data, 'date', '%Y/%m/%dT%H:%M:%SZ');
-    //console.log(data);
+            .row_links {
+                margin-bottom: 10px;
+                text-align: center;
+                font-size: 2em;
+            }
 
-    if( data.length == 0){
-        return;
-    }
+            .row_links_font {
+                font-size: 1.2em;
+                /*background-color: lightblue;*/
+            }
 
-    var max_temp = Math.max.apply(Math, data.map(function(item){return item.temperature;}));
-    var max_humidity = Math.max.apply(Math, data.map(function(item){return item.humidity;}));
-    var max_pressure = Math.max.apply(Math, data.map(function(item){return item.pressure;}));
-    var max_luximity = Math.max.apply(Math, data.map(function(item){return item.luximity;}));
-    var max_co = Math.max.apply(Math, data.map(function(item){return item.co;}));
-    var max_tvoc = Math.max.apply(Math, data.map(function(item){return item.tvoc;}));
-    //console.log(max_temp);
+            .col {
+                background-color: lightblue;
+            }
 
-    MG.data_graphic({
-        title: "Temperature (C)",
-        data: data,
-        width: 900,
-        height: 300,
-        right: 40,
-        max_y: max_temp + 10,
-        target: '#id_temperature',
-        x_accessor: 'date',
-        y_accessor: 'temperature'
-    });
+            .row_data_current {
+                margin-bottom: 10px;
+                font-size: 1.5em;
+            }
 
-    MG.data_graphic({
-        title: "Humidity (%)",
-        data: data,
-        width: 900,
-        height: 300,
-        right: 40,
-        max_y: 100,
-        target: '#id_humidity',
-        x_accessor: 'date',
-        y_accessor: 'humidity'
-    });
+            .text_center {
+                text-align: center;
+            }
 
-    MG.data_graphic({
-        title: "Pressure (mm Hg)",
-        data: data,
-        width: 900,
-        height: 300,
-        right: 40,
-        max_y: 1000,
-        target: '#id_pressure',
-        x_accessor: 'date',
-        y_accessor: 'pressure'
-    });
+            .my_col {
+                margin-right: 10px;
+                background-color: lightblue;
+            }
 
-    MG.data_graphic({
-        title: "Luximity (lux)",
-        data: data,
-        width: 900,
-        height: 300,
-        right: 40,
-        max_y: max_luximity + 10,
-        target: '#id_luximity',
-        x_accessor: 'date',
-        y_accessor: 'luximity'
-    });
+            .my_col_last {
+                background-color: lightblue;
+            }
 
-    MG.data_graphic({
-        title: "CO2 (ppm)",
-        data: data,
-        width: 900,
-        height: 300,
-        right: 40,
-        max_y: max_co*2,
-        target: '#id_co2',
-        x_accessor: 'date',
-        y_accessor: 'co'
-    });
+            .my_col_data {
+                margin-right: 10px;
+                background-color: lightblue;
+                /*
+                border-right: 1px solid grey;
+                background-color: lightblue;*/
+            }
 
-    MG.data_graphic({
-        title: "TVOC (ppb)",
-        data: data,
-        width: 900,
-        height: 300,
-        right: 40,
-        max_y: max_tvoc + 100,
-        target: '#id_tvoc',
-        x_accessor: 'date',
-        y_accessor: 'tvoc'
-    });
-});
-</script>
+            .my_col_data_last {
+                background-color: lightblue;
 
-</body>
+                /*
+                border-right: 1px solid grey;
+                background-color: lightblue;
+                row-eq-height
+                */
+            }
+
+            .my_col_data_spec {
+                background-color: lightblue;
+                /*
+                border-right: 1px solid grey;
+                background-color: lightblue;
+                row-eq-height
+                */
+            }
+
+        </style>
+
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="row row_first align-items-center">
+                <div class="col text_center">
+                        <span>Day measurement</span>
+                </div>
+            </div>
+
+            <div class="row row_links align-items-center">
+                <div class="col-sm my_col">
+                    <a href="status.html">status</a>
+                </div>
+                <div class="col-sm my_col">
+                    <a href="default.html">current measurement</a>
+                </div>
+                <div class="col-sm my_col_last">
+                    <a href="graph.html">day measurement</a>
+                </div>
+            </div>
+
+            <div class="row row_data_current align-items-center">
+                <div class="col-sm my_col_data_spec">
+                        <div class='col-lg-7 text-center' id='id_temperature'></div>
+                </div>
+            </div>
+            <div class="row row_data_current align-items-center">
+                <div class="col-sm my_col_data_last">
+                    <div class='col-lg-7 text-center' id='id_humidity'></div>
+                </div>
+            </div>
+            <div class="row row_data_current align-items-center">
+                <div class="col-sm my_col_data_last">
+                    <div class='col-lg-7 text-center' id='id_pressure'></div>
+                </div>
+            </div>
+            <div class="row row_data_current align-items-center">
+                <div class="col-sm my_col_data_last">
+                    <div class='col-lg-7 text-center' id='id_luximity'></div>
+                </div>
+            </div>
+            <div class="row row_data_current align-items-center">
+                <div class="col-sm my_col_data_last">
+                    <div class='col-lg-7 text-center' id='id_co2'></div>
+                </div>
+            </div>
+            <div class="row row_data_current align-items-center">
+                <div class="col-sm my_col_data_last">
+                    <div class='col-lg-7 text-center' id='id_tvoc'></div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            //console.log(location.href);
+            let url = new URL(location.href);
+            let sparams = new URLSearchParams(url.search);
+            //console.log(sparams.get('file'));
+            let data_file = sparams.get('file');
+
+            //d3.json('data/fake_users1.json').then(function(data) {
+            //d3.dsv(",", 'data/2018_8/2018_8_8.csv').then(function(data) {
+            d3.dsv(",", data_file).then(function(data) {
+                data = MG.convert.date(data, 'date', '%Y/%m/%dT%H:%M:%SZ');
+                //console.log(data);
+
+                if( data.length == 0){
+                    return;
+                }
+
+                var max_temp = Math.max.apply(Math, data.map(function(item){return item.temperature;}));
+                var max_humidity = Math.max.apply(Math, data.map(function(item){return item.humidity;}));
+                var max_pressure = Math.max.apply(Math, data.map(function(item){return item.pressure;}));
+                var max_luximity = Math.max.apply(Math, data.map(function(item){return item.luximity;}));
+                var max_co = Math.max.apply(Math, data.map(function(item){return item.co;}));
+                var max_tvoc = Math.max.apply(Math, data.map(function(item){return item.tvoc;}));
+                //console.log(max_temp);
+
+                MG.data_graphic({
+                    title: "Temperature (C)",
+                    data: data,
+                    width: 900,
+                    height: 300,
+                    right: 40,
+                    max_y: max_temp + 10,
+                    target: '#id_temperature',
+                    x_accessor: 'date',
+                    y_accessor: 'temperature'
+                });
+
+                MG.data_graphic({
+                    title: "Humidity (%)",
+                    data: data,
+                    width: 900,
+                    height: 300,
+                    right: 40,
+                    max_y: 100,
+                    target: '#id_humidity',
+                    x_accessor: 'date',
+                    y_accessor: 'humidity'
+                });
+
+                MG.data_graphic({
+                    title: "Pressure (mm Hg)",
+                    data: data,
+                    width: 900,
+                    height: 300,
+                    right: 40,
+                    max_y: 1000,
+                    target: '#id_pressure',
+                    x_accessor: 'date',
+                    y_accessor: 'pressure'
+                });
+
+                MG.data_graphic({
+                    title: "Luximity (lux)",
+                    data: data,
+                    width: 900,
+                    height: 300,
+                    right: 40,
+                    max_y: max_luximity + 10,
+                    target: '#id_luximity',
+                    x_accessor: 'date',
+                    y_accessor: 'luximity'
+                });
+
+                MG.data_graphic({
+                    title: "CO2 (ppm)",
+                    data: data,
+                    width: 900,
+                    height: 300,
+                    right: 40,
+                    max_y: max_co*2,
+                    target: '#id_co2',
+                    x_accessor: 'date',
+                    y_accessor: 'co'
+                });
+
+                MG.data_graphic({
+                    title: "TVOC (ppb)",
+                    data: data,
+                    width: 900,
+                    height: 300,
+                    right: 40,
+                    max_y: max_tvoc + 100,
+                    target: '#id_tvoc',
+                    x_accessor: 'date',
+                    y_accessor: 'tvoc'
+                });
+            });
+        </script>
+
+    </body>
 </html>
+
