@@ -81,7 +81,7 @@ bool StInitialization::OnEvent(const std::shared_ptr<smachine::Event> event){
     if(smachine::EVENT_TYPE::EVT_USER == event->type()){
         //Show current IP address value
         if(event->name() == EVT_SHOW_IP){
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " IP4: " + ctxt->ip4_address + " IP6: " + ctxt->ip6_address);
+            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " IP4: " + ctxt->ip4_address + " IP6: " + ctxt->ip6_address);
 
             //write  IP information on LCD
             //First line Header, second IP4 address
