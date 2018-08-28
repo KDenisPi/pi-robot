@@ -146,30 +146,49 @@ public:
 
         if(line == 0){
             const int co2_level = get_CO2_level();
-            const std::string co2_label = get_level_label(co2_level, lang);
+            const std::string co2 = get_co2_tvoc(data.spg30_co2);
 
             if(co2_level < 4){
                 float temp = data.temp();
                 sprintf(buff, get_str(StrID::Line1).c_str(), temp,
-                    (show_temperature_in_celcius() ? 'C' : 'F'), co2_label.c_str());
+                    (show_temperature_in_celcius() ? 'C' : 'F'), co2.c_str());
             }
             else{
-                sprintf(buff, "CO2 %s", co2_label.c_str());
+                const std::string co2_label = get_level_label(co2_level, lang);
+                sprintf(buff, "CO2 %s %s", co2.c_str(), co2_label.c_str());
             }
         }
         else if(line == 1){
             const int tvoc_level = get_TVOC_level();
-            const std::string tvoc_label = get_level_label(tvoc_level, lang);
-            if(tvoc_level<4)
+            if(tvoc_level < 4){
                 sprintf(buff, get_str(StrID::Line2).c_str(), data.si7021_humidity, '%', data.bmp280_pressure);
-            else
+            }
+            else{
+                const std::string tvoc_label = get_level_label(tvoc_level, lang);
+                const std::string co2 = get_co2_tvoc(data.spg30_tvoc);
                 sprintf(buff, "TVOC %s", tvoc_label.c_str());
+            }
         }
 
         std::string result(buff);
         return result;
     }
 
+    /*
+    *
+    */
+    const std::string get_co2_tvoc(const uint16_t value){
+        char buff[32];
+        if(value < 1000)
+            sprintf(buff, "%d", value);
+        else{
+            float val = value/1000;
+            sprintf(buff, "%.2fK", val);
+        }
+
+        std::string result(buff);
+        return result;
+    }
 
     // File based data storage
     #ifdef USE_FILE_STORAGE

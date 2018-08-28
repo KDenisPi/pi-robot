@@ -55,7 +55,13 @@ public:
         min = min % 60;
         sec = sec % 60;
 
-        sprintf(buff, "%u:%.2u:%.2u", hr, min, sec);
+        if(hr < 24)
+            sprintf(buff, "%u:%.2u:%.2u", hr, min, sec);
+        else{
+            int days = hr / 24;
+            hr = hr % 24;
+            sprintf(buff, "%u days %u:%.2u:%.2u", days, hr, min, sec);
+        }
         return std::string(buff);
     }
 
