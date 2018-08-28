@@ -10,15 +10,12 @@
 #ifndef WEATHER_DATA_STORAGE_H_
 #define WEATHER_DATA_STORAGE_H_
 
-#define USE_FILE_STORAGE
-
 #include "MosquittoClient.h"
 #include "MqqtClient.h"
 #include "CircularBuffer.h"
 
 #include "fstorage.h"
 #include "measurement.h"
-#include "context.h"
 
 #ifdef USE_SQL_STORAGE
 #include "pisqlite.h"
@@ -35,7 +32,6 @@ class DataStorage {
     DataStorage() {}
     virtual ~DataStorage() {}
 
-    virtual bool start(const std::shared_ptr<Context> ctxt) = 0;
     virtual void stop() = 0;
     virtual bool write(Measurement& data) = 0;
 };
@@ -43,7 +39,7 @@ class DataStorage {
 /*
 * Implementation of file based data storage
 */
-class FileStorage : public DataStorage, piutils::fstor::FStorage {
+class FileStorage : public DataStorage, public piutils::fstor::FStorage {
 public:
     FileStorage() {
         set_first_line("date,humidity,temperature,pressure,luximity,co,tvoc,altitude\n");
@@ -51,8 +47,8 @@ public:
 
     virtual ~FileStorage() {}
 
-    virtual bool start(const std::shared_ptr<Context> ctxt) override {
-        int res = initilize(ctxt->_fstor_path, ctxt->_fstor_local_time);
+    bool start(const std::string fstor_path, const bool local_time) {
+        int res = initilize(fstor_path, local_time);
         return (res == 0);
     }
 
@@ -94,13 +90,13 @@ public:
     /*
     *
     */
-    virtual bool start(const std::shared_ptr<Context> ctxt) override {
+    bool start(const mqqt::MqqtServerInfo mqqt_conf) {
 
-        if(ctxt->_mqqt_conf.is_enable()){
+        if(mqqt_conf.is_enable()){
             return false;
         }
 
-        m_mqqt = std::shared_ptr<mqqt::MqqtItf>(new mqqt::MqqtClient<mqqt::MosquittoClient>(ctxt->_mqqt_conf));
+        m_mqqt = std::shared_ptr<mqqt::MqqtItf>(new mqqt::MqqtClient<mqqt::MosquittoClient>(mqqt_conf));
         m_mqqt_active = m_mqqt->start();
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQQT configuration loaded Active: " + std::to_string(m_mqqt_active));
 
@@ -168,8 +164,8 @@ public:
     SqlStorage() {}
     virtual ~SqlStorage() {}
 
-    virtual bool start(const std::shared_ptr<Context> ctxt) override{
-        return this->connect(ctxt->_db_name);
+    bool start(const std::string db_name) {
+        return this->connect(db_name);
     }
 
     virtual void stop() override{

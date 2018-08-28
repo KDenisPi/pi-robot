@@ -137,6 +137,9 @@ public:
         _first_line = fline;
     }
 
+    /*
+    * Collect list of files in a directory
+    */
     static void collect_data_files(const std::string dir){
         int flags = 0;
         dfiles.clear();
@@ -147,13 +150,81 @@ public:
         }
     }
 
+    /*
+    *
+    */
     static int finfo(const char *fpath, const struct stat *sb, int tflag, struct FTW *ftwbuf){
-
         //add files only
         if(tflag == FTW_F){
             dfiles.push_back(std::string(fpath));
         }
         return 0;
+    }
+
+    /*
+    * Prepare file with list of available data files
+    *
+    * @parameters
+    * fstor_path        - folder where data files are located
+    * data_list_file    - full file name for list of files
+    * first_line        - CSV header
+    *
+    */
+    bool prepare_data_files_list(const std::string fstor_path, const std::string data_path, const std::string data_list_file, const std::string first_line) {
+        int res = 0;
+        ssize_t wr_bytes;
+
+        //Prepare list of files
+        piutils::fstor::FStorage::collect_data_files(fstor_path);
+
+        // Override previous file
+        int fd = open(data_list_file.c_str(), O_WRONLY|O_CREAT|O_APPEND|O_TRUNC, file_mode);
+        if(fd == -1){
+            res = errno;
+            logger::log(logger::LLOG::ERROR, "fstor", std::string(__func__) + " Filed create file: " + data_list_file + " Error: " + std::to_string(res));
+            return false;
+        }
+        else{
+            //write first line
+            if(!first_line.empty()){
+                wr_bytes = write(fd, first_line.c_str(), first_line.length());
+            }
+        }
+
+        for (std::string dfl : piutils::fstor::FStorage::dfiles) {
+            std::string::size_type offset = dfl.rfind("/");
+            std::string ffile = dfl.substr(offset+1);
+            ffile.replace(4,1,"/");
+            ffile.replace(6,1,"/");
+
+            std::string fdata = ffile.substr(0, ffile.length() - 4) + "," + dfl.substr(data_path.length()+1) + "\n";
+            wr_bytes = write(fd, fdata.c_str(), fdata.length());
+            logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__)+ " " + fdata);
+        }
+        close(fd);
+
+        return true;
+    }
+
+    /*
+    * Append file with a line
+    */
+    bool append_data_files_list(const std::string data_list_file, const std::string line){
+        int res = 0;
+        ssize_t wr_bytes;
+
+        int fd = open(data_list_file.c_str(), O_WRONLY|O_APPEND, file_mode);
+        if(fd == -1){
+            res = errno;
+            logger::log(logger::LLOG::ERROR, "fstor", std::string(__func__) + " Filed create file: " + data_list_file + " Error: " + std::to_string(res));
+            return false;
+        }
+
+        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__)+ " Append line: " + line);
+        wr_bytes = write(fd, line.c_str(), line.length());
+
+        close(fd);
+        return true;
     }
 
     static std::list<std::string> dfiles;
@@ -273,6 +344,7 @@ private:
         }
         return res;
     }
+
 
     //file mode
     mode_t file_mode = S_ISGID | S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;

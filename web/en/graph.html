@@ -34,6 +34,10 @@
                 /*background-color: lightblue;*/
             }
 
+            .row_data_links {
+                margin-bottom: 10px;
+            }
+
             .col {
                 background-color: lightblue;
             }
@@ -86,7 +90,7 @@
         <div class="container">
             <div class="row row_first align-items-center">
                 <div class="col text_center">
-                    <span>Day measurement</span>
+                    <span id='title'>Day measurement</span>
                 </div>
             </div>
 
@@ -98,11 +102,11 @@
                     <a href="default.html">current measurement</a>
                 </div>
                 <div class="col-sm my_col_last">
-                    <a href="graph.html">day measurement</a>
+                    <a href="graph.html">measurements</a>
                 </div>
             </div>
 
-            <div class="row align-items-center">
+            <div class="row row_data_links align-items-center">
                 <div class="col text_center">
                     <p class="text-justify" id='data_list'></p>
                 </div>
@@ -146,33 +150,36 @@
                 x.style.display = dply;
             }
 
+            d3.dsv(",", 'datafiles.csv').then(function(data) {
+                var x_text = document.getElementById('data_list');
+                var i, j, idx = 0;
+                var d_max = data.length;
+                var llist = '<table  style="width:100%">';
+
+                do {
+                    llist += '<tr>';
+                    for (i = 0; i < 10; i++) {
+                        if(idx < d_max){
+                            llist += '<td><a class="my_link" href="graph.html?file=' + data[idx].fpath + '&date=' + data[idx].file + '">' + data[idx].file + '</a></td>';
+                        }
+                        else {
+                            llist += '<td><span></span></td>';
+                        }
+                        idx++;
+                    }
+                    llist += '</tr>';
+                }while(idx < d_max);
+                llist += '</table>';
+                x_text.innerHTML = llist;
+            });
+
             //console.log(location.href);
             let url = new URL(location.href);
             let sparams = new URLSearchParams(url.search);
             //console.log(sparams.get('file'));
             let data_file = sparams.get('file');
-            console.log(data_file);
-
-            var x_text = document.getElementById('data_list');
-            var i, j;
-            var d_max = 33;
-            var llist = '<table  style="width:100%">';
-
-            do {
-                llist += '<tr>';
-                for (i = 0; i < 10; i++) {
-                    if(d_max > 0){
-                        llist += '<td><a class="my_link" href="graph.html?file=data/2018_8/2018_8_9.csv">2018_8_9</a></td>';
-                    }
-                    else {
-                        llist += '<td><span></span></td>';
-                    }
-                    d_max--;
-                }
-                llist += '</tr>';
-            }while(d_max >0);
-            llist += '</table>';
-            x_text.innerHTML = llist;
+            let for_day = sparams.get('date');
+            //console.log(data_file);
 
             if(data_file == null){
                 hideShow("div_id_temperature", "none");
@@ -190,6 +197,14 @@
                 hideShow("div_id_luximity", "block");
                 hideShow("div_id_co2", "block");
                 hideShow("div_id_tvoc", "block");
+
+                var x_title = document.getElementById('title');
+                if(for_day != null){
+                    x_title.innerText = 'Day measurement for ' + for_day;
+                }
+                else{
+                    x_title.innerText = 'Day measurement';
+                }
 
                 //d3.json('data/fake_users1.json').then(function(data) {
                 //d3.dsv(",", 'data/2018_8/2018_8_8.csv').then(function(data) {

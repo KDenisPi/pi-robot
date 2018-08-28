@@ -12,6 +12,7 @@
 #include "lcdstrings.h"
 #include "defines.h"
 #include "logger.h"
+#include "DataStorage.h"
 #include "smallthings.h"
 #include "measurement.h"
 
@@ -41,7 +42,9 @@ public:
     }
 
     //database filename and location
-    std::string _db_name = "/var/data/pi-robot/weather.db";
+    std::string _db_name = _data_path + "/weather.db";
+    std::string _data_list_file = _data_path + "/datafiles.csv";
+
 
     // Measurement data
     Measurement data;
@@ -119,15 +122,23 @@ public:
         return _strs.get(id);
     }
 
+    //
+    // Is LCD switched On now
+    //
     const bool is_lcd() const {
         return _lcd_on;
     }
 
+    //
+    // Save LCD On/Off state
+    //
     void set_lcd(const bool lcd_on_off){
         _lcd_on = lcd_on_off;
     }
 
-    //Prepare output string for measurement results
+    /*
+    * Prepare output string for measurement results
+    */
     const std::string measure_view(const int line=0){
         char buff[512];
         memset(buff, 0x00, sizeof(buff));
@@ -159,6 +170,15 @@ public:
         return result;
     }
 
+
+    // File based data storage
+    #ifdef USE_FILE_STORAGE
+        weather::data::FileStorage _fstorage;
+    #endif
+
+    #ifdef USE_SQL_STORAGE
+        weather::data::SqlStorage _sqlstorage;
+    #endif
 
 private:
     LcdStrings _strs;
