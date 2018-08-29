@@ -11,7 +11,9 @@
 
 namespace weather {
 
-// Load initial data from file
+/*
+* Load initial data from file
+*/
 bool Context::load_initial_data(const std::string& filename){
 
     std::ifstream ijson(filename);
@@ -77,7 +79,9 @@ bool Context::load_initial_data(const std::string& filename){
     return true;
 }
 
-// Save current values to file
+/*
+* Save current values to file
+*/
 bool Context::save_initial_data(const std::string& filename){
 
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Save configuration to JSON: " + filename);

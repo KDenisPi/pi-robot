@@ -38,5 +38,7 @@ enum ID {
 #define MEASURE_LIGHT_INTERVAL  1  //sec
 #define IP_CHECK_INTERVAL       75 //sec
 
+#define USE_FILE_STORAGE
+
 }
 #endif /* WEATHER_DEFINES_H_ */

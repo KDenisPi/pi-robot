@@ -55,7 +55,13 @@ public:
         min = min % 60;
         sec = sec % 60;
 
-        sprintf(buff, "%u:%.2u:%.2u", hr, min, sec);
+        if(hr < 24)
+            sprintf(buff, "%u:%.2u:%.2u", hr, min, sec);
+        else{
+            int days = hr / 24;
+            hr = hr % 24;
+            sprintf(buff, "%u days %u:%.2u:%.2u", days, hr, min, sec);
+        }
         return std::string(buff);
     }
 
@@ -145,7 +151,7 @@ public:
 
     //file based storage folder
     std::string _fstor_path = "/var/data/pi-robot/data";
-    bool _fstor_local_time = false;
+    bool _fstor_local_time = true;
 
     //log location
     std::string _log_path = "/var/log/pi-robot";

@@ -25,11 +25,10 @@ void StNoHardware::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " IP4: " + ctxt->ip4_address);
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " IP6: " + ctxt->ip6_address);
 
-
-    piutils::fstor::FStorage::collect_data_files(ctxt->_fstor_path);
-    for (std::string dfl : piutils::fstor::FStorage::dfiles) {
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__)+ " " + dfl);
-    }
+#ifdef USE_FILE_STORAGE
+    std::string fline = "file,fpath\n";
+    ctxt->_fstorage.prepare_data_files_list(ctxt->_fstor_path, ctxt->_data_path, ctxt->_data_list_file, fline);
+#endif
 
     //TIMER_CREATE(TIMER_FINISH_ROBOT, 55) //wait for 15 seconds before finish
 }

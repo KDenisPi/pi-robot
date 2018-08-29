@@ -89,11 +89,11 @@ void StMeasurement::measure(){
         if(data.tsl2651_lux != 0 && tsl2651_lux!=0)
             mdiff = m_abs(m_change(data.tsl2651_lux, tsl2651_lux));
 
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
-            " New: " + std::to_string(data.tsl2651_lux) + " Diff: " + std::to_string(m_abs(lux_diff)) + " LhDiff:" + std::to_string(ctxt->light_off_on_diff) +
-            " MDiff: " + std::to_string(mdiff));
-
         if(ctxt->light_off_on_diff < m_abs(lux_diff) || mdiff > 2){
+            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
+                " New: " + std::to_string(data.tsl2651_lux) + " Diff: " + std::to_string(m_abs(lux_diff)) + " LhDiff:" + std::to_string(ctxt->light_off_on_diff) +
+                " MDiff: " + std::to_string(mdiff));
+
             if(lux_diff>0){
                 std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
                 EVENT(event);
@@ -146,16 +146,16 @@ void StMeasurement::measure(){
 bool StMeasurement::storage_start(){
     auto ctxt = get_env<weather::Context>();
 
-#ifdef USE_FILE_STORAGE    
-    if(!_fstorage.start(ctxt)){
+#ifdef USE_FILE_STORAGE
+    if(!ctxt->_fstorage.start(ctxt->_fstor_path, ctxt->_fstor_local_time)){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not initialize file storage");
         TIMER_CREATE(TIMER_FINISH_ROBOT, 5);
         return false;
     }
 #endif
 
-#ifdef USE_SQL_STORAGE    
-    if(!_sqlstorage.start(ctxt)){
+#ifdef USE_SQL_STORAGE
+    if(!ctxt->_sqlstorage.start(ctxt->_db_name)){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not initialize SQL storage");
         TIMER_CREATE(TIMER_FINISH_ROBOT, 5);
         return false;
@@ -169,27 +169,29 @@ bool StMeasurement::storage_start(){
 *
 */
 bool StMeasurement::storage_stop(){
+    auto ctxt = get_env<weather::Context>();
 
-#ifdef USE_FILE_STORAGE    
-    _fstorage.stop();
+#ifdef USE_FILE_STORAGE
+    ctxt->_fstorage.stop();
 #endif
 
-#ifdef USE_SQL_STORAGE    
-    _sqlstorage.stop();
-#endif    
+#ifdef USE_SQL_STORAGE
+    ctxt->_sqlstorage.stop();
+#endif
 
     return true;
 }
 
 void StMeasurement::storage_write(Measurement& meas){
+    auto ctxt = get_env<weather::Context>();
 
-#ifdef USE_FILE_STORAGE    
-    _fstorage.write(meas);
+#ifdef USE_FILE_STORAGE
+    ctxt->_fstorage.write(meas);
 #endif
 
-#ifdef USE_SQL_STORAGE    
-    _sqlstorage.write(meas);
-#endif    
+#ifdef USE_SQL_STORAGE
+    ctxt->_sqlstorage.write(meas);
+#endif
 }
 
 //

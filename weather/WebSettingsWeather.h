@@ -172,13 +172,13 @@ public:
                 Measurement data = ctxt->data;
                 std::string lang = ctxt->get_language();
 
-                sprintf(buff, "%.0f %c", data.temp(ctxt->show_temperature_in_celcius()), (ctxt->show_temperature_in_celcius() ? 'C' : 'F'));
+                sprintf(buff, "%.2f %c", data.temp(ctxt->show_temperature_in_celcius()), (ctxt->show_temperature_in_celcius() ? 'C' : 'F'));
                 values["<!--{Temperature}-->"] = buff;
 
-                sprintf(buff, "%.0f", data.si7021_humidity);
+                sprintf(buff, "%.2f", data.si7021_humidity);
                 values["<!--{Humidity}-->"] = buff;
 
-                sprintf(buff, "%.0f", data.bmp280_pressure);
+                sprintf(buff, "%.2f", data.bmp280_pressure);
                 values["<!--{Pressure}-->"] = buff;
 
                 sprintf(buff, "%d", data.tsl2651_lux);

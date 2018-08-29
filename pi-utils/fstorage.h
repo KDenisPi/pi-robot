@@ -137,6 +137,9 @@ public:
         _first_line = fline;
     }
 
+    /*
+    * Collect list of files in a directory
+    */
     static void collect_data_files(const std::string dir){
         int flags = 0;
         dfiles.clear();
@@ -147,8 +150,10 @@ public:
         }
     }
 
+    /*
+    *
+    */
     static int finfo(const char *fpath, const struct stat *sb, int tflag, struct FTW *ftwbuf){
-
         //add files only
         if(tflag == FTW_F){
             dfiles.push_back(std::string(fpath));
@@ -156,14 +161,97 @@ public:
         return 0;
     }
 
+    /*
+    * Prepare file with list of available data files
+    *
+    * @parameters
+    * fstor_path        - folder where data files are located
+    * data_list_file    - full file name for list of files
+    * first_line        - CSV header
+    *
+    */
+    bool prepare_data_files_list(const std::string fstor_path, const std::string root_path, const std::string data_list_file, const std::string first_line) {
+        int res = 0;
+        ssize_t wr_bytes;
+
+        //save path info
+        _root_path = root_path;
+        _data_list_file = data_list_file;
+
+        //Prepare list of files
+        piutils::fstor::FStorage::collect_data_files(fstor_path);
+
+        // Override previous file
+        int fd = open(data_list_file.c_str(), O_WRONLY|O_CREAT|O_APPEND|O_TRUNC, file_mode);
+        if(fd == -1){
+            res = errno;
+            logger::log(logger::LLOG::ERROR, "fstor", std::string(__func__) + " Filed create file: " + data_list_file + " Error: " + std::to_string(res));
+            return false;
+        }
+        else{
+            //write first line
+            if(!first_line.empty()){
+                wr_bytes = write(fd, first_line.c_str(), first_line.length());
+            }
+        }
+
+        for (std::string dfl : piutils::fstor::FStorage::dfiles) {
+            std::string fdata = prepare_string_for_file_list(dfl, root_path);
+            wr_bytes = write(fd, fdata.c_str(), fdata.length());
+            logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__)+ " " + fdata);
+        }
+        close(fd);
+        return true;
+    }
+
+    /*
+    *
+    */
+    std::string prepare_string_for_file_list(const std::string dfl, const std::string root_path){
+        std::string::size_type offset = dfl.rfind("/");
+        std::string ffile = dfl.substr(offset+1);
+        ffile.replace(4,1,"/");
+        ffile.replace(6,1,"/");
+
+        std::string fdata = ffile.substr(0, ffile.length() - 4) + "," + dfl.substr(root_path.length()+1) + "\n";
+        return fdata;
+    }
+
+    /*
+    * Append file with a line
+    */
+    bool append_data_files_list(const std::string dfl){
+        int res = 0;
+        ssize_t wr_bytes;
+
+        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__)+ " Add file: " + dfl);
+
+        int fd = open(_data_list_file.c_str(), O_WRONLY|O_APPEND, file_mode);
+        if(fd == -1){
+            res = errno;
+            logger::log(logger::LLOG::ERROR, "fstor", std::string(__func__) + " Filed create file: " + _data_list_file + " Error: " + std::to_string(res));
+            return false;
+        }
+
+        std::string fdata = prepare_string_for_file_list(dfl, _root_path);
+
+        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__)+ " Append line: " + fdata);
+        wr_bytes = write(fd, fdata.c_str(), fdata.length());
+
+        close(fd);
+        return true;
+    }
+
     static std::list<std::string> dfiles;
 
 private:
     std::string _names;
 
-    std::string _dpath;     //path to the root storage folder
-    std::string _curr_path; //path to the current folder
-    std::string _file_path; //filename
+    std::string _dpath;             //path to the root storage folder (/var/data/pi-robot/data)
+    std::string _root_path;         //root path for pi-robot data (/var/data/pi-robot)
+    std::string _data_list_file;    //_root_path + /datafiles.csv
+    std::string _curr_path;         //path to the current folder
+    std::string _file_path;         //filename
     std::string _fext = ".csv";
     std::tm _time;
     bool _local_time;
@@ -228,6 +316,8 @@ private:
             }
         }
 
+        append_data_files_list(_file_path);
+
         return res;
     }
 
@@ -273,6 +363,7 @@ private:
         }
         return res;
     }
+
 
     //file mode
     mode_t file_mode = S_ISGID | S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;

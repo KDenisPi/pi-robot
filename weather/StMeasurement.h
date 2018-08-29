@@ -10,7 +10,6 @@
 
 #include "StateMachine.h"
 #include "context.h"
-#include "DataStorage.h"
 
 namespace weather {
 
@@ -42,14 +41,7 @@ public:
     void headlights(const bool light_on);
 
 private:
-    // File based data storage
-#ifdef USE_FILE_STORAGE    
-    weather::data::FileStorage _fstorage;
-#endif
 
-#ifdef USE_SQL_STORAGE    
-    weather::data::SqlStorage _sqlstorage;
-#endif    
 };
 
 }//weather namespace
