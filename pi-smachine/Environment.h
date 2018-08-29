@@ -151,7 +151,7 @@ public:
 
     //file based storage folder
     std::string _fstor_path = "/var/data/pi-robot/data";
-    bool _fstor_local_time = false;
+    bool _fstor_local_time = true;
 
     //log location
     std::string _log_path = "/var/log/pi-robot";
