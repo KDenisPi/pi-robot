@@ -222,7 +222,7 @@ void StateMachine::worker(StateMachine* stm){
              * Process finish event
              */
             case EVT_FINISH:
-                logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Finish event detected.");
+                logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Finish event detected.");
                 stm->process_finish_event();
                 finish = true;
                 break;
@@ -231,7 +231,7 @@ void StateMachine::worker(StateMachine* stm){
                  * Process change state event
                  */
             case EVT_CHANGE_STATE:
-                logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Change state event detected.");
+                logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Change state event detected.");
                 stm->process_change_state(event);
                 break;
 
@@ -239,7 +239,7 @@ void StateMachine::worker(StateMachine* stm){
                  * Process pop state event
                  */
             case EVT_POP_STATE:
-                logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Pop state event detected.");
+                logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Pop state event detected.");
                 stm->process_pop_state(event);
                 break;
 
@@ -247,13 +247,13 @@ void StateMachine::worker(StateMachine* stm){
                 /*
                  * Process timer event
                  */
-                logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Timer event detected.");
+                logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Timer event detected.");
                 stm->process_timer_event(event);
                 break;
 
             case EVT_BTN_UP:
             case EVT_BTN_DOWN:
-                logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Button event detected: " + std::to_string(event->type()));
+                logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Button event detected: " + std::to_string(event->type()));
                 stm->process_event(event);
                 break;
             case EVT_ITEM_ACTIVITY:
@@ -262,7 +262,7 @@ void StateMachine::worker(StateMachine* stm){
             case EVT_NONE:
                 break;
             default:
-                logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Event detected: " + std::to_string(event->type()) +
+                logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Event detected: " + std::to_string(event->type()) +
                     " Name: " + event->name() + " ID: " + event->id_str());
                 stm->process_event(event);
             }
@@ -316,7 +316,7 @@ bool StateMachine::process_event(const std::shared_ptr<Event>& event){
         for (const auto& state : *(get_states())) {
                 bool processed = state->OnEvent(event);
                 if(processed){
-                        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Event: " + event->name() +
+                        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Event: " + event->name() +
                                         " was processed by " + state->get_name());
                         return processed;
                 }
