@@ -120,9 +120,9 @@
             <!-- 
                  Temperature 
             -->
-            <div class="row row_links align-items-center">
+            <div class="row row_links align-items-center" id='div_id_temperature_title'>
                 <div class="col my_col_data_title text_center">
-                    <p class="text-center" id='temp_title'>Temperature (C)</p>
+                    <p class="text-center" id='temperature_title'>Temperature (C)</p>
                 </div>
             </div>
 
@@ -135,7 +135,7 @@
             <!-- 
                  Humidity
             -->
-            <div class="row row_links align-items-center">
+            <div class="row row_links align-items-center" id='div_id_humidity_title'>
                 <div class="col my_col_data_title text_center">
                     <p class="text-center" id='humidity_title'>Humidity (%)</p>
                 </div>
@@ -150,7 +150,7 @@
             <!-- 
                  Pressure
             -->
-            <div class="row row_links align-items-center">
+            <div class="row row_links align-items-center" id='div_id_pressure_title'>
                 <div class="col my_col_data_title text_center">
                     <p class="text-center" id='pressure_title'>Pressure (mm Hg)</p>
                 </div>
@@ -166,7 +166,7 @@
             <!-- 
                  Luximity
             -->
-            <div class="row row_links align-items-center">
+            <div class="row row_links align-items-center" id='div_id_luximity_title'>
                 <div class="col my_col_data_title text_center">
                     <p class="text-center" id='luximity_title'>Luximity (lux)</p>
                 </div>
@@ -180,7 +180,7 @@
             <!-- 
                  CO2
             -->
-            <div class="row row_links align-items-center">
+            <div class="row row_links align-items-center" id='div_id_co2_title'>
                 <div class="col my_col_data_title text_center">
                     <p class="text-center" id='co2_title'>CO2 (ppm)</p>
                 </div>
@@ -194,7 +194,7 @@
             <!-- 
                  TVOC
             -->
-            <div class="row row_links align-items-center">
+            <div class="row row_links align-items-center" id='div_id_tvoc_title'>
                 <div class="col my_col_data_title text_center">
                     <p class="text-center" id='tvoc_title'>TVOC (ppb)</p>
                 </div>
@@ -244,6 +244,13 @@
             //console.log(data_file);
 
             if(data_file == null){
+                hideShow("div_id_temperature_title", "none");
+                hideShow("div_id_humidity_title", "none");
+                hideShow("div_id_pressure_title", "none");
+                hideShow("div_id_luximity_title", "none");
+                hideShow("div_id_co2_title", "none");
+                hideShow("div_id_tvoc_title", "none");
+
                 hideShow("div_id_temperature", "none");
                 hideShow("div_id_humidity", "none");
                 hideShow("div_id_pressure", "none");
@@ -252,6 +259,12 @@
                 hideShow("div_id_tvoc", "none");
             }
             else {
+                hideShow("div_id_temperature_title", "block");
+                hideShow("div_id_humidity_title", "block");
+                hideShow("div_id_pressure_title", "block");
+                hideShow("div_id_luximity_title", "block");
+                hideShow("div_id_co2_title", "block");
+                hideShow("div_id_tvoc_title", "block");
 
                 hideShow("div_id_temperature", "block");
                 hideShow("div_id_humidity", "block");
