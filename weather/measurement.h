@@ -138,7 +138,7 @@ public:
         this->tsl2651_lux = m.tsl2651_lux;
 
         std::tm tm;
-        piutils::get_time(tm);
+        piutils::get_time(tm, true);
 
         sprintf(_mdata.dtime, "%d/%d/%dT%02d:%02d:%02dZ",
             1900+tm.tm_year, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
