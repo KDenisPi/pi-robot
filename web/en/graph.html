@@ -44,7 +44,8 @@
 
             .row_data_current {
                 margin-bottom: 10px;
-                font-size: 1.5em;
+                margin-top: 10px;
+                /*font-size: 1em;*/
             }
 
             .text_center {
@@ -67,6 +68,10 @@
 
             .my_col_data_last {
                 background-color: lightblue;
+            }
+
+            .my_col_data_title {
+                color:dodgerblue;
             }
 
             .my_col_data_spec {
@@ -112,34 +117,91 @@
                 </div>
             </div>
 
+            <!-- 
+                 Temperature 
+            -->
+            <div class="row row_links align-items-center">
+                <div class="col my_col_data_title text_center">
+                    <p class="text-center" id='temp_title'>Temperature (C)</p>
+                </div>
+            </div>
+
             <div class="row row_data_current align-items-center" id='div_id_temperature'>
-                <div class="col-sm my_col_data_spec">
-                        <div class='col-lg-7 text-center' id='id_temperature'></div>
+                <div class="col my_col_data_spec">
+                        <div class='col-lg text-center' id='id_temperature'></div>
                 </div>
             </div>
+
+            <!-- 
+                 Humidity
+            -->
+            <div class="row row_links align-items-center">
+                <div class="col my_col_data_title text_center">
+                    <p class="text-center" id='humidity_title'>Humidity (%)</p>
+                </div>
+            </div>
+
             <div class="row row_data_current align-items-center" id='div_id_humidity'>
-                <div class="col-sm my_col_data_last">
-                    <div class='col-lg-7 text-center' id='id_humidity'></div>
+                <div class="col my_col_data_last">
+                    <div class='col-lg text-center' id='id_humidity'></div>
                 </div>
             </div>
+
+            <!-- 
+                 Pressure
+            -->
+            <div class="row row_links align-items-center">
+                <div class="col my_col_data_title text_center">
+                    <p class="text-center" id='pressure_title'>Pressure (mm Hg)</p>
+                </div>
+            </div>
+
             <div class="row row_data_current align-items-center" id='div_id_pressure'>
-                <div class="col-sm my_col_data_last">
-                    <div class='col-lg-7 text-center' id='id_pressure'></div>
+                <div class="col my_col_data_last">
+                    <div class='col-lg text-center' id='id_pressure'></div>
+                </div>
+            </div>
+
+
+            <!-- 
+                 Luximity
+            -->
+            <div class="row row_links align-items-center">
+                <div class="col my_col_data_title text_center">
+                    <p class="text-center" id='luximity_title'>Luximity (lux)</p>
                 </div>
             </div>
             <div class="row row_data_current align-items-center" id='div_id_luximity'>
-                <div class="col-sm my_col_data_last">
-                    <div class='col-lg-7 text-center' id='id_luximity'></div>
+                <div class="col my_col_data_last">
+                    <div class='col-lg text-center' id='id_luximity'></div>
+                </div>
+            </div>
+
+            <!-- 
+                 CO2
+            -->
+            <div class="row row_links align-items-center">
+                <div class="col my_col_data_title text_center">
+                    <p class="text-center" id='co2_title'>CO2 (ppm)</p>
                 </div>
             </div>
             <div class="row row_data_current align-items-center" id='div_id_co2'>
-                <div class="col-sm my_col_data_last">
-                    <div class='col-lg-7 text-center' id='id_co2'></div>
+                <div class="col my_col_data_last">
+                    <div class='col-lg text-center' id='id_co2'></div>
+                </div>
+            </div>
+
+            <!-- 
+                 TVOC
+            -->
+            <div class="row row_links align-items-center">
+                <div class="col my_col_data_title text_center">
+                    <p class="text-center" id='tvoc_title'>TVOC (ppb)</p>
                 </div>
             </div>
             <div class="row row_data_current align-items-center" id='div_id_tvoc'>
-                <div class="col-sm my_col_data_last">
-                    <div class='col-lg-7 text-center' id='id_tvoc'></div>
+                <div class="col my_col_data_last">
+                    <div class='col-lg text-center' id='id_tvoc'></div>
                 </div>
             </div>
         </div>
@@ -224,74 +286,75 @@
                     var max_tvoc = Math.max.apply(Math, data.map(function(item){return item.tvoc;}));
                     //console.log(max_temp);
 
+                        //title: "Temperature (C)",
                     MG.data_graphic({
-                        title: "Temperature (C)",
                         data: data,
-                        width: 900,
+                        full_width: true,
                         height: 300,
                         right: 40,
                         max_y: max_temp + 10,
                         target: '#id_temperature',
+                        european_clock: true,
                         x_accessor: 'date',
                         y_accessor: 'temperature'
                     });
 
                     MG.data_graphic({
-                        title: "Humidity (%)",
                         data: data,
-                        width: 900,
+                        full_width: true,
                         height: 300,
                         right: 40,
                         max_y: 100,
                         target: '#id_humidity',
+                        european_clock: true,
                         x_accessor: 'date',
                         y_accessor: 'humidity'
                     });
 
                     MG.data_graphic({
-                        title: "Pressure (mm Hg)",
                         data: data,
-                        width: 900,
+                        full_width: true,
                         height: 300,
                         right: 40,
                         max_y: 1000,
                         target: '#id_pressure',
+                        european_clock: true,
                         x_accessor: 'date',
                         y_accessor: 'pressure'
                     });
 
                     MG.data_graphic({
-                        title: "Luximity (lux)",
                         data: data,
-                        width: 900,
+                        full_width: true,
                         height: 300,
                         right: 40,
                         max_y: max_luximity + 10,
                         target: '#id_luximity',
+                        european_clock: true,
                         x_accessor: 'date',
                         y_accessor: 'luximity'
                     });
 
                     MG.data_graphic({
-                        title: "CO2 (ppm)",
                         data: data,
-                        width: 900,
+                        full_width: true,
                         height: 300,
                         right: 40,
                         max_y: max_co*2,
                         target: '#id_co2',
+                        european_clock: true,
                         x_accessor: 'date',
                         y_accessor: 'co'
                     });
 
                     MG.data_graphic({
-                        title: "TVOC (ppb)",
                         data: data,
-                        width: 900,
+                        full_width: true,
                         height: 300,
                         right: 40,
                         max_y: max_tvoc + 100,
                         target: '#id_tvoc',
+                        european_clock: true,
                         x_accessor: 'date',
                         y_accessor: 'tvoc'
                     });
