@@ -34,40 +34,6 @@ bool Context::load_initial_data(const std::string& filename){
         data.spg30_base_co2 = jsonhelper::get_attr<uint16_t>(conf, "base_co2", 0);
         data.spg30_base_tvoc = jsonhelper::get_attr<uint16_t>(conf, "base_tvoc", 0);
 
-        //
-        // There is not any reason to restore this values back
-        //
-
-/*
-        if(conf.has_key("sgp30"))
-        {
-            auto json_sgp30  =  conf["sgp30"];
-            data.spg30_co2 = jsonhelper::get_attr<uint16_t>(json_sgp30, "co2", 0);
-            data.spg30_tvoc = jsonhelper::get_attr<uint16_t>(json_sgp30, "tvoc", 0);
-        }
-
-        if(conf.has_key("si7021"))
-        {
-            auto json_si7021  =  conf["si7021"];
-            data.si7021_humidity = jsonhelper::get_attr<float>(json_si7021, "humidity", 0.0);
-            data.si7021_temperature = jsonhelper::get_attr<float>(json_si7021, "temperature", 0.0);
-            data.si7021_abs_humidity = jsonhelper::get_attr<float>(json_si7021, "absolute_humidity", 0.0);
-        }
-
-        if(conf.has_key("bmp280"))
-        {
-            auto json_bmp280  =  conf["bmp280"];
-            data.bmp280_pressure = jsonhelper::get_attr<float>(json_bmp280, "pressure", 0.0);
-            data.bmp280_temperature = jsonhelper::get_attr<float>(json_bmp280, "temperature", 0.0);
-            data.bmp280_altitude = jsonhelper::get_attr<float>(json_bmp280, "altitude", 0.0);
-        }
-
-        if(conf.has_key("tsl2651"))
-        {
-            auto json_tsl2651  =  conf["tsl2651"];
-            data.tsl2651_lux = jsonhelper::get_attr<uint32_t>(json_tsl2651, "luminosity", 0);
-        }
-*/
     }
     catch(jsoncons::parse_error& perr){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid configuration " +

@@ -9,6 +9,16 @@
         "web_pages": "/home/pi/pi-robot/web"
     },
 
+    "email": {
+        "server": "smtp://smtp.gmail.com:587",
+        "certificate": "/home/pi/pi-robot/cert/smtp.gmal.com.pem",
+        "user": "dkudja@gmail.com",
+        "password": "",
+        "from": "dkudja@gmail.com",
+        "to": "dkudja@gmail.com"
+
+    },
+
     "mqqt" : {
         "enable": "false",
         "host" : "",

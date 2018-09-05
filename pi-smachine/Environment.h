@@ -94,6 +94,20 @@ public:
             }
 
             /*
+            * Load email parameters
+            */
+            if(conf.has_key("email"))
+            {
+                auto json_context  =  conf["email"];
+                _email_server = jsonhelper::get_attr<std::string>(json_context, "server", "");
+                _email_cert = jsonhelper::get_attr<std::string>(json_context, "certificate", "");
+                _email_user = jsonhelper::get_attr<std::string>(json_context, "user", "");
+                _email_password = jsonhelper::get_attr<std::string>(json_context, "password", "");
+                _email_from = jsonhelper::get_attr<std::string>(json_context, "from", "");
+                _email_to = jsonhelper::get_attr<std::string>(json_context, "to", "");
+            }
+
+            /*
             * Load MQQT configuration
             */
             if(conf.has_key("mqqt"))
@@ -157,6 +171,16 @@ public:
     std::string _log_path = "/var/log/pi-robot";
     std::string _log_name = "async_file_logger";
     std::string _log_file = "async_log";
+
+    /*
+    * Email paramaters
+    */
+    std::string _email_server;
+    std::string _email_cert;
+    std::string _email_user;
+    std::string _email_password;
+    std::string _email_from;
+    std::string _email_to;
 
     /*
     * Web pages location

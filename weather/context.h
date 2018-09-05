@@ -41,10 +41,11 @@ public:
         return _language;
     }
 
-    //database filename and location
+    /*
+    * Database filename and location
+    */
     std::string _db_name = _data_path + "/weather.db";
     std::string _data_list_file = _data_path + "/datafiles.csv";
-
 
     // Measurement data
     Measurement data;

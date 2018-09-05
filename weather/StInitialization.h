@@ -14,6 +14,7 @@
 #include "Event.h"
 #include "networkinfo.h"
 #include "logger.h"
+#include "send_email.h"
 
 namespace weather {
 
@@ -76,6 +77,8 @@ private:
     // Detect IP address
     //
     void detect_ip_address(){
+        logger::log(logger::LLOG::DEBUG, "StInit", std::string(__func__));
+
         piutils::netinfo::NetInfo netInfo;
         netInfo.load_ip_list();
 
@@ -94,7 +97,31 @@ private:
 
             std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_SHOW_IP));
             EVENT(event);
+
+            send_email_ip_changed(ctxt->ip4_address, ctxt->ip6_address);
         }
+    }
+
+    void send_email_ip_changed(const std::string& ip_4, const std::string& ip_6){
+        logger::log(logger::LLOG::INFO, "StInit", std::string(__func__) + " IPv6: " + ip_6 + " IPv4: " + ip_4);
+
+        auto ctxt = get_env<weather::Context>();
+
+        piutils::email::SendEmail email(ctxt->_email_server, ctxt->_email_cert);
+
+        email._user = ctxt->_email_user;
+        email._password = ctxt->_email_password;
+        email._postfix = "gmail.com"; //TODO change
+
+        email._subject = "IP address changed to " + ip_4;
+        email._body = "IP address changed to " + ip_4 + " (" + ip_6 + ")";
+        email._from = ctxt->_email_from;
+        email._to   = ctxt->_email_to;
+
+        email.prepare_data();
+        int result = email.send_email();
+
+        logger::log(logger::LLOG::INFO, "StInit", std::string(__func__) + " To: " + ctxt->_email_to + " Result: " + std::to_string(result));
     }
 
     //
