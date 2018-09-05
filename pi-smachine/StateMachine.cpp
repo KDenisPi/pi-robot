@@ -247,7 +247,7 @@ void StateMachine::worker(StateMachine* stm){
                 /*
                  * Process timer event
                  */
-                logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Timer event detected.");
+                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer event detected.");
                 stm->process_timer_event(event);
                 break;
 
@@ -294,11 +294,11 @@ void StateMachine::process_finish_event(){
  *
  */
 bool StateMachine::process_timer_event(const std::shared_ptr<Event>& event){
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " timer ID: " + event->id_str());
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " timer ID: " + event->id_str());
     for (const auto& state : *(get_states())) {
         bool processed = state->OnTimer(event->id());
         if(processed){
-            logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " timer ID: " + event->id_str() +
+            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " timer ID: " + event->id_str() +
                     " was processed by " + state->get_name());
             return processed;
         }
