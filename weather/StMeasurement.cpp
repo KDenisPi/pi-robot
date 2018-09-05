@@ -145,6 +145,7 @@ void StMeasurement::measure(){
 */
 bool StMeasurement::storage_start(){
     auto ctxt = get_env<weather::Context>();
+    logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Local time: " + std::to_string(ctxt->_fstor_local_time));
 
 #ifdef USE_FILE_STORAGE
     if(!ctxt->_fstorage.start(ctxt->_fstor_path, ctxt->_fstor_local_time)){
