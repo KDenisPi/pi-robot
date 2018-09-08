@@ -1,0 +1,8 @@
+sudo apt-get install pkg-config
+
+git clone https://github.com/labapart/gattlib.git gattlib
+
+sudo apt-get install libbluetooth-dev libreadline-dev
+sudo apt-get install libglib2.0-dev
+
+sudo apt-get install bluez
