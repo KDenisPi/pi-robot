@@ -183,7 +183,7 @@ public:
         if(value < 1000)
             sprintf(buff, "%d", value);
         else{
-            float val = value/1000;
+            float val = value/1000.0;
             sprintf(buff, "%.2fK", val);
         }
 
