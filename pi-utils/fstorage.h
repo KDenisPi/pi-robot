@@ -310,7 +310,7 @@ private:
         }
         else{
             //write first line
-            if(!_first_line.empty()){
+            if(new_file && !_first_line.empty()){
                 logger::log(logger::LLOG::NECECCARY, "fstor", std::string(__func__) + " New file. Added first line");
                 ssize_t wr_bytes = write(_fd, _first_line.c_str(), _first_line.length());
             }
