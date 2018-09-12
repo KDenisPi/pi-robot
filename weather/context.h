@@ -156,18 +156,19 @@ public:
             }
             else{
                 const std::string co2_label = get_level_label(co2_level, lang);
-                sprintf(buff, "CO2 %s %s", co2.c_str(), co2_label.c_str());
+                sprintf(buff, "CO2 %s", co2.c_str());
             }
         }
         else if(line == 1){
             const int tvoc_level = get_TVOC_level();
+
             if(tvoc_level < 4){
                 sprintf(buff, get_str(StrID::Line2).c_str(), data.si7021_humidity, '%', data.bmp280_pressure);
             }
             else{
                 const std::string tvoc_label = get_level_label(tvoc_level, lang);
-                const std::string co2 = get_co2_tvoc(data.spg30_tvoc);
-                sprintf(buff, "TVOC %s", tvoc_label.c_str());
+                const std::string tvoc = get_co2_tvoc(data.spg30_tvoc);
+                sprintf(buff, "TVOC %s", tvoc.c_str());
             }
         }
 

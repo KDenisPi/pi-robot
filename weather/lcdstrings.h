@@ -58,7 +58,7 @@ public:
         _msg[StrID::Good] = "Good";
         _msg[StrID::Moderate] = "Not bad";
         _msg[StrID::Poor] = "Poor";
-        _msg[StrID::Dangerous] = "%s Dangerous";
+        _msg[StrID::Dangerous] = "Dangerous";
         _msg[StrID::Line1] = "T:%.0f%c CO2:%s";
         _msg[StrID::Line2] = "H:%.0f%c P:%.0fmm";
         _msg[StrID::Good_ru] = "Хороший";
