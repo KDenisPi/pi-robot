@@ -42,7 +42,7 @@ public:
     /*
     *
     */
-    inline bool is_stopped(){ 
+    inline bool is_stopped(){
         bool joinable = m_thread.joinable();
         return !joinable;
     }
@@ -77,7 +77,7 @@ public:
     /*
     *
     */
-    inline void set_stop_signal(const bool signal){ 
+    inline void set_stop_signal(const bool signal = true){
         std::lock_guard<std::mutex> lk(cv_m);
         m_stopSignal = signal;
         cv.notify_one();
@@ -97,9 +97,9 @@ private:
     std::string m_thread_id_str;
     unsigned int m_loop_delay;
 
-public:	
+public:
     std::condition_variable cv;
-    std::mutex cv_m;	
+    std::mutex cv_m;
 };
 
 } /* namespace piutils */
