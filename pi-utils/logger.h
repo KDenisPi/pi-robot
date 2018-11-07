@@ -25,6 +25,7 @@ namespace logger {
     };
 
 void log(const LLOG level, const std::string& pattern, const std::string& message);
+void log_init(const std::string& filename);
 void release();
 void set_level(const LLOG level);
 
@@ -34,7 +35,7 @@ using log_type = piutils::circbuff::CircularBuffer<log_message_type>;
 
 class Logger : public piutils::Threaded{
 public:
-    Logger();
+    Logger(const std::string& filename = "/var/log/pi-robot/async_log");
     virtual ~Logger();
 
     static void worker(Logger* p);

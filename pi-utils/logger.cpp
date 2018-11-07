@@ -43,9 +43,9 @@ void log(const LLOG level, const std::string pattern, const std::string message)
 }
 */
 
-Logger::Logger() : m_flush(false), _level(LLOG::DEBUG){
+Logger::Logger(const std::string& filename) : m_flush(false), _level(LLOG::DEBUG){
     //spdlog::set_async_mode(q_size, spdlog::async_overflow_policy::block_retry);
-    async_file = spdlog::daily_logger_st("async_file_logger", "/var/log/pi-robot/async_log");
+    async_file = spdlog::daily_logger_st("async_file_logger", filename);
     async_file->set_level(spdlog::level::debug);
     //async_file->flush_on(spdlog::level::err);
     async_file->set_pattern("%H:%M:%S %z|%t|%L|%v");
@@ -114,6 +114,16 @@ void Logger::worker(Logger* owner){
             break;
     }
     //std::cout << "Logger worked finished" << std::endl;
+}
+
+/*
+*
+*/
+void log_init(const std::string& filename){
+    if(!plog){
+        p_plog = new Logger(filename);
+        plog = std::shared_ptr<Logger>(p_plog);
+    }
 }
 
 /*
