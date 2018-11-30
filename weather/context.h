@@ -51,6 +51,7 @@ public:
     Measurement data;
 
     int light_off_on_diff = 600; //difference between light OFF and lights ON
+    int light_low_level = 25;
 
     const bool show_temperature_in_celcius() const {
         return _temp_C;
@@ -156,7 +157,7 @@ public:
             }
             else{
                 const std::string co2_label = get_level_label(co2_level, lang);
-                sprintf(buff, "CO2 %s", co2.c_str());
+                sprintf(buff, "CO2 %s!", co2.c_str());
             }
         }
         else if(line == 1){
@@ -168,7 +169,7 @@ public:
             else{
                 const std::string tvoc_label = get_level_label(tvoc_level, lang);
                 const std::string tvoc = get_co2_tvoc(data.spg30_tvoc);
-                sprintf(buff, "TVOC %s", tvoc.c_str());
+                sprintf(buff, "TVOC %s!", tvoc.c_str());
             }
         }
 
