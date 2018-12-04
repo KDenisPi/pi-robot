@@ -210,8 +210,12 @@ public:
     std::string prepare_string_for_file_list(const std::string dfl, const std::string root_path){
         std::string::size_type offset = dfl.rfind("/");
         std::string ffile = dfl.substr(offset+1);
-        ffile.replace(4,1,"/");
-        ffile.replace(6,1,"/");
+
+        offset = ffile.find("_");
+        while(offset != std::string::npos){
+            ffile.replace(offset,1,"/");
+            offset = ffile.find("_");
+        }
 
         std::string fdata = ffile.substr(0, ffile.length() - 4) + "," + dfl.substr(root_path.length()+1) + "\n";
         return fdata;
