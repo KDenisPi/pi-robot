@@ -1,0 +1,68 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides: weather
+# Required-Start: $local_fs $network $bluetooth
+# Required-Stop: $local_fs
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Start Weather daemon
+### END INIT INFO
+#
+# weather    Weather daemon
+#
+# Denis Kudia
+#
+# GitHub https://github.com/KDenisPi/pi-robot
+#
+
+
+PATH=/sbin:/bin:/usr/sbin/:/usr/bin:/usr/local/bin
+DESC=weather
+
+DAEMON=/usr/local/bin/weatherd
+CONFIG=/usr/local/etc/weather/Weather.conf
+
+#check executable and configuration files
+test -f $DAEMON || exit 0
+test -f $CONFIG || exit 0
+
+. /lib/lsb/init-functions
+
+#finish script on error
+set -e
+
+case $1 in
+  start)
+	log_daemon_msg "Starting $DESC"
+
+	#I do not use --background because application detached by himself
+	start-stop-daemon --start --exec $DAEMON -- $CONFIG
+ 	log_progress_msg "${DAEMON##*/}"
+
+	log_end_msg 0
+  ;;
+  stop)
+	log_daemon_msg "Stopping $DESC"
+
+	start-stop-daemon --stop --exec $DAEMON
+ 	log_progress_msg "${DAEMON}"
+
+	log_end_msg 0
+  ;;
+  restart|force-reload)
+	$0 stop
+	sleep 1
+	$0 start
+  ;;
+  status)
+	status_of_proc "$DAEMON" "$DESC" && exit 0 || exit $?
+  ;;
+  *)
+	N=/etc/init.d/weather
+	echo "Usage: $N {start|stop|restart|force-reload|status}" >&2
+	exit 1
+  ;;
+esac
+
+exit 0
+

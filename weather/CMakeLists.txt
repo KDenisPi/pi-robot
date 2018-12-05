@@ -3,8 +3,10 @@ cmake_minimum_required(VERSION 3.0)
 #project name
 project(weather)
 
+set(DAEMON ${PROJECT_NAME}d)
+
 set(VER_MJR 0)
-set(VER_MIN 1)
+set(VER_MIN 9)
 
 set(CMAKE_BIULD_TYPE Debug)
 
@@ -28,14 +30,22 @@ message( STATUS "EXTRA_LIBS (proj):  ${EXTRA_LIBS}" )
 
 aux_source_directory(${PROJECT_SOURCE_DIR} WEATHER_SOURCES)
 
-add_executable(weather ${WEATHER_SOURCES})
-target_link_libraries(weather ${EXTRA_LIBS} ${WIPI_LIB} ${WIPI_LIB_DEV} crypt)
+add_executable(${DAEMON} ${WEATHER_SOURCES})
+target_link_libraries(${DAEMON} ${EXTRA_LIBS} ${WIPI_LIB} ${WIPI_LIB_DEV} crypt)
 
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)
 
-install(TARGETS weather RUNTIME DESTINATION bin)
+#
+# Installation
+#
+
+#main executable
+install(TARGETS ${DAEMON} RUNTIME DESTINATION bin)
+#configuration file
 install(FILES ${PROJECT_SOURCE_DIR}/../conf/Weather.json DESTINATION ${CMAKE_INSTALL_PREFIX}/etc/weather)
-install(DIRECTORY DESTINATION /var/log/pi-robot
-    DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_WRITE GROUP_READ WORLD_READ WORLD_WRITE)
-install(DIRECTORY DESTINATION /var/log/pi-robot/data
-    DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_WRITE GROUP_READ WORLD_READ WORLD_WRITE)
+#daemon configuration file
+install(FILES ${PROJECT_SOURCE_DIR}/daemon/weather DESTINATION /etc/init.d/)
+#create log folder
+install(DIRECTORY DESTINATION /var/log/pi-robot DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_WRITE GROUP_READ WORLD_READ WORLD_WRITE)
+#create data folder
+install(DIRECTORY DESTINATION /var/data/pi-robot/data DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_WRITE GROUP_READ WORLD_READ WORLD_WRITE)
