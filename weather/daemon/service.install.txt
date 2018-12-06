@@ -1,0 +1,10 @@
+sudo update-rc.d weather defaults start 20 2 3 4 5
+sudo systemctl daemon-reload
+
+sudo systemctl start weather.service
+
+sudo systemctl stop weather.service
+
+sudo systemctl status weather.service
+
+sudo update-rc.d -f weather remove

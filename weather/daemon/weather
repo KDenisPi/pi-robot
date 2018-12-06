@@ -4,7 +4,6 @@
 # Required-Start: $local_fs $network $bluetooth
 # Required-Stop: $local_fs
 # Default-Start: 2 3 4 5
-# Default-Stop: 0 1 6
 # Short-Description: Start Weather daemon
 ### END INIT INFO
 #
@@ -20,7 +19,8 @@ PATH=/sbin:/bin:/usr/sbin/:/usr/bin:/usr/local/bin
 DESC=weather
 
 DAEMON=/usr/local/bin/weatherd
-CONFIG=/usr/local/etc/weather/Weather.conf
+CONFIG=/usr/local/etc/weather/Weather.json
+PARAMETERS="--conf $CONFIG"
 
 #check executable and configuration files
 test -f $DAEMON || exit 0
@@ -36,7 +36,7 @@ case $1 in
 	log_daemon_msg "Starting $DESC"
 
 	#I do not use --background because application detached by himself
-	start-stop-daemon --start --exec $DAEMON -- $CONFIG
+	start-stop-daemon --start --exec $DAEMON -- $PARAMETERS
  	log_progress_msg "${DAEMON##*/}"
 
 	log_end_msg 0
