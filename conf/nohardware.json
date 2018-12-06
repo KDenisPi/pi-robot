@@ -1,8 +1,21 @@
 {
-	"version" : "1.0",
-	"real_world" : false,
+    "version" : "1.0",
+    "real_world" : false,
 
-	"context": {
-        "web_pages": "/home/deniskudia/sources/pi-robot/web"
+    "context": {
+        "log_path": "/var/log/pi-robot",
+        "log_name": "async_file_logger",
+        "log_file": "async_log",
+        "web_pages": "/home/pi/pi-robot/web"
+    },
+
+    "email": {
+        "server": "smtp://smtp.gmail.com:587",
+        "certificate": "/home/pi/pi-robot/cert/smtp.gmal.com.pem",
+        "user": "dkudja@gmail.com",
+        "password": "",
+        "from": "dkudja@gmail.com",
+        "to": "dkudja@gmail.com"
+
     }
 }
