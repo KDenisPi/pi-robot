@@ -16,6 +16,8 @@
 
 using namespace std;
 
+#define BD_MAX_CLOSE  8192
+
 /*
 * State Machine instance
 */
@@ -60,7 +62,7 @@ void mytime(const std::string& message){
 static void sigHandlerStateMachine(int sign){
 
   //cout <<  "State machine: Detected signal " << sign  << endl;
-  if(sign == SIGUSR2  || sign == SIGTERM) {
+  if(sign == SIGUSR2  || sign == SIGTERM || sign == SIGQUIT || sign == SIGINT) {
     stm->finish();
   }
   else if (sign == SIGUSR1){
@@ -72,13 +74,10 @@ static void sigHandlerStateMachine(int sign){
 * Singnal handler for parent
 */
 static void sigHandlerParent(int sign){
- cout <<  "Parent: Detected signal " << sign  << endl;
-
-  if (sign == SIGINT || sign == SIGUSR1) {
-    if(stmPid){
-      cout <<  "Parent: Send signal to child  " << sign  << endl;
-      kill(stmPid, (sign == SIGINT ? SIGUSR2 : sign));
-    }
+  cout <<  "Parent: Detected signal " << sign  << endl;
+  if(stmPid){
+    cout <<  "Parent: Send signal to child  " << sign  << endl;
+    kill(stmPid, sign);
   }
 }
 
@@ -155,13 +154,74 @@ int main (int argc, char* argv[])
     _exit(EXIT_FAILURE);
   }
 
+  /*
+  * Initialize daemon mode parameters
+  */
+  if(daemon_mode){
+
+    switch (fork()) {
+      case -1: return -1;
+      case 0: break;
+      default: _exit(EXIT_SUCCESS);
+    }
+
+    /*
+    * Become leader of new session
+    */
+    if (setsid() == -1)
+      return -1;
+  }
+
   switch(stmPid = fork()){
     case -1:
-      cout <<  "Could not create state machine application" << endl;
+      std::cerr <<  "Could not create state machine application" << endl;
       exit(EXIT_FAILURE);
 
     case 0: //child
       {
+      /*
+      * Initialize daemon mode parameters
+      */
+      if(daemon_mode){
+        int fd;
+        /*
+        * Clear the process umask (Section 15.4.6), to ensure that, when the daemon creates
+        * files and directories, they have the requested permissions.
+        */
+        umask(0);
+
+        /*
+        * Change the process’s current working directory
+        */
+        if ( chdir("/") == -1 )
+          return -1;
+
+        /*
+        * Close all opened file descriptors
+        */
+        int maxfd = sysconf(_SC_OPEN_MAX);
+        if (maxfd == -1) /* Limit is indeterminate... */
+          maxfd = BD_MAX_CLOSE;
+        /* so take a guess */
+        for (fd = 0; fd < maxfd; fd++){
+          close(fd);
+        }
+
+        /*
+        * Reopen stdin, stdout, stderr
+        */
+        fd = open("/dev/null", O_RDWR);
+        if (fd != STDIN_FILENO) /* 'fd' should be 0 */
+          return -1;
+
+        fd = open("/var/log/weather.log", O_RDWR|O_CREAT|O_TRUNC, 0666);
+        if (fd != STDOUT_FILENO) /* 'fd' should be 1 */
+          return -1;
+
+        fd = open("/var/log/weather.err", O_RDWR|O_CREAT|O_TRUNC, 0666);
+        if (fd != STDERR_FILENO) /* 'fd' should be 2 */
+          return -1;
+      }
         /*
         * Add handler for SIGALARM signal (used for State Machine Timers)
         */
@@ -171,15 +231,27 @@ int main (int argc, char* argv[])
         * Add handler  for SIGUSR2 signal - Used for State Machine finishing
         */
         if (signal(SIGUSR2, sigHandlerStateMachine) == SIG_ERR ){
-          //cout <<  "Failed to set SIGINT handler for state machine" << endl;
           _exit(EXIT_FAILURE);
         }
 
         /*
-        * Add handler  for SIGTERM signal - Used for State Machine finishing
+        * Add handler for SIGTERM signal - Used for State Machine finishing
         */
         if (signal(SIGTERM, sigHandlerStateMachine) == SIG_ERR ){
-          //cout <<  "Failed to set SIGINT handler for state machine" << endl;
+          _exit(EXIT_FAILURE);
+        }
+
+        /*
+        * Add handler for SIGINT signal - Used for State Machine finishing
+        */
+        if (signal(SIGINT, sigHandlerStateMachine) == SIG_ERR ){
+          _exit(EXIT_FAILURE);
+        }
+
+        /*
+        * Add handler for SIGQUIT signal - Used for State Machine finishing
+        */
+        if (signal(SIGQUIT, sigHandlerStateMachine) == SIG_ERR ){
           _exit(EXIT_FAILURE);
         }
 
@@ -187,18 +259,7 @@ int main (int argc, char* argv[])
         * Add handler  for SIGUSR1 signal. This signal will be used for State Machine start.
         */
         if( signal(SIGUSR1, sigHandlerStateMachine) == SIG_ERR){
-          //cout <<  "Failed to set SIGUSR1 handler for state machine" << endl;
           _exit(EXIT_FAILURE);
-        }
-
-        /*
-        * Initialize daemon mode parameters
-        */
-        if(daemon_mode){
-
-          if (setsid() == -1) /* Become leader of new session */
-            return -1;
-
         }
 
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Create child");
@@ -245,15 +306,6 @@ int main (int argc, char* argv[])
       break;
 
     default: //parent
-      cout <<  "State machine created " <<  stmPid << endl;
-      if( signal(SIGUSR1, sigHandlerParent) == SIG_ERR){
-        cout <<  "Parent handler error " <<  stmPid << endl;
-      }
-
-      if (signal(SIGINT, sigHandlerParent) == SIG_ERR ){
-        cout <<  "Parent handler error " <<  stmPid << endl;
-        kill(stmPid, SIGINT);
-      }
 
       sleep(2);
 
@@ -264,7 +316,16 @@ int main (int argc, char* argv[])
       *
       */
       if(!daemon_mode){
-        //wait  untill child will not be finished
+        std::cout <<  "State machine created " <<  stmPid << endl;
+        if( signal(SIGUSR1, sigHandlerParent) == SIG_ERR){
+          std::cerr <<  "Parent handler error " <<  stmPid << endl;
+        }
+
+        if (signal(SIGINT, sigHandlerParent) == SIG_ERR ){
+          std::cerr <<  "Parent handler error " <<  stmPid << endl;
+          kill(stmPid, SIGINT);
+        }
+         //wait  untill child will not be finished
         for(;;){
           pid_t chdPid = wait(NULL);
           if(chdPid == -1){
