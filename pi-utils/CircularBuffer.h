@@ -44,15 +44,15 @@ public:
         std::lock_guard<std::mutex> lk(cv_m);
 
         if( m_size == max_size_){
-            std::cout << "Full 1 Size: " << std::to_string(m_size) << std::endl;          
+            //std::cout << "Full 1 Size: " << std::to_string(m_size) << std::endl;
             return;
         }
-        
+
         buffer[head_] = value;
         head_ = (head_ + 1 >= max_size_ ? 0 : head_+1);
         if(head_ == tail_)
             tail_ = (tail_ + 1 >= max_size_ ? 0 : tail_+1);
-        m_size++;    
+        m_size++;
     }
     /*
     *
@@ -62,15 +62,15 @@ public:
         std::lock_guard<std::mutex> lk(cv_m);
 
         if( m_size == max_size_){
-            std::cout << "Full 2 Size: " << std::to_string(m_size) << std::endl;          
+            //std::cout << "Full 2 Size: " << std::to_string(m_size) << std::endl;
             return;
         }
-        
+
         buffer[head_] = std::move(value);
         head_ = (head_ + 1 >= max_size_ ? 0 : head_+1);
         if(head_ == tail_)
             tail_ = (tail_ + 1 >= max_size_ ? 0 : tail_+1);
-        m_size++;    
+        m_size++;
     }
 
     /*
@@ -84,7 +84,7 @@ public:
         if(!is_empty()){
             tail_ = (tail_ + 1 >= max_size_ ? 0 : tail_+1);
         }
-        m_size--; 
+        m_size--;
 
         const T& item = std::move(buffer[ptail]);
         return item;
@@ -113,7 +113,7 @@ private:
     int tail_ = 0;
     int head_ = 0;
     int max_size_;
-    std::mutex cv_m;	
+    std::mutex cv_m;
 };
 
 }

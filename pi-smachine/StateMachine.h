@@ -27,7 +27,7 @@
   sigemptyset (&new_set);\
   sigaddset (&new_set, signal);\
   if( sigprocmask(SIG_BLOCK, &new_set, NULL) < 0){\
-     cout <<  " Could not set signal mask." << endl;\
+     logger::log(logger::LLOG::ERROR, "Stm", std::string(__func__) + " Could not set signal mask.");\
   }
 
 
