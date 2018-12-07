@@ -61,11 +61,23 @@ void mytime(const std::string& message){
 */
 static void sigHandlerStateMachine(int sign){
 
-  //cout <<  "State machine: Detected signal " << sign  << endl;
   if(sign == SIGUSR2  || sign == SIGTERM || sign == SIGQUIT || sign == SIGINT) {
+    //
+    // Stop state machine
+    //
     stm->finish();
   }
+  else if( sign == SIGHUP ){
+    //
+    //Reload configuration - debug level only for now
+    //
+    logger::set_update_conf();
+
+  }
   else if (sign == SIGUSR1){
+    //
+    // Start state machine
+    //
     stm->run();
   }
 }

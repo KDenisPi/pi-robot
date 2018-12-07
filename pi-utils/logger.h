@@ -28,6 +28,7 @@ void log(const LLOG level, const std::string& pattern, const std::string& messag
 void log_init(const std::string& filename);
 void release();
 void set_level(const LLOG level);
+void set_update_conf();
 
 using log_message = std::pair<std::string, std::string>;
 using log_message_type = std::pair<logger::LLOG, log_message>;
@@ -35,7 +36,7 @@ using log_type = piutils::circbuff::CircularBuffer<log_message_type>;
 
 class Logger : public piutils::Threaded{
 public:
-    Logger(const std::string& filename = "/var/log/pi-robot/async_log");
+    Logger(const std::string& filename = "/var/log/pi-robot/async_log", const LLOG level=LLOG::DEBUG);
     virtual ~Logger();
 
     static void worker(Logger* p);
@@ -72,6 +73,9 @@ public:
         return logger::LLOG::INFO;
     }
 
+    inline void set_update_conf() {
+        _update_conf = true;
+    }
 private:
     std::shared_ptr<spdlog::logger> async_file;
     std::mutex cv_m;
@@ -79,6 +83,7 @@ private:
     std::shared_ptr<log_type> m_buff;
     bool m_flush;
     LLOG _level;
+    bool _update_conf = false;
 
     size_t _q_size = 2048; //queue size must be power of 2
 

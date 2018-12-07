@@ -20,7 +20,6 @@
 
 namespace logger {
 
-//Logger plog;
 std::shared_ptr<Logger> plog;
 Logger* p_plog;
 
@@ -38,34 +37,34 @@ char mtime[30];
 */
 
 /*
-void log(const LLOG level, const std::string pattern, const std::string message){
-    plog.log(level, pattern, message);
-}
+*
 */
-
-Logger::Logger(const std::string& filename) : m_flush(false), _level(LLOG::DEBUG){
-    //spdlog::set_async_mode(q_size, spdlog::async_overflow_policy::block_retry);
+Logger::Logger(const std::string& filename, const LLOG level) : m_flush(false), _level(level){
     async_file = spdlog::daily_logger_st("async_file_logger", filename);
     async_file->set_level(spdlog::level::debug);
-    //async_file->flush_on(spdlog::level::err);
     async_file->set_pattern("%H:%M:%S %z|%t|%L|%v");
 
     m_buff = std::shared_ptr<log_type>(new log_type(_q_size));
     piutils::Threaded::start<Logger>(this);
-
-    //std::cout << "Logger created" << std::endl;
 }
 
 Logger::~Logger() {
-    //std::cout << "Logger released. Start" << std::endl;
     set_flush();
     piutils::Threaded::stop();
     async_file->flush();
-    //std::cout << "Logger released" << std::endl;
 }
 
-
+/*
+* Mail logging function
+*/
 void Logger::llog(const logger::LLOG level, const std::string& pattern, const std::string& message){
+
+    //
+    // Update logger log level configuration
+    //
+    if( _update_conf ){
+        _update_conf = false;
+    }
 
     if(level > _level)//ignore levels higher than defined
       return;
@@ -131,18 +130,15 @@ void log_init(const std::string& filename){
 */
 void log(const LLOG level, const std::string& pattern, const std::string& message){
     if(!plog){
-        //std::cout << "Create Logger" << std::endl;
         p_plog = new Logger();
-        plog = std::shared_ptr<Logger>(p_plog); //new Logger());
+        plog = std::shared_ptr<Logger>(p_plog);
     }
     if(!plog->is_flush()){
-        //std::cout <<  message << std::endl;
         plog->llog(level, pattern, message);
     }
 }
 
 void release(){
-  //std::cout << "Release Logger" << std::endl;
   if(plog){
      delete plog.get();
   }
@@ -150,12 +146,20 @@ void release(){
 
 void set_level(const LLOG level){
   if(!plog){
-      //std::cout << "Create Logger" << std::endl;
       p_plog = new Logger();
-      plog = std::shared_ptr<Logger>(p_plog); //new Logger());
+      plog = std::shared_ptr<Logger>(p_plog);
   }
 
   plog->set_level(level);
+}
+
+void set_update_conf(){
+  if(!plog){
+      p_plog = new Logger();
+      plog = std::shared_ptr<Logger>(p_plog);
+  }
+
+  plog->set_update_conf();
 }
 
 
