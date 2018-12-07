@@ -135,10 +135,7 @@ int main (int argc, char* argv[])
     }
     else if(strcmp(argv[i], "--dlevel") == 0){
       if(++i < argc){
-        if(strcmp(argv[i], "INFO") == 0) dlevel = logger::LLOG::INFO;
-        else if(strcmp(argv[i], "DEBUG") == 0) dlevel = logger::LLOG::DEBUG;
-        else if(strcmp(argv[i], "ERROR") == 0) dlevel = logger::LLOG::ERROR;
-        else if(strcmp(argv[i], "NECECCARY") == 0) dlevel = logger::LLOG::NECECCARY;
+        dlevel = logger::Logger::type_by_string( argv[i] );
       }
     }
     else if(strcmp(argv[i], "--fstate") == 0){
@@ -169,13 +166,13 @@ int main (int argc, char* argv[])
     * Become leader of new session
     */
     if (setsid() == -1)
-      return -1;
+      _exit(EXIT_FAILURE);
   }
 
   switch(stmPid = fork()){
     case -1:
       std::cerr <<  "Could not create state machine application" << endl;
-      exit(EXIT_FAILURE);
+        _exit(EXIT_FAILURE);
 
     case 0: //child
       {
@@ -194,7 +191,7 @@ int main (int argc, char* argv[])
         * Change the process’s current working directory
         */
         if ( chdir("/") == -1 )
-          return -1;
+          _exit(EXIT_FAILURE);
 
         /*
         * Close all opened file descriptors
@@ -212,15 +209,15 @@ int main (int argc, char* argv[])
         */
         fd = open("/dev/null", O_RDWR);
         if (fd != STDIN_FILENO) /* 'fd' should be 0 */
-          return -1;
+          _exit(EXIT_FAILURE);
 
         fd = open("/var/log/weather.log", O_RDWR|O_CREAT|O_TRUNC, 0666);
         if (fd != STDOUT_FILENO) /* 'fd' should be 1 */
-          return -1;
+          _exit(EXIT_FAILURE);
 
         fd = open("/var/log/weather.err", O_RDWR|O_CREAT|O_TRUNC, 0666);
         if (fd != STDERR_FILENO) /* 'fd' should be 2 */
-          return -1;
+          _exit(EXIT_FAILURE);
       }
         /*
         * Add handler for SIGALARM signal (used for State Machine Timers)

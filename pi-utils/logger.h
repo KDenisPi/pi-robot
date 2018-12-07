@@ -63,6 +63,15 @@ public:
       _level = clevel;
     }
 
+    static logger::LLOG type_by_string(const char* dbgtype) {
+        if(strcmp(dbgtype, "INFO") == 0) return logger::LLOG::INFO;
+        else if(strcmp(dbgtype, "DEBUG") == 0) return  logger::LLOG::DEBUG;
+        else if(strcmp(dbgtype, "ERROR") == 0) return  logger::LLOG::ERROR;
+        else if(strcmp(dbgtype, "NECECCARY") == 0) return  logger::LLOG::NECECCARY;
+
+        return logger::LLOG::INFO;
+    }
+
 private:
     std::shared_ptr<spdlog::logger> async_file;
     std::mutex cv_m;
