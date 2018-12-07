@@ -216,11 +216,11 @@ int main (int argc, char* argv[])
         if (fd != STDIN_FILENO) /* 'fd' should be 0 */
           _exit(EXIT_FAILURE);
 
-        fd = open("/var/log/weather.log", O_RDWR|O_CREAT|O_TRUNC, 0666);
+        fd = open("/var/log/weather.log", O_RDWR|O_CREAT|O_APPEND, 0666);
         if (fd != STDOUT_FILENO) /* 'fd' should be 1 */
           _exit(EXIT_FAILURE);
 
-        fd = open("/var/log/weather.err", O_RDWR|O_CREAT|O_TRUNC, 0666);
+        fd = open("/var/log/weather.err", O_RDWR|O_CREAT|O_APPEND, 0666);
         if (fd != STDERR_FILENO) /* 'fd' should be 2 */
           _exit(EXIT_FAILURE);
       }
@@ -263,6 +263,8 @@ int main (int argc, char* argv[])
         if( signal(SIGUSR1, sigHandlerStateMachine) == SIG_ERR){
           _exit(EXIT_FAILURE);
         }
+
+        mytime("Started");
 
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Create child");
         logger::set_level(llevel);

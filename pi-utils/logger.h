@@ -65,6 +65,10 @@ public:
       _level = clevel;
     }
 
+    const bool is_update_conf() const {
+        return _update_conf;
+    }
+
     /*
     * Update logger configuration from the configuration file
     */
@@ -126,7 +130,7 @@ private:
     bool m_flush;
     LLOG _level;
 
-    bool _update_conf = false;
+    bool _update_conf = true;
     //File with logger configuration.
     std::string _logger_conf = "/var/log/pi-robot/logger.conf";
 

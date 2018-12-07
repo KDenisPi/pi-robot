@@ -62,8 +62,8 @@ void Logger::llog(const logger::LLOG level, const std::string& pattern, const st
     //
     // Update logger log level configuration
     //
-    if( _update_conf ){
-        _update_conf = false;
+    if( is_update_conf() ){
+        update_configuration();
     }
 
     if(level > _level)//ignore levels higher than defined
