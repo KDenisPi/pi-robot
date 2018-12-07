@@ -36,7 +36,7 @@ bool daemon_mode = true;
 /*
 * Default debug level
 */
-logger::LLOG dlevel = logger::LLOG::INFO;
+logger::LLOG llevel = logger::LLOG::INFO;
 
 /*
 *
@@ -61,23 +61,16 @@ void mytime(const std::string& message){
 */
 static void sigHandlerStateMachine(int sign){
 
+  //
+  // Stop state machine
+  //
   if(sign == SIGUSR2  || sign == SIGTERM || sign == SIGQUIT || sign == SIGINT) {
-    //
-    // Stop state machine
-    //
     stm->finish();
   }
-  else if( sign == SIGHUP ){
-    //
-    //Reload configuration - debug level only for now
-    //
+  else if( sign == SIGHUP ){//Reload configuration - debug level only for now
     logger::set_update_conf();
-
   }
-  else if (sign == SIGUSR1){
-    //
-    // Start state machine
-    //
+  else if (sign == SIGUSR1){// Start state machine
     stm->run();
   }
 }
@@ -94,7 +87,7 @@ static void sigHandlerParent(int sign){
 }
 
 const char* err_message = "Error. No configuration file.";
-const char* help_message = "weather --conf cfg_file [--mqqt-conf mqqt_cfg] [--nodaemon] [--dlevel INFO|DEBUG|NECECCARY|ERROR] [--fstate FirstStateName]";
+const char* help_message = "weather --conf cfg_file [--mqqt-conf mqqt_cfg] [--nodaemon] [--llevel INFO|DEBUG|NECECCARY|ERROR] [--fstate FirstStateName]";
 
 /*
 *
@@ -145,9 +138,9 @@ int main (int argc, char* argv[])
     else if(strcmp(argv[i], "--nodaemon") == 0){
       daemon_mode = false;
     }
-    else if(strcmp(argv[i], "--dlevel") == 0){
+    else if(strcmp(argv[i], "--llevel") == 0){
       if(++i < argc){
-        dlevel = logger::Logger::type_by_string( argv[i] );
+        llevel = logger::Logger::type_by_string( argv[i] );
       }
     }
     else if(strcmp(argv[i], "--fstate") == 0){
@@ -272,7 +265,7 @@ int main (int argc, char* argv[])
         }
 
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Create child");
-        logger::set_level(dlevel);
+        logger::set_level(llevel);
         /*
         * Create PI Robot instance
         */

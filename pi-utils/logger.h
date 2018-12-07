@@ -10,6 +10,7 @@
 
 #include <string>
 #include <mutex>
+#include <fstream>
 
 #include "spdlog/spdlog.h"
 #include "Threaded.h"
@@ -64,6 +65,47 @@ public:
       _level = clevel;
     }
 
+    /*
+    * Update logger configuration from the configuration file
+    */
+    void update_configuration() {
+
+        std::ifstream istrm( _logger_conf, std::ios::in );
+        if(istrm.is_open()){
+            std::string line;
+            while (std::getline(istrm, line))
+            {
+                int llevel = get_parameter_value(line, "llevel=");
+                if( llevel >= LLOG::ERROR && llevel <= LLOG::DEBUG){
+                    std::cout <<  "Log level changed to " << llevel << std::endl;
+                    set_level((LLOG)llevel);
+                }
+            }
+
+            istrm.close();
+        }
+
+        _update_conf = false;
+    }
+
+    /*
+    * Get value for parameter=value
+    */
+    const std::string get_value(const std::string& cline, const std::string& pname){
+        std::string::size_type pos = cline.find( pname );
+        if( pos != std::string::npos){
+            return cline.substr(pos + pname.length());
+        }
+
+        return std::string();
+    }
+
+    int get_parameter_value(const std::string& cline, const std::string& pname){
+        std::string value = get_value(cline, pname);
+        return std::stoi(value);
+    }
+
+
     static logger::LLOG type_by_string(const char* dbgtype) {
         if(strcmp(dbgtype, "INFO") == 0) return logger::LLOG::INFO;
         else if(strcmp(dbgtype, "DEBUG") == 0) return  logger::LLOG::DEBUG;
@@ -83,7 +125,10 @@ private:
     std::shared_ptr<log_type> m_buff;
     bool m_flush;
     LLOG _level;
+
     bool _update_conf = false;
+    //File with logger configuration.
+    std::string _logger_conf = "/var/log/pi-robot/logger.conf";
 
     size_t _q_size = 2048; //queue size must be power of 2
 
