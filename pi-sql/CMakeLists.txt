@@ -3,8 +3,6 @@ cmake_minimum_required(VERSION 3.0)
 #project name
 project(pi-sql)
 
-set(CMAKE_BIULD_TYPE Debug)
-
 include_directories(BEFORE
     ${PROJECT_SOURCE_DIR}/../pi-utils
     ${SQLITE3_HOME}

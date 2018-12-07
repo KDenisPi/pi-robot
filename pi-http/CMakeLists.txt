@@ -3,8 +3,6 @@ cmake_minimum_required(VERSION 3.0)
 #project name
 project(pi-http)
 
-set(CMAKE_BIULD_TYPE Debug)
-
 include_directories(BEFORE ${MONGOOSE_HOME}
    ${PROJECT_SOURCE_DIR}/../weather
 )

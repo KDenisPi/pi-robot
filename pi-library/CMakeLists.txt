@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.0)
 #project name
 project(pi-library)
 
-set(CMAKE_BIULD_TYPE Debug)
 include_directories(BEFORE ${WIRINGPI_INC}
    ${PROJECT_SOURCE_DIR}/../pi-utils
    ${JSONCONS}

@@ -8,8 +8,6 @@ set(DAEMON ${PROJECT_NAME}d)
 set(VER_MJR 0)
 set(VER_MIN 9)
 
-set(CMAKE_BIULD_TYPE Debug)
-
 set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqqt pi-http pthread dl curl)
 
 include_directories(BEFORE ${WIRINGPI_INC}

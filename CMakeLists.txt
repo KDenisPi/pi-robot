@@ -38,21 +38,30 @@ find_library(MOSQT_LIB mosquitto PATH ${MOSQUITTO_LIB})
 find_library(MOSQT_LIB_CPP mosquittopp PATH ${MOSQUITTO_LIB}/cpp)
 
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
-set(CMAKE_BIULD_TYPE Debug)
+
+#set(CMAKE_BIULD_TYPE Debug)
+#set(CMAKE_BIULD_TYPE RelWithDebInfo)
+message( STATUS "CMAKE_BIULD_TYPE is ${CMAKE_BIULD_TYPE}")
 
 #cmake version 3.0 and above
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-#include_directories(BEFORE
-#${SPDLOG_INCLUDE}
-#)
+#
+# C++ 11
+#
+IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message("debug mode")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -std=c++11 -fexceptions")
+ELSE(CMAKE_BUILD_TYPE NOT STREQUAL "Debug")
+    message("release with debug info mode")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_RELWITHDEBINFO} -std=c++11 -fexceptions")
+ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
-#C++ 11
-#add_cxx_flags( "-std=c++11" )
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -std=c++11 -fexceptions")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_RELWITHDEBINFO} -std=c++11 -fexceptions")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+message( STATUS "CMAKE_C_FLAGS_RELWITHDEBINFO is ${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+message( STATUS "CMAKE_C_FLAGS_DEBUG is ${CMAKE_C_FLAGS_DEBUG}")
 
 message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
