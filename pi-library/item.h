@@ -36,6 +36,8 @@ enum ItemTypes{
     BMP280,
     TSL2561,
     LCD,
+    SLED,
+    SLEDCRTL,
     LAST_ITEM
 };
 
@@ -57,7 +59,7 @@ struct ItemConfig{
     ItemTypes type;
     std::string name;
     std::string comment;
-    
+
     std::array<std::pair<std::string, int>,5> gpios;
 
     std::string sub_item;
@@ -81,7 +83,7 @@ public:
 
     //Constructor for GPIO base Items
     Item(const std::shared_ptr<pirobot::gpio::Gpio> gpio, int itype) : Item(gpio, "", "", itype) {};
- 
+
     Item(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
           const std::string& name,
           const std::string& comment,
@@ -100,7 +102,7 @@ public:
     //activate debug functionality for the item
     virtual void activate_debug() {}
 
-    // Parameters: 
+    // Parameters:
     // dest_type - type of destination. "file" will be supported only by now
     virtual void unload_debug_data(const std::string& dest_type, const std::string& destination) {}
     inline bool const is_debug() const {return m_debug;}
@@ -129,7 +131,7 @@ public:
     // Static function for working with item type
     //
     static const std::string type_name(const int typen) {
-        return std::string(ItemNames[typen]); 
+        return std::string(ItemNames[typen]);
     }
 
     static const item::ItemTypes type_by_name(const std::string& name){
@@ -145,7 +147,7 @@ public:
 
     //Should we set callback function during initialization for this Item or not
     inline bool have_notify(){
-        if(m_type == ItemTypes::BUTTON || 
+        if(m_type == ItemTypes::BUTTON ||
             m_type == ItemTypes::TILT_SWITCH ||
             m_type == ItemTypes::BLINKER ||
             m_type == ItemTypes::AnalogLightMeter ||

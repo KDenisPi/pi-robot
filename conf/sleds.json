@@ -1,0 +1,26 @@
+{
+    "version" : "1.0",
+    "real_world" : true,
+
+    "context": {
+        "log_path": "/var/log/pi-robot",
+        "log_name": "async_file_logger",
+        "log_file": "async_log",
+        "web_pages": "/home/pi/pi-robot/web"
+    },
+
+    "providers": [
+        {"type": "SPI", "channels": 1, "speed_1": 2500000, "speed_2": 2500000, "mode_1": 0, "mode_2": 0}
+    ],
+
+    "items":[
+        {
+            "type": "SLEDCRTL",
+            "name": "SLEDCTRL",
+            "comment": "",
+            "spi_channel": 0,
+            "stripes": 1,
+            "stripe": [{"name": "SLED1", "leds": 30}]
+        }
+    ]
+}

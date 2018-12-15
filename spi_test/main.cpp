@@ -1,31 +1,76 @@
+#include <fstream>
 #include <iostream>
 #include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <sys/wait.h>
-#include <fstream>
 
+#include "version.h"
+#include "defines.h"
 
-#include "logger.h"
 #include "StateMachine.h"
 #include "MyStateFactory.h"
 
+
 using namespace std;
-smachine::StateMachine* stm;
-pid_t stmPid, mqqtPid;
+
+#define BD_MAX_CLOSE  8192
+
+/*
+* State Machine instance
+*/
+std::shared_ptr<smachine::StateMachine> stm;
+
+/*
+* State Machine process ID
+*/
+pid_t stmPid;
+
+/*
+* Daemon flag
+*/
+bool daemon_mode = true;
+
+/*
+* Default debug level
+*/
+logger::LLOG llevel = logger::LLOG::INFO;
+
+/*
+*
+*/
+std::string firstState = "StInitialization";
+
+/*
+* Test purpose function
+*/
+void mytime(const std::string& message);
+void mytime(const std::string& message){
+    char mtime[30];
+    std::chrono::time_point<std::chrono::system_clock> tp;
+    tp = std::chrono::system_clock::now();
+    std::time_t time_now = std::chrono::system_clock::to_time_t(tp);
+    std::strftime(mtime, sizeof(mtime), "%T", std::localtime(&time_now));
+    std::cout << mtime << " --- " << message << std::endl;
+}
 
 /*
 * Singnal handler for State Machine
 */
 static void sigHandlerStateMachine(int sign){
-  
-    cout <<  "State machine: Detected signal " << sign  << endl;
-    if(sign == SIGINT) {
-      stm->finish();
-    }
-    else if (sign == SIGUSR1){
-      stm->run();
-    }
+
+  //
+  // Stop state machine
+  //
+  if(sign == SIGUSR2  || sign == SIGTERM || sign == SIGQUIT || sign == SIGINT) {
+    stm->finish();
+  }
+  else if( sign == SIGHUP ){//Reload configuration - debug level only for now
+    logger::set_update_conf();
+  }
+  else if (sign == SIGUSR1){// Start state machine
+    stm->run();
+  }
 }
 
 /*
@@ -33,100 +78,272 @@ static void sigHandlerStateMachine(int sign){
 */
 static void sigHandlerParent(int sign){
   cout <<  "Parent: Detected signal " << sign  << endl;
- 
-   if (sign == SIGINT || sign == SIGUSR1) {
-     if(stmPid)
-       kill(stmPid, sign);
-     if(mqqtPid)  
-       kill(mqqtPid, sign);
-   }
+  if(stmPid){
+    cout <<  "Parent: Send signal to child  " << sign  << endl;
+    kill(stmPid, sign);
+  }
 }
 
+const char* err_message = "Error. No configuration file.";
+const char* help_message = "weather --conf cfg_file [--mqqt-conf mqqt_cfg] [--nodaemon] [--llevel INFO|DEBUG|NECECCARY|ERROR] [--fstate FirstStateName]";
+
+/*
+*
+*/
+std::string validate_file_parameter(const int idx, const int argc, char* argv[]){
+  std::string filename;
+  if(idx == argc){
+    cout <<  err_message << endl;
+    cout <<  help_message << endl;
+    _exit(EXIT_FAILURE);
+  }
+
+  filename = argv[idx];
+  std::ifstream file_stream(filename);
+  if(!file_stream){
+    cout <<  "Configuration file " << filename << " does not exist or not available." << endl;
+    _exit(EXIT_FAILURE);
+  }
+  file_stream.close();
+
+  return filename;
+}
+
+/*
+* program --conf path_to_configuration [--mqqt-conf mqqt_configuration_file]
+*    --mqqt - optional if MQQT client should be used
+*/
 int main (int argc, char* argv[])
 {
-  cout <<  "spi_test started" << endl;
+  bool mqtt = false;
+  std::string robot_conf, mqqt_conf;
+  stmPid  = 0;
+  sigset_t new_set;
+
+  cout <<  "Weather started" << endl;
+
+  for(int i = 0; i < argc; i++){
+    std::string arg = argv[i];
+    cout <<  "Arg: " << i << " [" << arg << "]" << endl;
+
+    if(strcmp(argv[i], "--conf") == 0){
+      robot_conf = validate_file_parameter(++i, argc, argv);
+    }
+    else if(strcmp(argv[i], "--mqqt-conf") == 0){
+      mqqt_conf = validate_file_parameter(++i, argc, argv);
+      mqtt = true;
+    }
+    else if(strcmp(argv[i], "--nodaemon") == 0){
+      daemon_mode = false;
+    }
+    else if(strcmp(argv[i], "--llevel") == 0){
+      if(++i < argc){
+        llevel = logger::Logger::type_by_string( argv[i] );
+      }
+    }
+    else if(strcmp(argv[i], "--fstate") == 0){
+      if(++i < argc){
+        firstState = argv[i];
+      }
+    }
+  }
+
+  if(robot_conf.empty()){
+    cout <<  err_message << endl;
+    cout <<  help_message << endl;
+    _exit(EXIT_FAILURE);
+  }
+
+  /*
+  * Initialize daemon mode parameters
+  */
+  if(daemon_mode){
+
+    switch (fork()) {
+      case -1: return -1;
+      case 0: break;
+      default: _exit(EXIT_SUCCESS);
+    }
+
+    /*
+    * Become leader of new session
+    */
+    if (setsid() == -1)
+      _exit(EXIT_FAILURE);
+  }
 
   switch(stmPid = fork()){
     case -1:
-      cout <<  "Failed first fork" << endl;
-      exit(EXIT_FAILURE);
+      std::cerr <<  "Could not create state machine application" << endl;
+        _exit(EXIT_FAILURE);
 
     case 0: //child
       {
+      /*
+      * Initialize daemon mode parameters
+      */
+      if(daemon_mode){
+        int fd;
+        /*
+        * Clear the process umask (Section 15.4.6), to ensure that, when the daemon creates
+        * files and directories, they have the requested permissions.
+        */
+        umask(0);
+
+        /*
+        * Change the process’s current working directory
+        */
+        if ( chdir("/") == -1 )
+          _exit(EXIT_FAILURE);
+
+        /*
+        * Close all opened file descriptors
+        */
+        int maxfd = sysconf(_SC_OPEN_MAX);
+        if (maxfd == -1) /* Limit is indeterminate... */
+          maxfd = BD_MAX_CLOSE;
+        /* so take a guess */
+        for (fd = 0; fd < maxfd; fd++){
+          close(fd);
+        }
+
+        /*
+        * Reopen stdin, stdout, stderr
+        */
+        fd = open("/dev/null", O_RDWR);
+        if (fd != STDIN_FILENO) /* 'fd' should be 0 */
+          _exit(EXIT_FAILURE);
+
+        fd = open("/var/log/weather.log", O_RDWR|O_CREAT|O_APPEND, 0666);
+        if (fd != STDOUT_FILENO) /* 'fd' should be 1 */
+          _exit(EXIT_FAILURE);
+
+        fd = open("/var/log/weather.err", O_RDWR|O_CREAT|O_APPEND, 0666);
+        if (fd != STDERR_FILENO) /* 'fd' should be 2 */
+          _exit(EXIT_FAILURE);
+      }
+        /*
+        * Add handler for SIGALARM signal (used for State Machine Timers)
+        */
         ADD_SIGNAL(SIGALRM)
 
+        /*
+        * Add handler  for SIGUSR2 signal - Used for State Machine finishing
+        */
+        if (signal(SIGUSR2, sigHandlerStateMachine) == SIG_ERR ){
+          _exit(EXIT_FAILURE);
+        }
+
+        /*
+        * Add handler for SIGTERM signal - Used for State Machine finishing
+        */
+        if (signal(SIGTERM, sigHandlerStateMachine) == SIG_ERR ){
+          _exit(EXIT_FAILURE);
+        }
+
+        /*
+        * Add handler for SIGINT signal - Used for State Machine finishing
+        */
         if (signal(SIGINT, sigHandlerStateMachine) == SIG_ERR ){
-             cout <<  "Failed set first fork handler" << endl;
-             _exit(EXIT_FAILURE);
+          _exit(EXIT_FAILURE);
         }
 
+        /*
+        * Add handler for SIGQUIT signal - Used for State Machine finishing
+        */
+        if (signal(SIGQUIT, sigHandlerStateMachine) == SIG_ERR ){
+          _exit(EXIT_FAILURE);
+        }
+
+        /*
+        * Add handler  for SIGUSR1 signal. This signal will be used for State Machine start.
+        */
         if( signal(SIGUSR1, sigHandlerStateMachine) == SIG_ERR){
-             cout <<  "Failed set first fork handler" << endl;
-             _exit(EXIT_FAILURE);
+          _exit(EXIT_FAILURE);
         }
 
-        std::shared_ptr<spi_test::MyStateFactory> factory(new spi_test::MyStateFactory());
-        std::shared_ptr<pirobot::PiRobot> pirobot(new pirobot::PiRobot());
-        std::shared_ptr<mqqt::MqqtClient<mqqt::MqqtClientItf>> mqqt();
-        stm = new smachine::StateMachine(factory, pirobot, nullptr);
+        mytime("Started");
 
-        cout <<  "State machine started. Wait" << endl;   
-        cout <<  "Logger links: " << logger::plog.use_count() << endl;
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Create child");
+        logger::set_level(llevel);
+        /*
+        * Create PI Robot instance
+        */
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create hardware support");
+        std::shared_ptr<pirobot::PiRobot> pirobot(new pirobot::PiRobot());
+        pirobot->set_configuration(robot_conf);
+
+        //Create State factory for State Machine
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create State Factory support");
+        std::shared_ptr<spi_test::MyStateFactory> factory(new spi_test::MyStateFactory(firstState));
+        factory->set_configuration(robot_conf);
+
+        /*
+        * Create State machine
+        */
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create state machine.");
+        stm = std::shared_ptr<smachine::StateMachine>(new smachine::StateMachine(factory, pirobot));
+
+        /*
+        * Web interface for settings and status
+        */
+       /*
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Created Web interface");
+        std::shared_ptr<weather::web::WebWeather> web(new weather::web::WebWeather(8080, stm));
+        web->http::web::WebSettings::start();
+      */
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
         stm->wait();
 
-        cout  <<  "State machine finished" << endl;         
-
-        if(logger::plog){
-          cout <<  "Check logger state" << endl;
-          cout <<  "Logger links: " << logger::plog.use_count() << endl;
-        }
-        else
-          cout <<  "Logger not present" << endl;
+      /*
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "State machine finished");
+        web->http::web::WebSettings::stop();
+      */
 
         sleep(2);
-        cout <<  "Delete State Machine" << endl;
-        delete stm;
+        stm.reset();
 
-        cout <<  "State Machine deleted" << endl;
-        if(logger::plog){
-          cout <<  "Logger links 2: " << logger::plog.use_count() << endl;
-        }
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Child finished");
+        logger::release();
 
-        logger::release();       
- 
         _exit(EXIT_SUCCESS);
       }
       break;
 
     default: //parent
-      cout <<  "State machine child created " <<  stmPid << endl;
 
-      ADD_SIGNAL(SIGALRM)
+      sleep(2);
 
-      if( signal(SIGUSR1, sigHandlerParent) == SIG_ERR){
-        cout <<  "Parent handler error " <<  stmPid << endl;
-      }
-
-      if (signal(SIGINT, sigHandlerParent) == SIG_ERR ){
-        cout <<  "Parent handler error " <<  stmPid << endl;
-        kill(stmPid, SIGINT);
-      }
-
-      sleep(5);
+      //send command to start
       kill(stmPid, SIGUSR1);
 
-      for(;;){
-        pid_t chdPid = wait(NULL);
-        if(chdPid == -1){
-          if (errno == ECHILD) {
-            cout <<  "No more childs" << endl;
-            break;
-          }
+      /*
+      *
+      */
+      if(!daemon_mode){
+        std::cout <<  "State machine created " <<  stmPid << endl;
+        if( signal(SIGUSR1, sigHandlerParent) == SIG_ERR){
+          std::cerr <<  "Parent handler error " <<  stmPid << endl;
         }
-        else
-          cout <<  "Child finished " <<  chdPid << endl;
+
+        if (signal(SIGINT, sigHandlerParent) == SIG_ERR ){
+          std::cerr <<  "Parent handler error " <<  stmPid << endl;
+          kill(stmPid, SIGINT);
+        }
+         //wait  untill child will not be finished
+        for(;;){
+          pid_t chdPid = wait(NULL);
+          if(chdPid == -1){
+            if (errno == ECHILD) {
+              cout <<  "No more childs" << endl;
+              break;
+            }
+          }
+          else
+            cout <<  "Child finished " <<  chdPid << endl;
+        }
+        cout <<  "Weather project finished" << endl;
       }
-      cout <<  "Project1 finished" << endl;
   }
 
   exit(EXIT_SUCCESS);

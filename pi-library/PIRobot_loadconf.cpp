@@ -33,6 +33,8 @@
 #include "bmp280.h"
 #include "tsl2561.h"
 #include "lcd.h"
+#include "sled.h"
+#include "sledctrl.h"
 
 namespace pirobot {
 const char TAG[] = "PiRobot";
@@ -446,7 +448,7 @@ bool PiRobot::configure(const std::string& cfile){
                                         get_gpio(gpio_data_6_name),
                                         get_gpio(gpio_data_7_name),
                                         get_gpio(gpio_backlite_name),
-                                        item_name, item_comment, 
+                                        item_name, item_comment,
                                         lines, bitmode, dots)));
                             }
                     }
@@ -588,6 +590,36 @@ bool PiRobot::configure(const std::string& cfile){
                     }
                     break;
 
+                    /*
+                    *  LED stripe controller
+                    */
+                    case item::ItemTypes::SLEDCRTL:
+                    {
+                        auto spi_channel  =  jsonhelper::get_attr<int>(json_item, "spi_channel", 0);
+                        auto stripes  =  jsonhelper::get_attr<int>(json_item, "stripes", 0);
+
+                        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item: " + item_name + " Comment: " + item_comment);
+
+                        items_add(item_name,
+                                std::shared_ptr<pirobot::item::Item>(
+                                    new pirobot::item::sledctrl::SLedCtrl(
+                                        std::static_pointer_cast<pirobot::spi::SPI>(get_provider("SPI")),
+                                        stripes,
+                                        item_name,
+                                        item_comment,
+                                        (spi_channel == 0 ? spi::SPI_CHANNELS::SPI_0 : spi::SPI_CHANNELS::SPI_1)
+                                    )));
+
+                        auto sledctrl = std::static_pointer_cast<pirobot::item::sledctrl::SLedCtrl>(get_item(item_name));
+
+                        auto json_sled  =  conf["stripe"];
+                        for(const auto& stripe : json_sled.array_range()){
+                            auto leds  =  jsonhelper::get_attr_mandatory<int>(stripe, "leds");
+                            auto sled_name  =  jsonhelper::get_attr_mandatory<std::string>(stripe, "name");
+                            auto sled_comm  =  jsonhelper::get_attr<std::string>(stripe, "comment", "");
+                            sledctrl->add_sled(std::shared_ptr<pirobot::item::SLed>(new pirobot::item::SLed(leds, sled_name, sled_comm)));
+                        }
+                    }
                 }//Item types
             }//Items collection loading
         }

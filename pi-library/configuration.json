@@ -8,6 +8,15 @@
         "web_pages": "/home/denis/pi-robot/web"
     },
 
+    "email": {
+        "server": "smtp://smtp.gmail.com:587",
+        "certificate": "/home/pi/pi-robot/cert/smtp.gmal.com.pem",
+        "user": "dkudja@gmail.com",
+        "password": "",
+        "from": "dkudja@gmail.com",
+        "to": "dkudja@gmail.com"
+    },
+
     "mqqt" : {
         "enable": "false",
         "host" : "",
@@ -251,6 +260,19 @@
             "lines": 1, //possible values 1,2
             "bitmode": 4, //possible values 4/8
             "dots": 8, //possible values 8 - 5x8, 10 - 5x10
+        },
+
+        //
+        // LED Stripe
+        //
+        {
+            "type": "SLEDCRTL",
+            "name": "item_name",
+            "comment": "",
+            "spi_channel": 0,   //SPI channel
+            "stripes": 1,        //maximun number of LED stripes supported by controller
+            "stripe": [{"name": "LED stripe", "leds": 30, "comment": "optional"}]  //LED stripes list
+
         }
     ]
 }
