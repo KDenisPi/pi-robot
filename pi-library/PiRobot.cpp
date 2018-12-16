@@ -80,9 +80,9 @@ std::shared_ptr<provider::Provider> PiRobot::get_provider(const std::string& nam
 /*
 * Create GPIO for the provider. Provider should created before using add_provider function
 */
-void PiRobot::add_gpio(const std::string& name, 
-    const std::string& provider_name, 
-    const pirobot::gpio::GPIO_MODE gpio_mode, 
+void PiRobot::add_gpio(const std::string& name,
+    const std::string& provider_name,
+    const pirobot::gpio::GPIO_MODE gpio_mode,
     const int pin) noexcept(false){
 
     const auto provider = get_provider(provider_name);
@@ -104,13 +104,13 @@ void PiRobot::add_gpio(const std::string& name,
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " GPIO with such name is present already: " + gpio_name + " Provider: " + provider_name);
         throw std::runtime_error(std::string(" GPIO with such name is present already: ") + gpio_name);
     }
- 
+
     gpios_add(gpio_name,
             std::shared_ptr<pirobot::gpio::Gpio>(
                 new pirobot::gpio::Gpio(pin, gpio_mode, gpio_provider)
             ));
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Provider: " + provider_name + ". Added PIN: " + std::to_string(pin));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Provider: " + provider_name + ". Added PIN: " + std::to_string(pin) + " Name: " + gpio_name);
 }
 
 /*
@@ -171,7 +171,7 @@ void PiRobot::stop(){
 
 void PiRobot::printConfig(){
     std::map<const std::string, std::shared_ptr<item::Item>>::iterator it;
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + 
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) +
         " -------------- configuration --------------------------- ");
     for(it = this->items.begin(); it != this->items.end(); ++it){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " " +
