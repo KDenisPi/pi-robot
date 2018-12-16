@@ -59,6 +59,7 @@ void mytime(const std::string& message){
 * Singnal handler for State Machine
 */
 static void sigHandlerStateMachine(int sign){
+  cout <<  "Child: Detected signal " << sign  << endl;
 
   //
   // Stop state machine
@@ -155,7 +156,7 @@ int main (int argc, char* argv[])
     _exit(EXIT_FAILURE);
   }
 
-  std::cout <<  "Daemon mode: " << daemon_mode << endl;
+  std::cout <<  "Daemon mode: " << daemon_mode << " First state: " << firstState << endl;
 
 
   /*
