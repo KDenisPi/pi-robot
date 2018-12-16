@@ -16,7 +16,7 @@
     "items":[
         {
             "type": "SLEDCRTL",
-            "name": "SLEDCTRL",
+            "name": "SLedCtrl",
             "comment": "",
             "spi_channel": 0,
             "stripes": 1,

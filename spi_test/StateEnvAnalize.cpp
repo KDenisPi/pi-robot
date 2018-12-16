@@ -30,8 +30,10 @@ StateEnvAnalize::~StateEnvAnalize() {
 void StateEnvAnalize::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize started");
 
-    auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("LightMeter_1");
+    auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
     ctrl->set_color(0, 0x00334455);
+
+    ctrl->On();
     ctrl->refresh();
 
     get_itf()->timer_start(TIMER_USER_1, 1);
@@ -41,13 +43,16 @@ void StateEnvAnalize::OnEntry(){
 bool StateEnvAnalize::OnTimer(const int id){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnTimer ID: " + std::to_string(id));
 
+    auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
     switch(id){
         case TIMER_FINISH_ROBOT:
+            ctrl->Off();
+
             get_itf()->finish();
             return true;
+
         case TIMER_USER_1:
             {
-                auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("LightMeter_1");
                 ctrl->set_color(0, 0x005522AA);
                 ctrl->refresh();
 

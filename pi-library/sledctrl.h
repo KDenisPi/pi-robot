@@ -79,6 +79,20 @@ public:
     }
 
     /*
+    *
+    */
+    void On() {
+        _spi->set_channel_on( _spi_channel );
+    }
+
+    /*
+    *
+    */
+    void Off() {
+        _spi->set_channel_off( _spi_channel );
+    }
+
+    /*
     * Set some color for LEDs
     */
     void set_color(const int led, const uint32_t rgb, const std::size_t led_start = 0, const std::size_t led_end = 0) {
@@ -97,9 +111,6 @@ public:
         if( _data_buff == nullptr ){
             _data_buff = new std::uint8_t( calculate_buffer() );
         }
-
-        //
-        _spi->set_channel_on( _spi_channel );
 
         for (auto sled = _sleds.cbegin(); sled != _sleds.cend(); sled++){
             const std::uint8_t* gm = sled->get()->gamma();
@@ -125,15 +136,13 @@ public:
                 }
             }
 
+            _spi->data_rw( _data_buff, sizeof(_data_buff));
             //Write data to SPI
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Write to SPI: " +  std::to_string(sizeof(_data_buff)));
-
-            _spi->data_rw( _data_buff, sizeof(_data_buff));
-
         }
 
-        //
-        _spi->set_channel_off( _spi_channel );
+        // Wait 500 ms before sending new data
+        std::this_thread::sleep_for(std::chrono::microseconds(500));
 
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Finished" );
     }
