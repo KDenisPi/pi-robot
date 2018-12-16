@@ -40,7 +40,7 @@ logger::LLOG llevel = logger::LLOG::INFO;
 /*
 *
 */
-std::string firstState = "StInitialization";
+std::string firstState = "StateEnvAnalize";
 
 /*
 * Test purpose function
