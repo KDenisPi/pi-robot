@@ -186,7 +186,7 @@ bool PiRobot::configure(const std::string& cfile){
 
                     //Ignore name
                     providers["SPI"] = std::shared_ptr<pirobot::provider::Provider>(
-                        new pirobot::spi::SPI("SPI", spi_config, get_gpio("SIMPLE", 10), get_gpio("SIMPLE", 11)));
+                        new pirobot::spi::SPI("SPI", spi_config, get_gpio("SPI_CE0_N"), get_gpio("SPI_CE1_N")));
                 }
                 else{
                     logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Unknown provider type");
