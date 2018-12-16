@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 
 #include "version.h"
 #include "defines.h"
