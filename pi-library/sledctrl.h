@@ -36,9 +36,12 @@ public:
             item::Item(name, comment, item::ItemTypes::SLEDCRTL) ,
             _spi(spi), _spi_channel(channel), _data_buff(nullptr), _max_leds(0), _max_sleds(sleds) {
 
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " name " + name + " Max SLEDs: " + std::to_string(sleds));
     }
 
     virtual ~SLedCtrl(){
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " name " + name());
+
         _sleds.empty();
 
         if( _data_buff != nullptr )
@@ -48,12 +51,16 @@ public:
     //Add LED Stripe
     void add_sled(const pled&& led){
         if( _sleds.size() == _max_sleds){
+            logger::log(logger::LLOG::ERROR, "LedCtrl", std::string(__func__) + " Too much SLEDs");
             return;
         }
 
         if( _max_leds < led->leds()){
             _max_leds = led->leds();
         }
+
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Added SLEDs " + led->name() + " Max LEDs now: " + std::to_string(_max_leds));
+
         _sleds.push_back(led);
     }
 
@@ -71,16 +78,34 @@ public:
         return result;
     }
 
+    /*
+    * Set some color for LEDs
+    */
+    void set_color(const int led, const uint32_t rgb, const std::size_t led_start = 0, const std::size_t led_end = 0) {
+        if( led > sleds()){
+            logger::log(logger::LLOG::ERROR, "SLED", std::string(__func__) + " Incorrect LEDS number");
+            return;
+        }
+
+        _sleds[led]->set_color(rgb, led_start, led_end);
+    }
+
     //
     void refresh(){
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started" );
 
         if( _data_buff == nullptr ){
             _data_buff = new std::uint8_t( calculate_buffer() );
         }
 
+        //
+        _spi->set_channel_on( _spi_channel );
+
         for (auto sled = _sleds.cbegin(); sled != _sleds.cend(); sled++){
             const std::uint8_t* gm = sled->get()->gamma();
             const std::uint32_t* data = sled->get()->data();
+
+            memset( _data_buff, 0, sizeof(_data_buff));
 
             for( std::size_t lidx = 0; lidx < sled->get()->leds(); lidx++ ){
                 // Convert 0RGB to R,G,B
@@ -94,14 +119,23 @@ public:
                 //
                 for(int rgb_idx = 0; rgb_idx < 3; rgb_idx++){
                     int idx = (lidx + rgb_idx)*3;
-                    _data_buff[idx] &= pirobot::sledctrl::sled_data[rgb[rgb_idx]];
-                    _data_buff[idx+1] &= pirobot::sledctrl::sled_data[rgb[rgb_idx]+1];
-                    _data_buff[idx+2] &= pirobot::sledctrl::sled_data[rgb[rgb_idx]+2];
+                    _data_buff[idx] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]];
+                    _data_buff[idx+1] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]+1];
+                    _data_buff[idx+2] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]+2];
                 }
             }
 
+            //Write data to SPI
+            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Write to SPI: " +  std::to_string(sizeof(_data_buff)));
+
+            _spi->data_rw( _data_buff, sizeof(_data_buff));
+
         }
 
+        //
+        _spi->set_channel_off( _spi_channel );
+
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Finished" );
     }
 
 private:

@@ -11,8 +11,7 @@
 #include "StateEnvAnalize.h"
 #include "MyEnv.h"
 
-#include "AnalogLightMeter.h"
-
+#include "sledctrl.h"
 
 namespace spi_test {
 namespace state {
@@ -31,13 +30,11 @@ StateEnvAnalize::~StateEnvAnalize() {
 void StateEnvAnalize::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize started");
 
-    auto lght_meter_1 = get_item<pirobot::anlglightmeter::AnalogLightMeter>("LightMeter_1");
-    auto lght_meter_2 = get_item<pirobot::anlglightmeter::AnalogLightMeter>("LightMeter_2");
+    auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("LightMeter_1");
+    ctrl->set_color(0, 0x00334455);
+    ctrl->refresh();
 
-    lght_meter_1->activate();
-    lght_meter_2->activate();
-    
-    get_itf()->timer_start(TIMER_LIGHT_METER, 30);
+    get_itf()->timer_start(TIMER_USER_1, 1);
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize finished");
 }
 
@@ -48,12 +45,11 @@ bool StateEnvAnalize::OnTimer(const int id){
         case TIMER_FINISH_ROBOT:
             get_itf()->finish();
             return true;
-        case TIMER_LIGHT_METER:
+        case TIMER_USER_1:
             {
-                auto lght_meter_1 = get_item<pirobot::anlglightmeter::AnalogLightMeter>("LightMeter_1");
-                auto lght_meter_2 = get_item<pirobot::anlglightmeter::AnalogLightMeter>("LightMeter_2");
-                lght_meter_1->deactivate();
-                lght_meter_2->deactivate();
+                auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("LightMeter_1");
+                ctrl->set_color(0, 0x005522AA);
+                ctrl->refresh();
 
                 logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Run stop timer 5 sec");
                 get_itf()->timer_start(TIMER_FINISH_ROBOT, 5);

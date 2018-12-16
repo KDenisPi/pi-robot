@@ -26,6 +26,8 @@ public:
         Item( name, comment, ItemTypes::SLED), _leds(led_num){
         assert( _leds > 0 );
 
+        logger::log(logger::LLOG::DEBUG, "SLED", std::string(__func__) + " name " + name + " LEDs: " + std::to_string(_leds));
+
         _leds_data = new uint32_t[_leds];
         std::memset(_leds_data, 0, sizeof(uint32_t)*_leds);
 
@@ -44,6 +46,8 @@ public:
     *
     */
     virtual ~SLed() {
+        logger::log(logger::LLOG::DEBUG, "SLED", std::string(__func__) + " name " + name());
+
         delete[] _leds_data;
         delete[] _gamma;
     }
@@ -59,6 +63,23 @@ public:
 
     const std::uint8_t* gamma() {
         return _gamma;
+    }
+
+    /*
+    * Set some color for LEDs
+    */
+    void set_color(const uint32_t rgb, const std::size_t led_start = 0, const std::size_t led_end = 0) {
+        if( led_start >= led_end || led_end > _leds){
+            logger::log(logger::LLOG::ERROR, "SLED", std::string(__func__) + " Incorrect LED index");
+            return;
+        }
+
+        logger::log(logger::LLOG::DEBUG, "SLED", std::string(__func__) + " name " + name() + " Set color: " + std::to_string(rgb));
+
+        std::size_t _end = (led_end == 0 ? _leds : led_end);
+        for(int i = led_start; i < _end; i++){
+            _leds_data[i] = rgb;
+        }
     }
 
 private:
