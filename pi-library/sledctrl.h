@@ -108,15 +108,13 @@ public:
     void refresh(){
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started" );
 
-        if( _data_buff == nullptr ){
-            _data_buff = new std::uint8_t( calculate_buffer() );
-        }
+        prepare_bufeer();
 
         for (auto sled = _sleds.cbegin(); sled != _sleds.cend(); sled++){
             const std::uint8_t* gm = sled->get()->gamma();
             const std::uint32_t* data = sled->get()->data();
 
-            memset( _data_buff, 0, sizeof(_data_buff));
+            memset( _data_buff, 0, get_data_length());
 
             for( std::size_t lidx = 0; lidx < sled->get()->leds(); lidx++ ){
                 // Convert 0RGB to R,G,B
@@ -136,9 +134,10 @@ public:
                 }
             }
 
-            _spi->data_rw( _data_buff, sizeof(_data_buff));
+            const std::size_t blen = get_buffer_length(sled->get()->leds());
+            _spi->data_rw(_data_buff, blen);
             //Write data to SPI
-            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Write to SPI: " +  std::to_string(sizeof(_data_buff)));
+            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Write to SPI: " +  std::to_string(blen));
         }
 
         // Wait 500 ms before sending new data
@@ -157,14 +156,26 @@ private:
 
 
     std::uint8_t* _data_buff;   //Data buffer for SPI
+    std::size_t _data_buff_len;
+
+    const std::size_t get_data_length() const {
+        return _data_buff_len;
+    }
+
+    void prepare_bufeer() {
+        if( _data_buff == nullptr ){
+            _data_buff_len = get_buffer_length();
+            _data_buff = new std::uint8_t( _data_buff_len );
+        }
+    }
 
     /*
     *   Calculate buffer length
     *
     *   LEDs * 3(RGB) * 3(3 SPI bits for 1 data bit) + 15 (50us)
     */
-    std::size_t calculate_buffer() {
-        return _max_leds * 3 * 3 + 15;
+    std::size_t get_buffer_length(const int leds = 0) {
+        return (leds == 0 ? _max_leds : leds) * 3 * 3 + 15;
     }
 };
 
