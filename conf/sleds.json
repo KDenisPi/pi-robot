@@ -20,7 +20,7 @@
             "comment": "",
             "spi_channel": 0,
             "stripes": 1,
-            "stripe": [{"name": "SLED1", "leds": 30}]
+            "stripe": [{"name": "SLED1", "leds": 32}]
         }
     ]
 }

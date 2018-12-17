@@ -69,7 +69,7 @@ public:
     * Set some color for LEDs
     */
     void set_color(const uint32_t rgb, const std::size_t led_start = 0, const std::size_t led_end = 0) {
-        if( led_start >= led_end || led_end > _leds){
+        if( ( led_end > 0 && led_start >= led_end) || led_end > _leds){
             logger::log(logger::LLOG::ERROR, "SLED", std::string(__func__) + " Incorrect LED index");
             return;
         }
