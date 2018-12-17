@@ -612,7 +612,7 @@ bool PiRobot::configure(const std::string& cfile){
 
                         auto sledctrl = std::static_pointer_cast<pirobot::item::sledctrl::SLedCtrl>(get_item(item_name));
 
-                        auto json_sled  =  conf["stripe"];
+                        auto json_sled  =  json_item["stripe"];
                         for(const auto& stripe : json_sled.array_range()){
                             auto leds  =  jsonhelper::get_attr_mandatory<int>(stripe, "leds");
                             auto sled_name  =  jsonhelper::get_attr_mandatory<std::string>(stripe, "name");
