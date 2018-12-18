@@ -111,12 +111,15 @@ public:
         prepare_bufeer();
 
         for (auto sled = _sleds.cbegin(); sled != _sleds.cend(); sled++){
+      	    int lcount = sled->get()->leds();
+            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Procedd LED stripe with : " +  std::to_string(lcount));
+
             const std::uint8_t* gm = sled->get()->gamma();
             const std::uint32_t* data = sled->get()->data();
 
             memset( _data_buff, 0, get_data_length());
 
-            for( std::size_t lidx = 0; lidx < sled->get()->leds(); lidx++ ){
+            for( std::size_t lidx = 0; lidx < lcount; lidx++ ){
                 // Convert 0RGB to R,G,B
                 std::uint8_t rgb[3] = { gm[ (data[lidx] & 0xFF) ],
                     gm[ ((data[lidx] >> 8 ) & 0xFF) ],
@@ -135,9 +138,12 @@ public:
             }
 
             const std::size_t blen = get_buffer_length(sled->get()->leds());
-            _spi->data_rw(_data_buff, blen);
-            //Write data to SPI
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Write to SPI: " +  std::to_string(blen));
+
+            //Write data to SPI
+            _spi->data_rw(_data_buff, blen);
+
+            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Writed to SPI: " +  std::to_string(blen));
         }
 
         // Wait 500 ms before sending new data
