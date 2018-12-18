@@ -110,12 +110,12 @@ public:
 
         prepare_bufeer();
 
-        for (auto sled = _sleds.cbegin(); sled != _sleds.cend(); sled++){
-      	    int lcount = sled->get()->leds();
+        for (auto sled  : _sleds ){
+      	    int lcount = sled->leds();
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Procedd LED stripe with : " +  std::to_string(lcount));
 
-            const std::uint8_t* lgm = sled->get()->gamma();
-            const std::uint32_t* ldata = sled->get()->leds_data();
+            const std::uint8_t* lgm = sled->gamma();
+            const std::uint32_t* ldata = sled->leds_data();
 
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Initialize buffer" );
             memset( _data_buff, 0, get_data_length());
@@ -139,7 +139,7 @@ public:
                 }
             }
 
-            const std::size_t blen = get_buffer_length(sled->get()->leds());
+            const std::size_t blen = get_buffer_length(sled->leds());
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Write to SPI: " +  std::to_string(blen));
 
             //Write data to SPI
