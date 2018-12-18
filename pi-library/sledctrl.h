@@ -114,16 +114,18 @@ public:
       	    int lcount = sled->get()->leds();
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Procedd LED stripe with : " +  std::to_string(lcount));
 
-            const std::uint8_t* gm = sled->get()->gamma();
-            const std::uint32_t* data = sled->get()->data();
+            const std::uint8_t* lgm = sled->get()->gamma();
+            const std::uint32_t* ldata = sled->get()->leds_data();
 
+            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Initialize buffer" );
             memset( _data_buff, 0, get_data_length());
 
+            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Fill data buffer" );
             for( std::size_t lidx = 0; lidx < lcount; lidx++ ){
                 // Convert 0RGB to R,G,B
-                std::uint8_t rgb[3] = { gm[ (data[lidx] & 0xFF) ],
-                    gm[ ((data[lidx] >> 8 ) & 0xFF) ],
-                    gm[ ((data[lidx] >> 16 ) & 0xFF) ]
+                std::uint8_t rgb[3] = { lgm[ (ldata[lidx] & 0xFF) ],
+                    lgm[ ((ldata[lidx] >> 8 ) & 0xFF) ],
+                    lgm[ ((ldata[lidx] >> 16 ) & 0xFF) ]
                 };
 
                 //
@@ -171,6 +173,9 @@ private:
     void prepare_bufeer() {
         if( _data_buff == nullptr ){
             _data_buff_len = get_buffer_length();
+
+            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Create data buffer: " + std::to_string(_data_buff_len) );
+
             _data_buff = new std::uint8_t( _data_buff_len );
         }
     }

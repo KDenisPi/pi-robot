@@ -57,7 +57,7 @@ public:
         return _leds;
     }
 
-    const std::uint32_t* data() {
+    const std::uint32_t* leds_data() {
         return _leds_data;
     }
 
@@ -84,7 +84,7 @@ public:
     }
 
 private:
-    std::size_t _leds;                  //LEDs number
+    std::size_t _leds;          //LEDs number
     uint32_t* _leds_data;       //array of LEDs data
     uint8_t*  _gamma;           //LED gamma
 };
