@@ -31,11 +31,12 @@ void StateEnvAnalize::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize started");
 
     auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
-    ctrl->set_color(0, (uint32_t)0x00550011);
+    ctrl->color(0, (uint32_t)0x00550011);
 
     ctrl->On();
     ctrl->refresh();
 
+    //get_itf()->timer_start(TIMER_FINISH_ROBOT, 5);
     get_itf()->timer_start(TIMER_USER_1, 1);
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize finished");
 }
@@ -53,7 +54,7 @@ bool StateEnvAnalize::OnTimer(const int id){
 
         case TIMER_USER_1:
             {
-                ctrl->set_color(0, (uint32_t)0x00000066);
+                ctrl->color(0, (uint32_t)0x00000066);
                 ctrl->refresh();
 
                 logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Run stop timer 5 sec");

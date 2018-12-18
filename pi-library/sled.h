@@ -26,7 +26,7 @@ public:
         Item( name, comment, ItemTypes::SLED), _leds(led_num){
         assert( _leds > 0 );
 
-        logger::log(logger::LLOG::DEBUG, "SLED", std::string(__func__) + " name " + name + " LEDs: " + std::to_string(_leds));
+        logger::log(logger::LLOG::DEBUG, "SLED", std::string(__func__) + " name " + name + " LEDs: " + std::to_string(_leds) + " Len: " + std::to_string(sizeof(uint32_t)*_leds));
 
         _leds_data = new uint32_t[_leds];
         std::memset(_leds_data, 0, sizeof(uint32_t)*_leds);
@@ -74,10 +74,11 @@ public:
             return;
         }
 
-        logger::log(logger::LLOG::DEBUG, "SLED", std::string(__func__) + " name " + name() + " Set color: " + std::to_string(rgb));
+        std::size_t last_led = (led_end == 0 ? _leds : led_end);
+        logger::log(logger::LLOG::DEBUG, "SLED", std::string(__func__) + " name " + name() + " Set color: " + std::to_string(rgb) +
+             + " Start: " + std::to_string(led_start) + " End: " + std::to_string(last_led));
 
-        std::size_t _end = (led_end == 0 ? _leds : led_end);
-        for(int i = led_start; i < _end; i++){
+        for(int i = led_start; i < last_led; i++){
             _leds_data[i] = rgb;
         }
     }

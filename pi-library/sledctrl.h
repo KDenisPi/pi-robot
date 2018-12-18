@@ -95,7 +95,7 @@ public:
     /*
     * Set some color for LEDs
     */
-    void set_color(const int led, const uint32_t rgb, const std::size_t led_start = 0, const std::size_t led_end = 0) {
+    void color(const int led, const uint32_t rgb, const std::size_t led_start = 0, const std::size_t led_end = 0) {
         if( led > sleds()){
             logger::log(logger::LLOG::ERROR, "SLED", std::string(__func__) + " Incorrect LEDS number");
             return;
@@ -141,7 +141,7 @@ public:
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Write to SPI: " +  std::to_string(blen));
 
             //Write data to SPI
-            _spi->data_rw(_data_buff, blen);
+            //_spi->data_rw(_data_buff, blen);
 
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Writed to SPI: " +  std::to_string(blen));
         }
