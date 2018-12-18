@@ -29,7 +29,7 @@ public:
         logger::log(logger::LLOG::DEBUG, "SLED", std::string(__func__) + " name " + name + " LEDs: " + std::to_string(_leds) + " Len: " + std::to_string(sizeof(uint32_t)*_leds));
 
         _leds_data = new uint32_t[_leds];
-        std::memset(_leds_data, 0, sizeof(uint32_t)*_leds);
+        std::memset((void*)_leds_data, 0, sizeof(uint32_t)*_leds);
 
         _gamma = new uint8_t[256];
         for(int i = 0; i < 256; i++){

@@ -49,7 +49,7 @@ public:
     }
 
     //Add LED Stripe
-    void add_sled(const pled&& led){
+    void add_sled(const pled& led){
         if( _sleds.size() == _max_sleds){
             logger::log(logger::LLOG::ERROR, "LedCtrl", std::string(__func__) + " Too much SLEDs");
             return;
@@ -72,8 +72,8 @@ public:
     virtual const std::string printConfig() override {
         std::string result =  name() + " SPI Channel: " + std::to_string(_spi_channel) + " Maximun supported SLEDs: " +
             std::to_string(_max_sleds) + "\n";
-        for (auto sled = _sleds.cbegin(); sled != _sleds.cend(); sled++){
-            result += sled->get()->printConfig();
+        for (auto sled : _sleds){
+            result += sled->printConfig();
         }
         return result;
     }
@@ -110,15 +110,18 @@ public:
 
         prepare_bufeer();
 
-        for (auto sled  : _sleds ){
+        //std::shared_ptr<pirobot::item::SLed> sled = _sleds[0];
+        for (auto sled  : _sleds )
+        {
       	    int lcount = sled->leds();
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Procedd LED stripe with : " +  std::to_string(lcount));
 
             const std::uint8_t* lgm = sled->gamma();
             const std::uint32_t* ldata = sled->leds_data();
 
-            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Initialize buffer" );
-            memset( _data_buff, 0, get_data_length());
+            const size_t  dlen = get_data_length();
+            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Initialize buffer Len: " + std::to_string(dlen));
+            std::memset( (void*)_data_buff, 0, dlen);
 
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Fill data buffer" );
             for( std::size_t lidx = 0; lidx < lcount; lidx++ ){
