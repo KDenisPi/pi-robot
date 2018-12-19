@@ -617,7 +617,14 @@ bool PiRobot::configure(const std::string& cfile){
                             auto leds  =  jsonhelper::get_attr_mandatory<int>(stripe, "leds");
                             auto sled_name  =  jsonhelper::get_attr_mandatory<std::string>(stripe, "name");
                             auto sled_comm  =  jsonhelper::get_attr<std::string>(stripe, "comment", "");
-                            sledctrl->add_sled(std::shared_ptr<pirobot::item::SLed>(new pirobot::item::SLed(leds, sled_name, sled_comm)));
+                            auto sled_type  =  jsonhelper::get_attr_mandatory<std::string>(stripe, "type");
+                            if( sled_type != "" && sled_type != "" ){
+                                logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid LED stripe type " + sled_type);
+                                throw std::runtime_error(std::string(" Invalid LED stripe type" + sled_type));
+                            }
+                            pirobot::item::SLedType stype = (sled_type == "WS2810" ? pirobot::item::SLedType::WS2810 : pirobot::item::SLedType::WS2812B);
+
+                            sledctrl->add_sled(std::shared_ptr<pirobot::item::SLed>(new pirobot::item::SLed(leds, stype, sled_name, sled_comm)));
                         }
                     }
                 }//Item types

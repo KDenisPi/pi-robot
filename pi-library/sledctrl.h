@@ -34,7 +34,7 @@ public:
         const std::string& comment="",
         spi::SPI_CHANNELS channel = spi::SPI_CHANNELS::SPI_0) :
             item::Item(name, comment, item::ItemTypes::SLEDCRTL) ,
-            _spi(spi), _spi_channel(channel), _data_buff(nullptr), _max_leds(0), _max_sleds(sleds) {
+            _spi(spi), _spi_channel(channel), _data_buff(nullptr), _max_leds(0), _max_sleds(sleds), _data_buff_len(0) {
 
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " name " + name + " Max SLEDs: " + std::to_string(sleds));
     }
@@ -59,7 +59,12 @@ public:
             _max_leds = led->leds();
         }
 
-        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Added SLEDs " + led->name() + " Max LEDs now: " + std::to_string(_max_leds));
+        std::size_t bsize = get_buffer_length(led->leds(), led->stype());
+        if( bsize > _data_buff_len )
+            _data_buff_len = bsize;
+
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Added SLEDs " + led->name() +
+            " Max LEDs now: " + std::to_string(_max_leds) + " Buffer size now: " + std::to_string(_data_buff_len));
 
         _sleds.push_back(led);
     }
@@ -84,6 +89,7 @@ public:
     virtual const std::string printConfig() override {
         std::string result =  name() + " SPI Channel: " + std::to_string(_spi_channel) + " Maximun supported SLEDs: " +
             std::to_string(_max_sleds) + "\n";
+
         for (auto sled : _sleds){
             result += sled->printConfig();
         }
@@ -126,6 +132,9 @@ public:
         for (auto sled  : _sleds )
         {
       	    int lcount = sled->leds();
+            const pirobot::item::SLedType stp = sled->stype();
+            const std::size_t blen = get_buffer_length(lcount, stp);
+
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Procedd LED stripe with : " +  std::to_string(lcount));
 
             const std::uint8_t* lgm = sled->gamma();
@@ -144,24 +153,25 @@ public:
                     lgm[ ((ldata[lidx] >> 16 ) & 0xFF) ]
                 };
 
-                //
-                // Replace each R,G,B byte by 3 bytes
-                //
-/*
-                for(int rgb_idx = 0; rgb_idx < 3; rgb_idx++){
-                    int idx = (lidx + rgb_idx)*3;
-                    _data_buff[idx] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]];
-                    _data_buff[idx+1] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]+1];
-                    _data_buff[idx+2] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]+2];
-*/
+                if( stp == pirobot::item::SLedType::WS2812B){
+                    //
+                    // Replace each R,G,B byte by 3 bytes
+                    //
+                    for(int rgb_idx = 0; rgb_idx < 3; rgb_idx++){
+                        int idx = (lidx + rgb_idx)*3;
+                        _data_buff[idx] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]];
+                        _data_buff[idx+1] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]+1];
+                        _data_buff[idx+2] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]+2];
+                    }
+                }
+                else{
                     int idx = lidx*3;
                     _data_buff[idx + 0] |= rgb[0];
                     _data_buff[idx + 1] |= rgb[1];
                     _data_buff[idx + 2] |= rgb[2];
-                //}
+                }
             }
 
-            const std::size_t blen = get_buffer_length(sled->leds());
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Write to SPI: " +  std::to_string(blen));
 
             //Write data to SPI
@@ -169,8 +179,8 @@ public:
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Writed to SPI: " +  std::to_string(blen));
         }
 
-        // Wait 500 ms before sending new data
         this->Off();
+        // Wait 500 ms before sending new data
         std::this_thread::sleep_for(std::chrono::microseconds(500));
 
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Finished" );
@@ -194,10 +204,7 @@ private:
 
     void prepare_bufeer() {
         if( _data_buff == nullptr ){
-            _data_buff_len = get_buffer_length();
-
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Create data buffer: " + std::to_string(_data_buff_len) );
-
             _data_buff = (uint8_t*) std::malloc(sizeof(uint8_t)*_data_buff_len);
         }
     }
@@ -207,8 +214,11 @@ private:
     *
     *   LEDs * 3(RGB) * 3(3 SPI bits for 1 data bit) + 15 (50us)
     */
-    std::size_t get_buffer_length(const int leds = 0) {
-        return (leds == 0 ? _max_leds : leds) * 3; // * 3 + 15;
+    const std::size_t get_buffer_length(const int leds, pirobot::item::SLedType stype) {
+        std::size_t bsize =  leds * 3;
+        if( stype == pirobot::item::SLedType::WS2812B)
+            bsize = bsize * 3 + 15;
+        return bsize;
     }
 };
 

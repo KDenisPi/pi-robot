@@ -271,7 +271,7 @@
             "comment": "",
             "spi_channel": 0,   //SPI channel
             "stripes": 1,        //maximun number of LED stripes supported by controller
-            "stripe": [{"name": "LED stripe", "leds": 30, "comment": "optional"}]  //LED stripes list
+            "stripe": [{"name": "LED stripe", "leds": 30, "comment": "optional", "type": "WS2810"}]  //LED stripes list. Possible types WS2810, WS2812B
 
         }
     ]

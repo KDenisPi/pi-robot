@@ -20,7 +20,7 @@
             "comment": "",
             "spi_channel": 0,
             "stripes": 1,
-            "stripe": [{"name": "SLED1", "leds": 32}]
+            "stripe": [{"name": "SLED1", "leds": 32, "type": "WS2810"}]
         }
     ]
 }

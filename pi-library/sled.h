@@ -17,14 +17,19 @@
 namespace pirobot {
 namespace item {
 
+enum SLedType {
+    WS2810 = 0,
+    WS2812B
+};
+
 class SLed: public Item {
 public:
 
     /*
     *
     */
-    SLed(const int led_num, const std::string& name, const std::string& comment="") :
-        Item( name, comment, ItemTypes::SLED), _leds(led_num){
+    SLed(const int led_num, const SLedType stype, const std::string& name, const std::string& comment="") :
+        Item( name, comment, ItemTypes::SLED), _leds(led_num), _stype(stype) {
         assert( _leds > 0 );
 
         logger::log(logger::LLOG::DEBUG, "SLED", std::string(__func__) + " name " + name + " LEDs: " + std::to_string(_leds) + " Len: " + std::to_string(sizeof(uint32_t)*_leds));
@@ -39,7 +44,7 @@ public:
     }
 
     virtual const std::string printConfig() override {
-        std::string result =  name() + " LEDs:  " +  std::to_string(_leds) + "\n";
+        std::string result =  name() + " LEDs:  " +  std::to_string(_leds) + " Type: " + (_stype == SLedType::WS2810 ? "WS2810" : "WS2812B") + "\n";
         return result;
     }
 
@@ -66,6 +71,10 @@ public:
         return _gamma;
     }
 
+    const SLedType stype() const {
+        return _stype;
+    }
+
     /*
     * Set some color for LEDs
     */
@@ -86,6 +95,7 @@ public:
 
 private:
     std::size_t _leds;          //LEDs number
+    SLedType _stype;            //SLed Type
     uint32_t* _leds_data;       //array of LEDs data
     uint8_t*  _gamma;           //LED gamma
 };
