@@ -11,6 +11,7 @@
 #define PI_LIBRARY_SLED_H_
 
 #include <cstring>
+#include <cstdlib>
 #include "item.h"
 
 namespace pirobot {
@@ -28,10 +29,10 @@ public:
 
         logger::log(logger::LLOG::DEBUG, "SLED", std::string(__func__) + " name " + name + " LEDs: " + std::to_string(_leds) + " Len: " + std::to_string(sizeof(uint32_t)*_leds));
 
-        _leds_data = new uint32_t[_leds];
+        _leds_data = (uint32_t*)std::malloc(sizeof(uint32_t) * _leds);
         std::memset((void*)_leds_data, 0, sizeof(uint32_t)*_leds);
 
-        _gamma = new uint8_t[256];
+        _gamma = (uint8_t*)std::malloc(sizeof(uint8_t)*256);
         for(int i = 0; i < 256; i++){
             _gamma[i] = i;
         }
@@ -48,8 +49,8 @@ public:
     virtual ~SLed() {
         logger::log(logger::LLOG::DEBUG, "SLED", std::string(__func__) + " name " + name());
 
-        delete[] _leds_data;
-        delete[] _gamma;
+        std::free(_leds_data);
+        std::free(_gamma);
     }
 
     // Get LEDs number

@@ -45,7 +45,7 @@ public:
         _sleds.empty();
 
         if( _data_buff != nullptr )
-            delete[] _data_buff;
+            free(_data_buff);
     }
 
     //Add LED Stripe
@@ -69,6 +69,18 @@ public:
         return _sleds.size();
     }
 
+    /*
+    * Allocate data buffer
+    */
+    virtual bool initialize() override {
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__));
+
+        prepare_bufeer();
+        return true;
+    }
+
+    //
+    //
     virtual const std::string printConfig() override {
         std::string result =  name() + " SPI Channel: " + std::to_string(_spi_channel) + " Maximun supported SLEDs: " +
             std::to_string(_max_sleds) + "\n";
@@ -108,8 +120,6 @@ public:
     void refresh(){
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started" );
 
-        prepare_bufeer();
-
         //std::shared_ptr<pirobot::item::SLed> sled = _sleds[0];
         for (auto sled  : _sleds )
         {
@@ -132,7 +142,7 @@ public:
                 };
 
                 //
-                // Write 3 bytes for each R,G,B
+                // Replace each R,G,B byte by 3 bytes
                 //
                 for(int rgb_idx = 0; rgb_idx < 3; rgb_idx++){
                     int idx = (lidx + rgb_idx)*3;
@@ -179,7 +189,7 @@ private:
 
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Create data buffer: " + std::to_string(_data_buff_len) );
 
-            _data_buff = new std::uint8_t( _data_buff_len );
+            _data_buff = (uint8_t*) std::malloc(sizeof(uint8_t)*_data_buff_len);
         }
     }
 
