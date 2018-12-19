@@ -120,6 +120,8 @@ public:
     void refresh(){
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started" );
 
+        this->On();
+
         //std::shared_ptr<pirobot::item::SLed> sled = _sleds[0];
         for (auto sled  : _sleds )
         {
@@ -136,6 +138,7 @@ public:
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Fill data buffer" );
             for( std::size_t lidx = 0; lidx < lcount; lidx++ ){
                 // Convert 0RGB to R,G,B
+
                 std::uint8_t rgb[3] = { lgm[ (ldata[lidx] & 0xFF) ],
                     lgm[ ((ldata[lidx] >> 8 ) & 0xFF) ],
                     lgm[ ((ldata[lidx] >> 16 ) & 0xFF) ]
@@ -144,24 +147,30 @@ public:
                 //
                 // Replace each R,G,B byte by 3 bytes
                 //
+/*
                 for(int rgb_idx = 0; rgb_idx < 3; rgb_idx++){
                     int idx = (lidx + rgb_idx)*3;
                     _data_buff[idx] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]];
                     _data_buff[idx+1] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]+1];
                     _data_buff[idx+2] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]+2];
-                }
+*/
+                    int idx = lidx*3;
+                    _data_buff[idx + 0] |= rgb[0];
+                    _data_buff[idx + 1] |= rgb[1];
+                    _data_buff[idx + 2] |= rgb[2];
+                //}
             }
 
             const std::size_t blen = get_buffer_length(sled->leds());
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Write to SPI: " +  std::to_string(blen));
 
             //Write data to SPI
-            //_spi->data_rw(_data_buff, blen);
-
+            _spi->data_rw(_data_buff, blen);
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Writed to SPI: " +  std::to_string(blen));
         }
 
         // Wait 500 ms before sending new data
+        this->Off();
         std::this_thread::sleep_for(std::chrono::microseconds(500));
 
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Finished" );
@@ -199,7 +208,7 @@ private:
     *   LEDs * 3(RGB) * 3(3 SPI bits for 1 data bit) + 15 (50us)
     */
     std::size_t get_buffer_length(const int leds = 0) {
-        return (leds == 0 ? _max_leds : leds) * 3 * 3 + 15;
+        return (leds == 0 ? _max_leds : leds) * 3; // * 3 + 15;
     }
 };
 
