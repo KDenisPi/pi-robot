@@ -89,10 +89,11 @@ public:
     * Allocate data buffer
     */
     virtual bool initialize() override {
-        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__));
-
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Allocate memory");
         prepare_bufeer();
-        return true;
+
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Start worker" );
+        return piutils::Threaded::start<SLedCtrl>(this);
     }
 
     //

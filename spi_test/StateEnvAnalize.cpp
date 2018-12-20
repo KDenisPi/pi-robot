@@ -34,12 +34,12 @@ void StateEnvAnalize::OnEntry(){
     auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
 
     //Switch all OFF
-    ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::OffTransformation())));
+    //ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::OffTransformation())));
     //Switch one LED Red On
-    ctrl->add_transformation( std::make_pair(std::string(),
-        std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::SetColorTransformation(0x00FF0000, 0, 1))));
+    //ctrl->add_transformation( std::make_pair(std::string(),
+    //    std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::SetColorTransformation(0x00FF0000, 0, 1))));
     //Switch LED
-    ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::ShiftTransformation(25))));
+    //ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::ShiftTransformation(25))));
 
 
     get_itf()->timer_start(TIMER_FINISH_ROBOT, 30);
