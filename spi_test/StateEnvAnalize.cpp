@@ -34,16 +34,17 @@ void StateEnvAnalize::OnEntry(){
     auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
 
     //Switch all OFF
-    //ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::OffTransformation())));
+    ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::OffTransformation())));
     //Switch one LED Red On
-    //ctrl->add_transformation( std::make_pair(std::string(),
-    //    std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::SetColorTransformation(0x00FF0000, 0, 1))));
+    ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::SetColorTransformation(0x00200000, 0, 1))));
+    ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::SetColorTransformation(0x00002000, 3, 1))));
     //Switch LED
-    //ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::ShiftTransformation(25))));
+    ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::ShiftTransformation(25))));
+    ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::ShiftTransformation(25, pirobot::item::Direction::ToLeft))));
 
 
-    get_itf()->timer_start(TIMER_FINISH_ROBOT, 30);
-    //get_itf()->timer_start(TIMER_USER_1, 1);
+    //get_itf()->timer_start(TIMER_FINISH_ROBOT, 30);
+    get_itf()->timer_start(TIMER_USER_1, 40);
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize finished");
 }
 
@@ -58,6 +59,7 @@ bool StateEnvAnalize::OnTimer(const int id){
 
         case TIMER_USER_1:
             {
+                ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::OffTransformation())));
                 logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Run stop timer 5 sec");
                 get_itf()->timer_start(TIMER_FINISH_ROBOT, 5);
 

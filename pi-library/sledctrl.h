@@ -41,6 +41,8 @@ public:
             _spi(spi), _spi_channel(channel), _data_buff(nullptr), _max_leds(0), _max_sleds(sleds), _data_buff_len(0) {
 
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " name " + name + " Max SLEDs: " + std::to_string(sleds));
+
+        _transf = std::shared_ptr<piutils::circbuff::CircularBuffer<transf_type>>(new piutils::circbuff::CircularBuffer<transf_type>(20));
     }
 
     virtual ~SLedCtrl(){
@@ -85,6 +87,11 @@ public:
         return _sleds.size();
     }
 
+    virtual void stop() override {
+      logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started.");
+      piutils::Threaded::stop();
+    }
+
     /*
     * Allocate data buffer
     */
@@ -94,6 +101,7 @@ public:
 
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Start worker" );
         return piutils::Threaded::start<SLedCtrl>(this);
+        //return true;
     }
 
     //
@@ -137,11 +145,18 @@ public:
     *
     */
     const transf_type& get_transformation(){
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started" );
         return _transf->get();
     }
 
+    /*
+    *
+    */
     void add_transformation(const transf_type& transf){
-        _transf->put(transf);
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started" );
+
+        _transf->put(std::move(transf));
+        cv.notify_one();
     }
 
     /*
@@ -274,11 +289,12 @@ public:
                 logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Transformation detected" );
 
                 auto transf = p->get_transformation();
-                bool needmore = p->aplply_transformation(transf);
-                while(!p->is_stop_signal() && needmore){
-                    needmore = p->aplply_transformation(transf);
+                bool last_attempt = p->aplply_transformation(transf);
 
-                    logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Transformation. Need more: " + std::to_string(needmore) );
+                while(!p->is_stop_signal() && !last_attempt){
+                    last_attempt = p->aplply_transformation(transf);
+
+                    logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Transformation. Last attempt: " + std::to_string(last_attempt) );
                 }
 
             }

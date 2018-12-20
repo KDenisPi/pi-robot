@@ -92,12 +92,17 @@ public:
 
     virtual bool transform(uint32_t* ldata, const std::size_t llen){}
 
-    const int attempt()
+    /*
+    *  Decrease attempt counter
+    *  Return TRUE - if there was the last attempt, otherwise need execute transformation more time
+    */
+    const bool attempt()
     {
         if( !is_finished() && _count > 0)
             _count--;
 
-        return _count;
+        logger::log(logger::LLOG::DEBUG, "SLED", std::string(__func__) + " Count: " + std::to_string(_count));
+        return is_finished();
     }
 
     const bool is_finished() {
