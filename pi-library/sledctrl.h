@@ -14,6 +14,9 @@
 #include <memory>
 #include <vector>
 
+#include "Threaded.h"
+#include "CircularBuffer.h"
+
 #include "SPI.h"
 #include "item.h"
 #include "sled.h"
@@ -24,8 +27,9 @@ namespace item {
 namespace sledctrl {
 
 using pled = std::shared_ptr<pirobot::item::SLed>;
+using transf_type = std::pair<std::string, std::shared_ptr<pirobot::item::SledTransformer>>;
 
-class SLedCtrl : public pirobot::item::Item
+class SLedCtrl : public pirobot::item::Item, piutils::Threaded
 {
 public:
     SLedCtrl(const std::shared_ptr<pirobot::spi::SPI> spi,
@@ -41,6 +45,13 @@ public:
 
     virtual ~SLedCtrl(){
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " name " + name());
+
+        piutils::Threaded::stop();
+
+        while( !_transf->is_empty()){
+            auto item = _transf->get();
+            item.second->reset();
+        }
 
         _sleds.empty();
 
@@ -113,22 +124,33 @@ public:
     /*
     * Set some color for LEDs
     */
-    void color(const int led, const uint32_t rgb, const std::size_t led_start = 0, const std::size_t led_end = 0) {
+    void color(const int led, const uint32_t rgb, const std::size_t led_start, const std::size_t led_count) {
         if( led > sleds()){
             logger::log(logger::LLOG::ERROR, "SLED", std::string(__func__) + " Incorrect LEDS number");
             return;
         }
 
-        _sleds[led]->set_color(rgb, led_start, led_end);
     }
 
-    //
+    /*
+    *
+    */
+    const transf_type& get_transformation(){
+        return _transf->get();
+    }
+
+    void add_transformation(const transf_type& transf){
+        _transf->put(transf);
+    }
+
+    /*
+    *
+    */
     void refresh(){
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started" );
 
         this->On();
 
-        //std::shared_ptr<pirobot::item::SLed> sled = _sleds[0];
         for (auto sled  : _sleds )
         {
       	    int lcount = sled->leds();
@@ -146,9 +168,10 @@ public:
 
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Fill data buffer" );
             for( std::size_t lidx = 0; lidx < lcount; lidx++ ){
-                // Convert 0RGB to R,G,B
 
-                std::uint8_t rgb[3] = { lgm[ (ldata[lidx] & 0xFF) ],
+                // Convert 0RGB to R,G,B
+                std::uint8_t rgb[3] = {
+                    lgm[ (ldata[lidx] & 0xFF) ],
                     lgm[ ((ldata[lidx] >> 8 ) & 0xFF) ],
                     lgm[ ((ldata[lidx] >> 16 ) & 0xFF) ]
                 };
@@ -186,6 +209,83 @@ public:
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Finished" );
     }
 
+    /*
+    * Apply transformation
+    */
+    const bool aplply_transformation(transf_type& transf){
+        std::string led_idx = transf.first;
+        bool applied = false;
+
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Transformation : " + typeid(transf.second.get()).name());
+
+        for (auto sled  : _sleds )
+        {
+            /*
+            * Check should we apply this transformation for this LED stripe
+            */
+      	    if(!led_idx.empty() && led_idx != sled->name() ){
+                  continue;
+            }
+
+            transf.second->transform( sled->leds_data(), sled->leds());
+            applied = true;
+        }
+
+        if(applied){
+
+            /*
+            * Refresh LEDs
+            */
+            refresh();
+
+            transf.second->delay_after();
+        }
+
+        return transf.second->is_finished();
+    }
+
+    /*
+    *
+    */
+    const bool is_transformation() const {
+        return !_transf->is_empty();
+    }
+
+
+    /*
+    *
+    *
+    */
+    static void worker(SLedCtrl* p){
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started" );
+
+        auto fn = [p]{return (p->is_stop_signal() || p->is_transformation());};
+
+        while(!p->is_stop_signal()){
+            //wait until stop signal will be received or we will have steps for processing
+            {
+                std::unique_lock<std::mutex> lk(p->cv_m);
+                p->cv.wait(lk, fn);
+            }
+
+            while( !p->is_stop_signal() && p->is_transformation() ){
+                logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Transformation detected" );
+
+                auto transf = p->get_transformation();
+                bool needmore = p->aplply_transformation(transf);
+                while(!p->is_stop_signal() && needmore){
+                    needmore = p->aplply_transformation(transf);
+
+                    logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Transformation. Need more: " + std::to_string(needmore) );
+                }
+
+            }
+        }
+
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Finished" );
+    }
+
+
 private:
     std::vector<pled> _sleds;   //LED stripe list
     int _max_leds;              //Maximum number of LEDs
@@ -198,6 +298,10 @@ private:
     std::uint8_t* _data_buff;   //Data buffer for SPI
     std::size_t _data_buff_len;
 
+    std::shared_ptr<piutils::circbuff::CircularBuffer<transf_type>> _transf;
+    /*
+    *
+    */
     const std::size_t get_data_length() const {
         return _data_buff_len;
     }

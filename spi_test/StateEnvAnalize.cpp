@@ -11,6 +11,7 @@
 #include "StateEnvAnalize.h"
 #include "MyEnv.h"
 
+#include "sled.h"
 #include "sledctrl.h"
 
 namespace spi_test {
@@ -31,16 +32,18 @@ void StateEnvAnalize::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize started");
 
     auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
-    //ctrl->On();
 
-    ctrl->color(0, (uint32_t)0x00000000, 0, 32);
-    ctrl->color(0, (uint32_t)0x00550000, 0, 5);
-    ctrl->refresh();
-    ctrl->color(0, (uint32_t)0x0000FF00, 10, 15);
-    ctrl->refresh();
+    //Switch all OFF
+    ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::OffTransformation())));
+    //Switch one LED Red On
+    ctrl->add_transformation( std::make_pair(std::string(),
+        std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::SetColorTransformation(0x00FF0000, 0, 1))));
+    //Switch LED
+    ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::ShiftTransformation(25))));
 
-    //get_itf()->timer_start(TIMER_FINISH_ROBOT, 5);
-    get_itf()->timer_start(TIMER_USER_1, 1);
+
+    get_itf()->timer_start(TIMER_FINISH_ROBOT, 30);
+    //get_itf()->timer_start(TIMER_USER_1, 1);
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize finished");
 }
 
@@ -50,19 +53,11 @@ bool StateEnvAnalize::OnTimer(const int id){
     auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
     switch(id){
         case TIMER_FINISH_ROBOT:
-            ctrl->color(0, (uint32_t)0x00000000);
-            ctrl->refresh();
-
-            //ctrl->Off();
-
             get_itf()->finish();
             return true;
 
         case TIMER_USER_1:
             {
-                ctrl->color(0, (uint32_t)0x000000FF, 5, 10);
-                ctrl->refresh();
-
                 logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Run stop timer 5 sec");
                 get_itf()->timer_start(TIMER_FINISH_ROBOT, 5);
 
