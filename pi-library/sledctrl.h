@@ -157,7 +157,8 @@ public:
             const pirobot::item::SLedType stp = sled->stype();
             const std::size_t blen = get_buffer_length(lcount, stp);
 
-            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Procedd LED stripe with : " +  std::to_string(lcount));
+            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Procedd LED stripe with : " +
+                    std::to_string(lcount) + " Type: " + std::to_string(stp));
 
             const std::uint8_t* lgm = sled->gamma();
             const std::uint32_t* ldata = sled->leds_data();
