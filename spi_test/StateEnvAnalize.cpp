@@ -69,14 +69,18 @@ void StateEnvAnalize::add_transformations(){
 
     //LED_OFF()
     //uint32_t rgb[32];
-    std::array<uint32_t, 32> rgbs;
-    for( int i = 0; i < rgbs.max_size(); i++){
-        rgbs[i] = _rand();
+    std::vector<uint32_t> rgbs;
+    for( int i = 0; i < 32; i++){
+        rgbs.push_back(( (i%2) == 0 ? _rand() : 0x00000000));
     }
-
-    //std::array<uint32_t, 32> rgbs = {0x00202020 /*White*/, 0x00000020 /*Blue*/, 0x00200000/*Red*/};
     SET_RGBS(rgbs)
+    SHIFT_R(32)
+    SHIFT_L(32)
 
+    rgbs = {0x00202020 /*White*/, 0x00000020 /*Blue*/, 0x00200000/*Red*/, 0x00000000 /*Black*/,
+            0x00251010 /*White*/, 0x00101020 /*Blue*/, 0x00102510/*Red*/, 0x00000000 /*Black*/,
+            0x00150505 /*White*/, 0x00050515 /*Blue*/, 0x00051505/*Red*/, 0x00000000 /*Black*/
+            };
     SHIFT_R(32)
     SHIFT_L(32)
 
@@ -123,6 +127,7 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
 
             if( _cycle_counter < MAX_CYCLES ){
                 add_transformations();
+                _cycle_counter--;
             }
             else{
                 auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");

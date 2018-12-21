@@ -12,6 +12,7 @@
 
 #include <cstring>
 #include <cstdlib>
+#include <vector>
 #include "item.h"
 
 namespace pirobot {
@@ -268,7 +269,7 @@ private:
 */
 class SetColorGroupTransformation : public SledTransformer {
 public:
-    SetColorGroupTransformation(std::array<uint32_t, 32>& rgbs, const std::size_t led_start = 0, const std::size_t repeat = -1)
+    SetColorGroupTransformation(std::vector<uint32_t>& rgbs, const std::size_t led_start = 0, const std::size_t repeat = -1)
         : SledTransformer(), _led_start(led_start), _repeat(repeat) {
 
         _rgbs.swap( rgbs );
@@ -293,7 +294,7 @@ public:
     }
 
 private:
-    std::array<uint32_t, 32> _rgbs;
+    std::vector<uint32_t> _rgbs;
     std::size_t _led_start;
     std::size_t _repeat;
 };
