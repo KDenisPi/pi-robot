@@ -9,6 +9,7 @@
 #define PROJECT1_STATEENVANALIZE_H_
 
 #include "State.h"
+#include "defines.h"
 
 namespace spi_test {
 namespace state {
@@ -21,6 +22,13 @@ public:
 	virtual void OnEntry() override;
 	virtual bool OnTimer(const int id) override;
 	virtual bool OnEvent(const std::shared_ptr<smachine::Event> event) override;
+
+	void ntf_finished(const std::string& event_name)
+	{
+		std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, (event_name.empty() ? EVT_CYCLE_FINISHED : event_name)));
+		EVENT(event);
+
+	}
 
 };
 

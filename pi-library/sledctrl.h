@@ -235,6 +235,17 @@ public:
 
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Transformation : " + typeid(transf.second.get()).name());
 
+        /*
+        * Special processing for NOP transformation
+        */
+        if(transf.second->is_last()){
+            /*
+            * Send notification inside
+            */
+            transf.second->transform();
+            return transf.second->is_finished();
+        }
+
         for (auto sled  : _sleds )
         {
             /*
