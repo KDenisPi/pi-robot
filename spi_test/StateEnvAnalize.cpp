@@ -103,7 +103,12 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
         * Cycle finished
         */
         if(event->name() == EVT_CYCLE_FINISHED){
+
+            auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
+            LED_OFF()
+
             get_itf()->timer_start(TIMER_FINISH_ROBOT, 5);
+            return true;
         }
     }
 

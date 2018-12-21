@@ -189,7 +189,7 @@ public:
             _ntf_finished(_event);
         }
 
-        return true;
+        return SledTransformer::attempt();
     }
 
     std::function<void(const std::string&)> _ntf_finished;
