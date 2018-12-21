@@ -45,32 +45,47 @@ void StateEnvAnalize::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize started");
 
     auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
-
-    //Switch all OFF
     LED_OFF()
-
-    //Switch one LED Red On
-    SET_RGB(0x00200000, 0)
-    SHIFT_R(32)
-
-    SET_RGB(0x00002000, 3)
-    SHIFT_R(32)
-
-    LED_OFF()
-
-    std::array<uint32_t, 5> rgbs = {0x00202020 /*White*/, 0x00000020 /*Blue*/, 0x00200000/*Red*/};
-    SET_RGBS(rgbs)
-
-    SHIFT_R(32)
-    SHIFT_L(32)
-
-    NOP(EVT_CYCLE_FINISHED)
+    add_transformations();
 
     //get_itf()->timer_start(TIMER_FINISH_ROBOT, 30);
     //get_itf()->timer_start(TIMER_USER_1, 120);
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize finished");
 }
 
+/*
+*
+*/
+void StateEnvAnalize::add_transformations(){
+    auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
+    //Switch all OFF
+
+    //Switch one LED Red On
+    //SET_RGB(0x00200000, 0)
+    //SHIFT_R(32)
+
+    //SET_RGB(0x00002000, 3)
+    //SHIFT_R(32)
+
+    //LED_OFF()
+    //uint32_t rgb[32];
+    std::array<uint32_t, 32> rgbs;
+    for( int i = 0; i < rgbs.max_size(); i++){
+        rgbs[i] = _rand();
+    }
+
+    //std::array<uint32_t, 32> rgbs = {0x00202020 /*White*/, 0x00000020 /*Blue*/, 0x00200000/*Red*/};
+    SET_RGBS(rgbs)
+
+    SHIFT_R(32)
+    SHIFT_L(32)
+
+    NOP(EVT_CYCLE_FINISHED)
+}
+
+/*
+*
+*/
 bool StateEnvAnalize::OnTimer(const int id){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnTimer ID: " + std::to_string(id));
 
@@ -94,6 +109,8 @@ bool StateEnvAnalize::OnTimer(const int id){
     return false;
 }
 
+#define MAX_CYCLES 20
+
 bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ==== OnEvent Type: " + std::to_string(event->type()) +
             " Name:[" + event->name() + "]");
@@ -104,10 +121,15 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
         */
         if(event->name() == EVT_CYCLE_FINISHED){
 
-            auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
-            LED_OFF()
+            if( _cycle_counter < MAX_CYCLES ){
+                add_transformations();
+            }
+            else{
+                auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
+                LED_OFF()
 
-            get_itf()->timer_start(TIMER_FINISH_ROBOT, 5);
+                get_itf()->timer_start(TIMER_FINISH_ROBOT, 5);
+            }
             return true;
         }
     }

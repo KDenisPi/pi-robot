@@ -268,7 +268,7 @@ private:
 */
 class SetColorGroupTransformation : public SledTransformer {
 public:
-    SetColorGroupTransformation(std::array<uint32_t, 5>& rgbs, const std::size_t led_start = 0, const std::size_t repeat = -1)
+    SetColorGroupTransformation(std::array<uint32_t, 32>& rgbs, const std::size_t led_start = 0, const std::size_t repeat = -1)
         : SledTransformer(), _led_start(led_start), _repeat(repeat) {
 
         _rgbs.swap( rgbs );
@@ -278,6 +278,7 @@ public:
 
     virtual bool transform(uint32_t* ldata, const std::size_t llen) override{
         std::size_t nset = ( (_repeat > 0 && (_led_start + _rgbs.size()*_repeat) < llen) ? _rgbs.size()*_repeat : llen);
+        if( nset > 32 ) nset = 32;
 
         logger::log(logger::LLOG::DEBUG, "SLED", std::string(__func__) + " Start: " + std::to_string(_led_start) +
             " Last: " + std::to_string(nset) + " RGBs: " + std::to_string(_rgbs.size()));
@@ -292,7 +293,7 @@ public:
     }
 
 private:
-    std::array<uint32_t, 5> _rgbs;
+    std::array<uint32_t, 32> _rgbs;
     std::size_t _led_start;
     std::size_t _repeat;
 };
