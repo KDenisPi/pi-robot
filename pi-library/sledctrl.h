@@ -42,7 +42,7 @@ public:
 
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " name " + name + " Max SLEDs: " + std::to_string(sleds));
 
-        _transf = std::shared_ptr<piutils::circbuff::CircularBuffer<transf_type>>(new piutils::circbuff::CircularBuffer<transf_type>(20));
+        _transf = std::shared_ptr<piutils::circbuff::CircularBuffer<transf_type>>(new piutils::circbuff::CircularBuffer<transf_type>(50));
     }
 
     virtual ~SLedCtrl(){

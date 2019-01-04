@@ -58,20 +58,10 @@ void StateEnvAnalize::OnEntry(){
 */
 void StateEnvAnalize::add_transformations(){
     auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
-    //Switch all OFF
 
-    //Switch one LED Red On
-    //SET_RGB(0x00200000, 0)
-    //SHIFT_R(32)
-
-    //SET_RGB(0x00002000, 3)
-    //SHIFT_R(32)
-
-    //LED_OFF()
-    //uint32_t rgb[32];
     std::vector<uint32_t> rgbs;
     for( int i = 0; i < 32; i++){
-        //rgbs.push_back(( (i%2) == 0 ? _rand() : 0x00000000));
+        rgbs.push_back(( (i%2) == 0 ? _rand() : 0x00000000));
     }
 
     SET_RGBS(rgbs)
@@ -98,7 +88,6 @@ void StateEnvAnalize::add_transformations(){
     SET_RGBS(rgbs)
     SHIFT_L(32)
 
-
     rgbs = {0x00202020 /*White*/, 0x00000020 /*Blue*/, 0x00200000/*Red*/, 0x00000000 /*Black*/,
             0x00251010 /*White*/, 0x00101020 /*Blue*/, 0x00102510/*Red*/, 0x00000000 /*Black*/,
             0x00150505 /*White*/, 0x00050515 /*Blue*/, 0x00051505/*Red*/, 0x00000000 /*Black*/
@@ -116,6 +105,27 @@ void StateEnvAnalize::add_transformations(){
 
     SET_RGBS(rgbs)
     SHIFT_L(32)
+
+    for( int i = 0; i < 32; i++){
+        rgbs.push_back(( (i%2) == 0 ? 0x00cc2233 : 0x00000000));
+    }
+
+    SET_RGBS(rgbs)
+    SHIFT_R(32)
+    SHIFT_L(32)
+
+    for( int i = 0; i < 32; i++){
+        rgbs.push_back(( (i%2) == 0 ? 0x0022cc33 : 0x00000000));
+    }
+    SET_RGBS(rgbs)
+    SHIFT_R(32)
+
+    for( int i = 0; i < 32; i++){
+        rgbs.push_back(( (i%2) == 0 ? 0x002233cc : 0x00000000));
+    }
+    SET_RGBS(rgbs)
+    SHIFT_L(32)
+
 
     NOP(EVT_CYCLE_FINISHED)
 }
