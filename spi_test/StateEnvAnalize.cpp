@@ -29,27 +29,14 @@ StateEnvAnalize::~StateEnvAnalize() {
     // TODO Auto-generated destructor stub
 }
 
-#define SHIFT_R(n) ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(\
-            new pirobot::item::ShiftTransformation(n))));
-#define SHIFT_L(n) ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(\
-            new pirobot::item::ShiftTransformation(n, pirobot::item::Direction::ToLeft))));
-#define LED_OFF()  ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::OffTransformation())));
-#define SET_RGB(rgb,stpos) ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(\
-            new pirobot::item::SetColorTransformation(rgb, stpos, 1))));
-#define SET_RGBS(n) ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(\
-            new pirobot::item::SetColorGroupTransformation(n))));
-#define NOP(evt) ctrl->add_transformation( std::make_pair(std::string(), std::shared_ptr<pirobot::item::SledTransformer>(\
-            new pirobot::item::NopTransformation(evt,std::bind(&StateEnvAnalize::ntf_finished, this, std::placeholders::_1)))));
+#define NOP(obj, evt) LAST_OP(obj, evt, StateEnvAnalize::ntf_finished, this)
 
 void StateEnvAnalize::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize started");
 
     auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
-    LED_OFF()
     add_transformations();
 
-    //get_itf()->timer_start(TIMER_FINISH_ROBOT, 30);
-    //get_itf()->timer_start(TIMER_USER_1, 120);
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize finished");
 }
 
@@ -59,75 +46,89 @@ void StateEnvAnalize::OnEntry(){
 void StateEnvAnalize::add_transformations(){
     auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
 
+    ctrl->transformations_clear();
+
     std::vector<uint32_t> rgbs;
     for( int i = 0; i < 32; i++){
         rgbs.push_back(( (i%2) == 0 ? _rand() : 0x00000000));
     }
 
-    SET_RGBS(rgbs)
-    SHIFT_R(32)
-    SHIFT_L(32)
+    ctrl->add_copy_rgbs(rgbs);
+    ctrl->add_r_shift(32);
+    ctrl->add_l_shift(32);
 
     for( int i = 0; i < 32; i++){
         rgbs.push_back(( (i%2) == 0 ? 0x00AA0000 : 0x00000000));
     }
+    ctrl->add_copy_rgbs(rgbs);
+    ctrl->add_r_shift(32);
+    ctrl->add_l_shift(32);
 
-    SET_RGBS(rgbs)
-    SHIFT_R(32)
-    SHIFT_L(32)
+    for( int i = 0; i < 32; i++){
+        rgbs.push_back(( (i%2) == 0 ? _rand() : 0x00000000));
+    }
+
+    ctrl->add_copy_rgbs(rgbs);
+    ctrl->add_r_shift(32);
+    ctrl->add_l_shift(32);
 
     for( int i = 0; i < 32; i++){
         rgbs.push_back(( (i%2) == 0 ? 0x0000AA00 : 0x00000000));
     }
-    SET_RGBS(rgbs)
-    SHIFT_R(32)
+    ctrl->add_copy_rgbs(rgbs);
+    ctrl->add_r_shift(32);
 
     for( int i = 0; i < 32; i++){
         rgbs.push_back(( (i%2) == 0 ? 0x000000AA : 0x00000000));
     }
-    SET_RGBS(rgbs)
-    SHIFT_L(32)
+    ctrl->add_copy_rgbs(rgbs);
+    ctrl->add_l_shift(32);
 
-    rgbs = {0x00202020 /*White*/, 0x00000020 /*Blue*/, 0x00200000/*Red*/, 0x00000000 /*Black*/,
-            0x00251010 /*White*/, 0x00101020 /*Blue*/, 0x00102510/*Red*/, 0x00000000 /*Black*/,
-            0x00150505 /*White*/, 0x00050515 /*Blue*/, 0x00051505/*Red*/, 0x00000000 /*Black*/
+    rgbs = {0x00202020 , 0x00000020 , 0x00200000, 0x00000000 ,
+            0x00251010 , 0x00101020 , 0x00102510, 0x00000000 ,
+            0x00150505 , 0x00050515 , 0x00051505, 0x00000000
             };
-
-    SET_RGBS(rgbs)
-    SHIFT_R(32)
-
+    ctrl->add_copy_rgbs(rgbs);
+    ctrl->add_r_shift(32);
 
     rgbs = {
-            0x00150505 /*White*/, 0x00050515 /*Blue*/, 0x00051505/*Red*/, 0x00000000 /*Black*/,
-            0x00251010 /*White*/, 0x00101020 /*Blue*/, 0x00102510/*Red*/, 0x00000000 /*Black*/,
-            0x00202020 /*White*/, 0x00000020 /*Blue*/, 0x00200000/*Red*/, 0x00000000 /*Black*/
+            0x00150505 , 0x00050515 , 0x00051505, 0x00000000,
+            0x00251010 , 0x00101020 , 0x00102510, 0x00000000,
+            0x00202020 , 0x00000020 , 0x00200000, 0x00000000
             };
-
-    SET_RGBS(rgbs)
-    SHIFT_L(32)
+    ctrl->add_copy_rgbs(rgbs);
+    ctrl->add_l_shift(32);
 
     for( int i = 0; i < 32; i++){
         rgbs.push_back(( (i%2) == 0 ? 0x00cc2233 : 0x00000000));
     }
+    ctrl->add_copy_rgbs(rgbs);
+    ctrl->add_r_shift(32);
+    ctrl->add_l_shift(32);
 
-    SET_RGBS(rgbs)
-    SHIFT_R(32)
-    SHIFT_L(32)
+    for( int i = 0; i < 32; i++){
+        rgbs.push_back(( (i%2) == 0 ? _rand() : 0x00000000));
+    }
+    ctrl->add_copy_rgbs(rgbs);
+    ctrl->add_r_shift(32);
+    ctrl->add_l_shift(32);
 
     for( int i = 0; i < 32; i++){
         rgbs.push_back(( (i%2) == 0 ? 0x0022cc33 : 0x00000000));
     }
-    SET_RGBS(rgbs)
-    SHIFT_R(32)
+    ctrl->add_copy_rgbs(rgbs);
+    ctrl->add_r_shift(32);
 
     for( int i = 0; i < 32; i++){
         rgbs.push_back(( (i%2) == 0 ? 0x002233cc : 0x00000000));
     }
-    SET_RGBS(rgbs)
-    SHIFT_L(32)
+    ctrl->add_copy_rgbs(rgbs);
+    ctrl->add_l_shift(32);
 
+    const std::function<void(const std::string&)> ffinished = std::bind(&StateEnvAnalize::ntf_finished, this, std::placeholders::_1);
+    ctrl->add_last_operation(EVT_CYCLE_FINISHED, ffinished);
 
-    NOP(EVT_CYCLE_FINISHED)
+    ctrl->transformations_restart();
 }
 
 /*
@@ -144,7 +145,7 @@ bool StateEnvAnalize::OnTimer(const int id){
 
         case TIMER_USER_1:
             {
-                LED_OFF()
+                ctrl->add_led_off();
 
                 logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Run stop timer 5 sec");
                 get_itf()->timer_start(TIMER_FINISH_ROBOT, 5);
@@ -167,17 +168,8 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
         * Cycle finished
         */
         if(event->name() == EVT_CYCLE_FINISHED){
+            auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
 
-            if( _cycle_counter < MAX_CYCLES ){
-                add_transformations();
-                _cycle_counter--;
-            }
-            else{
-                auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
-                LED_OFF()
-
-                get_itf()->timer_start(TIMER_FINISH_ROBOT, 5);
-            }
             return true;
         }
     }

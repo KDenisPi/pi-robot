@@ -15,7 +15,6 @@
 #include <vector>
 
 #include "Threaded.h"
-#include "CircularBuffer.h"
 
 #include "SPI.h"
 #include "item.h"
@@ -41,8 +40,6 @@ public:
             _spi(spi), _spi_channel(channel), _data_buff(nullptr), _max_leds(0), _max_sleds(sleds), _data_buff_len(0) {
 
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " name " + name + " Max SLEDs: " + std::to_string(sleds));
-
-        _transf = std::shared_ptr<piutils::circbuff::CircularBuffer<transf_type>>(new piutils::circbuff::CircularBuffer<transf_type>(50));
     }
 
     virtual ~SLedCtrl(){
@@ -50,19 +47,65 @@ public:
 
         piutils::Threaded::stop();
 
-        while( !_transf->is_empty()){
-            auto item = _transf->get();
+        for( auto item : _transf ){
             item.second->reset();
         }
 
-        _sleds.empty();
+        _sleds.clear();
 
         if( _data_buff != nullptr )
             free(_data_buff);
     }
 
+    /*
+    * Add Right shift transformation
+    */
+    void add_r_shift(const int shift_count){
+        this->transformation_add( std::make_pair(std::string("SHIFT_R"), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::ShiftTransformation(shift_count, pirobot::item::Direction::ToRight))));
+    }
+
+    /*
+    * Add Left shift transformation
+    */
+    void add_l_shift(const int shift_count){
+        this->transformation_add( std::make_pair(std::string("SHIFT_R"), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::ShiftTransformation(shift_count, pirobot::item::Direction::ToLeft))));
+    }
+
+    /*
+    * Add LED Off tranformation
+    */
+    void add_led_off(const bool clear_before = false){
+        if(clear_before){
+            transformations_clear();
+        }
+
+        this->transformation_add( std::make_pair(std::string("LED_OFF"), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::OffTransformation())));
+    }
+
+    /*
+    * Add SET color for group of LEDs transformation
+    */
+   void add_copy_rgbs(std::vector<uint32_t>& rgbs, const int stpos = 0, const int repeat = -1){
+        this->transformation_add( std::make_pair(std::string("SET_RGB"), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::SetColorGroupTransformation(rgbs, stpos, repeat))));
+   }
+
+    /*
+    * Add SET color for group of LEDs transformation
+    */
+   void add_copy_rgb(const std::uint32_t rgb, const int stpos){
+        this->transformation_add( std::make_pair(std::string("SET_RGB"), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::SetColorTransformation(rgb, stpos, 1))));
+   }
+
+    /*
+    * Add LAST transformation reaction
+    */
+   void add_last_operation(const std::string& evt, std::function<void(const std::string&)> ntf_finished){
+        this->transformation_add( std::make_pair(std::string("LAST_OP"), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::NopTransformation(evt,ntf_finished))));
+   }
+
     //Add LED Stripe
     void add_sled(const pled& led){
+
         if( _sleds.size() == _max_sleds){
             logger::log(logger::LLOG::ERROR, "LedCtrl", std::string(__func__) + " Too much SLEDs");
             return;
@@ -87,6 +130,9 @@ public:
         return _sleds.size();
     }
 
+    /*
+    * Stop working thread
+    */
     virtual void stop() override {
       logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started.");
       piutils::Threaded::stop();
@@ -101,11 +147,11 @@ public:
 
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Start worker" );
         return piutils::Threaded::start<SLedCtrl>(this);
-        //return true;
     }
 
-    //
-    //
+    /*
+    * Print device configuration
+    */
     virtual const std::string printConfig() override {
         std::string result =  name() + " SPI Channel: " + std::to_string(_spi_channel) + " Maximun supported SLEDs: " +
             std::to_string(_max_sleds) + "\n";
@@ -117,14 +163,14 @@ public:
     }
 
     /*
-    *
+    * ON for SPI based device
     */
     void On() {
         _spi->set_channel_on( _spi_channel );
     }
 
     /*
-    *
+    * OFF for SPI base device
     */
     void Off() {
         _spi->set_channel_off( _spi_channel );
@@ -146,17 +192,43 @@ public:
     */
     const transf_type& get_transformation(){
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started" );
-        return _transf->get();
+        if(_transf.size() == 0 || _transf_idx >= _transf.size())
+            return _transf_empty;
+
+        return _transf.at(_transf_idx++);
     }
 
     /*
-    *
+    * Add a new transformation to the queue
     */
-    void add_transformation(const transf_type& transf){
+    void transformation_add(const transf_type& transf){
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started" );
+        _transf.push_back(std::move(transf));
+    }
 
-        _transf->put(std::move(transf));
+    /*
+    * Clear list of thransformations
+    */
+    void transformations_clear(){
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started" );
+        _transf.empty();
+        _transf_idx = 0;
+    }
+
+    /*
+    * Restart transformation queue
+    */
+    void transformations_restart(){
+        _transf_idx = 0;
         cv.notify_one();
+    }
+
+
+    /*
+    * TODO: Load list of transformations from the file
+    */
+    void load_transformation(const std::string& filename){
+
     }
 
     /*
@@ -169,7 +241,7 @@ public:
 
         for (auto sled  : _sleds )
         {
-      	    int lcount = sled->leds();
+              int lcount = sled->leds();
             const pirobot::item::SLedType stp = sled->stype();
             const std::size_t blen = get_buffer_length(lcount, stp);
 
@@ -251,11 +323,11 @@ public:
             /*
             * Check should we apply this transformation for this LED stripe
             */
-      	    if(!led_idx.empty() && led_idx != sled->name() ){
+              if(!led_idx.empty() && led_idx != sled->name() ){
                   continue;
             }
 
-            transf.second->transform( sled->leds_data(), sled->leds());
+            transf.second->transform(sled->leds_data(), sled->leds());
             applied = true;
         }
 
@@ -276,7 +348,7 @@ public:
     *
     */
     const bool is_transformation() const {
-        return !_transf->is_empty();
+        return (_transf_idx < _transf.size());
     }
 
 
@@ -300,6 +372,9 @@ public:
                 logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Transformation detected" );
 
                 auto transf = p->get_transformation();
+                if( transf.second.get() == nullptr )
+                    continue;
+
                 bool last_attempt = p->aplply_transformation(transf);
 
                 while(!p->is_stop_signal() && !last_attempt){
@@ -327,7 +402,10 @@ private:
     std::uint8_t* _data_buff;   //Data buffer for SPI
     std::size_t _data_buff_len;
 
-    std::shared_ptr<piutils::circbuff::CircularBuffer<transf_type>> _transf;
+    std::vector<transf_type> _transf;
+    std::size_t _transf_idx;
+
+    transf_type _transf_empty = std::make_pair(std::string(""), std::shared_ptr<pirobot::item::SledTransformer>());
     /*
     *
     */

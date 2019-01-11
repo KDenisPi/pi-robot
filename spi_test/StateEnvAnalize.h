@@ -37,7 +37,7 @@ public:
 private:
 	std::linear_congruential_engine<std::uint_fast32_t, 16807, 0, 0x00FFFFFF> _rand;
 
-	int _cycle_counter = 0;
+	int _cycle_counter = -1;
 };
 
 } /* namespace state */
