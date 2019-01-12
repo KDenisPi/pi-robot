@@ -34,7 +34,7 @@
 #include "tsl2561.h"
 #include "lcd.h"
 #include "sled.h"
-#include "sledctrl.h"
+#include "sledctrl_spi.h"
 
 namespace pirobot {
 const char TAG[] = "PiRobot";
@@ -593,7 +593,7 @@ bool PiRobot::configure(const std::string& cfile){
                     /*
                     *  LED stripe controller
                     */
-                    case item::ItemTypes::SLEDCRTL:
+                    case item::ItemTypes::SLEDCRTLSPI:
                     {
                         auto spi_channel  =  jsonhelper::get_attr<int>(json_item, "spi_channel", 0);
                         auto stripes  =  jsonhelper::get_attr<int>(json_item, "stripes", 0);
@@ -602,7 +602,7 @@ bool PiRobot::configure(const std::string& cfile){
 
                         items_add(item_name,
                                 std::shared_ptr<pirobot::item::Item>(
-                                    new pirobot::item::sledctrl::SLedCtrl(
+                                    new pirobot::item::sledctrl::SLedCtrlSpi(
                                         std::static_pointer_cast<pirobot::spi::SPI>(get_provider("SPI")),
                                         stripes,
                                         item_name,
@@ -610,7 +610,7 @@ bool PiRobot::configure(const std::string& cfile){
                                         (spi_channel == 0 ? spi::SPI_CHANNELS::SPI_0 : spi::SPI_CHANNELS::SPI_1)
                                     )));
 
-                        auto sledctrl = std::static_pointer_cast<pirobot::item::sledctrl::SLedCtrl>(get_item(item_name));
+                        auto sledctrl = std::static_pointer_cast<pirobot::item::sledctrl::SLedCtrlSpi>(get_item(item_name));
 
                         auto json_sled  =  json_item["stripe"];
                         for(const auto& stripe : json_sled.array_range()){

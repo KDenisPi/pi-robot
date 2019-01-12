@@ -37,7 +37,8 @@ enum ItemTypes{
     TSL2561,
     LCD,
     SLED,
-    SLEDCRTL,
+    SLEDCRTLSPI,
+    SLEDCRTLPWM,
     LAST_ITEM
 };
 

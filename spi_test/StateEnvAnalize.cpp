@@ -34,7 +34,7 @@ StateEnvAnalize::~StateEnvAnalize() {
 void StateEnvAnalize::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize started");
 
-    auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
+    auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrlSpi");
     add_transformations();
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " StateEnvAnalize finished");
@@ -44,7 +44,7 @@ void StateEnvAnalize::OnEntry(){
 *
 */
 void StateEnvAnalize::add_transformations(){
-    auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
+    auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrlSpi");
 
     ctrl->transformations_clear();
 
@@ -137,7 +137,7 @@ void StateEnvAnalize::add_transformations(){
 bool StateEnvAnalize::OnTimer(const int id){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnTimer ID: " + std::to_string(id));
 
-    auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
+    auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrlSpi");
     switch(id){
         case TIMER_FINISH_ROBOT:
             get_itf()->finish();
@@ -168,7 +168,7 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
         * Cycle finished
         */
         if(event->name() == EVT_CYCLE_FINISHED){
-            auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrl");
+            auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrlSpi");
 
             return true;
         }

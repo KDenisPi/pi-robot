@@ -263,10 +263,10 @@
         },
 
         //
-        // LED Stripe
+        // LED Stripe. SPI based controller
         //
         {
-            "type": "SLEDCRTL",
+            "type": "SLEDCRTLSPI",
             "name": "item_name",
             "comment": "",
             "spi_channel": 0,   //SPI channel

@@ -38,7 +38,8 @@ const char* Item::ItemNames[] = {
     "TSL2561",
     "LCD",
     "SLED",
-    "SLEDCTRL"
+    "SLEDCTRLSPI",
+    "SLEDCTRLPWM"
 };
 
 /*

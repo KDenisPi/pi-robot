@@ -16,7 +16,6 @@
 
 #include "Threaded.h"
 
-#include "SPI.h"
 #include "item.h"
 #include "sled.h"
 #include "sled_data.h"
@@ -31,13 +30,12 @@ using transf_type = std::pair<std::string, std::shared_ptr<pirobot::item::SledTr
 class SLedCtrl : public pirobot::item::Item, piutils::Threaded
 {
 public:
-    SLedCtrl(const std::shared_ptr<pirobot::spi::SPI> spi,
+    SLedCtrl(item::ItemTypes itype,
         const int sleds,
         const std::string& name,
-        const std::string& comment="",
-        spi::SPI_CHANNELS channel = spi::SPI_CHANNELS::SPI_0) :
-            item::Item(name, comment, item::ItemTypes::SLEDCRTL) ,
-            _spi(spi), _spi_channel(channel), _data_buff(nullptr), _max_leds(0), _max_sleds(sleds), _data_buff_len(0) {
+        const std::string& comment="") :
+            item::Item(name, comment, itype) ,
+             _data_buff(nullptr), _max_leds(0), _max_sleds(sleds), _data_buff_len(0) {
 
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " name " + name + " Max SLEDs: " + std::to_string(sleds));
     }
@@ -56,6 +54,10 @@ public:
         if( _data_buff != nullptr )
             free(_data_buff);
     }
+
+    virtual bool write_data(unsigned char* data, int len) = 0;
+    virtual void On() = 0;
+    virtual void Off() = 0;
 
     /*
     * Add Right shift transformation
@@ -153,27 +155,12 @@ public:
     * Print device configuration
     */
     virtual const std::string printConfig() override {
-        std::string result =  name() + " SPI Channel: " + std::to_string(_spi_channel) + " Maximun supported SLEDs: " +
-            std::to_string(_max_sleds) + "\n";
+        std::string result =  name() + " Maximun supported SLEDs: " + std::to_string(_max_sleds) + "\n";
 
         for (auto sled : _sleds){
             result += sled->printConfig();
         }
         return result;
-    }
-
-    /*
-    * ON for SPI based device
-    */
-    void On() {
-        _spi->set_channel_on( _spi_channel );
-    }
-
-    /*
-    * OFF for SPI base device
-    */
-    void Off() {
-        _spi->set_channel_off( _spi_channel );
     }
 
     /*
@@ -184,7 +171,6 @@ public:
             logger::log(logger::LLOG::ERROR, "SLED", std::string(__func__) + " Incorrect LEDS number");
             return;
         }
-
     }
 
     /*
@@ -284,11 +270,7 @@ public:
                 }
             }
 
-            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Write to SPI: " +  std::to_string(blen));
-
-            //Write data to SPI
-            _spi->data_rw(_data_buff, blen);
-            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Writed to SPI: " +  std::to_string(blen));
+            write_data(_data_buff, blen);
         }
 
         this->Off();
@@ -395,11 +377,7 @@ private:
     int _max_leds;              //Maximum number of LEDs
     int _max_sleds;             //maximun number of LED Stripes supported by controller
 
-    std::shared_ptr<pirobot::spi::SPI> _spi;
-    int _spi_channel;
-
-
-    std::uint8_t* _data_buff;   //Data buffer for SPI
+    std::uint8_t* _data_buff;   //Data buffer
     std::size_t _data_buff_len;
 
     std::vector<transf_type> _transf;
@@ -423,7 +401,7 @@ private:
     /*
     *   Calculate buffer length
     *
-    *   LEDs * 3(RGB) * 3(3 SPI bits for 1 data bit) + 15 (50us)
+    *   WS2812B: LEDs * 3(RGB) * 3(3 SPI bits for 1 data bit) + 15 (50us)
     */
     const std::size_t get_buffer_length(const int leds, pirobot::item::SLedType stype) {
         std::size_t bsize =  leds * 3;
