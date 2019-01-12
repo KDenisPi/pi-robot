@@ -169,6 +169,7 @@ bool StateEnvAnalize::OnEvent(const std::shared_ptr<smachine::Event> event){
         */
         if(event->name() == EVT_CYCLE_FINISHED){
             auto ctrl = get_item<pirobot::item::sledctrl::SLedCtrl>("SLedCtrlSpi");
+            ctrl->transformations_restart();
 
             return true;
         }

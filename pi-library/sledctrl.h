@@ -35,7 +35,7 @@ public:
         const std::string& name,
         const std::string& comment="") :
             item::Item(name, comment, itype) ,
-             _data_buff(nullptr), _max_leds(0), _max_sleds(sleds), _data_buff_len(0) {
+             _data_buff(nullptr), _max_leds(0), _max_sleds(sleds), _data_buff_len(0), _transf_idx(0) {
 
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " name " + name + " Max SLEDs: " + std::to_string(sleds));
     }
@@ -88,7 +88,7 @@ public:
     * Add SET color for group of LEDs transformation
     */
    void add_copy_rgbs(std::vector<uint32_t>& rgbs, const int stpos = 0, const int repeat = -1){
-        this->transformation_add( std::make_pair(std::string("SET_RGB"), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::SetColorGroupTransformation(rgbs, stpos, repeat))));
+        this->transformation_add( std::make_pair(std::string("SET_RGBS"), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::SetColorGroupTransformation(rgbs, stpos, repeat))));
    }
 
     /*
@@ -177,7 +177,7 @@ public:
     *
     */
     const transf_type& get_transformation(){
-        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started" );
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started Idx:" + std::to_string(_transf_idx));
         if(_transf.size() == 0 || _transf_idx >= _transf.size())
             return _transf_empty;
 
@@ -205,6 +205,10 @@ public:
     * Restart transformation queue
     */
     void transformations_restart(){
+        for (auto transf  : _transf ){
+           transf.second->reset();
+       }
+
         _transf_idx = 0;
         cv.notify_one();
     }
@@ -227,7 +231,7 @@ public:
 
         for (auto sled  : _sleds )
         {
-              int lcount = sled->leds();
+            int lcount = sled->leds();
             const pirobot::item::SLedType stp = sled->stype();
             const std::size_t blen = get_buffer_length(lcount, stp);
 
@@ -287,12 +291,13 @@ public:
         std::string led_idx = transf.first;
         bool applied = false;
 
-        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Transformation : " + typeid(transf.second.get()).name());
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Transformation: " + transf.first);
 
         /*
         * Special processing for NOP transformation
         */
         if(transf.second->is_last()){
+            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Last transformation: " + transf.first);
             /*
             * Send notification inside
             */
@@ -305,9 +310,9 @@ public:
             /*
             * Check should we apply this transformation for this LED stripe
             */
-              if(!led_idx.empty() && led_idx != sled->name() ){
-                  continue;
-            }
+            //if(!led_idx.empty() && led_idx != sled->name() ){
+            //      continue;
+            //}
 
             transf.second->transform(sled->leds_data(), sled->leds());
             applied = true;
@@ -351,12 +356,11 @@ public:
             }
 
             while( !p->is_stop_signal() && p->is_transformation() ){
-                logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Transformation detected" );
-
                 auto transf = p->get_transformation();
                 if( transf.second.get() == nullptr )
                     continue;
 
+                logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Transformation detected " + transf.first );
                 bool last_attempt = p->aplply_transformation(transf);
 
                 while(!p->is_stop_signal() && !last_attempt){
