@@ -129,12 +129,15 @@ public:
     }
 
     //
-    // Static function for working with item type
+    // Get Item type name by code
     //
     static const std::string type_name(const int typen) {
         return std::string(ItemNames[typen]);
     }
 
+    /*
+    * Get Item type by type name
+    */
     static const item::ItemTypes type_by_name(const std::string& name){
         for(int i = 0; i <  item::ItemTypes::LAST_ITEM; i++){
             if(name == ItemNames[i])
@@ -157,6 +160,20 @@ public:
         }
         return false;
     }
+
+    /*
+    * Get peripheral address
+    */
+    static const uint32_t get_peripheral_address() {
+#ifdef REAL_HARDWARE
+        _peripheral_address = bcm_host_get_peripheral_address();
+#else
+       _peripheral_address = 0x3f000000;
+#endif
+        return _peripheral_address;
+    }
+
+    static uint32_t _peripheral_address;
 
     //callback function for upper level notification
     std::function<void(int, std::string&, void*)> notify;

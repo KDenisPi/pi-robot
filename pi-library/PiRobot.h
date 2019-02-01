@@ -16,6 +16,10 @@
 
 #include <wiringPi.h>
 
+#ifdef REAL_HARDWARE
+#include <bcm_host.h>
+#endif
+
 #include "provider.h"
 #include "GpioProvider.h"
 #include "gpio.h"
@@ -136,7 +140,6 @@ private:
         m_realWorld = real_world;
     }
 
-private:
     bool m_realWorld;
     std::recursive_mutex mutex_sm;
 
