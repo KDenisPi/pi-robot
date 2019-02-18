@@ -166,14 +166,11 @@ public:
     */
     static const uint32_t get_peripheral_address() {
 #ifdef REAL_HARDWARE
-        _peripheral_address = bcm_host_get_peripheral_address();
+        return bcm_host_get_peripheral_address();
 #else
-       _peripheral_address = 0x3f000000;
+        return 0x3f000000;
 #endif
-        return _peripheral_address;
     }
-
-    static uint32_t _peripheral_address;
 
     //callback function for upper level notification
     std::function<void(int, std::string&, void*)> notify;
