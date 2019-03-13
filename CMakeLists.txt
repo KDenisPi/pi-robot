@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 #project name
 project(pi-robot)
+enable_testing()
 
 set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../third-party")
 
@@ -76,12 +77,14 @@ set(EXTRA_LIBS ${EXTRA_LIBS} ${MOSQT_LIB} ${MOSQT_LIB_CPP})
 message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
+add_subdirectory(${PROJECT_SOURCE_DIR}/pi-core)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-sql)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-mqqt)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-http)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smachine)
 
+add_subdirectory(${PROJECT_SOURCE_DIR}/pi-tests)
 
 #add_subdirectory(${PROJECT_SOURCE_DIR}/version1)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/project1)
