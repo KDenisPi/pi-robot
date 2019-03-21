@@ -14,8 +14,21 @@
 
 namespace pi_core {
 
-class CoreCommon {
+/*
+* The mappint of peripherals to DREQ (0-31)
 
+    TODO: add another if needed
+*/
+
+enum DREQ {
+    NO_required = 0,
+    DSI = 1,
+    PCM_TX = 2,
+    PWM = 5,
+    SPI_TX = 6
+};
+
+class CoreCommon {
 public:
     /*
     * Get peripheral address
