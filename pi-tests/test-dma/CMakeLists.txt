@@ -10,6 +10,6 @@ include_directories(BEFORE ${WIRINGPI_INC}
 )
 
 add_executable(testDma test_dma.cpp)
-target_link_libraries(testDma ${EXTRA_LIBS} pi-utils pi-core)
+target_link_libraries(testDma ${EXTRA_LIBS} pi-utils pi-core pthread)
 
 add_test(NAME Dma1 COMMAND testDma)
