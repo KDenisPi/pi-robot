@@ -107,9 +107,11 @@ public:
         memset((void*)_ctrk_blk, 0x00, sizeof(struct dma_ctrl_blk_t));
 
         if( _dreq == DREQ::PWM){
+            logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Selected CI flags for PWM");
             set_ti_flags(ti_flags_pwm);
         }
         else if(_dreq == DREQ::NO_required){
+            logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Selected CI flags for no DREQ");
             set_ti_flags(_ti_flags_test);
         }
     }
@@ -136,7 +138,7 @@ public:
     }
 
     const uint32_t ti_flags_pwm = DMA_REG_TI_NO_WIDE_BURSTS | DMA_REG_TI_WAIT_RESP |  DMA_REQ_TI_SRC_INC | DMA_REG_TI_DEST_DREQ | DMA_REG_TI_PERMAP(5);
-    const uint32_t _ti_flags_test = DMA_REG_TI_NO_WIDE_BURSTS | DMA_REG_TI_WAIT_RESP | DMA_REQ_TI_SRC_INC | DMA_REQ_TI_DEST_INC;
+    const uint32_t _ti_flags_test = DMA_REG_TI_NO_WIDE_BURSTS | DMA_REG_TI_WAIT_RESP | DMA_REQ_TI_SRC_INC | DMA_REG_TI_DEST_DREQ | DMA_REG_TI_PERMAP(0);
 
     /*
     * Initialize DMA control block
@@ -164,7 +166,7 @@ private:
 */
 class DmaControl {
 public:
-    DmaControl(const unsigned short dma = 10) : _addr(0), _dma(dma){
+    DmaControl(const unsigned short dma = 10) : _addr(0), _dma(dma), _started(false){
         assert(dma < 15);
         _addr = dma_address(dma);
 
@@ -246,6 +248,8 @@ public:
 
         reset();
 
+        _started = true;
+
         //set DMA Control Block
         _dma_regs->_conblk_ad = dma_control_block;
         _dma_regs->_cs = _cs_flags | DMA_REG_CS_ACTIVE;
@@ -253,11 +257,32 @@ public:
         return true;
    }
 
+   const bool is_error() const {
+     return ((_dma_regs->_cs & DMA_REG_CS_ERROR) != 0);
+   }
+
+   const bool is_paused() const {
+     return ((_dma_regs->_cs & DMA_REG_CS_PAUSED) != 0);
+   }
+
+   const bool is_waiting_for_outstanding_writes() const {
+     return ((_dma_regs->_cs & DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES) != 0);
+   }
+
     /*
     * Check if we finished to process current DMA CB
     */
-    bool is_finished() const {
-        return ((_dma_regs->_cs & DMA_REG_CS_END) != 0);
+    bool is_finished() {
+        bool result = true;
+        if(_started){
+            result = ((_dma_regs->_cs & DMA_REG_CS_END) != 0);
+            if(result){
+                 _started = false;
+                 logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Clear started flag");
+            }
+        }
+
+        return result;
     }
 
     /*
@@ -279,6 +304,7 @@ private:
     uint16_t _dma;  //DMA number
     uint32_t _cs_flags; //default flags for CS register
 
+    bool _started;  //Flag do we have active Control Block on processing
     volatile struct dma_regs_t* _dma_regs;
 };
 

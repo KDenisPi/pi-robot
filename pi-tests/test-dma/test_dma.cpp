@@ -36,20 +36,26 @@ int main (int argc, char* argv[])
     std::cout << "DMA Initialized" << std::endl;
 
     std::cout << "Start to process DMA Control Block" << std::endl;
-    //dma->process_control_block(reinterpret_cast<std::uintptr_t>(cb));
-    std::cout << "Waiting for finish processing DMA Control Block" << std::endl;
-
-    for(;;){
+    if( !dma->process_control_block(reinterpret_cast<std::uintptr_t>(cb))){
+        std::cout << "Could not start copy" << std::endl;
+    }
+    else {
+      std::cout << "Waiting for finish processing DMA Control Block" << std::endl;
+      for(int i = 0; i < 10; i++){
         if(dma->is_finished()){
             break;
         }
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::cout << "Waiting for finish processing DMA Control Block Error: " << dma->is_error() << " Paused: " << dma->is_paused() << " Wait: " << dma->is_waiting_for_outstanding_writes() << std::endl;
+      }
+
+      std::cout << "Finished processing DMA Control Block" << std::endl;
     }
 
     delete dma;
     delete cb;
     free(src);
     free(dst);
-    exit(EXIT_SUCCESS);
 
     std::cout << "Finished" << std::endl;
     exit(EXIT_SUCCESS);
