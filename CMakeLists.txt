@@ -53,7 +53,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 #
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("debug mode")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -std=c++11 -fexceptions -Wno-psabi")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -g -std=c++11 -fexceptions -Wno-psabi -Og")
 ELSE(CMAKE_BUILD_TYPE NOT STREQUAL "Debug")
     message("release with debug info mode")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_RELWITHDEBINFO} -std=c++11 -fexceptions -Wno-psabi")

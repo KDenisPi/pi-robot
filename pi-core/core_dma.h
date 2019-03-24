@@ -178,11 +178,11 @@ public:
         }
     }
 
-    static const uint32_t dma_base = 0x00007000;
-    static const uint32_t dma_address(const unsigned short dma){
+    static const uintptr_t dma_base = 0x00007000;
+    static const uintptr_t dma_address(const unsigned short dma){
         assert(dma < 15);
 
-        uint32_t ph_address = CoreCommon::get_peripheral_address();
+        uintptr_t ph_address = CoreCommon::get_peripheral_address();
         if(dma == 15)
             return ph_address + 0x00e05000;
 
@@ -275,7 +275,7 @@ public:
     static const uint32_t cs_flags_test = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES;
 
 private:
-    uint32_t _addr; //DMA register address
+    uintptr_t _addr; //DMA register address
     uint16_t _dma;  //DMA number
     uint32_t _cs_flags; //default flags for CS register
 

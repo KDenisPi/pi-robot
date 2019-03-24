@@ -33,7 +33,7 @@ public:
     /*
     * Get peripheral address
     */
-    static const uint32_t get_peripheral_address() {
+    static const uintptr_t get_peripheral_address() {
 #ifdef REAL_HARDWARE
         return bcm_host_get_peripheral_address();
 #else
