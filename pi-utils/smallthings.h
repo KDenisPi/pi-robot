@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/mman.h>
+#include <fcntl.h>
 
 #include "logger.h"
 namespace piutils {
