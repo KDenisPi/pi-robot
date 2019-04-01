@@ -8,4 +8,3 @@
  */
 
 #include "core_clock_pwm.h"
-#include "core_dma.h"

@@ -23,6 +23,6 @@ aux_source_directory(${PROJECT_SOURCE_DIR} SPI_TEST_SOURCES)
 
 add_executable(spi_test ${SPI_TEST_SOURCES})
 
-target_link_libraries(spi_test ${EXTRA_LIBS}  ${WIPI_LIB} ${WIPI_LIB_DEV}  crypt)
+target_link_libraries(spi_test ${EXTRA_LIBS}  ${WIPI_LIB} ${WIPI_LIB_DEV} crypt rt)
 
 #configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)

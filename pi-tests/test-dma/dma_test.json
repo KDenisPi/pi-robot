@@ -1,0 +1,9 @@
+{
+    "version" : "1.0",
+    "real_world" : true,
+
+    "gpios": [
+        {"name": "pwm_0",   "provider": "SIMPLE", "pin": 1, "mode": "OUT"},
+        {"name": "pwm_1",   "provider": "SIMPLE", "pin": 23, "mode": "OUT"}
+    ]
+}

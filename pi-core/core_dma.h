@@ -7,8 +7,8 @@
  *      Author: Denis Kudia
  */
 
-#ifndef PI_CORE_DMA_H_
-#define PI_CORE_DMA_H_
+#ifndef PI_CORE_DIRECT_MEMORY_ACCESS_H_
+#define PI_CORE_DIRECT_MEMORY_ACCESS_H_
 
 #include "core_common.h"
 #include "smallthings.h"
@@ -138,7 +138,7 @@ public:
     }
 
     const uint32_t ti_flags_pwm = DMA_REG_TI_NO_WIDE_BURSTS | DMA_REG_TI_WAIT_RESP |  DMA_REQ_TI_SRC_INC | DMA_REG_TI_DEST_DREQ | DMA_REG_TI_PERMAP(5);
-    const uint32_t _ti_flags_test = DMA_REG_TI_NO_WIDE_BURSTS | DMA_REG_TI_WAIT_RESP | DMA_REQ_TI_SRC_INC | DMA_REG_TI_DEST_DREQ | DMA_REG_TI_PERMAP(0);
+    const uint32_t _ti_flags_test = DMA_REG_TI_NO_WIDE_BURSTS | DMA_REG_TI_WAIT_RESP | DMA_REQ_TI_SRC_INC | DMA_REG_TI_DEST_DREQ | DMA_REG_TI_PERMAP(5);
 
     /*
     * Initialize DMA control block
@@ -297,7 +297,7 @@ public:
     }
 
     static const uint32_t cs_flags_pwm = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES | DMA_REG_CS_PANIC_PRIORITY(15) | DMA_REG_CS_PRIORITY(15);
-    static const uint32_t cs_flags_test = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES;
+    static const uint32_t cs_flags_test = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES | DMA_REG_CS_PANIC_PRIORITY(15) | DMA_REG_CS_PRIORITY(15);
 
 private:
     uintptr_t _addr; //DMA register address

@@ -29,7 +29,7 @@ message( STATUS "EXTRA_LIBS (proj):  ${EXTRA_LIBS}" )
 aux_source_directory(${PROJECT_SOURCE_DIR} WEATHER_SOURCES)
 
 add_executable(${DAEMON} ${WEATHER_SOURCES})
-target_link_libraries(${DAEMON} ${EXTRA_LIBS} ${WIPI_LIB} ${WIPI_LIB_DEV} crypt)
+target_link_libraries(${DAEMON} ${EXTRA_LIBS} ${WIPI_LIB} ${WIPI_LIB_DEV} crypt rt)
 
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)
 
