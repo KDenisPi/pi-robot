@@ -11,6 +11,11 @@
 #define PI_CORE_COMMON_H_
 
 #include "stdint.h"
+#include <cstdio>
+
+#ifdef REAL_HARDWARE
+#include <bcm_host.h>
+#endif
 
 namespace pi_core {
 

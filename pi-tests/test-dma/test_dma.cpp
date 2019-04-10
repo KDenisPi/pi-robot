@@ -62,6 +62,9 @@ int main (int argc, char* argv[])
     std::cout << "TI register" << std::endl << pwm->ti_register_status() << std::endl;
     std::cout << "CS register" << std::endl << pwm->cs_register_status() << std::endl;
 
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+
+
 /*
     std::cout << "Start to process DMA Control Block" << std::endl;
     if( !dma->process_control_block(reinterpret_cast<std::uintptr_t>(cb))){
