@@ -299,7 +299,57 @@ public:
     static const uint32_t cs_flags_pwm = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES | DMA_REG_CS_PANIC_PRIORITY(15) | DMA_REG_CS_PRIORITY(15);
     static const uint32_t cs_flags_test = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES | DMA_REG_CS_PANIC_PRIORITY(15) | DMA_REG_CS_PRIORITY(15);
 
+
+    /*
+    * Get string with CS register status
+    */
+    const std::string cs_register_status() {
+        char buff[64];
+        std::string res = "CS register:\n";
+
+        const uint32_t cs_state = _dma_regs->_cs;
+        res += CoreCommon::bit_test(buff, cs_state, 0, "ACTIVE");
+        res += CoreCommon::bit_test(buff, cs_state, 1, "END");
+        res += CoreCommon::bit_test(buff, cs_state, 2, "INT");
+        res += CoreCommon::bit_test(buff, cs_state, 3, "DREQ");
+        res += CoreCommon::bit_test(buff, cs_state, 4, "PAUSED");
+        res += CoreCommon::bit_test(buff, cs_state, 5, "DREQ_STOPS_DMA");
+        res += CoreCommon::bit_test(buff, cs_state, 6, "WAITING_FOR_OUTSTANDING_WRITES");
+        res += CoreCommon::bit_test(buff, cs_state, 28, "WAIT_FOR_OUTSTANDING_WRITES");
+        res += CoreCommon::bit_test(buff, cs_state, 29, "DISDEBUG");
+
+        return res;
+    }
+
+    /*
+    * Get string with CS register status
+    */
+    const std::string ti_register_status() {
+        char buff[64];
+        std::string res = "TI register:\n";
+
+        const uint32_t ti_state = _dma_regs->_ti;
+        res += CoreCommon::bit_test(buff, ti_state, 0, "INTEN");
+        res += CoreCommon::bit_test(buff, ti_state, 1, "TDMODE");
+        res += CoreCommon::bit_test(buff, ti_state, 3, "WAIT_RESP");
+        res += CoreCommon::bit_test(buff, ti_state, 4, "DEST_INC");
+        res += CoreCommon::bit_test(buff, ti_state, 5, "DEST_WIDTH");
+        res += CoreCommon::bit_test(buff, ti_state, 6, "DEST_DREQ");
+        res += CoreCommon::bit_test(buff, ti_state, 7, "DEST_IGNORE");
+        res += CoreCommon::bit_test(buff, ti_state, 8, "SRC_INC");
+        res += CoreCommon::bit_test(buff, ti_state, 9, "SRC_WIDTH");
+        res += CoreCommon::bit_test(buff, ti_state, 10, "SRC_DREQ");
+        res += CoreCommon::bit_test(buff, ti_state, 11, "SRC_IGNORE");
+        res += CoreCommon::bits_test(buff,  ((ti_state>>12)&0xF), "15-12 BURST_LENGTH");
+        res += CoreCommon::bits_test(buff,  ((ti_state>>16)&0x1F), "20-16 PERMAP");
+        res += CoreCommon::bits_test(buff,  ((ti_state>>21)&0x1F), "25-21 WAITS");
+        res += CoreCommon::bit_test(buff, ti_state, 26, "NO_WIDE_BURSTS");
+
+        return res;
+    }
+
 private:
+
     uintptr_t _addr; //DMA register address
     uint16_t _dma;  //DMA number
     uint32_t _cs_flags; //default flags for CS register

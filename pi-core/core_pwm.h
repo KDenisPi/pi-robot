@@ -110,16 +110,14 @@ struct pwm_regs_t {
 
 
 
-class PwmCore 
+class PwmCore
 {
 public:
-    PwmCore(const int sleds,
-        const std::string& name,
-        const std::string& comment="") : _pwm_regs(nullptr)
+    PwmCore() : _pwm_regs(nullptr)
     {
-        logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " name " + name);
+        logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__));
         _pwm_clock = new pi_core::core_clock_pwm::PwmClock();
-        _dma_ctrl = new pi_core::core_dma::DmaControl(5); //TODO DMA channel
+        _dma_ctrl = new pi_core::core_dma::DmaControl(10); //TODO DMA channel
     }
 
     virtual ~PwmCore(){
@@ -129,7 +127,7 @@ public:
         delete _pwm_clock;
     }
 
-    virtual bool write_data(unsigned char* data, int len) override {
+    virtual bool write_data(unsigned char* data, int len){
         logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Write to PWM: " +  std::to_string(len));
         return true;
     }
@@ -145,24 +143,31 @@ public:
    bool Initialize() {
 
         if( !_pwm_clock->Initialize()){
-            logger::log(logger::LLOG::ERROR, "SLedCtrlPwm", std::string(__func__) + " Fail to initialize PWM Clock");
+            logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " Fail to initialize PWM Clock");
             return false;
         }
 
         if( !_dma_ctrl->Initialize()){
-            logger::log(logger::LLOG::ERROR, "SLedCtrlPwm", std::string(__func__) + " Fail to initialize DMA Control");
+            logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " Fail to initialize DMA Control");
             return false;
         }
 
         uint32_t ph_address = pi_core::CoreCommon::get_peripheral_address();
         _pwm_regs = piutils::map_memory<struct pwm_regs_t>(ph_address + pwmctl_addr);
         if( _pwm_regs == nullptr){
-            logger::log(logger::LLOG::ERROR, "SLedCtrlPwm", std::string(__func__) + " Fail to initialize PWM control");
+            logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " Fail to initialize PWM control");
             return false;
         }
 
         return true;
     }
+
+    /*
+    * Get physical address of FIFO register
+    */
+   const uintptr_t get_fifo_address() const {
+        return (uintptr_t)&((struct pwm_regs_t*)PWM_PERIPH_PHYS)->_fif1;
+   }
 
     /*
     * Check if low level registers access was succwssfully configured
@@ -178,13 +183,12 @@ public:
 
    }
 
-protected:
-
     /*
     * List functions for changing control parameters
     */
    void _stop(){
-        if(!_is_init()) return;
+        if(!_is_init())
+            return;
 
         //Stop PWM
         _pwm_regs->_ctl = 0;
@@ -193,6 +197,20 @@ protected:
         //Stop clock
         _pwm_clock->_stop();
    }
+
+    /*
+    * Get string with CS register status
+    */
+    const std::string cs_register_status() {
+        return _dma_ctrl->cs_register_status();
+    }
+
+    /*
+    * Get string with CS register status
+    */
+    const std::string ti_register_status() {
+        return _dma_ctrl->ti_register_status();
+    }
 
 private:
     volatile struct pwm_regs_t* _pwm_regs; //control & data registers

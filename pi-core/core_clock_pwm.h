@@ -59,9 +59,13 @@ struct pwm_clock_t {
 class PwmClock{
 public:
     PwmClock() : _pwm_clock(nullptr) {
+        logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__));
+
     }
 
     virtual ~PwmClock() {
+        logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__));
+
         if(_pwm_clock)
             _pwm_clock = piutils::unmap_memory<struct pwm_clock_t>(static_cast<struct pwm_clock_t*>((void*)_pwm_clock));
     }
@@ -69,16 +73,24 @@ public:
     const uint32_t clock_pwmctl = CLOCK_PWMCTL_OFFSET;
     const uint32_t clock_pwmctl_phys = CLOCK_PWMCTL_PHYS;
 
+    const uint32_t default_base_freq = 19200000;
+    const uint32_t work_freq = 800000;
+
     /*
     * Initialize connection
     */
    bool Initialize() {
+        logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__));
+
         uint32_t ph_address = CoreCommon::get_peripheral_address();
         _pwm_clock = piutils::map_memory<struct pwm_clock_t>(ph_address + clock_pwmctl);
         if(_pwm_clock == nullptr){
             logger::log(logger::LLOG::ERROR, "PwmClock", std::string(__func__) + " Fail to initialize PWM Clock ");
             return false;
         }
+
+        _configure(work_freq, default_base_freq);
+
         return true;
     }
 
@@ -91,6 +103,8 @@ public:
     * List functions for changing control parameters
     */
     void _stop() {
+        logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__));
+
         if(!_is_init()) return;
 
         _pwm_clock->_pwmctl = (CM_CLK_CTL_KILL | CM_CLK_CTL_PASSWD);
@@ -106,7 +120,9 @@ public:
     /*
     * Set initial values for PWM Clock
     */
-   void _configure(const uint32_t base_freq, const uint32_t freq) {
+   void _configure(const uint32_t freq, const uint32_t base_freq) {
+        logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__));
+
         _pwm_clock->_pwmdiv = CM_CLK_DIV_PASSWD | CM_CLK_DIV_DIVI(base_freq / (3 * freq));
         _pwm_clock->_pwmctl = CM_CLK_CTL_PASSWD | CM_CLK_CTL_SRC_OSC;
         _pwm_clock->_pwmctl = CM_CLK_CTL_PASSWD | CM_CLK_CTL_SRC_OSC | CM_CLK_CTL_ENAB;

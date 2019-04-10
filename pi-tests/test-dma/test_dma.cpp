@@ -5,6 +5,7 @@
 #include "logger.h"
 
 #include "core_dma.h"
+#include "core_pwm.h"
 #include "PiRobot.h"
 
 using namespace std;
@@ -20,10 +21,10 @@ int main (int argc, char* argv[])
     size_t buff_size_bytes = 1024;
     bool success = true;
     char* src = nullptr;
-    char* dst = nullptr;
     pirobot::PiRobot* rbt = nullptr;
-    pi_core::core_dma::DmaControl* dma = nullptr;
     pi_core::core_dma::DmaControlBlock* cb = nullptr;
+    pi_core::core_pwm::PwmCore* pwm = nullptr;
+
 
     std::cout << "Starting..." << std::endl;
     logger::log(logger::LLOG::DEBUG, "main", std::string(__func__) + " DMA test");
@@ -44,21 +45,22 @@ int main (int argc, char* argv[])
     }
 
     src = static_cast<char*>(malloc(buff_size_bytes));
-    dst = static_cast<char*>(malloc(buff_size_bytes));
 
     memset((void*)src, 'D', buff_size_bytes);
     src[buff_size_bytes-1] = 0x00;
-    memset((void*)dst, 0, buff_size_bytes);
+
+    pwm = new pi_core::core_pwm::PwmCore();
+    if( !pwm->Initialize()){
+      std::cout << "Could not initialize PWM " << std::endl;
+      success = false;
+      goto clear_data;
+    }
 
     cb = new pi_core::core_dma::DmaControlBlock();
-    cb->Initialize(reinterpret_cast<std::uintptr_t>(src), reinterpret_cast<std::uintptr_t>(dst), buff_size_bytes);
+    cb->Initialize(reinterpret_cast<std::uintptr_t>(src), pwm->get_fifo_address(), buff_size_bytes);
 
-    std::cout << "DMA Control Block Initialized" << std::endl;
-    dma = new pi_core::core_dma::DmaControl();
-
-    dma->Initialize();
-    std::cout << "DMA Initialized" << std::endl;
-
+    std::cout << "TI register" << std::endl << pwm->ti_register_status() << std::endl;
+    std::cout << "CS register" << std::endl << pwm->cs_register_status() << std::endl;
 
 /*
     std::cout << "Start to process DMA Control Block" << std::endl;
@@ -81,14 +83,18 @@ int main (int argc, char* argv[])
 
   clear_data:
 
-    if(dma != nullptr)
-      delete dma;
-    if(cb != nullptr)
+    if(pwm != nullptr){
+      delete pwm;
+    }
+
+    if(cb != nullptr){
       delete cb;
-    if(src != nullptr)
+    }
+
+    if(src != nullptr){
       free(src);
-    if(dst != nullptr)
-      free(dst);
+    }
+
     delete rbt;
 
     std::cout << "Finished" << std::endl;

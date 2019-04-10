@@ -45,6 +45,15 @@ public:
         return 19200000;
     }
 
+    static const char* bit_test(char * buff, const uint32_t value, uint8_t nbit, const char* name) {
+        std::sprintf(buff, "%d %s: %d\n", nbit, name, ((((1<<nbit) & value) != 0) ? 1 : 0));
+        return buff;
+    }
+
+    static const char* bits_test(char * buff, const uint32_t value, const char* name) {
+        std::sprintf(buff, "%s: %d\n", name, value);
+        return buff;
+    }
 };
 
 } //namespace pi_core
