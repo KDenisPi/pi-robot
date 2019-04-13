@@ -21,12 +21,19 @@ int main (int argc, char* argv[])
     size_t buff_size_bytes = 1024;
     bool success = true;
     char* src = nullptr;
+
     pirobot::PiRobot* rbt = nullptr;
     pi_core::core_dma::DmaControlBlock* cb = nullptr;
     pi_core::core_pwm::PwmCore* pwm = nullptr;
-
+    pi_core::core_clock_pwm::PwmClock* clk = new pi_core::core_clock_pwm::PwmClock();
 
     std::cout << "Starting..." << std::endl;
+
+    success = clk->Initialize();
+
+    delete clk;
+
+  /*
     logger::log(logger::LLOG::DEBUG, "main", std::string(__func__) + " DMA test");
 
     rbt = new pirobot::PiRobot();
@@ -63,7 +70,7 @@ int main (int argc, char* argv[])
     std::cout << "CS register" << std::endl << pwm->cs_register_status() << std::endl;
 
     std::this_thread::sleep_for(std::chrono::seconds(5));
-
+*/
 
 /*
     std::cout << "Start to process DMA Control Block" << std::endl;
@@ -84,6 +91,7 @@ int main (int argc, char* argv[])
     }
 */
 
+/*
   clear_data:
 
     if(pwm != nullptr){
@@ -99,7 +107,7 @@ int main (int argc, char* argv[])
     }
 
     delete rbt;
-
-    std::cout << "Finished" << std::endl;
+*/
+    std::cout << "Finished " << success << std::endl;
     exit( (success ? EXIT_SUCCESS : EXIT_FAILURE));
 }
