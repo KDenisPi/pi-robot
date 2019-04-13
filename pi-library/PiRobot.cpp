@@ -83,7 +83,8 @@ std::shared_ptr<provider::Provider> PiRobot::get_provider(const std::string& nam
 void PiRobot::add_gpio(const std::string& name,
     const std::string& provider_name,
     const pirobot::gpio::GPIO_MODE gpio_mode,
-    const int pin) noexcept(false){
+    const int pin,
+    const pirobot::gpio::PULL_MODE pull_mode) noexcept(false){
 
     const auto provider = get_provider(provider_name);
     if(provider->get_ptype() != provider::PROVIDER_TYPE::PROV_GPIO){
@@ -106,9 +107,7 @@ void PiRobot::add_gpio(const std::string& name,
     }
 
     gpios_add(gpio_name,
-            std::shared_ptr<pirobot::gpio::Gpio>(
-                new pirobot::gpio::Gpio(pin, gpio_mode, gpio_provider)
-            ));
+            std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(pin, gpio_mode, gpio_provider, pull_mode)));
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Provider: " + provider_name + ". Added PIN: " + std::to_string(pin) + " Name: " + gpio_name);
 }

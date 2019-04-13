@@ -3,7 +3,7 @@
     "real_world" : true,
 
     "gpios": [
-        {"name": "pwm_0",   "provider": "SIMPLE", "pin": 1, "mode": "PWM"},
-        {"name": "pwm_1",   "provider": "SIMPLE", "pin": 23, "mode": "PWM"}
+        {"name": "pwm_0",   "provider": "SIMPLE", "pin": 1, "mode": "PWM", "pull_mode": "DOWN"},
+        {"name": "pwm_1",   "provider": "SIMPLE", "pin": 23, "mode": "PWM", "pull_mode": "DOWN"}
     ]
 }

@@ -18,7 +18,7 @@ class Gpio
 {
   public:
 
-    Gpio(int pin, GPIO_MODE mode, const std::shared_ptr<gpio::GpioProvider> provider);
+    Gpio(int pin, GPIO_MODE mode, const std::shared_ptr<gpio::GpioProvider> provider, const PULL_MODE pull_mode = PULL_MODE::PULL_OFF);
     virtual ~Gpio();
 
     const int getPin() const {return m_pin;};
@@ -67,6 +67,7 @@ class Gpio
   private:
     int m_pin;
     GPIO_MODE m_mode; //INPUT/OUTPUT
+    PULL_MODE _pull_mode; //OFF/DOWN/UP
 
     std::shared_ptr<gpio::GpioProvider> m_prov;
 };
