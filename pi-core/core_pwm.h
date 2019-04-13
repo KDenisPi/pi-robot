@@ -130,6 +130,8 @@ public:
     virtual ~PwmCore(){
         logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__));
 
+        piutils::unmap_memory<struct pwm_regs_t>((struct pwm_regs_t*)_pwm_regs);
+
         delete _dma_ctrl;
         delete _pwm_clock;
     }
