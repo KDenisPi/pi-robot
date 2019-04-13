@@ -218,12 +218,12 @@ bool PiRobot::configure(const std::string& cfile){
                 logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " GPIO Name: " + gpio_name + " Provider: " + gpio_provider +
                     " Pin:" + std::to_string(gpio_pin) + " Mode:" + gpio_mode);
 
-                if( !(gpio_mode == "IN" || gpio_mode == "OUT") ){
-                    logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid GPIO mode value IN/OUT");
+                if( !(gpio_mode == "IN" || gpio_mode == "OUT" || gpio_mode == "PWM") ){
+                    logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid GPIO mode value IN/OUT/PWM");
                     throw std::runtime_error(std::string("Invalid GPIO mode value IN/OUT"));
                 }
 
-                add_gpio(gpio_name, gpio_provider, (gpio_mode == "IN" ? gpio::GPIO_MODE::IN : gpio::GPIO_MODE::OUT), gpio_pin);
+                add_gpio(gpio_name, gpio_provider, (gpio_mode == "IN" ? gpio::GPIO_MODE::IN : (gpio_mode == "OUT" ? gpio::GPIO_MODE::OUT : gpio::GPIO_MODE::PWM_OUT)), gpio_pin);
             }
         }
         else

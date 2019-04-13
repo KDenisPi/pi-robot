@@ -82,6 +82,15 @@ void GpioProviderMCP230xx::dgtWrite(const int pin, const int value){
 void GpioProviderMCP230xx::setmode(const int pin, const gpio::GPIO_MODE mode){
   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pin: " + std::to_string(pin) + " Mode: " + std::to_string(mode));
 
+  /*
+  * PWM mode is supported for Simple provider only
+  */
+  if(gpio::GPIO_MODE::PWM_OUT == mode){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " PWM mode is not supported");
+        throw std::runtime_error(std::string("PWM mode is not supported"));
+
+  }
+
   int reg_addr = get_IODIR_addr(pin);
   int mask = (1 << (pin & 0x07));
 

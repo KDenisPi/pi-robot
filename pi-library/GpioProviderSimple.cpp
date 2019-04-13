@@ -43,7 +43,8 @@ void GpioProviderSimple::dgtWrite(const int pin, const int value)
 
 void GpioProviderSimple::setmode(const int pin, const GPIO_MODE mode){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" for pin: ") + std::to_string(pin) + " mode: " + std::to_string(mode));
-    pinMode(getRealPin(pin), (mode == GPIO_MODE::IN ? INPUT : OUTPUT));
+    int wp_mode = (mode == GPIO_MODE::IN ? INPUT : (mode == GPIO_MODE::PWM_OUT ? PWM_OUTPUT : OUTPUT));
+    pinMode(getRealPin(pin), wp_mode);
 }
 
 void GpioProviderSimple::pullUpDownControl(const int pin, const PULL_MODE pumode){

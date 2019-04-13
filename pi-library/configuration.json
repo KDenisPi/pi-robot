@@ -76,7 +76,7 @@
     // mode - GPIO mode can be "IN" or "OUT"
     // provider - provider is "name" attribute for provider object defined above
     //
-    "gpios": [{"name": "gpio_name", "provider": "provider_name", "pin": 0, "mode": "IN/OUT"}],
+    "gpios": [{"name": "gpio_name", "provider": "provider_name", "pin": 0, "mode": "IN/OUT/PWM"}],
 
     //
     // Items (all elements another then providers, and gpios)
