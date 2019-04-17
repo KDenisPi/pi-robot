@@ -66,7 +66,9 @@ T* map_memory(const uint32_t address, const std::string& dev = "/dev/mem"){
     size_t len = sizeof(T);
     void* mem = mmap(0, len, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_LOCKED, fd, address & page_mask);
 
-    std::cout << "Address: " << std::hex << address << " offset: " << std::hex << offset << " (address & page_mask) : " << (address & page_mask) << " Length: " << len << " Page mask: " << page_mask << std::endl;
+    logger::log(logger::LLOG::DEBUG, "map_memory", std::string(__func__) + "Address: " + std::to_string(address) +
+        " offset: " + std::to_string(offset) + " (address & page_mask) : " + std::to_string((address & page_mask)) + " Length: " + std::to_string(len) +
+        " Page mask: " + std::to_string(page_mask));
 
     close(fd);
 
@@ -74,8 +76,6 @@ T* map_memory(const uint32_t address, const std::string& dev = "/dev/mem"){
         logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " mmap failed Error: " + std::to_string(errno));
         return nullptr;
     }
-
-    std::cout << "Mem: " << std::hex << (uint32_t)mem << " (Mem+offset): " << ((uint32_t)mem + offset) << std::endl;
 
     return static_cast<T*>((void*)((char*)mem + offset));
 }

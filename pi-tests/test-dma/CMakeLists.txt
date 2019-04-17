@@ -17,17 +17,20 @@ message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
 add_executable(testDma test_dma.cpp)
+add_executable(testPwm test_pwm.cpp)
 
 set(TEST_DMA_LIBS pi-utils pi-library pi-core pthread ${WIPI_LIB} ${WIPI_LIB_DEV} crypt rt)
 
 
 if(REAL_HARDWARE)
-find_library(BCM_HOST_LIB bcm_host PATH "/opt/vc/lib")
-set(TEST_DMA_LIBS ${TEST_DMA_LIBS}  ${BCM_HOST_LIB})
+    find_library(BCM_HOST_LIB bcm_host PATH "/opt/vc/lib")
+    set(TEST_DMA_LIBS ${TEST_DMA_LIBS}  ${BCM_HOST_LIB})
 endif(REAL_HARDWARE)
 
 message( STATUS "Libs: ${TEST_DMA_LIBS}")
 
 target_link_libraries(testDma ${TEST_DMA_LIBS})
+target_link_libraries(testPwm ${TEST_DMA_LIBS})
 
-add_test(NAME Dma1 COMMAND testDma)
+add_test(NAME Pwm_1 COMMAND testPwm)
+add_test(NAME Dma_1 COMMAND testDma "../pi-tests/test-dma/dma_test.json" )

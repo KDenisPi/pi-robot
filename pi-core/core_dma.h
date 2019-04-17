@@ -166,7 +166,7 @@ private:
 */
 class DmaControl {
 public:
-    DmaControl(const unsigned short dma = 10) : _addr(0), _dma(dma), _started(false), _dma_regs(nullptr){
+    DmaControl(const uint16_t dma = 10) : _addr(0), _dma(dma), _started(false), _dma_regs(nullptr){
         assert(dma < 15);
         _addr = dma_address(dma);
 
@@ -175,8 +175,8 @@ public:
 
     virtual ~DmaControl(){
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " addr: " + std::to_string(_addr));
-        if(_dma_regs){
 
+        if(_dma_regs){
             reset();
 
             _dma_regs = piutils::unmap_memory<struct dma_regs_t>(static_cast<struct dma_regs_t*>((void*)_dma_regs));
@@ -184,14 +184,14 @@ public:
     }
 
     static const uintptr_t dma_base = 0x00007000;
-    static const uintptr_t dma_address(const unsigned short dma){
+    static const uintptr_t dma_address(const uint16_t dma){
         assert(dma < 15);
 
         uintptr_t ph_address = CoreCommon::get_peripheral_address();
         if(dma == 15)
             return ph_address + 0x00e05000;
 
-        return ph_address + dma_base + 0x100*dma;
+        return ph_address + dma_base + (0x100 * dma);
     }
 
     /*

@@ -11,9 +11,11 @@
 #define PI_LIBRARY_CORE_PWM_H_
 
 #include "smallthings.h"
+#include "logger.h"
+
+
 #include "core_dma.h"
 #include "core_clock_pwm.h"
-#include "logger.h"
 
 namespace pi_core {
 namespace core_pwm {
@@ -108,44 +110,49 @@ struct pwm_regs_t {
 #define RPI_PWM_DAT2_RESET  0x0
 
 
-
-
 class PwmCore
 {
 public:
-    PwmCore() : _pwm_regs(nullptr), _pwm_clock(nullptr), _dma_ctrl(nullptr)
+    PwmCore(const uint16_t dma = 10) : _pwm_regs(nullptr), _pwm_clock(nullptr), _dma_ctrl(nullptr)
     {
         logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__));
-    /*
+
         _pwm_clock = new pi_core::core_clock_pwm::PwmClock();
-        _dma_ctrl = new pi_core::core_dma::DmaControl(10); //TODO DMA channel
-    */
+
+        /*
+        * Do not use DMA for PWM
+        */
+        if(dma > 0){
+            _dma_ctrl = new pi_core::core_dma::DmaControl(dma);
+        }
+
         uint32_t ph_address = pi_core::CoreCommon::get_peripheral_address();
-        std::cout << " (ph_address + pwmctl_addr): " <<  std::hex << (ph_address + pwmctl_addr) << std::endl;
 
         _pwm_regs = piutils::map_memory<struct pwm_regs_t>(ph_address + pwmctl_addr);
         if( _pwm_regs == nullptr){
             logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " Fail to initialize PWM control");
         }
-
-        std::cout << " _pwm_regs: " <<  std::hex << (void*)_pwm_regs << std::endl;
     }
 
     virtual ~PwmCore(){
-        logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__));
+        logger::log(logger::LLOG::INFO, "PwmCore", std::string(__func__));
 
-        if(_pwm_regs)
-            piutils::unmap_memory<struct pwm_regs_t>((struct pwm_regs_t*)_pwm_regs);
+        if(_is_clock()){
+            delete _pwm_clock;
+        }
 
-        if(_dma_ctrl){
+        if(_is_dma()){
             delete _dma_ctrl;
         }
 
-        if(_pwm_clock){
-            delete _pwm_clock;
+        if(_is_init()){
+            _pwm_regs = piutils::unmap_memory<struct pwm_regs_t>((struct pwm_regs_t*)_pwm_regs);
         }
     }
 
+    /*
+    * Write data to PWM
+    */
     virtual bool write_data(unsigned char* data, int len){
         logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Write to PWM: " +  std::to_string(len));
         return true;
@@ -159,30 +166,58 @@ public:
     /*
     * Initialize connection
     */
-   bool Initialize() {
+    bool Initialize() {
 
        _stop();
 
-/*
-        if( !_pwm_clock->Initialize()){
-            logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " Fail to initialize PWM Clock");
-            return false;
+        if( _is_clock() ){
+            if( !_pwm_clock->Initialize()){
+                logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " Fail to initialize PWM Clock");
+                return false;
+            }
         }
 
-        if( !_dma_ctrl->Initialize()){
-            logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " Fail to initialize DMA Control");
-            return false;
+        if( _is_dma() ){
+            if( !_dma_ctrl->Initialize()){
+                logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " Fail to initialize DMA Control");
+                return false;
+            }
         }
-*/
+
         return true;
     }
 
     /*
     * Get physical address of FIFO register
     */
-   const uintptr_t get_fifo_address() const {
-        return (uintptr_t)&((struct pwm_regs_t*)PWM_PERIPH_PHYS)->_fif1;
+   const uintptr_t get_fifo_address() const{
+        if(_is_init())
+            return (uintptr_t)&((struct pwm_regs_t*)PWM_PERIPH_PHYS)->_fif1;
+
+        return (uintptr_t)nullptr;
    }
+
+    /*
+    * Get string with CS register status
+    */
+    const std::string cs_register_status() {
+        if(_is_dma())
+            return _dma_ctrl->cs_register_status();
+
+        return "Not initialized";
+    }
+
+    /*
+    * Get string with CS register status
+    */
+    const std::string ti_register_status() {
+        if(_is_dma())
+            return _dma_ctrl->ti_register_status();
+
+        return "Not initialized";
+    }
+
+private:
 
     /*
     * Check if low level registers access was succwssfully configured
@@ -201,41 +236,30 @@ public:
     /*
     * List functions for changing control parameters
     */
-   void _stop(){
-        logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__));
+    void _stop(){
+            logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__));
 
-        if(!_is_init())
-            return;
+            if(_is_init()){
+                //Stop PWM
+                _pwm_regs->_ctl = 0;
+                std::this_thread::sleep_for(std::chrono::microseconds(10));
+            }
 
-        std::cout << " PwmCore 0 CTL: " <<  std::hex << _pwm_regs->_ctl << std::endl;
+            //Stop clock
+            if( _is_clock() )
+                _pwm_clock->_stop();
 
-        //Stop PWM
-        _pwm_regs->_ctl = 0;
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
-
-        std::cout << " PwmCore 1 CTL: " <<  std::hex << _pwm_regs->_ctl << std::endl;
-
-        //Stop clock
-        //_pwm_clock->_stop();
-
-        logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Finished");
-   }
-
-    /*
-    * Get string with CS register status
-    */
-    const std::string cs_register_status() {
-        return _dma_ctrl->cs_register_status();
+            logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Finished");
     }
 
-    /*
-    * Get string with CS register status
-    */
-    const std::string ti_register_status() {
-        return _dma_ctrl->ti_register_status();
+    const bool _is_dma() const{
+        return (_dma_ctrl != nullptr);
     }
 
-private:
+    const bool _is_clock() const{
+        return (_pwm_clock != nullptr);
+    }
+
     volatile struct pwm_regs_t* _pwm_regs; //control & data registers
     pi_core::core_clock_pwm::PwmClock* _pwm_clock;
     pi_core::core_dma::DmaControl* _dma_ctrl;
