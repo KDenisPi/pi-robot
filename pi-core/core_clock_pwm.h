@@ -28,15 +28,16 @@ struct pwm_clock_t {
     uint32_t _pwmdiv;       //Clock Manager Audio Clock Divisors register
 } __attribute__((packed, aligned(4))) pwm_clock;
 
-#define CM_CLK_CTL_SRC_GND                          0x00000000  //RW bit 0-3; Clock source; GND (reset 0)
-#define CM_CLK_CTL_SRC_OSC                          0x00000001  //RW bit 0-3; Clock source; Oscillator
-#define CM_CLK_CTL_SRC_TSTDBG0                      0x00000002  //RW bit 0-3; Clock source; testdebug0
-#define CM_CLK_CTL_SRC_TSTDBG1                      0x00000003  //RW bit 0-3; Clock source; testdebug1
-#define CM_CLK_CTL_SRC_PLLA                         0x00000004  //RW bit 0-3; Clock source; PLLA per
-#define CM_CLK_CTL_SRC_PLLC                         0x00000005  //RW bit 0-3; Clock source; PLLC per
-#define CM_CLK_CTL_SRC_PLLD                         0x00000006  //RW bit 0-3; Clock source; PLLD per
-#define CM_CLK_CTL_SRC_HDMIAUX                      0x00000007  //RW bit 0-3; Clock source; HDMI auxiliary
-#define CM_CLK_CTL_SRC_GNDS                         0x00000008  //RW bit 0-3; Clock source; 8-15 GND
+#define CM_CLK_CTL_SRC(val)    (val&0xf)
+#define CM_CLK_CTL_SRC_GND                          CM_CLK_CTL_SRC(0)  //RW bit 0-3; Clock source; GND (reset 0)
+#define CM_CLK_CTL_SRC_OSC                          CM_CLK_CTL_SRC(1)  //RW bit 0-3; Clock source; Oscillator
+#define CM_CLK_CTL_SRC_TSTDBG0                      CM_CLK_CTL_SRC(2)  //RW bit 0-3; Clock source; testdebug0
+#define CM_CLK_CTL_SRC_TSTDBG1                      CM_CLK_CTL_SRC(3)  //RW bit 0-3; Clock source; testdebug1
+#define CM_CLK_CTL_SRC_PLLA                         CM_CLK_CTL_SRC(4)  //RW bit 0-3; Clock source; PLLA per
+#define CM_CLK_CTL_SRC_PLLC                         CM_CLK_CTL_SRC(5)  //RW bit 0-3; Clock source; PLLC per
+#define CM_CLK_CTL_SRC_PLLD                         CM_CLK_CTL_SRC(6)  //RW bit 0-3; Clock source; PLLD per
+#define CM_CLK_CTL_SRC_HDMIAUX                      CM_CLK_CTL_SRC(7)  //RW bit 0-3; Clock source; HDMI auxiliary
+#define CM_CLK_CTL_SRC_GNDS                         CM_CLK_CTL_SRC(8)  //RW bit 0-3; Clock source; 8-15 GND
 
 #define CM_CLK_CTL_ENAB                             (1<<4)  //RW bit 4; Enable clock generator (1-enable;0-reset)
 #define CM_CLK_CTL_KILL                             (1<<5)  //RW bit 5; Kill clock generator (1-stop and reset the clock generator;0-no action)
@@ -66,10 +67,16 @@ public:
         uint32_t ph_address = CoreCommon::get_peripheral_address();
         logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__) + " HW Adderess: " + std::to_string(ph_address));
 
+        std::cout << " ph address: " <<  std::hex << ph_address << std::endl;
+        std::cout << " (ph_address + clock_pwmctl): " <<  std::hex << (ph_address + clock_pwmctl) << std::endl;
+
         _pwm_clock = piutils::map_memory<struct pwm_clock_t>(ph_address + clock_pwmctl);
         if(_pwm_clock == nullptr){
             logger::log(logger::LLOG::ERROR, "PwmClock", std::string(__func__) + " Fail to initialize PWM Clock ");
         }
+
+        std::cout << " _pwm_clock: " <<  std::hex << (void*)_pwm_clock << std::endl;
+
     }
 
     virtual ~PwmClock() {
@@ -91,6 +98,8 @@ public:
    bool Initialize() {
         logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__));
 
+        _stop();
+
         return _configure(work_freq, default_base_freq);
     }
 
@@ -110,18 +119,31 @@ public:
           return;
         }
 
-        _pwm_clock->_pwmctl = (CM_CLK_CTL_KILL | CM_CLK_CTL_PASSWD);
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
+        uint32_t pwmctl =  CM_CLK_CTL_PASSWD | CM_CLK_CTL_KILL;
+        std::cout << " stop 0 _pwm_clock: " <<  std::hex << pwmctl << std::endl;
 
-        //TODO: delay too?
-        if(_is_busy()){
-          logger::log(logger::LLOG::ERROR, "PwmClock", std::string(__func__) + " Could not stop clock");
+        _pwm_clock->_pwmctl = pwmctl;
+        usleep(10);
+        //std::this_thread::sleep_for(std::chrono::microseconds(10));
+        std::cout << " stop 1 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
+
+       int i = 10;
+        while( ((_pwm_clock->_pwmctl & CM_CLK_CTL_BUSY) != 0) ){
+          //std::this_thread::sleep_for(std::chrono::microseconds(10));
+          //std::cout << " stop 3 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
+          //i--;
+          //if(i<= 0) break;
         }
 
         _pwm_clock->_pwmctl = CM_CLK_CTL_PASSWD;
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
+        usleep(10);
+        //std::this_thread::sleep_for(std::chrono::microseconds(10));
+        std::cout << " stop 4 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
 
-        //while(_is_busy());
+        //_pwm_clock->_pwmctl = 0;
+        //std::this_thread::sleep_for(std::chrono::microseconds(10));
+        usleep(10);
+        std::cout << " stop 5 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
     }
 
     inline const bool _is_busy() const {
@@ -135,43 +157,36 @@ public:
     */
    bool _configure(const uint32_t freq, const uint32_t base_freq) {
         logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__) + " Freq: " + std::to_string(freq) + " Base Freq: " + std::to_string(base_freq));
-        volatile struct pwm_clock_t* pwm_clock = _pwm_clock; 
 
-        uint32_t pwmctl = 0;
+        uint32_t pwmctl =  CM_CLK_CTL_PASSWD | CM_CLK_CTL_KILL;
+        std::cout << " stop 0 _pwm_clock: " <<  std::hex << pwmctl << std::endl;
+
+        _pwm_clock->_pwmctl = pwmctl;
+        usleep(10);
+
+        while((_pwm_clock->_pwmctl & CM_CLK_CTL_BUSY)){
+        };
+
+        std::cout << " stop 4 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
+
         uint32_t pdiv = CM_CLK_DIV_PASSWD | CM_CLK_DIV_DIVI(base_freq / (3 * freq));
-        logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__) + " DIVI: " + std::to_string(pdiv));
+        std::cout << " DIVI: " <<  std::hex << pdiv << std::endl;
 
-        pwm_clock->_pwmdiv = CM_CLK_DIV_PASSWD | CM_CLK_DIV_DIVI(base_freq / (3 * freq));
+        _pwm_clock->_pwmdiv = pdiv;
+        usleep(10);
+        std::cout << " DIVI: " <<  std::hex << _pwm_clock->_pwmdiv << std::endl;
 
-        pwmctl = pwm_clock->_pwmctl;
-        logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__) + " 1 : " + std::to_string(pwmctl));
+        pwmctl = (CM_CLK_CTL_PASSWD | CM_CLK_CTL_SRC_OSC);
+        _pwm_clock->_pwmctl = pwmctl;
+        pwmctl = CM_CLK_CTL_PASSWD | CM_CLK_CTL_SRC_OSC | CM_CLK_CTL_ENAB;
+        _pwm_clock->_pwmctl = pwmctl;
+        usleep(10);
+        std::cout << " start 2 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
 
-        pwm_clock->_pwmctl = CM_CLK_CTL_PASSWD | CM_CLK_CTL_SRC_OSC;
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
-        if(IS_BUSY(pwm_clock->_pwmctl)){
-          logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__) + " Busy 2");
-        }
+        while((_pwm_clock->_pwmctl & CM_CLK_CTL_BUSY)){
+        };
 
-        pwmctl = pwm_clock->_pwmctl;
-        logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__) + " 2 : " + std::to_string(pwmctl));
-
-        pwm_clock->_pwmctl = CM_CLK_CTL_PASSWD | CM_CLK_CTL_SRC_OSC | CM_CLK_CTL_ENAB;
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
-        if(IS_BUSY(pwm_clock->_pwmctl)){
-          logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__) + " Busy 3");
-        }
-
-        pwmctl = pwm_clock->_pwmctl;
-        logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__) + " 3 : " + std::to_string(pwmctl));
-
-        int i = 0;
-        while((pwm_clock->_pwmctl & CM_CLK_CTL_BUSY) && i < 10){
-          std::this_thread::sleep_for(std::chrono::milliseconds(500));
-          logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__) + " Busy Wait...");
-          i++;
-        }
-
-        if(IS_BUSY(pwm_clock->_pwmctl)){
+        if(IS_BUSY(_pwm_clock->_pwmctl)){
           logger::log(logger::LLOG::ERROR, "PwmClock", std::string(__func__) + " Could not initialize clock");
           return false;
         }
