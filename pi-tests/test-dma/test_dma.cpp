@@ -24,14 +24,17 @@ int main (int argc, char* argv[])
 
     pirobot::PiRobot* rbt = nullptr;
     pi_core::core_dma::DmaControlBlock* cb = nullptr;
-    pi_core::core_pwm::PwmCore* pwm = nullptr;
+
+    pi_core::core_pwm::PwmCore* pwm = new  pi_core::core_pwm::PwmCore();
     pi_core::core_clock_pwm::PwmClock* clk = new pi_core::core_clock_pwm::PwmClock();
 
     std::cout << "Starting..." << std::endl;
 
+    success = pwm->Initialize();
     success = clk->Initialize();
 
     delete clk;
+    delete pwm;
 
   /*
     logger::log(logger::LLOG::DEBUG, "main", std::string(__func__) + " DMA test");

@@ -113,27 +113,37 @@ struct pwm_regs_t {
 class PwmCore
 {
 public:
-    PwmCore() : _pwm_regs(nullptr)
+    PwmCore() : _pwm_regs(nullptr), _pwm_clock(nullptr), _dma_ctrl(nullptr)
     {
         logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__));
+    /*
         _pwm_clock = new pi_core::core_clock_pwm::PwmClock();
         _dma_ctrl = new pi_core::core_dma::DmaControl(10); //TODO DMA channel
-
+    */
         uint32_t ph_address = pi_core::CoreCommon::get_peripheral_address();
+        std::cout << " (ph_address + pwmctl_addr): " <<  std::hex << (ph_address + pwmctl_addr) << std::endl;
+
         _pwm_regs = piutils::map_memory<struct pwm_regs_t>(ph_address + pwmctl_addr);
         if( _pwm_regs == nullptr){
             logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " Fail to initialize PWM control");
         }
 
+        std::cout << " _pwm_regs: " <<  std::hex << (void*)_pwm_regs << std::endl;
     }
 
     virtual ~PwmCore(){
         logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__));
 
-        piutils::unmap_memory<struct pwm_regs_t>((struct pwm_regs_t*)_pwm_regs);
+        if(_pwm_regs)
+            piutils::unmap_memory<struct pwm_regs_t>((struct pwm_regs_t*)_pwm_regs);
 
-        delete _dma_ctrl;
-        delete _pwm_clock;
+        if(_dma_ctrl){
+            delete _dma_ctrl;
+        }
+
+        if(_pwm_clock){
+            delete _pwm_clock;
+        }
     }
 
     virtual bool write_data(unsigned char* data, int len){
@@ -153,6 +163,7 @@ public:
 
        _stop();
 
+/*
         if( !_pwm_clock->Initialize()){
             logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " Fail to initialize PWM Clock");
             return false;
@@ -162,7 +173,7 @@ public:
             logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " Fail to initialize DMA Control");
             return false;
         }
-
+*/
         return true;
     }
 
@@ -196,12 +207,16 @@ public:
         if(!_is_init())
             return;
 
+        std::cout << " PwmCore 0 CTL: " <<  std::hex << _pwm_regs->_ctl << std::endl;
+
         //Stop PWM
         _pwm_regs->_ctl = 0;
         std::this_thread::sleep_for(std::chrono::microseconds(10));
 
+        std::cout << " PwmCore 1 CTL: " <<  std::hex << _pwm_regs->_ctl << std::endl;
+
         //Stop clock
-        _pwm_clock->_stop();
+        //_pwm_clock->_stop();
 
         logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Finished");
    }
