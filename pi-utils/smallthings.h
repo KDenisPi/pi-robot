@@ -63,15 +63,21 @@ T* map_memory(const uint32_t address, const std::string& dev = "/dev/mem"){
         return nullptr;
     }
 
-    void* mem = mmap(0, sizeof(T), PROT_READ|PROT_WRITE, MAP_SHARED, fd, address & page_mask);
+    size_t len = sizeof(T);
+    void* mem = mmap(0, len, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_LOCKED, fd, address & page_mask);
+
+    std::cout << "Address: " << std::hex << address << " offset: " << std::hex << offset << " (address & page_mask) : " << (address & page_mask) << " Length: " << len << " Page mask: " << page_mask << std::endl;
+
+    close(fd);
+
     if (mem == MAP_FAILED) {
         logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " mmap failed Error: " + std::to_string(errno));
         return nullptr;
     }
 
-    close(fd);
+    std::cout << "Mem: " << std::hex << (uint32_t)mem << " (Mem+offset): " << ((uint32_t)mem + offset) << std::endl;
 
-    return static_cast<T*>((void*)((char*)mem + (address & offset)));
+    return static_cast<T*>((void*)((char*)mem + offset));
 }
 
 template<class T>

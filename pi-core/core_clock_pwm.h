@@ -120,12 +120,12 @@ public:
         }
 
         uint32_t pwmctl =  CM_CLK_CTL_PASSWD | CM_CLK_CTL_KILL;
-        std::cout << " stop 0 _pwm_clock: " <<  std::hex << pwmctl << std::endl;
+        std::cout << "stop 0 _pwm_clock: " <<  std::hex << pwmctl << std::endl;
 
         _pwm_clock->_pwmctl = pwmctl;
         usleep(10);
         //std::this_thread::sleep_for(std::chrono::microseconds(10));
-        std::cout << " stop 1 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
+        std::cout << "stop 1 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
 
        int i = 10;
         while( ((_pwm_clock->_pwmctl & CM_CLK_CTL_BUSY) != 0) ){
@@ -138,12 +138,12 @@ public:
         _pwm_clock->_pwmctl = CM_CLK_CTL_PASSWD;
         usleep(10);
         //std::this_thread::sleep_for(std::chrono::microseconds(10));
-        std::cout << " stop 4 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
+        std::cout << "stop 4 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
 
         //_pwm_clock->_pwmctl = 0;
         //std::this_thread::sleep_for(std::chrono::microseconds(10));
         usleep(10);
-        std::cout << " stop 5 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
+        std::cout << "stop 5 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
     }
 
     inline const bool _is_busy() const {
@@ -159,7 +159,7 @@ public:
         logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__) + " Freq: " + std::to_string(freq) + " Base Freq: " + std::to_string(base_freq));
 
         uint32_t pwmctl =  CM_CLK_CTL_PASSWD | CM_CLK_CTL_KILL;
-        std::cout << " stop 0 _pwm_clock: " <<  std::hex << pwmctl << std::endl;
+        std::cout << "stop 0 _pwm_clock: " <<  std::hex << pwmctl << std::endl;
 
         _pwm_clock->_pwmctl = pwmctl;
         usleep(10);
@@ -167,21 +167,25 @@ public:
         while((_pwm_clock->_pwmctl & CM_CLK_CTL_BUSY)){
         };
 
-        std::cout << " stop 4 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
+        std::cout << "stop 4 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
 
         uint32_t pdiv = CM_CLK_DIV_PASSWD | CM_CLK_DIV_DIVI(base_freq / (3 * freq));
-        std::cout << " DIVI: " <<  std::hex << pdiv << std::endl;
+        std::cout << "DIVI: " <<  std::hex << pdiv << std::endl;
 
         _pwm_clock->_pwmdiv = pdiv;
         usleep(10);
-        std::cout << " DIVI: " <<  std::hex << _pwm_clock->_pwmdiv << std::endl;
+        std::cout << "Real DIVI: " <<  std::hex << _pwm_clock->_pwmdiv << std::endl;
 
         pwmctl = (CM_CLK_CTL_PASSWD | CM_CLK_CTL_SRC_OSC);
+        std::cout << "pwmctl: " <<  std::hex << pwmctl << std::endl;
         _pwm_clock->_pwmctl = pwmctl;
-        pwmctl = CM_CLK_CTL_PASSWD | CM_CLK_CTL_SRC_OSC | CM_CLK_CTL_ENAB;
+
+        pwmctl = (CM_CLK_CTL_PASSWD | CM_CLK_CTL_ENAB);
+        std::cout << "pwmctl: " <<  std::hex << pwmctl << std::endl;
         _pwm_clock->_pwmctl = pwmctl;
         usleep(10);
-        std::cout << " start 2 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
+
+        std::cout << "start 2 _pwm_clock: " <<  std::hex << _pwm_clock->_pwmctl << std::endl;
 
         while((_pwm_clock->_pwmctl & CM_CLK_CTL_BUSY)){
         };
