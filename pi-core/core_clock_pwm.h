@@ -75,6 +75,7 @@ public:
 
         if(_pwm_clock == nullptr){
             logger::log(logger::LLOG::ERROR, "PwmClock", std::string(__func__) + " Fail to initialize PWM Clock ");
+            throw std::runtime_error(std::string("Fail to initialize PWM Clock"));
         }
     }
 

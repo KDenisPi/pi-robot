@@ -15,8 +15,14 @@
 #include "logger.h"
 
 namespace pi_core {
+
+namespace core_pwm {
+    class PwmCore;
+}
+
 namespace core_dma {
 
+class DmaControl;
 /*
 * BCM2835 ARM peripherials (section 4.2.1)
 *
@@ -96,21 +102,24 @@ struct dma_regs_t{
 */
 class DmaControlBlock {
 public:
-    DmaControlBlock(const DREQ dreq = DREQ::NO_required) : _dreq(dreq), _ti_flags(0) {
+    DmaControlBlock(const DREQ dreq = DREQ::PWM) : _dreq(dreq), _ti_flags(0) {
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
         _ctrk_blk = static_cast<struct dma_ctrl_blk_t*>( malloc(sizeof(struct dma_ctrl_blk_t)) );
+
         if(_ctrk_blk == nullptr){
             logger::log(logger::LLOG::ERROR, "DmaCtrl", std::string(__func__) + " Could not allocate memory for DMA CB");
-            return;
+            throw std::runtime_error(std::string("Could not allocate memory for DMA CB"));
         }
+
+        //initialize memory
         memset((void*)_ctrk_blk, 0x00, sizeof(struct dma_ctrl_blk_t));
 
         if( _dreq == DREQ::PWM){
             logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Selected CI flags for PWM");
             set_ti_flags(ti_flags_pwm);
         }
-        else if(_dreq == DREQ::NO_required){
+        else if(_dreq == DREQ::NO_required){ //TODO: Is there any way to use it?
             logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Selected CI flags for no DREQ");
             set_ti_flags(_ti_flags_test);
         }
@@ -124,6 +133,10 @@ public:
         }
     }
 
+    friend class pi_core::core_pwm::PwmCore;
+    friend class DmaControl;
+
+protected:
     /*
     * Set default flags for TI register
     *
@@ -145,7 +158,7 @@ public:
     *
     * txfr_len - length in bytes (!)
     */
-    bool Initialize(const uintptr_t src_addr, const uintptr_t dest_addr, const uint16_t txfr_len){
+    bool prepare(const uintptr_t src_addr, const uintptr_t dest_addr, const uint16_t txfr_len){
 
         _ctrk_blk->_ti = _ti_flags;
         _ctrk_blk->_src_addr = src_addr;
@@ -155,9 +168,13 @@ public:
         _ctrk_blk->_next_ctrl_blk = 0; //no next DMA CB
     }
 
+    const struct dma_ctrl_blk_t* get_ctrl_blk() const {
+        return _ctrk_blk;
+    }
+
 private:
-    volatile struct dma_ctrl_blk_t* _ctrk_blk;  //DMA control block
-    DREQ _dreq;                              //Data request (DREQ)
+    struct dma_ctrl_blk_t* _ctrk_blk;  //DMA control block
+    DREQ _dreq;                                 //Data request (DREQ)
     uint32_t _ti_flags;
 };
 
@@ -169,6 +186,12 @@ public:
     DmaControl(const uint16_t dma = 10) : _addr(0), _dma(dma), _started(false), _dma_regs(nullptr){
         assert(dma < 15);
         _addr = dma_address(dma);
+
+        _dma_regs = piutils::map_memory<struct dma_regs_t>(_addr);
+        if(_dma_regs == nullptr){
+            logger::log(logger::LLOG::ERROR, "DmaCtrl", std::string(__func__) + " Fail to initialize DMA control");
+            throw std::runtime_error(std::string("Fail to initialize DMA control"));
+        }
 
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " DMA channel: " + std::to_string(dma) + " addr: " + std::to_string(_addr));
     }
@@ -199,12 +222,6 @@ public:
     */
     bool Initialize() {
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
-
-        _dma_regs = piutils::map_memory<struct dma_regs_t>(_addr);
-        if(_dma_regs == nullptr){
-            logger::log(logger::LLOG::ERROR, "DmaCtrl", std::string(__func__) + " Fail to initialize DMA control");
-            return false;
-        }
 
         _dma_regs->_cs = 0;         //initialize DMA control and status
         _dma_regs->_txrf_len = 0;
@@ -240,7 +257,7 @@ public:
     /*
     * Start to process DMA Control block
     */
-    bool process_control_block(const uintptr_t dma_control_block) {
+    bool process_control_block(const pi_core::core_dma::DmaControlBlock* dma_ctrl_blk) {
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
         //Check did we finis process the current DMA CB
@@ -253,8 +270,9 @@ public:
 
         _started = true;
 
-        //set DMA Control Block
-        _dma_regs->_conblk_ad = dma_control_block;
+        //Set DMA Control Block
+        _dma_regs->_conblk_ad = reinterpret_cast<std::uintptr_t>(dma_ctrl_blk->get_ctrl_blk());
+        //Start to process DMA Control Block
         _dma_regs->_cs = _cs_flags | DMA_REG_CS_ACTIVE;
 
         return true;
@@ -281,7 +299,10 @@ public:
             result = ((_dma_regs->_cs & DMA_REG_CS_END) != 0);
             if(result){
                  _started = false;
-                 logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Clear started flag");
+                 logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " DMA Control block was processed");
+            }
+            else{
+                std::this_thread::sleep_for(std::chrono::microseconds(100));
             }
         }
 

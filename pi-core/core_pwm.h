@@ -131,6 +131,7 @@ public:
         _pwm_regs = piutils::map_memory<struct pwm_regs_t>(ph_address + pwmctl_addr);
         if( _pwm_regs == nullptr){
             logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " Fail to initialize PWM control");
+            throw std::runtime_error(std::string("Fail to initialize PWM control"));
         }
     }
 
@@ -153,9 +154,33 @@ public:
     /*
     * Write data to PWM
     */
-    virtual bool write_data(unsigned char* data, int len){
+    virtual bool write_data(const char* data, int len){
         logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Write to PWM: " +  std::to_string(len));
-        return true;
+
+        if(!_is_dma()){
+            logger::log(logger::LLOG::INFO, "PwmCore", std::string(__func__) + " No DMA");
+            return false;
+        }
+
+        /*
+        * TODO: Make it Asynchroniously
+        */
+
+        pi_core::core_dma::DmaControlBlock* cb = new pi_core::core_dma::DmaControlBlock();
+        bool result = cb->prepare(reinterpret_cast<std::uintptr_t>(data), this->get_fifo_address(), len);
+        if( result ){
+            logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Start to process DMA Control Block");
+            result = _dma_ctrl->process_control_block(cb);
+            if( result ){
+                while(_dma_ctrl->is_finished()){};
+            }
+            logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " DMA Control Block processed");
+        }
+
+        delete cb;
+
+        logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Finished");
+        return result;
     }
 
     const uint32_t pwmctl_addr = PWM_OFFSET;
@@ -260,9 +285,9 @@ private:
         return (_pwm_clock != nullptr);
     }
 
-    volatile struct pwm_regs_t* _pwm_regs; //control & data registers
-    pi_core::core_clock_pwm::PwmClock* _pwm_clock;
-    pi_core::core_dma::DmaControl* _dma_ctrl;
+    volatile struct pwm_regs_t* _pwm_regs;          //PWM control & data registers
+    pi_core::core_clock_pwm::PwmClock* _pwm_clock;  //PWM Clock object
+    pi_core::core_dma::DmaControl* _dma_ctrl;       //DMA Control object
 };
 
 

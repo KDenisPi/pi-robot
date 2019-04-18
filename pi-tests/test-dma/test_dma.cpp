@@ -23,7 +23,6 @@ int main (int argc, char* argv[])
     char* src = nullptr;
 
     pirobot::PiRobot* rbt = nullptr;
-    pi_core::core_dma::DmaControlBlock* cb = nullptr;
     pi_core::core_pwm::PwmCore* pwm = nullptr;
 
     std::cout << "Starting..." << std::endl;
@@ -62,42 +61,14 @@ int main (int argc, char* argv[])
       goto clear_data;
     }
 
-    cb = new pi_core::core_dma::DmaControlBlock();
-    cb->Initialize(reinterpret_cast<std::uintptr_t>(src), pwm->get_fifo_address(), buff_size_bytes);
-
-    std::cout << "TI register" << std::endl << pwm->ti_register_status() << std::endl;
-    std::cout << "CS register" << std::endl << pwm->cs_register_status() << std::endl;
-
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-
-/*
     std::cout << "Start to process DMA Control Block" << std::endl;
-    if( !dma->process_control_block(reinterpret_cast<std::uintptr_t>(cb))){
-        std::cout << "Could not start copy" << std::endl;
-    }
-    else {
-      std::cout << "Waiting for finish processing DMA Control Block" << std::endl;
-      for(int i = 0; i < 10; i++){
-        if(dma->is_finished()){
-            break;
-        }
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        std::cout << "Waiting for finish processing DMA Control Block Error: " << dma->is_error() << " Paused: " << dma->is_paused() << " Wait: " << dma->is_waiting_for_outstanding_writes() << std::endl;
-      }
-
-      std::cout << "Finished processing DMA Control Block" << std::endl;
-    }
-*/
+    success = pwm->write_data(src, buff_size_bytes);
 
 
   clear_data:
 
     if(pwm != nullptr){
       delete pwm;
-    }
-
-    if(cb != nullptr){
-      delete cb;
     }
 
     if(src != nullptr){

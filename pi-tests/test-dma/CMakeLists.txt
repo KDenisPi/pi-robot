@@ -32,5 +32,5 @@ message( STATUS "Libs: ${TEST_DMA_LIBS}")
 target_link_libraries(testDma ${TEST_DMA_LIBS})
 target_link_libraries(testPwm ${TEST_DMA_LIBS})
 
-add_test(NAME Pwm_1 COMMAND testPwm)
-add_test(NAME Dma_1 COMMAND testDma "../pi-tests/test-dma/dma_test.json" )
+add_test(NAME Pwm_1 COMMAND sudo testPwm)
+add_test(NAME Dma_1 COMMAND sudo testDma "../pi-tests/test-dma/dma_test.json" )
