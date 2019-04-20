@@ -29,10 +29,10 @@ namespace core_clock_pwm {
 #define CLOCK_PWMDIV_PHYS        0x7e1010a4      //Clock Manager Audio Clock Divisors
 #define CLOCK_PWMDIV_OFFSET      0x001010a4      //Clock Manager Audio Clock Divisors. Registers
 
-struct pwm_clock_t {
+using pwm_clock = struct  __attribute__((packed, aligned(4))) pwm_clock_t {
     uint32_t _pwmctl;       //Clock Manager Audio Clock Control register
     uint32_t _pwmdiv;       //Clock Manager Audio Clock Divisors register
-} __attribute__((packed, aligned(4))) pwm_clock;
+};
 
 #define CM_CLK_CTL_SRC(val)    (val&0xf)
 #define CM_CLK_CTL_SRC_GND                          CM_CLK_CTL_SRC(0)  //RW bit 0-3; Clock source; GND (reset 0)
@@ -71,7 +71,7 @@ public:
         logger::log(logger::LLOG::DEBUG, "PwmClock", std::string(__func__));
 
         uint32_t ph_address = CoreCommon::get_peripheral_address();
-        _pwm_clock = piutils::map_memory<struct pwm_clock_t>(ph_address + clock_pwmctl);
+        _pwm_clock = piutils::map_memory<pwm_clock>(ph_address + clock_pwmctl);
 
         if(_pwm_clock == nullptr){
             logger::log(logger::LLOG::ERROR, "PwmClock", std::string(__func__) + " Fail to initialize PWM Clock ");
@@ -89,7 +89,7 @@ public:
             _stop();
 
             //Unmap
-            _pwm_clock = piutils::unmap_memory<struct pwm_clock_t>(static_cast<struct pwm_clock_t*>((void*)_pwm_clock));
+            _pwm_clock = piutils::unmap_memory<pwm_clock>(static_cast<pwm_clock*>((void*)_pwm_clock));
         }
     }
 
@@ -194,7 +194,7 @@ protected:
 
 
 private:
-    volatile struct pwm_clock_t* _pwm_clock;
+    volatile pwm_clock* _pwm_clock;
 };
 
 } //core_clock_pwm

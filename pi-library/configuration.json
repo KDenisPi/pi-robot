@@ -273,6 +273,20 @@
             "stripes": 1,        //maximun number of LED stripes supported by controller
             "stripe": [{"name": "LED stripe", "leds": 30, "comment": "optional", "type": "WS2810"}]  //LED stripes list. Possible types WS2810, WS2812B
 
+        },
+
+        //
+        // LED Stripe. PWM based controller
+        //
+        {
+            "type": "SLEDCRTLPWM",
+            "name": "item_name",
+            "gpio": "gpio_pwm",
+            "comment": "",
+            "stripes": 1,        //maximun number of LED stripes supported by controller
+            "stripe": [{"name": "LED stripe", "leds": 30, "comment": "optional", "type": "WS2812B"}]  //LED stripes list. Possible types WS2810, WS2812B
+
         }
+
     ]
 }

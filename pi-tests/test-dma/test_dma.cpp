@@ -4,9 +4,8 @@
 
 #include "logger.h"
 
-#include "core_dma.h"
-#include "core_pwm.h"
 #include "PiRobot.h"
+#include "core_pwm.h"
 
 using namespace std;
 
@@ -20,7 +19,7 @@ int main (int argc, char* argv[])
 {
     size_t buff_size_bytes = 1024;
     bool success = true;
-    char* src = nullptr;
+    uint8_t* src = nullptr;
 
     pirobot::PiRobot* rbt = nullptr;
     pi_core::core_pwm::PwmCore* pwm = nullptr;
@@ -49,7 +48,7 @@ int main (int argc, char* argv[])
       goto clear_data;
     }
 
-    src = static_cast<char*>(malloc(buff_size_bytes));
+    src = static_cast<uint8_t*>(malloc(buff_size_bytes));
     memset((void*)src, 'D', buff_size_bytes);
     src[buff_size_bytes-1] = 0x00;
 

@@ -27,7 +27,7 @@ class DmaControl;
 * BCM2835 ARM peripherials (section 4.2.1)
 *
 */
-struct dma_ctrl_blk_t {
+using dma_ctrl_blk = struct __attribute__((packed, aligned(4))) dma_ctrl_blk_t {
     uint32_t _ti;               //transfer information
     uint32_t _src_addr;         //source address
     uint32_t _dst_addr;         //destination address
@@ -36,9 +36,9 @@ struct dma_ctrl_blk_t {
     uint32_t _next_ctrl_blk;    //Next control block
     uint32_t _reserved1;
     uint32_t _reserved2;
-}  __attribute__((packed, aligned(4))) dma_ctrl_blk;
+};
 
-struct dma_regs_t{
+using dma_regs = struct __attribute__((packed, aligned(4))) dma_regs_t {
     uint32_t _cs;           //DMA control and status
     uint32_t _conblk_ad;    //Control block address
     uint32_t _ti;           //Transfer information (Word 0)
@@ -48,7 +48,7 @@ struct dma_regs_t{
     uint32_t _stride;       //2D Stride (Word 4)
     uint32_t _nextconbk;    //Next DMA control block
     uint32_t _debug;        //Debug
-}  __attribute__((packed, aligned(4))) dma_regs;
+};
 
 /*
 * DMA Control and Status register
@@ -105,7 +105,7 @@ public:
     DmaControlBlock(const DREQ dreq = DREQ::PWM) : _dreq(dreq), _ti_flags(0) {
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
-        _ctrk_blk = static_cast<struct dma_ctrl_blk_t*>( malloc(sizeof(struct dma_ctrl_blk_t)) );
+        _ctrk_blk = static_cast<dma_ctrl_blk*>( malloc(sizeof(dma_ctrl_blk)) );
 
         if(_ctrk_blk == nullptr){
             logger::log(logger::LLOG::ERROR, "DmaCtrl", std::string(__func__) + " Could not allocate memory for DMA CB");
@@ -113,7 +113,7 @@ public:
         }
 
         //initialize memory
-        memset((void*)_ctrk_blk, 0x00, sizeof(struct dma_ctrl_blk_t));
+        memset((void*)_ctrk_blk, 0x00, sizeof(dma_ctrl_blk));
 
         if( _dreq == DREQ::PWM){
             logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Selected CI flags for PWM");
@@ -168,13 +168,13 @@ protected:
         _ctrk_blk->_next_ctrl_blk = 0; //no next DMA CB
     }
 
-    const struct dma_ctrl_blk_t* get_ctrl_blk() const {
+    const dma_ctrl_blk* get_ctrl_blk() const {
         return _ctrk_blk;
     }
 
 private:
-    struct dma_ctrl_blk_t* _ctrk_blk;  //DMA control block
-    DREQ _dreq;                                 //Data request (DREQ)
+    dma_ctrl_blk* _ctrk_blk;  //DMA control block
+    DREQ _dreq;               //Data request (DREQ)
     uint32_t _ti_flags;
 };
 
@@ -187,7 +187,7 @@ public:
         assert(dma < 15);
         _addr = dma_address(dma);
 
-        _dma_regs = piutils::map_memory<struct dma_regs_t>(_addr);
+        _dma_regs = piutils::map_memory<dma_regs>(_addr);
         if(_dma_regs == nullptr){
             logger::log(logger::LLOG::ERROR, "DmaCtrl", std::string(__func__) + " Fail to initialize DMA control");
             throw std::runtime_error(std::string("Fail to initialize DMA control"));
@@ -200,9 +200,16 @@ public:
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " addr: " + std::to_string(_addr));
 
         if(_dma_regs){
+
+            logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Check if busy");
+            while( !is_finished() ){
+                //TODO: Add counter?
+            };
+
+            //reset DMA control state
             reset();
 
-            _dma_regs = piutils::unmap_memory<struct dma_regs_t>(static_cast<struct dma_regs_t*>((void*)_dma_regs));
+            _dma_regs = piutils::unmap_memory<dma_regs>(static_cast<dma_regs*>((void*)_dma_regs));
         }
     }
 
@@ -291,7 +298,9 @@ public:
    }
 
     /*
-    * Check if we finished to process current DMA CB
+    * Check if we finished to process DMA CB
+    * True - no more data
+    * False - busy now
     */
     bool is_finished() {
         bool result = true;
@@ -379,7 +388,7 @@ private:
     uint32_t _cs_flags; //default flags for CS register
 
     bool _started;  //Flag do we have active Control Block on processing
-    volatile struct dma_regs_t* _dma_regs;
+    volatile dma_regs* _dma_regs;
 };
 
 

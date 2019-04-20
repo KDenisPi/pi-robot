@@ -25,7 +25,7 @@ namespace core_pwm {
 #define PWM_OFFSET                               (0x0020c000)   //use peripheral address as base for this address
 #define PWM_PERIPH_PHYS                          (0x7e20c000)   //use this addrewss directly
 
-struct pwm_regs_t {
+using pwm_regs = struct __attribute__((packed, aligned(4))) pwm_regs_t{
     uint32_t _ctl;  //PWM Control
     uint32_t _sta;  //PWM Status
     uint32_t _dmac; //PWM DMA configuration
@@ -34,7 +34,7 @@ struct pwm_regs_t {
     uint32_t _fif1; //PWM FIFO input. This register is the FIFO input for the all channels.
     uint32_t _rng2; //PWM channel 2 range
     uint32_t _dat2; //PWM channel 2 data
-} __attribute__((packed, aligned(4))) pwm_regs;
+};
 
 
 /*
@@ -128,7 +128,7 @@ public:
 
         uint32_t ph_address = pi_core::CoreCommon::get_peripheral_address();
 
-        _pwm_regs = piutils::map_memory<struct pwm_regs_t>(ph_address + pwmctl_addr);
+        _pwm_regs = piutils::map_memory<pwm_regs>(ph_address + pwmctl_addr);
         if( _pwm_regs == nullptr){
             logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " Fail to initialize PWM control");
             throw std::runtime_error(std::string("Fail to initialize PWM control"));
@@ -147,14 +147,14 @@ public:
         }
 
         if(_is_init()){
-            _pwm_regs = piutils::unmap_memory<struct pwm_regs_t>((struct pwm_regs_t*)_pwm_regs);
+            _pwm_regs = piutils::unmap_memory<pwm_regs>((pwm_regs*)_pwm_regs);
         }
     }
 
     /*
     * Write data to PWM
     */
-    virtual bool write_data(const char* data, int len){
+    virtual bool write_data(uint8_t* data, int len){
         logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Write to PWM: " +  std::to_string(len));
 
         if(!_is_dma()){
@@ -172,7 +172,7 @@ public:
             logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Start to process DMA Control Block");
             result = _dma_ctrl->process_control_block(cb);
             if( result ){
-                while(_dma_ctrl->is_finished()){};
+                while( !_dma_ctrl->is_finished() ){};
             }
             logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " DMA Control Block processed");
         }
@@ -217,7 +217,7 @@ public:
     */
    const uintptr_t get_fifo_address() const{
         if(_is_init())
-            return (uintptr_t)&((struct pwm_regs_t*)PWM_PERIPH_PHYS)->_fif1;
+            return (uintptr_t)&((pwm_regs*)PWM_PERIPH_PHYS)->_fif1;
 
         return (uintptr_t)nullptr;
    }
@@ -285,7 +285,7 @@ private:
         return (_pwm_clock != nullptr);
     }
 
-    volatile struct pwm_regs_t* _pwm_regs;          //PWM control & data registers
+    volatile pwm_regs* _pwm_regs;          //PWM control & data registers
     pi_core::core_clock_pwm::PwmClock* _pwm_clock;  //PWM Clock object
     pi_core::core_dma::DmaControl* _dma_ctrl;       //DMA Control object
 };

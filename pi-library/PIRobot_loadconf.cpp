@@ -35,7 +35,7 @@
 #include "lcd.h"
 #include "sled.h"
 #include "sledctrl_spi.h"
-//#include "sledctrl_pwm.h"
+#include "sledctrl_pwm.h"
 
 namespace pirobot {
 const char TAG[] = "PiRobot";
@@ -645,8 +645,8 @@ bool PiRobot::configure(const std::string& cfile){
                     */
                     case item::ItemTypes::SLEDCRTLPWM:
                     {
-                        /*
                         auto stripes  =  jsonhelper::get_attr<int>(json_item, "stripes", 0);
+                        std::string pwm_gpio = f_get_gpio_name(json_item, "gpio_pwm", item_name);
 
                         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item: " + item_name + " Comment: " + item_comment);
 
@@ -655,6 +655,7 @@ bool PiRobot::configure(const std::string& cfile){
                                     new pirobot::item::sledctrl::SLedCtrlPwm(
                                         stripes,
                                         item_name,
+                                        get_gpio(pwm_gpio),
                                         item_comment
                                     )));
 
@@ -674,7 +675,6 @@ bool PiRobot::configure(const std::string& cfile){
 
                             sledctrl->add_sled(std::shared_ptr<pirobot::item::SLed>(new pirobot::item::SLed(leds, stype, sled_name, sled_comm)));
                         }
-                        */
                     }
 
                 }//Item types

@@ -12,8 +12,7 @@
 
 #include "sledctrl.h"
 #include "smallthings.h"
-#include "core_dma.h"
-#include "core_clock_pwm.h"
+#include "core_pwm.h"
 #include "logger.h"
 
 namespace pirobot {
@@ -21,24 +20,20 @@ namespace item {
 namespace sledctrl {
 
 
-class SLedCtrlPwm : public pirobot::item::sledctrl::SLedCtrl
+class SLedCtrlPwm : public pirobot::item::sledctrl::SLedCtrl, public pi_core::core_pwm::PwmCore
 {
 public:
     SLedCtrlPwm(const int sleds,
         const std::string& name,
+        const std::shared_ptr<pirobot::gpio::Gpio> gpio,
         const std::string& comment="") :
-            SLedCtrl(item::ItemTypes::SLEDCRTLPWM, sleds, name, comment)
+            SLedCtrl(item::ItemTypes::SLEDCRTLPWM, sleds, name, gpio, comment),  pi_core::core_pwm::PwmCore(10)
     {
         logger::log(logger::LLOG::DEBUG, "SLedCtrlPwm", std::string(__func__) + " name " + name);
     }
 
     virtual ~SLedCtrlPwm(){
         logger::log(logger::LLOG::DEBUG, "SLedCtrlPwm", std::string(__func__));
-    }
-
-    virtual bool write_data(unsigned char* data, int len) override {
-        logger::log(logger::LLOG::DEBUG, "SLedCtrlPwm", std::string(__func__) + " Write to PWM: " +  std::to_string(len));
-        return true;
     }
 
     /*
@@ -50,6 +45,12 @@ public:
 
         return result;
     }
+
+    virtual bool write_data(uint8_t* data, int len) override{
+
+        return true;
+    }
+
 
     /*
     * ON for PWM based device
@@ -65,12 +66,6 @@ public:
 
     }
 
-    /*
-    * Set initial values for PWM
-    */
-   void _configure() {
-
-   }
 };
 
 

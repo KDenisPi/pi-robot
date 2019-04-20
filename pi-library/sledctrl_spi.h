@@ -31,7 +31,7 @@ public:
         logger::log(logger::LLOG::DEBUG, "LedCtrlSpi", std::string(__func__) + " name " + name);
     }
 
-    virtual bool write_data(unsigned char* data, int len) override {
+    virtual bool write_data(uint8_t* data, int len) override {
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Write to SPI: " +  std::to_string(len));
 
         //Write data to SPI
