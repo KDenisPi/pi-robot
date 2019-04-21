@@ -63,6 +63,7 @@ int main (int argc, char* argv[])
     std::cout << "Start to process DMA Control Block" << std::endl;
     success = pwm->write_data(src, buff_size_bytes);
 
+    std::cout << "Write data returned " << success << std::endl;
 
   clear_data:
 

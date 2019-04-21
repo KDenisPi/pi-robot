@@ -174,8 +174,13 @@ public:
             if( result ){
                 while( !_dma_ctrl->is_finished() ){};
             }
+            else
+              logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " DMA Control Block processing failed");
+
             logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " DMA Control Block processed");
         }
+        else
+            logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " DMA Ctrl prepare failed");
 
         delete cb;
 
@@ -221,26 +226,6 @@ public:
 
         return (uintptr_t)nullptr;
    }
-
-    /*
-    * Get string with CS register status
-    */
-    const std::string cs_register_status() {
-        if(_is_dma())
-            return _dma_ctrl->cs_register_status();
-
-        return "Not initialized";
-    }
-
-    /*
-    * Get string with CS register status
-    */
-    const std::string ti_register_status() {
-        if(_is_dma())
-            return _dma_ctrl->ti_register_status();
-
-        return "Not initialized";
-    }
 
 private:
 

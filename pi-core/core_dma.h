@@ -166,6 +166,8 @@ protected:
         _ctrk_blk->_txfr_len = txfr_len;
         _ctrk_blk->_2d_mode_stride = 0;
         _ctrk_blk->_next_ctrl_blk = 0; //no next DMA CB
+
+       return true;
     }
 
     const dma_ctrl_blk* get_ctrl_blk() const {
@@ -233,12 +235,9 @@ public:
         _dma_regs->_cs = 0;         //initialize DMA control and status
         _dma_regs->_txrf_len = 0;
 
-        _dma_regs->_cs = DMA_REG_CS_RESET;  //Reset DMA
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
+        reset();
 
-        //Clear Interrupt (INT) and DMA end (END) statuses
-        _dma_regs->_cs = DMA_REG_CS_INT | DMA_REG_CS_END;
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
+        set_cs_flags(cs_flags_pwm);
 
         return true;
     }
@@ -253,11 +252,11 @@ public:
         std::this_thread::sleep_for(std::chrono::microseconds(10));
 
         //Clear Interrupt (INT) and DMA end (END) statuses
-        _dma_regs->_cs = DMA_REG_CS_INT | DMA_REG_CS_END;
+        _dma_regs->_cs = (DMA_REG_CS_INT | DMA_REG_CS_END);
         std::this_thread::sleep_for(std::chrono::microseconds(10));
 
         //clear error flags
-        _dma_regs->_debug = DMA_REG_DEBUG_READ_ERROR | DMA_REG_DEBUG_FIFO_ERROR | DMA_REG_DEBUG_READ_LAST_NOT_SET_ERROR;
+        _dma_regs->_debug = (DMA_REG_DEBUG_READ_ERROR | DMA_REG_DEBUG_FIFO_ERROR | DMA_REG_DEBUG_READ_LAST_NOT_SET_ERROR);
         std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
 
@@ -267,21 +266,34 @@ public:
     bool process_control_block(const pi_core::core_dma::DmaControlBlock* dma_ctrl_blk) {
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
+        std::cout << "process_control_block " << std::endl;
+
         //Check did we finis process the current DMA CB
         if( !is_finished() ){
             logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " DMA is still busy");
+
+	    std::cout << "process_control_block not finshed yet" << std::endl;
             return false;
         }
 
+        std::cout << "process_control_block reset" << std::endl;
         reset();
 
         _started = true;
 
+        std::cout << "process_control_block set DMS CB" << std::endl;
+
         //Set DMA Control Block
         _dma_regs->_conblk_ad = reinterpret_cast<std::uintptr_t>(dma_ctrl_blk->get_ctrl_blk());
-        //Start to process DMA Control Block
-        _dma_regs->_cs = _cs_flags | DMA_REG_CS_ACTIVE;
 
+        //Start to process DMA Control Block
+        std::cout << "process_control_block CS" << std::hex << cs_register_status(_cs_flags | DMA_REG_CS_ACTIVE) << std::endl;
+        std::cout << "process_control_block TI" << std::hex << ti_register_status(dma_ctrl_blk->get_ctrl_blk()->_ti) << std::endl;
+
+        _dma_regs->_cs = (_cs_flags | DMA_REG_CS_ACTIVE);
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
+
+        std::cout << "process_control_block Started " << std::hex <<  cs_register_status(_dma_regs->_cs) << std::endl;
         return true;
    }
 
@@ -336,11 +348,11 @@ public:
     /*
     * Get string with CS register status
     */
-    const std::string cs_register_status() {
+    const std::string cs_register_status(const uint32_t cs_state) {
         char buff[64];
-        std::string res = "CS register:\n";
-
-        const uint32_t cs_state = _dma_regs->_cs;
+        std::string res = "CS register: ";
+        std::sprintf(buff, "0x%X\n", cs_state);
+        res += buff;
         res += CoreCommon::bit_test(buff, cs_state, 0, "ACTIVE");
         res += CoreCommon::bit_test(buff, cs_state, 1, "END");
         res += CoreCommon::bit_test(buff, cs_state, 2, "INT");
@@ -348,6 +360,9 @@ public:
         res += CoreCommon::bit_test(buff, cs_state, 4, "PAUSED");
         res += CoreCommon::bit_test(buff, cs_state, 5, "DREQ_STOPS_DMA");
         res += CoreCommon::bit_test(buff, cs_state, 6, "WAITING_FOR_OUTSTANDING_WRITES");
+        res += CoreCommon::bit_test(buff, cs_state, 8, "ERROR");
+        res += CoreCommon::bits_test(buff,  ((cs_state>>16)&0xF), "PRIORITY");
+        res += CoreCommon::bits_test(buff,  ((cs_state>>20)&0xF), "PANIC PRIORITY");
         res += CoreCommon::bit_test(buff, cs_state, 28, "WAIT_FOR_OUTSTANDING_WRITES");
         res += CoreCommon::bit_test(buff, cs_state, 29, "DISDEBUG");
 
@@ -357,11 +372,11 @@ public:
     /*
     * Get string with CS register status
     */
-    const std::string ti_register_status() {
+    const std::string ti_register_status(const uint32_t ti_state) {
         char buff[64];
-        std::string res = "TI register:\n";
-
-        const uint32_t ti_state = _dma_regs->_ti;
+        std::string res = "TI register: ";
+        std::sprintf(buff, "0x%X\n", ti_state);
+        res += buff;
         res += CoreCommon::bit_test(buff, ti_state, 0, "INTEN");
         res += CoreCommon::bit_test(buff, ti_state, 1, "TDMODE");
         res += CoreCommon::bit_test(buff, ti_state, 3, "WAIT_RESP");
