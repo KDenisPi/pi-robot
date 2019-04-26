@@ -41,52 +41,52 @@ using pwm_regs = struct __attribute__((packed, aligned(4))) pwm_regs_t{
 * PWM Control register (CTL)
 */
 //bits 31-16 not used, write 0
-#define PWM_CTRL_MSEN2 0x00008000    // RW bit 15; Channel 1 M/S Enable; (0-PWM algorithm used; 1-M/S transmission used)
+#define PWM_CTRL_MSEN2 (1<<15)  // RW bit 15; Channel 1 M/S Enable; (0-PWM algorithm used; 1-M/S transmission used)
 //bit 14-not used, write 0
-#define PWM_CTRL_USEF2  0x00002000   // RW bit 13; Channel 2 use FIFO (0-Data register is transmitted; 1-FIFO used for transmission)
-#define PWM_CTRL_POLA2  0x00001000   // RW bit 12; Channel 2 polarity; (0-[0:low; 1-high], 1-[1-low; 0-high])
-#define PWM_CTRL_SBIT2  0x00000800   // RW bit 11; Channel 2 silence bit; Defines the state of the output when no transmission takes place
-#define PWM_CTRL_RPTL2  0x00000400   // RW bit 10; Channel 2 repeat last data; (0-Transmission interrupts when FIFO is empty,
-                                     //                                        1-Last data in FIFO is transmitted repetedly until FIFO is not empty)
-#define PWM_CTRL_MODE2  0x00000200   // RW bit 9; Channel 2 mode; (0-PWM mode, 1-Serialiser mode)
-#define PWM_CTRL_PWEN2  0x00000100   // RW bit 8; Channel 2 enable (0-disable, 1-enable)
+#define PWM_CTRL_USEF2  (1<<13) // RW bit 13; Channel 2 use FIFO (0-Data register is transmitted; 1-FIFO used for transmission)
+#define PWM_CTRL_POLA2  (1<<12) // RW bit 12; Channel 2 polarity; (0-[0:low; 1-high], 1-[1-low; 0-high])
+#define PWM_CTRL_SBIT2  (1<<11) // RW bit 11; Channel 2 silence bit; Defines the state of the output when no transmission takes place
+#define PWM_CTRL_RPTL2  (1<<10) // RW bit 10; Channel 2 repeat last data; (0-Transmission interrupts when FIFO is empty,
+                                //                                        1-Last data in FIFO is transmitted repetedly until FIFO is not empty)
+#define PWM_CTRL_MODE2  (1<<9)  // RW bit 9; Channel 2 mode; (0-PWM mode, 1-Serialiser mode)
+#define PWM_CTRL_PWEN2  (1<<8)  // RW bit 8; Channel 2 enable (0-disable, 1-enable)
 
-#define PWM_CTRL_MSEN1  0x00000080   // RW bit 7; Channel 1 M/S Enable; (0-PWM algorithm used; 1-M/S transmission used)
-#define PWM_CTRL_CLRF1  0x00000040   // RO bit 6; (1-Clears FIFO, 0-Has no effect; This is single shot operation)
-                                     // This bit always reads 0
-#define PWM_CTRL_USEF1  0x00000020   // RW bit 5; Channel 1 use FIFO (0-Data register is transmitted; 1-FIFO used for transmission)
-#define PWM_CTRL_POLA1  0x00000010   // RW bit 4; Channel 1 polarity; (0-[0:low; 1-high], 1-[1-low; 0-high])
-#define PWM_CTRL_SBIT1  0x00000008   // RW bit 3; Channel 1 silence bit; Defines the state of the output when no transmission takes place
-#define PWM_CTRL_RPTL1  0x00000004   // RW bit 2; Channel 1 repeat last data; (0-Transmission interrupts when FIFO is empty,
-                                     //                                        1-Last data in FIFO is transmitted repetedly until FIFO is not empty)
-#define PWM_CTRL_MODE1  0x00000002   // RW bit 1; Channel 1 mode; (0-PWM mode, 1-Serialiser mode)
-#define PWM_CTRL_PWEN1  0x00000001   // RW bit 0; Channel 1 enable (0-disable, 1-enable)
+#define PWM_CTRL_MSEN1  (1<<7)  // RW bit 7; Channel 1 M/S Enable; (0-PWM algorithm used; 1-M/S transmission used)
+#define PWM_CTRL_CLRF1  (1<<6)  // RO bit 6; (1-Clears FIFO, 0-Has no effect; This is single shot operation)
+                                // This bit always reads 0
+#define PWM_CTRL_USEF1  (1<<5)  // RW bit 5; Channel 1 use FIFO (0-Data register is transmitted; 1-FIFO used for transmission)
+#define PWM_CTRL_POLA1  (1<<4)  // RW bit 4; Channel 1 polarity; (0-[0:low; 1-high], 1-[1-low; 0-high])
+#define PWM_CTRL_SBIT1  (1<<3)  // RW bit 3; Channel 1 silence bit; Defines the state of the output when no transmission takes place
+#define PWM_CTRL_RPTL1  (1<<2)  // RW bit 2; Channel 1 repeat last data; (0-Transmission interrupts when FIFO is empty,
+                                //                                        1-Last data in FIFO is transmitted repetedly until FIFO is not empty)
+#define PWM_CTRL_MODE1  (1<<1)  // RW bit 1; Channel 1 mode; (0-PWM mode, 1-Serialiser mode)
+#define PWM_CTRL_PWEN1  (1<<0)  // RW bit 0; Channel 1 enable (0-disable, 1-enable)
 
 /*
 * PWM Status register (STA)
 */
-#define PWM_STA_STA4    0x00001000   // RW bit 12; Channel 4 State
-#define PWM_STA_STA3    0x00000800   // RW bit 11; Channel 3 State
-#define PWM_STA_STA2    0x00000400   // RW bit 10; Channel 2 State
-#define PWM_STA_STA1    0x00000200   // RW bit  9; Channel 1 State
-#define PWM_STA_BERR    0x00000100   // RW bit 8; Bus error flag
-#define PWM_STA_GAPO4   0x00000080   // RW bit 7; Channel 4 Gap occurred flag
-#define PWM_STA_GAPO3   0x00000040   // RW bit 6; Channel 3 Gap occurred flag
-#define PWM_STA_GAPO2   0x00000020   // RW bit 5; Channel 2 Gap occurred flag
-#define PWM_STA_GAPO1   0x00000010   // RW bit 4; Channel 1 Gap occurred flag
-#define PWM_STA_RERR1   0x00000008   // RW bit 3; FIFO Read error flag
-#define PWM_STA_WERR1   0x00000004   // RW bit 2; FIFO Write error flag
-#define PWM_STA_EMPT1   0x00000002   // RW bit 1; FIFO Empty flag
-#define PWM_STA_FULL1   0x00000001   // RW bit 0; FIFO full flag
+#define PWM_STA_STA4    (1<<12)   // RW bit 12; Channel 4 State
+#define PWM_STA_STA3    (1<<11)   // RW bit 11; Channel 3 State
+#define PWM_STA_STA2    (1<<10)   // RW bit 10; Channel 2 State
+#define PWM_STA_STA1    (1<<9)   // RW bit  9; Channel 1 State
+#define PWM_STA_BERR    (1<<8)   // RW bit 8; Bus error flag
+#define PWM_STA_GAPO4   (1<<7)   // RW bit 7; Channel 4 Gap occurred flag
+#define PWM_STA_GAPO3   (1<<6)   // RW bit 6; Channel 3 Gap occurred flag
+#define PWM_STA_GAPO2   (1<<5)   // RW bit 5; Channel 2 Gap occurred flag
+#define PWM_STA_GAPO1   (1<<4)   // RW bit 4; Channel 1 Gap occurred flag
+#define PWM_STA_RERR1   (1<<3)   // RW bit 3; FIFO Read error flag
+#define PWM_STA_WERR1   (1<<2)   // RW bit 2; FIFO Write error flag
+#define PWM_STA_EMPT1   (1<<1)   // RW bit 1; FIFO Empty flag
+#define PWM_STA_FULL1   (1<<0)   // RW bit 0; FIFO full flag
 
 /*
 * PWM DMA Configuration register (DMAC)
 */
-#define RPI_PWM_DMAC_ENAB        0x80000000          //RW bit  31; DMA Enable; (0-DMA disabled; 1-DMA enabled)
-#define RPI_PWM_DMAC_PANIC_RESET 0x00000700          //RW bits 7-0; DMA Treshold for PANIC signal (reset value 0x7)
-#define RPI_PWM_DMAC_PANIC(val)  ((val & 0xff) << 8) //RW bits 15-8; DMA Treshold for PANIC signal (reset value 0x7)
-#define RPI_PWM_DMAC_DREQ_RESET  0x07                //RW bits 7-0; DMA Treshold for DREQ signal (reset value 0x7)
-#define RPI_PWM_DMAC_DREQ(val)   (val & 0xff)        //RW bits 7-0; DMA Treshold for DREQ signal (reset value 0x7)
+#define RPI_PWM_DMAC_ENAB        (1<<31)                     //RW bit  31; DMA Enable; (0-DMA disabled; 1-DMA enabled)
+#define RPI_PWM_DMAC_PANIC_RESET RPI_PWM_DMAC_PANIC_RESET(7) //RW bits 7-0; DMA Treshold for PANIC signal (reset value 0x7)
+#define RPI_PWM_DMAC_PANIC(val)  ((val & 0xff) << 8)    //RW bits 15-8; DMA Treshold for PANIC signal (reset value 0x7)
+#define RPI_PWM_DMAC_DREQ_RESET  RPI_PWM_DMAC_DREQ(7)   //RW bits 7-0; DMA Treshold for DREQ signal (reset value 0x7)
+#define RPI_PWM_DMAC_DREQ(val)   (val & 0xff)           //RW bits 7-0; DMA Treshold for DREQ signal (reset value 0x7)
 
 /*
 * PWM Channel 1 Range register (RNG1)
@@ -147,6 +147,7 @@ public:
         }
 
         if(_is_init()){
+            _clear();
             _pwm_regs = piutils::unmap_memory<pwm_regs>((pwm_regs*)_pwm_regs);
         }
     }
@@ -214,6 +215,9 @@ public:
             }
         }
 
+        //Set PWM configuration
+        _configure();
+
         return true;
     }
 
@@ -240,8 +244,46 @@ private:
     * Set initial values for PWM
     */
    void _configure() {
+        logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__));
 
+        //TODO: Do not forget enable DMA and ither paramaters
+        _pwm_regs->_rng1 = 32;
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
+
+        _pwm_regs->_dmac = (RPI_PWM_DMAC_ENAB | RPI_PWM_DMAC_PANIC(7) | RPI_PWM_DMAC_DREQ(3));
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
+
+        //Use FIFO and Serialiser mode for channel 1
+        _pwm_regs->_ctl = (PWM_CTRL_USEF1 | PWM_CTRL_MODE1);
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
+
+        //Ebable channel 1
+        _pwm_regs->_ctl = PWM_CTRL_PWEN1;
    }
+
+    /*
+    *
+    */
+    void _clear(){
+        logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__));
+
+        if(!_is_init()){
+            logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Not started");
+            return;
+        }
+
+        _pwm_regs->_dmac = 0;   //Disable DMA
+
+        //Stop PWM
+        _pwm_regs->_ctl = 0;
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
+        _pwm_regs->_ctl |= PWM_CTRL_CLRF1; //clear FIFO
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
+
+        //clear error flags
+        _pwm_regs->_sta = (PWM_STA_WERR1 | PWM_STA_RERR1 | PWM_STA_BERR);
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
+    }
 
     /*
     * List functions for changing control parameters
@@ -249,11 +291,7 @@ private:
     void _stop(){
             logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__));
 
-            if(_is_init()){
-                //Stop PWM
-                _pwm_regs->_ctl = 0;
-                std::this_thread::sleep_for(std::chrono::microseconds(10));
-            }
+            _clear();
 
             //Stop clock
             if( _is_clock() )
