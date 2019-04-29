@@ -163,6 +163,12 @@ public:
             return false;
         }
 
+        std::cout << "3 PWM CTL  0x" << std::hex <<_pwm_regs->_ctl << std::endl;
+        std::cout << "3 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
+        std::cout << "3 PWM DMAC 0x" << std::hex <<_pwm_regs->_dmac << std::endl;
+
+        //return true;
+
         /*
         * TODO: Make it Asynchroniously
         */
@@ -173,7 +179,14 @@ public:
             logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Start to process DMA Control Block");
             result = _dma_ctrl->process_control_block(cb);
             if( result ){
-                while( !_dma_ctrl->is_finished() ){};
+                while( !_dma_ctrl->is_finished() ){
+                  std::cout << "PWM CTL 0x" << std::hex <<_pwm_regs->_ctl << std::endl;
+                  std::cout << "PWM STA 0x" << std::hex <<_pwm_regs->_sta << std::endl;
+                  if(is_error()){
+                     clear_berr();
+                  }
+                  std::this_thread::sleep_for(std::chrono::seconds(1));
+                };
             }
             else
               logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " DMA Control Block processing failed");
@@ -199,6 +212,10 @@ public:
     */
     bool Initialize() {
 
+        std::cout << "1 PWM CTL  0x" << std::hex <<_pwm_regs->_ctl << std::endl;
+        std::cout << "1 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
+        std::cout << "1 PWM DMAC 0x" << std::hex <<_pwm_regs->_dmac << std::endl;
+
        _stop();
 
         if( _is_clock() ){
@@ -217,6 +234,10 @@ public:
 
         //Set PWM configuration
         _configure();
+
+        std::cout << "2 PWM CTL  0x" << std::hex <<_pwm_regs->_ctl << std::endl;
+        std::cout << "2 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
+        std::cout << "2 PWM DMAC 0x" << std::hex <<_pwm_regs->_dmac << std::endl;
 
         return true;
     }
@@ -246,19 +267,25 @@ private:
    void _configure() {
         logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__));
 
+        std::cout << "C1 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
         //TODO: Do not forget enable DMA and ither paramaters
         _pwm_regs->_rng1 = 32;
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
 
+        std::cout << "C2 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
         _pwm_regs->_dmac = (RPI_PWM_DMAC_ENAB | RPI_PWM_DMAC_PANIC(7) | RPI_PWM_DMAC_DREQ(3));
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
 
+        std::cout << "C3 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
         //Use FIFO and Serialiser mode for channel 1
-        _pwm_regs->_ctl = (PWM_CTRL_USEF1 | PWM_CTRL_MODE1);
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
+        _pwm_regs->_ctl |= (PWM_CTRL_USEF1 | PWM_CTRL_MODE1);
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
 
+        std::cout << "C4 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
         //Ebable channel 1
-        _pwm_regs->_ctl = PWM_CTRL_PWEN1;
+        _pwm_regs->_ctl |= PWM_CTRL_PWEN1;
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
+        std::cout << "C5 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
    }
 
     /*
@@ -281,8 +308,24 @@ private:
         std::this_thread::sleep_for(std::chrono::microseconds(10));
 
         //clear error flags
-        _pwm_regs->_sta = (PWM_STA_WERR1 | PWM_STA_RERR1 | PWM_STA_BERR);
+        std::cout << "E1 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
+        _pwm_regs->_sta |= PWM_STA_BERR;
         std::this_thread::sleep_for(std::chrono::microseconds(10));
+
+        _pwm_regs->_sta |= (PWM_STA_RERR1 | PWM_STA_WERR1);
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
+
+        std::cout << "E3 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
+    }
+
+    const bool is_error() const {
+        return ((_pwm_regs->_sta & PWM_STA_BERR) != 0);
+    }
+
+    void clear_berr(){
+         _pwm_regs->_sta |= PWM_STA_BERR;
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
+        std::cout << "EE PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
     }
 
     /*

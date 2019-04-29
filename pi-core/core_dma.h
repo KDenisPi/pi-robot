@@ -287,8 +287,8 @@ public:
         _dma_regs->_conblk_ad = reinterpret_cast<std::uintptr_t>(dma_ctrl_blk->get_ctrl_blk());
 
         //Start to process DMA Control Block
-        std::cout << "process_control_block CS" << std::hex << cs_register_status(_cs_flags | DMA_REG_CS_ACTIVE) << std::endl;
-        std::cout << "process_control_block TI" << std::hex << ti_register_status(dma_ctrl_blk->get_ctrl_blk()->_ti) << std::endl;
+        std::cout << "process_control_block CS " << std::hex << cs_register_status(_cs_flags | DMA_REG_CS_ACTIVE) << std::endl;
+        std::cout << "process_control_block TI " << std::hex << ti_register_status(dma_ctrl_blk->get_ctrl_blk()->_ti) << std::endl;
 
         _dma_regs->_cs = (_cs_flags | DMA_REG_CS_ACTIVE);
         std::this_thread::sleep_for(std::chrono::microseconds(10));
