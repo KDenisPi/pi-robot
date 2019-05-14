@@ -160,6 +160,8 @@ protected:
     */
     bool prepare(const uintptr_t src_addr, const uintptr_t dest_addr, const uint16_t txfr_len){
 
+        std::cout << "DMA prepare Src: " << std::hex << src_addr << " Dst: " << dest_addr << " Len: " << std::dec << txfr_len << std::endl;
+
         _ctrk_blk->_ti = _ti_flags;
         _ctrk_blk->_src_addr = src_addr;
         _ctrk_blk->_dst_addr = dest_addr;

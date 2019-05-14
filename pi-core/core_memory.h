@@ -185,7 +185,7 @@ protected:
         //some also recommend to use mlock() after but I am not sure - mmap with MAP_LOCKED should work as mlock() here
 
 
-        std::cout << "allocate_and_lock Success Allocated: " << std::dec << len_page << " Address Ox" << std::hex << mem << std::endl;
+        std::cout << "allocate_and_lock Success Allocated: " << std::dec << len_page << " Address " << std::hex << mem << std::endl;
         return mem;
     }
 
@@ -199,7 +199,7 @@ protected:
                 logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " munmap failed Error: " + std::to_string(errno));
             }
 
-            std::cout << "deallocate_and_unlock Success Deallocated: " << std::dec << len_page << " Address Ox" << std::hex << address << std::endl;
+            std::cout << "deallocate_and_unlock Success Deallocated: " << std::dec << len_page << " Address " << std::hex << address << std::endl;
             return (res == 0);
     }
 
@@ -266,7 +266,7 @@ protected:
             return result;
         }
 
-        std::cout << "virtual_to_physical Addr: 0x" << std::hex << vaddress << " psize: " << std::dec << psize << std::endl;
+        std::cout << "virtual_to_physical Addr: " << std::hex << vaddress << " psize: " << std::dec << psize << std::endl;
 
         //detect page number
         uintptr_t page_number = (uintptr_t)(vaddress)/psize;

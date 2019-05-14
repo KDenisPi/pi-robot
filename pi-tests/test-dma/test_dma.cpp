@@ -62,8 +62,8 @@ int main (int argc, char* argv[])
 
     minfo = pmem->get_memory(buff_size_bytes);
     if( minfo ){
-        std::cout << "Allocated " << std::dec << minfo->get_size() << " bites. VAddr: 0x" << std::hex
-                            << minfo->get_vaddr() << " PAddr 0x" << minfo->get_paddr() << std::endl;
+        std::cout << "Allocated " << std::dec << minfo->get_size() << " bites. VAddr: " << std::hex
+                            << minfo->get_vaddr() << " PhysAddr: " << std::hex << minfo->get_paddr() << std::endl;
     }
     else{
         std::cout << "Failed to allocate: " << std::dec << buff_size_bytes << " bytes" << std::endl;

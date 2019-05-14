@@ -25,8 +25,8 @@ int main (int argc, char* argv[])
     std::cout << "Allocate: " << size_1 << " bytes" << std::endl;
     minfo = pmem->get_memory(size_1);
     if( minfo ){
-        std::cout << "Allocated " << std::dec << minfo->get_size() << " bites. VAddr: 0x" << std::hex
-                            << minfo->get_vaddr() << " PAddr 0x" << minfo->get_paddr() << std::endl;
+        std::cout << "Allocated " << std::dec << minfo->get_size() << " bites. VAddr: " << std::hex
+                            << minfo->get_vaddr() << " PAddr " << std::hex << minfo->get_paddr() << std::endl;
     }
     else{
         std::cout << "Failed to allocate: " << size_1 << " bytes" << std::endl;
@@ -34,11 +34,11 @@ int main (int argc, char* argv[])
     }
     pmem->free_memory(minfo);
 
-    std::cout << "Allocate: " << std::dec << size_2 << " bytes" << std::endl;
+    std::cout << std::endl << "Allocate: " << std::dec << size_2 << " bytes" << std::endl;
     minfo = pmem->get_memory(size_2);
     if( minfo ){
-        std::cout << "Allocated " << std::dec << minfo->get_size() << " bites. VAddr: 0x" << std::hex
-                            << minfo->get_vaddr() << " PAddr 0x" << minfo->get_paddr() << std::endl;
+        std::cout << "Allocated " << std::dec << minfo->get_size() << " bites. VAddr: " << std::hex
+                            << minfo->get_vaddr() << " PAddr " << minfo->get_paddr() << std::endl;
     }
     else{
         std::cout << "Failed to allocate: " << size_2 << " bytes" << std::endl;
