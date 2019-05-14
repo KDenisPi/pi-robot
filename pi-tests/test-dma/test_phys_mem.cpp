@@ -15,7 +15,7 @@ using namespace std;
 int main (int argc, char* argv[])
 {
     bool success = true;
-    size_t size_1 = 1024, size_2 = (1024 + 350);
+    size_t size_1 = 1024, size_2 = 5000;
     std::shared_ptr<pi_core::core_mem::MemInfo> minfo;
 
     std::cout << "Starting..." << std::endl;
@@ -34,7 +34,7 @@ int main (int argc, char* argv[])
     }
     pmem->free_memory(minfo);
 
-    std::cout << "Allocate: " << size_2 << " bytes" << std::endl;
+    std::cout << "Allocate: " << std::dec << size_2 << " bytes" << std::endl;
     minfo = pmem->get_memory(size_2);
     if( minfo ){
         std::cout << "Allocated " << std::dec << minfo->get_size() << " bites. VAddr: 0x" << std::hex

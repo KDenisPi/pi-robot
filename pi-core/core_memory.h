@@ -90,17 +90,20 @@ public:
     */
     PhysMemory( const std::string& dev = "/proc/self/pagemap") : _fd(-1){
 
-        int _fd = open(dev.c_str(), O_RDONLY);
+        _fd = open(dev.c_str(), O_RDONLY);
         if( _fd < 0 ){
             logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " Could not open: " + dev + " Error: " + std::to_string(errno));
+            std::cout << "map_memory Could not open /proc/self/pagemap: "<< errno << std::endl;
         }
 
+        std::cout << "map_memory Opend /proc/self/pagemap: "<< _fd << std::endl;
     }
 
     /*
     *
     */
     virtual ~PhysMemory(){
+        std::cout << "~PhysMemory /proc/self/pagemap: "<< _fd << std::endl;
         _close();
     }
 
@@ -150,14 +153,18 @@ protected:
     * Allogn buffer size to page
     */
     const size_t align_to_page_size(const size_t len){
-        uint32_t page_size = getpagesize() - 1;
-        uint32_t offset = (len & page_size);
+        uint32_t page_size = getpagesize();
+        uint32_t modulo = (len & (page_size-1));
+        uint32_t page_mask = ~0L ^ (page_size-1);
+        size_t result = len;
 
-        if( offset > 0){
-            return (~0L ^ page_size) + page_size;
+        if( modulo > 0){
+            result =  (len & page_mask) + page_size;
         }
 
-        return len;
+        std::cout << "align_to_page_size page size: " << std::dec << page_size << " In: " << len << " Out: " << result << " Modulo: " << modulo << std::endl;
+
+        return result;
     }
 
     /*
@@ -166,19 +173,19 @@ protected:
     void* allocate_and_lock(const size_t len){
         size_t len_page = align_to_page_size(len);
 
-        void* mem = mmap(NULL, len_page, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_LOCKED | MAP_ANONYMOUS, -1, 0);
+        void* mem = mmap(NULL, len_page, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_LOCKED | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
         if (mem == MAP_FAILED) {
             logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " mmap failed Error: " + std::to_string(errno));
-
-            std::cout << "Failed to allocate MMAP:" << errno << std::endl;
+            std::cout << "allocate_and_lock Failed to allocate MMAP:" << errno << std::endl;
 
             return nullptr;
         }
 
         memset(mem, 0, len_page);
-
         //some also recommend to use mlock() after but I am not sure - mmap with MAP_LOCKED should work as mlock() here
 
+
+        std::cout << "allocate_and_lock Success Allocated: " << std::dec << len_page << " Address Ox" << std::hex << mem << std::endl;
         return mem;
     }
 
@@ -192,6 +199,7 @@ protected:
                 logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " munmap failed Error: " + std::to_string(errno));
             }
 
+            std::cout << "deallocate_and_unlock Success Deallocated: " << std::dec << len_page << " Address Ox" << std::hex << address << std::endl;
             return (res == 0);
     }
 
@@ -254,8 +262,11 @@ protected:
         int psize = getpagesize();
         if( !is_good() ){
             logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + "Error. Not initialized");
+            std::cout << "virtual_to_physical Not initialized " << std::endl;
             return result;
         }
+
+        std::cout << "virtual_to_physical Addr: 0x" << std::hex << vaddress << " psize: " << std::dec << psize << std::endl;
 
         //detect page number
         uintptr_t page_number = (uintptr_t)(vaddress)/psize;
@@ -286,7 +297,6 @@ protected:
                 }
                 else{
                     logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " Page not present in memory");
-
                     std::cout << "virtual_to_physical Page not present in memory: " << std::endl;
                 }
             }
@@ -294,7 +304,6 @@ protected:
         }
         else{
             logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " Could not seek to page: Error: " + std::to_string(errno));
-
             std::cout << "virtual_to_physical Could not seek to page: Error: " << errno << std::endl;
         }
 
