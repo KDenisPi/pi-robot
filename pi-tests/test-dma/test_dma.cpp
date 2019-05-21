@@ -5,6 +5,7 @@
 #include "logger.h"
 
 #include "PiRobot.h"
+#include "core_memory.h"
 #include "core_pwm.h"
 
 using namespace std;
@@ -17,12 +18,13 @@ using namespace std;
 */
 int main (int argc, char* argv[])
 {
-    size_t buff_size_bytes = 1024;
+    size_t buff_size_bytes = 1024*10;
     bool success = true;
-    uint8_t* src = nullptr;
 
     pirobot::PiRobot* rbt = nullptr;
     pi_core::core_pwm::PwmCore* pwm = nullptr;
+    pi_core::core_mem::PhysMemory* pmem = nullptr;
+    std::shared_ptr<pi_core::core_mem::MemInfo> minfo;
 
     std::cout << "Starting..." << std::endl;
 
@@ -31,7 +33,6 @@ int main (int argc, char* argv[])
       std::cout << "Failed. No configuration file" << std::endl;
       exit(EXIT_FAILURE);
     }
-
 
     rbt = new pirobot::PiRobot();
     success = rbt->configure(argv[1]);
@@ -48,10 +49,6 @@ int main (int argc, char* argv[])
       goto clear_data;
     }
 
-    src = static_cast<uint8_t*>(malloc(buff_size_bytes));
-    memset((void*)src, 'D', buff_size_bytes);
-    src[buff_size_bytes-1] = 0x00;
-
     pwm = new pi_core::core_pwm::PwmCore();
     success = pwm->Initialize();
 
@@ -60,8 +57,22 @@ int main (int argc, char* argv[])
       goto clear_data;
     }
 
+
+    pmem = new pi_core::core_mem::PhysMemory();
+
+    minfo = pmem->get_memory(buff_size_bytes);
+    if( minfo ){
+        std::cout << "Allocated " << std::dec << minfo->get_size() << " bites. VAddr: 0x" << std::hex
+                            << minfo->get_vaddr() << " PAddr 0x" << minfo->get_paddr() << std::endl;
+    }
+    else{
+        std::cout << "Failed to allocate: " << std::dec << buff_size_bytes << " bytes" << std::endl;
+        success = false;
+    }
+
+
     std::cout << "Start to process DMA Control Block" << std::endl;
-    success = pwm->write_data(src, buff_size_bytes);
+    success = pwm->write_data(minfo->get_paddr(), minfo->get_size());
 
     std::cout << "Write data returned " << success << std::endl;
 
@@ -71,12 +82,13 @@ int main (int argc, char* argv[])
       delete pwm;
     }
 
-    if(src != nullptr){
-      free(src);
+    if(rbt != nullptr){
+      delete rbt;
     }
 
-    if( rbt != nullptr ){
-      delete rbt;
+    if(pmem != nullptr){
+      pmem->free_memory(minfo);
+      delete pmem;
     }
 
     std::cout << "Finished " << success << std::endl;

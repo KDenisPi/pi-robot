@@ -46,6 +46,7 @@ int main (int argc, char* argv[])
     }
     pmem->free_memory(minfo);
 
+    delete pmem;
 
     std::cout << "Finished " << success << std::endl;
 

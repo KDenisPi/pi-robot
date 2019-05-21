@@ -155,7 +155,7 @@ public:
     /*
     * Write data to PWM
     */
-    virtual bool write_data(uint8_t* data, int len){
+    virtual bool write_data(std::uintptr_t data, int len){
         logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Write to PWM: " +  std::to_string(len));
 
         if(!_is_dma()){
@@ -174,7 +174,7 @@ public:
         */
 
         pi_core::core_dma::DmaControlBlock* cb = new pi_core::core_dma::DmaControlBlock();
-        bool result = cb->prepare(reinterpret_cast<std::uintptr_t>(data), this->get_fifo_address(), len);
+        bool result = cb->prepare(data, this->get_fifo_address(), len);
         if( result ){
             logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Start to process DMA Control Block");
             result = _dma_ctrl->process_control_block(cb);
