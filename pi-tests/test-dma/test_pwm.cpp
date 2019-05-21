@@ -9,8 +9,8 @@ using namespace std;
 
 
 /*
-* Simple DMA test.
-* Copy memory buffer to another one using DMA 10
+* Simple PWM & PWM Clock test.
+* Start PWM object and configura PWM Clock
 *
 */
 int main (int argc, char* argv[])
