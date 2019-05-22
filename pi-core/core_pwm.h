@@ -138,15 +138,18 @@ public:
     virtual ~PwmCore(){
         logger::log(logger::LLOG::INFO, "PwmCore", std::string(__func__));
 
+        std::cout << " ~PwmCore Clock" << std::endl;
         if(_is_clock()){
             delete _pwm_clock;
         }
 
+        std::cout << " ~PwmCore DMA" << std::endl;
         if(_is_dma()){
             delete _dma_ctrl;
         }
 
         if(_is_init()){
+            std::cout << " ~PwmCore PWM" << std::endl;
             _clear();
             _pwm_regs = piutils::unmap_memory<pwm_regs>((pwm_regs*)_pwm_regs);
         }
@@ -179,14 +182,16 @@ public:
             logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Start to process DMA Control Block");
             result = _dma_ctrl->process_control_block(cb);
             if( result ){
-                while( !_dma_ctrl->is_finished() ){
-                  std::cout << "PWM CTL 0x" << std::hex <<_pwm_regs->_ctl << std::endl;
-                  std::cout << "PWM STA 0x" << std::hex <<_pwm_regs->_sta << std::endl;
+                int i=0; 
+                while( !_dma_ctrl->is_finished() && ++i < 100 ){
+                  //std::cout << "PWM CTL 0x" << std::hex <<_pwm_regs->_ctl << std::endl;
+                  //std::cout << "PWM STA 0x" << std::hex <<_pwm_regs->_sta << std::endl;
                   if(is_error()){
                      clear_berr();
                   }
-                  std::this_thread::sleep_for(std::chrono::seconds(1));
+                  //std::this_thread::sleep_for(std::chrono::seconds(1));
                 };
+                if(i>=100) result = false;
             }
             else
               logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " DMA Control Block processing failed");
@@ -299,6 +304,8 @@ private:
             return;
         }
 
+        std::cout << " PwmCore _clear" << std::endl;
+
         _pwm_regs->_dmac = 0;   //Disable DMA
 
         //Stop PWM
@@ -315,6 +322,7 @@ private:
         _pwm_regs->_sta |= (PWM_STA_RERR1 | PWM_STA_WERR1);
         std::this_thread::sleep_for(std::chrono::microseconds(10));
 
+        std::cout << " PwmCore _clear finished" << std::endl;
         std::cout << "E3 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
     }
 

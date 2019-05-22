@@ -25,6 +25,7 @@ int main (int argc, char* argv[])
     pi_core::core_pwm::PwmCore* pwm = nullptr;
     pi_core::core_mem::PhysMemory* pmem = nullptr;
     std::shared_ptr<pi_core::core_mem::MemInfo> minfo;
+    uintptr_t src = 0L;
 
     std::cout << "Starting..." << std::endl;
 
@@ -71,8 +72,9 @@ int main (int argc, char* argv[])
     }
 
 
-    std::cout << "Start to process DMA Control Block" << std::endl;
-    success = pwm->write_data(minfo->get_paddr(), minfo->get_size());
+    src = (0x40000000 | minfo->get_paddr());
+    std::cout << "Start to process DMA Control Block SRC: " << std::hex << src << std::endl;
+    success = pwm->write_data(src, minfo->get_size());
 
     std::cout << "Write data returned " << success << std::endl;
 

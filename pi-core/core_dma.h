@@ -160,7 +160,7 @@ protected:
     */
     bool prepare(const uintptr_t src_addr, const uintptr_t dest_addr, const uint16_t txfr_len){
 
-        std::cout << "DMA prepare Src: " << std::hex << src_addr << " Dst: " << dest_addr << " Len: " << std::dec << txfr_len << std::endl;
+        std::cout << "DMA prepare Src: " << std::hex << src_addr << " Dst: " << std::hex << dest_addr << " Len: " << std::dec << txfr_len << std::endl;
 
         _ctrk_blk->_ti = _ti_flags;
         _ctrk_blk->_src_addr = src_addr;
@@ -206,7 +206,8 @@ public:
         if(_dma_regs){
 
             logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Check if busy");
-            while( !is_finished() ){
+            int i = 0; 
+            while( !is_finished() && ++i < 100){
                 //TODO: Add counter?
             };
 
@@ -286,6 +287,7 @@ public:
         std::cout << "process_control_block set DMS CB" << std::endl;
 
         //Set DMA Control Block
+        //TODO: use physical address here!!!!
         _dma_regs->_conblk_ad = reinterpret_cast<std::uintptr_t>(dma_ctrl_blk->get_ctrl_blk());
 
         //Start to process DMA Control Block
