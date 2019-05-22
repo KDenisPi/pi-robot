@@ -102,7 +102,7 @@ using dma_regs = struct __attribute__((packed, aligned(4))) dma_regs_t {
 */
 class DmaControlBlock {
 public:
-    DmaControlBlock(const std::shared_ptr<pi_core::core_mem::PhysMemory>& mem_alloc, DREQ dreq = DREQ::PWM) :
+    DmaControlBlock(pi_core::core_mem::PhysMemory* mem_alloc, DREQ dreq = DREQ::PWM) :
         _mem_alloc(mem_alloc), _dreq(dreq), _ti_flags(0)
     {
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
@@ -188,7 +188,7 @@ private:
     DREQ _dreq;               //Data request (DREQ)
     uint32_t _ti_flags;
 
-    std::shared_ptr<pi_core::core_mem::PhysMemory> _mem_alloc;
+    pi_core::core_mem::PhysMemory* _mem_alloc;
     std::shared_ptr<pi_core::core_mem::MemInfo> _minfo;
 };
 
@@ -216,10 +216,17 @@ public:
         if(_dma_regs){
 
             logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Check if busy");
+            std::cout << " Check if busy" << std::endl;
+
             int i = 0;
             while( !is_finished() && ++i < 100){
                 //TODO: Add counter?
             };
+
+
+            if(i >= 100){
+              std::cout << " Check if busy - FAILED" << std::endl;
+            }
 
             //reset DMA control state
             reset();

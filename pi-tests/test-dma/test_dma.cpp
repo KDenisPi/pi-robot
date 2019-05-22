@@ -74,7 +74,10 @@ int main (int argc, char* argv[])
   clear_data:
 
     if(pwm != nullptr){
+      std::cout << "Free memory for buffer" << std::endl;
       pwm->free_memory(minfo);
+
+      std::cout << "Delete PWM object" << std::endl;
       delete pwm;
     }
 

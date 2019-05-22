@@ -168,9 +168,9 @@ public:
             return false;
         }
 
-        std::cout << "3 PWM CTL  0x" << std::hex <<_pwm_regs->_ctl << std::endl;
-        std::cout << "3 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
-        std::cout << "3 PWM DMAC 0x" << std::hex <<_pwm_regs->_dmac << std::endl;
+        //std::cout << "3 PWM CTL  0x" << std::hex <<_pwm_regs->_ctl << std::endl;
+        //std::cout << "3 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
+        //std::cout << "3 PWM DMAC 0x" << std::hex <<_pwm_regs->_dmac << std::endl;
 
         //return true;
 
@@ -178,22 +178,21 @@ public:
         * TODO: Make it Asynchroniously
         */
 
-        pi_core::core_dma::DmaControlBlock* cb = new pi_core::core_dma::DmaControlBlock(std::shared_ptr<pi_core::core_mem::PhysMemory>(this));
+        pi_core::core_dma::DmaControlBlock* cb = new pi_core::core_dma::DmaControlBlock(this);
         bool result = cb->prepare(data, this->get_fifo_address(), len);
         if( result ){
             logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Start to process DMA Control Block");
             result = _dma_ctrl->process_control_block(cb);
             if( result ){
-                int i=0;
-                while( !_dma_ctrl->is_finished() && ++i < 100 ){
-                  //std::cout << "PWM CTL 0x" << std::hex <<_pwm_regs->_ctl << std::endl;
-                  //std::cout << "PWM STA 0x" << std::hex <<_pwm_regs->_sta << std::endl;
+                while( !_dma_ctrl->is_finished()){
                   if(is_error()){
                      clear_berr();
                   }
                   //std::this_thread::sleep_for(std::chrono::seconds(1));
                 };
-                if(i>=100) result = false;
+
+                //TODO: Check finish state?
+
             }
             else
               logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " DMA Control Block processing failed");
