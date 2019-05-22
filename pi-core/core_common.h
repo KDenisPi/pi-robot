@@ -46,6 +46,14 @@ public:
 #endif
     }
 
+    static const uintptr_t get_sdram_address() {
+#ifdef REAL_HARDWARE
+        return bcm_host_get_sdram_address();
+#else
+        return 0xC0000000;
+#endif
+    }
+
     static const uint32_t get_frequency() {
         return 19200000;
     }

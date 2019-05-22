@@ -23,9 +23,7 @@ int main (int argc, char* argv[])
 
     pirobot::PiRobot* rbt = nullptr;
     pi_core::core_pwm::PwmCore* pwm = nullptr;
-    pi_core::core_mem::PhysMemory* pmem = nullptr;
     std::shared_ptr<pi_core::core_mem::MemInfo> minfo;
-    uintptr_t src = 0L;
 
     std::cout << "Starting..." << std::endl;
 
@@ -58,10 +56,7 @@ int main (int argc, char* argv[])
       goto clear_data;
     }
 
-
-    pmem = new pi_core::core_mem::PhysMemory();
-
-    minfo = pmem->get_memory(buff_size_bytes);
+    minfo = pwm->get_memory(buff_size_bytes);
     if( minfo ){
         std::cout << "Allocated " << std::dec << minfo->get_size() << " bites. VAddr: " << std::hex
                             << minfo->get_vaddr() << " PhysAddr: " << std::hex << minfo->get_paddr() << std::endl;
@@ -71,26 +66,20 @@ int main (int argc, char* argv[])
         success = false;
     }
 
-
-    src = (0x40000000 | minfo->get_paddr());
-    std::cout << "Start to process DMA Control Block SRC: " << std::hex << src << std::endl;
-    success = pwm->write_data(src, minfo->get_size());
+    std::cout << "Start to process DMA Control Block SRC: " << std::hex << minfo->get_paddr() << std::endl;
+    success = pwm->write_data(minfo->get_paddr(), minfo->get_size());
 
     std::cout << "Write data returned " << success << std::endl;
 
   clear_data:
 
     if(pwm != nullptr){
+      pwm->free_memory(minfo);
       delete pwm;
     }
 
     if(rbt != nullptr){
       delete rbt;
-    }
-
-    if(pmem != nullptr){
-      pmem->free_memory(minfo);
-      delete pmem;
     }
 
     std::cout << "Finished " << success << std::endl;

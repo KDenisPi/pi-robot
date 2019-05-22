@@ -11,11 +11,11 @@
 #define PI_CORE_PHYS_MEMORY_ACCESS_H_
 
 #include <string>
-//#include <unistd.h>
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <memory>
 
+#include "core_common.h"
 #include "logger.h"
 
 namespace pi_core {
@@ -60,6 +60,10 @@ public:
         return _phmemory;
     }
 
+    const bool is_empty() const {
+        return (_len== 0);
+    }
+
 protected:
     MemInfo(void* vmemory, uintptr_t phmemory, size_t len) :
         _vmemory(vmemory), _phmemory(phmemory), _len(len)
@@ -89,14 +93,14 @@ public:
     *
     */
     PhysMemory( const std::string& dev = "/proc/self/pagemap") : _fd(-1){
-
         _fd = open(dev.c_str(), O_RDONLY);
         if( _fd < 0 ){
             logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " Could not open: " + dev + " Error: " + std::to_string(errno));
             std::cout << "map_memory Could not open /proc/self/pagemap: "<< errno << std::endl;
         }
 
-        std::cout << "map_memory Opend /proc/self/pagemap: "<< _fd << std::endl;
+        _sdram_addr = pi_core::CoreCommon::get_sdram_address();
+        std::cout << "map_memory Opend /proc/self/pagemap: "<< _fd << " SDRAM: " << std::hex << _sdram_addr << std::endl;
     }
 
     /*
@@ -129,6 +133,9 @@ public:
             return std::shared_ptr<MemInfo>();
         }
 
+        std::cout << "get_memory Addr: " << std::hex << ph_mem << " SDRAM: " << std::hex << (ph_mem | _sdram_addr) << std::endl;
+        ph_mem |= _sdram_addr;
+
         return std::shared_ptr<MemInfo>(new MemInfo(mem, ph_mem, len));
     }
 
@@ -142,6 +149,9 @@ public:
     }
 
 protected:
+    /*
+    *
+    */
     void _close(){
         if(is_good()){
             close(_fd);
@@ -184,7 +194,6 @@ protected:
         memset(mem, 0, len_page);
         //some also recommend to use mlock() after but I am not sure - mmap with MAP_LOCKED should work as mlock() here
 
-
         std::cout << "allocate_and_lock Success Allocated: " << std::dec << len_page << " Address " << std::hex << mem << std::endl;
         return mem;
     }
@@ -199,7 +208,7 @@ protected:
                 logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " munmap failed Error: " + std::to_string(errno));
             }
 
-            std::cout << "deallocate_and_unlock Success Deallocated: " << std::dec << len_page << " Address " << std::hex << address << std::endl;
+            std::cout << "deallocate_and_unlock Success Len: " << std::dec << len_page << " Address " << std::hex << address << std::endl;
             return (res == 0);
     }
 
@@ -312,7 +321,7 @@ protected:
 
 private:
     int _fd; //memory file descriptor
-
+    uintptr_t _sdram_addr;
 };
 
 } //namespace core_mem

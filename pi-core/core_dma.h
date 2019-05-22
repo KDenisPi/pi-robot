@@ -10,7 +10,7 @@
 #ifndef PI_CORE_DIRECT_MEMORY_ACCESS_H_
 #define PI_CORE_DIRECT_MEMORY_ACCESS_H_
 
-#include "core_common.h"
+#include "core_memory.h"
 #include "smallthings.h"
 #include "logger.h"
 
@@ -102,15 +102,18 @@ using dma_regs = struct __attribute__((packed, aligned(4))) dma_regs_t {
 */
 class DmaControlBlock {
 public:
-    DmaControlBlock(const DREQ dreq = DREQ::PWM) : _dreq(dreq), _ti_flags(0) {
+    DmaControlBlock(const std::shared_ptr<pi_core::core_mem::PhysMemory>& mem_alloc, DREQ dreq = DREQ::PWM) :
+        _mem_alloc(mem_alloc), _dreq(dreq), _ti_flags(0)
+    {
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
-        _ctrk_blk = static_cast<dma_ctrl_blk*>( malloc(sizeof(dma_ctrl_blk)) );
-
-        if(_ctrk_blk == nullptr){
+        _minfo = _mem_alloc->get_memory(sizeof(dma_ctrl_blk));
+        if(_minfo->is_empty()){
             logger::log(logger::LLOG::ERROR, "DmaCtrl", std::string(__func__) + " Could not allocate memory for DMA CB");
             throw std::runtime_error(std::string("Could not allocate memory for DMA CB"));
         }
+
+        _ctrk_blk = static_cast<dma_ctrl_blk*>(_minfo->get_vaddr());
 
         //initialize memory
         memset((void*)_ctrk_blk, 0x00, sizeof(dma_ctrl_blk));
@@ -128,8 +131,8 @@ public:
     ~DmaControlBlock(){
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
-        if( _ctrk_blk){
-            free((void*)_ctrk_blk);
+        if( _mem_alloc){
+            _mem_alloc->free_memory(_minfo);
         }
     }
 
@@ -176,10 +179,17 @@ protected:
         return _ctrk_blk;
     }
 
+    const uintptr_t get_phys_ctrl_blk() const {
+        return _minfo->get_paddr();
+    }
+
 private:
     dma_ctrl_blk* _ctrk_blk;  //DMA control block
     DREQ _dreq;               //Data request (DREQ)
     uint32_t _ti_flags;
+
+    std::shared_ptr<pi_core::core_mem::PhysMemory> _mem_alloc;
+    std::shared_ptr<pi_core::core_mem::MemInfo> _minfo;
 };
 
 /*
@@ -206,7 +216,7 @@ public:
         if(_dma_regs){
 
             logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Check if busy");
-            int i = 0; 
+            int i = 0;
             while( !is_finished() && ++i < 100){
                 //TODO: Add counter?
             };
@@ -275,7 +285,7 @@ public:
         if( !is_finished() ){
             logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " DMA is still busy");
 
-	    std::cout << "process_control_block not finshed yet" << std::endl;
+            std::cout << "process_control_block not finshed yet" << std::endl;
             return false;
         }
 
@@ -288,7 +298,7 @@ public:
 
         //Set DMA Control Block
         //TODO: use physical address here!!!!
-        _dma_regs->_conblk_ad = reinterpret_cast<std::uintptr_t>(dma_ctrl_blk->get_ctrl_blk());
+        _dma_regs->_conblk_ad = dma_ctrl_blk->get_phys_ctrl_blk();
 
         //Start to process DMA Control Block
         std::cout << "process_control_block CS " << std::hex << cs_register_status(_cs_flags | DMA_REG_CS_ACTIVE) << std::endl;

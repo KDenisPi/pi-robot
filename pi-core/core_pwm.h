@@ -14,6 +14,7 @@
 #include "logger.h"
 
 
+#include "core_memory.h"
 #include "core_dma.h"
 #include "core_clock_pwm.h"
 
@@ -110,10 +111,11 @@ using pwm_regs = struct __attribute__((packed, aligned(4))) pwm_regs_t{
 #define RPI_PWM_DAT2_RESET  0x0
 
 
-class PwmCore
+class PwmCore : public pi_core::core_mem::PhysMemory
 {
 public:
-    PwmCore(const uint16_t dma = 10) : _pwm_regs(nullptr), _pwm_clock(nullptr), _dma_ctrl(nullptr)
+    PwmCore(const uint16_t dma = 10) : pi_core::core_mem::PhysMemory(),
+        _pwm_regs(nullptr), _pwm_clock(nullptr), _dma_ctrl(nullptr)
     {
         logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__));
 
@@ -176,13 +178,13 @@ public:
         * TODO: Make it Asynchroniously
         */
 
-        pi_core::core_dma::DmaControlBlock* cb = new pi_core::core_dma::DmaControlBlock();
+        pi_core::core_dma::DmaControlBlock* cb = new pi_core::core_dma::DmaControlBlock(std::shared_ptr<pi_core::core_mem::PhysMemory>(this));
         bool result = cb->prepare(data, this->get_fifo_address(), len);
         if( result ){
             logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Start to process DMA Control Block");
             result = _dma_ctrl->process_control_block(cb);
             if( result ){
-                int i=0; 
+                int i=0;
                 while( !_dma_ctrl->is_finished() && ++i < 100 ){
                   //std::cout << "PWM CTL 0x" << std::hex <<_pwm_regs->_ctl << std::endl;
                   //std::cout << "PWM STA 0x" << std::hex <<_pwm_regs->_sta << std::endl;
