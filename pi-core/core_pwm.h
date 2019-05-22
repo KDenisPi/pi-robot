@@ -168,12 +168,6 @@ public:
             return false;
         }
 
-        //std::cout << "3 PWM CTL  0x" << std::hex <<_pwm_regs->_ctl << std::endl;
-        //std::cout << "3 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
-        //std::cout << "3 PWM DMAC 0x" << std::hex <<_pwm_regs->_dmac << std::endl;
-
-        //return true;
-
         /*
         * TODO: Make it Asynchroniously
         */
@@ -184,15 +178,17 @@ public:
             logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Start to process DMA Control Block");
             result = _dma_ctrl->process_control_block(cb);
             if( result ){
-                while( !_dma_ctrl->is_finished()){
-                  if(is_error()){
-                     clear_berr();
-                  }
-                  //std::this_thread::sleep_for(std::chrono::seconds(1));
-                };
+                int i = 0;
+                while( !_dma_ctrl->is_finished() && ++i < 1000){
+                  std::this_thread::sleep_for(std::chrono::microseconds(10));
+                }
+
+                if(i>= 1000){
+                  result = false;
+                  std::cout << " ******* FAILED ************" << std::endl;
+                }
 
                 //TODO: Check finish state?
-
             }
             else
               logger::log(logger::LLOG::ERROR, "PwmCore", std::string(__func__) + " DMA Control Block processing failed");
@@ -218,10 +214,6 @@ public:
     */
     bool Initialize() {
 
-        std::cout << "1 PWM CTL  0x" << std::hex <<_pwm_regs->_ctl << std::endl;
-        std::cout << "1 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
-        std::cout << "1 PWM DMAC 0x" << std::hex <<_pwm_regs->_dmac << std::endl;
-
        _stop();
 
         if( _is_clock() ){
@@ -240,10 +232,6 @@ public:
 
         //Set PWM configuration
         _configure();
-
-        std::cout << "2 PWM CTL  0x" << std::hex <<_pwm_regs->_ctl << std::endl;
-        std::cout << "2 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
-        std::cout << "2 PWM DMAC 0x" << std::hex <<_pwm_regs->_dmac << std::endl;
 
         return true;
     }
