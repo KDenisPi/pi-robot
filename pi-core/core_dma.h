@@ -163,7 +163,7 @@ protected:
     */
     bool prepare(const uintptr_t src_addr, const uintptr_t dest_addr, const uint16_t txfr_len){
 
-        std::cout << "DMA prepare Src: " << std::hex << src_addr << " Dst: " << std::hex << dest_addr << " Len: " << std::dec << txfr_len << std::endl;
+        std::cout << "DMA prepare Src: 0x" << std::hex << src_addr << " Dst: 0x" << std::hex << dest_addr << " Len: " << std::dec << txfr_len << std::endl;
 
         _ctrk_blk->_ti = _ti_flags;
         _ctrk_blk->_src_addr = src_addr;
@@ -315,6 +315,9 @@ public:
         std::this_thread::sleep_for(std::chrono::microseconds(10));
 
         std::cout << "process_control_block Started " << std::hex <<  cs_register_status(_dma_regs->_cs) << std::endl;
+        std::cout << "process_control_block Length  " << std::dec <<  _dma_regs->_txrf_len << std::endl;
+        std::cout << "process_control_block Debug 0x" << std::hex <<  _dma_regs->_debug << std::endl;
+
         return true;
    }
 

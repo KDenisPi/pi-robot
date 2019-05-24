@@ -261,25 +261,25 @@ private:
    void _configure() {
         logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__));
 
-        std::cout << "C1 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
+        //std::cout << "C1 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
         //TODO: Do not forget enable DMA and ither paramaters
         _pwm_regs->_rng1 = 32;
         std::this_thread::sleep_for(std::chrono::microseconds(100));
 
-        std::cout << "C2 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
+        //std::cout << "C2 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
         _pwm_regs->_dmac = (RPI_PWM_DMAC_ENAB | RPI_PWM_DMAC_PANIC(7) | RPI_PWM_DMAC_DREQ(3));
         std::this_thread::sleep_for(std::chrono::microseconds(100));
 
-        std::cout << "C3 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
+        //std::cout << "C3 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
         //Use FIFO and Serialiser mode for channel 1
         _pwm_regs->_ctl |= (PWM_CTRL_USEF1 | PWM_CTRL_MODE1);
         std::this_thread::sleep_for(std::chrono::microseconds(100));
 
-        std::cout << "C4 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
+        //std::cout << "C4 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
         //Ebable channel 1
         _pwm_regs->_ctl |= PWM_CTRL_PWEN1;
         std::this_thread::sleep_for(std::chrono::microseconds(100));
-        std::cout << "C5 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
+        //std::cout << "C5 PWM STA  0x" << std::hex <<_pwm_regs->_sta << std::endl;
    }
 
     /*
