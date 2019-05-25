@@ -299,6 +299,8 @@ public:
         std::cout << "process_control_block reset" << std::endl;
         reset();
 
+        print_status();
+
         _started = true;
 
         std::cout << "process_control_block set DMS CB" << std::endl;
@@ -315,10 +317,15 @@ public:
         std::this_thread::sleep_for(std::chrono::microseconds(10));
 
         std::cout << "process_control_block Started " << std::hex <<  cs_register_status(_dma_regs->_cs) << std::endl;
-        std::cout << "process_control_block Length  " << std::dec <<  _dma_regs->_txrf_len << std::endl;
-        std::cout << "process_control_block Debug 0x" << std::hex <<  _dma_regs->_debug << std::endl;
+        print_status();
 
         return true;
+   }
+
+   void print_status() const{
+        const uint32_t txrf_len = _dma_regs->_txrf_len;
+        std::cout << "--------- Length  " << std::dec <<  txrf_len << std::endl;
+        //std::cout << "          Debug 0x" << std::hex <<  debug_reg << std::endl << std::endl;
    }
 
    const bool is_error() const {

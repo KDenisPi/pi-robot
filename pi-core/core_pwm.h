@@ -176,18 +176,26 @@ public:
         bool result = cb->prepare(data, this->get_fifo_address(), len);
         if( result ){
             logger::log(logger::LLOG::DEBUG, "PwmCore", std::string(__func__) + " Start to process DMA Control Block");
+            _dma_ctrl->print_status();
             result = _dma_ctrl->process_control_block(cb);
             if( result ){
                 int i = 0;
-                while( !_dma_ctrl->is_finished() && ++i < 1000){
-                  std::this_thread::sleep_for(std::chrono::microseconds(10));
+                while( !_dma_ctrl->is_finished() && ++i < 10){
+                  std::this_thread::sleep_for(std::chrono::seconds(1));
+                  _dma_ctrl->print_status();
+                  //std::this_thread::sleep_for(std::chrono::microseconds(10));
                 }
 
-                if(i>= 1000){
-                  result = false;
+                if(i>= 10){
                   std::cout << " ******* FAILED ************" << std::endl;
-                }
+                  _dma_ctrl->print_status();
 
+                  result = false;
+                }
+                else
+                  _dma_ctrl->print_status();
+
+                _dma_ctrl->reset();
                 //TODO: Check finish state?
             }
             else
