@@ -8,6 +8,8 @@
 #include "core_memory.h"
 #include "core_pwm.h"
 
+#include "sled_data.h"
+
 using namespace std;
 
 
@@ -16,9 +18,13 @@ using namespace std;
 * Copy memory buffer to another one using DMA 10
 *
 */
+
+#define LED_COUNT 10
+
 int main (int argc, char* argv[])
 {
-    size_t buff_size_bytes = 1024*10;
+    size_t buff_size_bytes = LED_COUNT * 3 * 3 + 15; //10 leds
+    std::uint32_t ldata[LED_COUNT] = {0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000};
     bool success = true;
 
     pirobot::PiRobot* rbt = nullptr;
@@ -60,6 +66,27 @@ int main (int argc, char* argv[])
     if( minfo ){
         std::cout << "Allocated " << std::dec << minfo->get_size() << " bites. VAddr: " << std::hex
                             << minfo->get_vaddr() << " PhysAddr: " << std::hex << minfo->get_paddr() << std::endl;
+
+        std::uint8_t rgb[3];
+        std::uint8_t* dbuff = static_cast<std::uint8_t*>(minfo->get_vaddr());
+        for( std::size_t lidx = 0; lidx < LED_COUNT; lidx++ ){
+
+          // Convert 0RGB to R,G,B
+          rgb[0] = (ldata[lidx] & 0xFF);
+          rgb[1] = ((ldata[lidx] >> 8 ) & 0xFF);
+          rgb[2] = ((ldata[lidx] >> 16 ) & 0xFF);
+
+          //
+          // Replace each R,G,B byte by 3 bytes
+          //
+          for(int rgb_idx = 0; rgb_idx < 3; rgb_idx++){
+              int idx = (lidx + rgb_idx)*3;
+              dbuff[idx] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]];
+              dbuff[idx+1] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]+1];
+              dbuff[idx+2] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]+2];
+          }
+        }
+
     }
     else{
         std::cout << "Failed to allocate: " << std::dec << buff_size_bytes << " bytes" << std::endl;

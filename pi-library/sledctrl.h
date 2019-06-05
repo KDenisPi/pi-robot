@@ -416,7 +416,7 @@ private:
     /*
     *   Calculate buffer length
     *
-    *   WS2812B: LEDs * 3(RGB) * 3(3 SPI bits for 1 data bit) + 15 (50us)
+    *   WS2812B: LEDs * 3(RGB) * 3 (3 bits for 1 data bit) + 15 (50us)
     */
     const std::size_t get_buffer_length(const int leds, pirobot::item::SLedType stype) {
         std::size_t bsize =  leds * 3;
