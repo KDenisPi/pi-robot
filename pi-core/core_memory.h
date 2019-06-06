@@ -52,7 +52,7 @@ public:
         return _len;
     }
 
-    void* get_vaddr() const {
+    volatile void* get_vaddr() const {
         return _vmemory;
     }
 
@@ -77,8 +77,8 @@ protected:
         _len = 0;
     }
 
-    void* _vmemory;
-    uintptr_t _phmemory;
+    volatile void* _vmemory;
+    volatile uintptr_t _phmemory;
     size_t _len;
 };
 
@@ -201,9 +201,9 @@ protected:
     /*
     * Unmap memory
     */
-    bool deallocate_and_unlock(void* address, const size_t len){
+    bool deallocate_and_unlock(volatile void* address, const size_t len){
             size_t len_page = align_to_page_size(len);
-            int res = munmap(address, len_page);
+            int res = munmap((void*)address, len_page);
             if(res == -1){
                 logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " munmap failed Error: " + std::to_string(errno));
             }

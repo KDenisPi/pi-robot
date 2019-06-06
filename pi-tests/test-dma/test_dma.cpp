@@ -68,7 +68,7 @@ int main (int argc, char* argv[])
                             << minfo->get_vaddr() << " PhysAddr: " << std::hex << minfo->get_paddr() << std::endl;
 
         std::uint8_t rgb[3];
-        std::uint8_t* dbuff = static_cast<std::uint8_t*>(minfo->get_vaddr());
+        volatile std::uint8_t* dbuff = static_cast<volatile std::uint8_t*>(minfo->get_vaddr());
         for( std::size_t lidx = 0; lidx < LED_COUNT; lidx++ ){
 
           // Convert 0RGB to R,G,B

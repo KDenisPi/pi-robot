@@ -113,7 +113,7 @@ public:
             throw std::runtime_error(std::string("Could not allocate memory for DMA CB"));
         }
 
-        _ctrk_blk = static_cast<dma_ctrl_blk*>(_minfo->get_vaddr());
+        _ctrk_blk = static_cast<volatile dma_ctrl_blk*>(_minfo->get_vaddr());
 
         //initialize memory
         memset((void*)_ctrk_blk, 0x00, sizeof(dma_ctrl_blk));
@@ -163,7 +163,7 @@ protected:
     */
     bool prepare(const uintptr_t src_addr, const uintptr_t dest_addr, const uint16_t txfr_len){
 
-        std::cout << "DMA prepare Src: 0x" << std::hex << src_addr << " Dst: 0x" << std::hex << dest_addr << " Len: " << std::dec << txfr_len << std::endl;
+        std::cout << "**** DMA prepare Src: 0x" << std::hex << src_addr << " Dst: 0x" << std::hex << dest_addr << " Len: " << std::dec << txfr_len << std::endl;
 
         _ctrk_blk->_ti = _ti_flags;
         _ctrk_blk->_src_addr = src_addr;
@@ -172,10 +172,17 @@ protected:
         _ctrk_blk->_2d_mode_stride = 0;
         _ctrk_blk->_next_ctrl_blk = 0; //no next DMA CB
 
+        print();
+
        return true;
     }
 
-    const dma_ctrl_blk* get_ctrl_blk() const {
+    void print() const {
+        std::cout << "DMA Addr: " << std::hex << _ctrk_blk << std::endl << " TI: " << _ctrk_blk->_ti << " SRC: 0x" << _ctrk_blk->_src_addr << " DST: 0x" << _ctrk_blk->_dst_addr <<
+            " txfr_len: 0x" << _ctrk_blk->_txfr_len << " 2D Stride: 0x" << _ctrk_blk->_2d_mode_stride << " Next: 0x " << _ctrk_blk->_next_ctrl_blk << std::endl;
+    }
+
+    const volatile dma_ctrl_blk* get_ctrl_blk() const {
         return _ctrk_blk;
     }
 
@@ -184,7 +191,7 @@ protected:
     }
 
 private:
-    dma_ctrl_blk* _ctrk_blk;  //DMA control block
+    volatile dma_ctrl_blk* _ctrk_blk;  //DMA control block
     DREQ _dreq;               //Data request (DREQ)
     uint32_t _ti_flags;
 
