@@ -30,9 +30,11 @@ using pwm_regs = struct __attribute__((packed, aligned(4))) pwm_regs_t{
     uint32_t _ctl;  //PWM Control
     uint32_t _sta;  //PWM Status
     uint32_t _dmac; //PWM DMA configuration
+    uint32_t _resrvd1;
     uint32_t _rng1; //PWM channel 1 range
     uint32_t _dat1; //PWM channel 1 data
     uint32_t _fif1; //PWM FIFO input. This register is the FIFO input for the all channels.
+    uint32_t _resrvd2;
     uint32_t _rng2; //PWM channel 2 range
     uint32_t _dat2; //PWM channel 2 data
 };
