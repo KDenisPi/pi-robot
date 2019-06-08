@@ -182,9 +182,14 @@ protected:
     * Map memoty in process address space and lock memory allocation
     */
     void* allocate_and_lock(const size_t len){
+
+        size_t len_page = len;
+        /*
         size_t len_page = align_to_page_size(len);
 
         void* mem = mmap(NULL, len_page, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_LOCKED | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+        */
+        void* mem =valloc(len);
         if (mem == MAP_FAILED) {
             logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " mmap failed Error: " + std::to_string(errno));
             std::cout << "allocate_and_lock Failed to allocate MMAP:" << errno << std::endl;
@@ -205,17 +210,21 @@ protected:
     * Unmap memory
     */
     bool deallocate_and_unlock(void* address, const size_t len){
-            size_t len_page = align_to_page_size(len);
 
+            size_t len_page = len;
+            ///size_t len_page = align_to_page_size(len);
             munlock(address, len_page);
 
+            /*
             int res = munmap((void*)address, len_page);
             if(res == -1){
                 logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " munmap failed Error: " + std::to_string(errno));
             }
+            */
+            free(address);
 
             std::cout << "deallocate_and_unlock Success Len: " << std::dec << len_page << " Address " << std::hex << address << std::endl;
-            return (res == 0);
+            return true; //(res == 0);
     }
 
     /*

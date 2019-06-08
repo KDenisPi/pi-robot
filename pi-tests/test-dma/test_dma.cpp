@@ -92,8 +92,8 @@ int main (int argc, char* argv[])
       std::cout << "Write data returned " << success << std::endl << std::endl ;
     }
 
-  printf("SRC -> %s\n", m_src->get_vaddr() ); 
-  printf("DST -> %s\n", m_dst->get_vaddr() ); 
+  printf("SRC -> %s\n", (char*)m_src->get_vaddr() );
+  printf("DST -> %s\n", (char*)m_dst->get_vaddr() );
 
   clear_data:
 
