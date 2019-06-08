@@ -107,6 +107,8 @@ public:
     {
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
+        std::cout << "**** DMA Control Block Condtructor " << std::endl;
+
         _minfo = _mem_alloc->get_memory(sizeof(dma_ctrl_blk));
         if(_minfo->is_empty()){
             logger::log(logger::LLOG::ERROR, "DmaCtrl", std::string(__func__) + " Could not allocate memory for DMA CB");
@@ -120,7 +122,7 @@ public:
 
         if( _dreq == DREQ::PWM){
             logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Selected CI flags for PWM");
-            set_ti_flags(ti_flags_pwm);
+            set_ti_flags(_ti_flags_pwm);
         }
         else if(_dreq == DREQ::NO_required){ //TODO: Is there any way to use it?
             logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Selected CI flags for no DREQ");
@@ -131,6 +133,7 @@ public:
     ~DmaControlBlock(){
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
+        std::cout << "**** DMA Control Block Destructor " << std::endl;
         if( _mem_alloc){
             _mem_alloc->free_memory(_minfo);
         }
@@ -139,7 +142,7 @@ public:
     friend class pi_core::core_pwm::PwmCore;
     friend class DmaControl;
 
-protected:
+public:
     /*
     * Set default flags for TI register
     *
@@ -153,8 +156,8 @@ protected:
         _ti_flags = ti_flags;
     }
 
-    const uint32_t ti_flags_pwm = DMA_REG_TI_NO_WIDE_BURSTS | DMA_REG_TI_WAIT_RESP |  DMA_REQ_TI_SRC_INC | DMA_REG_TI_DEST_DREQ | DMA_REG_TI_PERMAP(5);
-    const uint32_t _ti_flags_test = DMA_REG_TI_NO_WIDE_BURSTS | DMA_REG_TI_WAIT_RESP | DMA_REQ_TI_SRC_INC | DMA_REG_TI_DEST_DREQ | DMA_REG_TI_PERMAP(5);
+    const uint32_t _ti_flags_pwm = DMA_REG_TI_NO_WIDE_BURSTS | DMA_REG_TI_WAIT_RESP |  DMA_REQ_TI_SRC_INC | DMA_REG_TI_DEST_DREQ | DMA_REG_TI_PERMAP(5);
+    const uint32_t _ti_flags_test = DMA_REQ_TI_SRC_INC | DMA_REQ_TI_DEST_INC;
 
     /*
     * Initialize DMA control block
@@ -177,6 +180,7 @@ protected:
        return true;
     }
 
+protected:
     void print() const {
         std::cout << "DMA Addr: " << std::hex << _ctrk_blk << std::endl << " TI: " << _ctrk_blk->_ti << " SRC: 0x" << _ctrk_blk->_src_addr << " DST: 0x" << _ctrk_blk->_dst_addr <<
             " txfr_len: 0x" << _ctrk_blk->_txfr_len << " 2D Stride: 0x" << _ctrk_blk->_2d_mode_stride << " Next: 0x " << _ctrk_blk->_next_ctrl_blk << std::endl;
@@ -208,6 +212,8 @@ public:
         assert(dma < 15);
         _addr = dma_address(dma);
 
+        std::cout << "** DMA Control Condtructor " << std::endl;
+
         _dma_regs = piutils::map_memory<dma_regs>(_addr);
         if(_dma_regs == nullptr){
             logger::log(logger::LLOG::ERROR, "DmaCtrl", std::string(__func__) + " Fail to initialize DMA control");
@@ -219,6 +225,8 @@ public:
 
     virtual ~DmaControl(){
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " addr: " + std::to_string(_addr));
+
+        std::cout << "** DMA Control Destructor " << std::endl;
 
         if(_dma_regs){
 
@@ -256,7 +264,7 @@ public:
     /*
     * Initialize connection
     */
-    bool Initialize() {
+    bool Initialize(const uint32_t cs_flags = cs_flags_pwm) {
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
         _dma_regs->_cs = 0;         //initialize DMA control and status
@@ -264,7 +272,7 @@ public:
 
         reset();
 
-        set_cs_flags(cs_flags_pwm);
+        set_cs_flags(cs_flags);
 
         return true;
     }
@@ -274,6 +282,8 @@ public:
     */
     void reset(){
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
+
+        std::cout << "*** DMA Control reset() " << std::endl;
 
         _dma_regs->_cs = DMA_REG_CS_RESET;  //Reset DMA
         std::this_thread::sleep_for(std::chrono::microseconds(10));
@@ -380,7 +390,7 @@ public:
     }
 
     static const uint32_t cs_flags_pwm = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES | DMA_REG_CS_PANIC_PRIORITY(15) | DMA_REG_CS_PRIORITY(15);
-    static const uint32_t cs_flags_test = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES | DMA_REG_CS_PANIC_PRIORITY(15) | DMA_REG_CS_PRIORITY(15);
+    static const uint32_t cs_flags_test = 0; //DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES;
 
 
     /*

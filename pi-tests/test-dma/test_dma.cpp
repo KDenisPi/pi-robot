@@ -27,90 +27,82 @@ int main (int argc, char* argv[])
     std::uint32_t ldata[LED_COUNT] = {0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000};
     bool success = true;
 
-    pirobot::PiRobot* rbt = nullptr;
-    pi_core::core_pwm::PwmCore* pwm = nullptr;
-    std::shared_ptr<pi_core::core_mem::MemInfo> minfo;
+    std::shared_ptr<pi_core::core_mem::MemInfo> m_src;
+    std::shared_ptr<pi_core::core_mem::MemInfo> m_dst;
+
+    pi_core::core_mem::PhysMemory* pmem = new pi_core::core_mem::PhysMemory();
 
     std::cout << "Starting..." << std::endl;
 
-    logger::log(logger::LLOG::DEBUG, "main", std::string(__func__) + " DMA test");
-    if( argc < 2 ){
-      std::cout << "Failed. No configuration file" << std::endl;
-      exit(EXIT_FAILURE);
-    }
+    m_src = pmem->get_memory(buff_size_bytes);
+    m_dst = pmem->get_memory(buff_size_bytes);
 
-    rbt = new pirobot::PiRobot();
-    success = rbt->configure(argv[1]);
-    if( !success ){
-      std::cout << "Invalid configuration file " << std::string(argv[1]) << std::endl;
-      goto clear_data;
-    }
-
-    rbt->printConfig();
-
-    success = rbt->start();
-    if( !success ){
-      std::cout << "Could not start Pi-Robot " << std::endl;
-      goto clear_data;
-    }
-
-    pwm = new pi_core::core_pwm::PwmCore();
-    success = pwm->Initialize();
-
-    if( !success ){
-      std::cout << "Could not initialize PWM " << std::endl;
-      goto clear_data;
-    }
-
-    minfo = pwm->get_memory(buff_size_bytes);
-    if( minfo ){
-        std::cout << "Allocated " << std::dec << minfo->get_size() << " bites. VAddr: " << std::hex
-                            << minfo->get_vaddr() << " PhysAddr: " << std::hex << minfo->get_paddr() << std::endl;
-
-        std::uint8_t rgb[3];
-        volatile std::uint8_t* dbuff = static_cast<volatile std::uint8_t*>(minfo->get_vaddr());
-        for( std::size_t lidx = 0; lidx < LED_COUNT; lidx++ ){
-
-          // Convert 0RGB to R,G,B
-          rgb[0] = (ldata[lidx] & 0xFF);
-          rgb[1] = ((ldata[lidx] >> 8 ) & 0xFF);
-          rgb[2] = ((ldata[lidx] >> 16 ) & 0xFF);
-
-          //
-          // Replace each R,G,B byte by 3 bytes
-          //
-          for(int rgb_idx = 0; rgb_idx < 3; rgb_idx++){
-              int idx = (lidx + rgb_idx)*3;
-              dbuff[idx] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]];
-              dbuff[idx+1] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]+1];
-              dbuff[idx+2] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]+2];
-          }
-        }
-
+    if( m_src ){
+        std::cout << "Allocated " << std::dec << m_src->get_size() << " bites. VAddr: " << std::hex  << m_src->get_vaddr() << " PhysAddr: " << std::hex << m_src->get_paddr() << std::endl;
     }
     else{
         std::cout << "Failed to allocate: " << std::dec << buff_size_bytes << " bytes" << std::endl;
         success = false;
     }
 
-    std::cout << "Start to process DMA Control Block SRC: " << std::hex << minfo->get_paddr() << std::endl;
-    success = pwm->write_data(minfo->get_paddr(), minfo->get_size());
+    if( m_dst ){
+        std::cout << "Allocated " << std::dec << m_dst->get_size() << " bites. VAddr: " << std::hex  << m_dst->get_vaddr() << " PhysAddr: " << std::hex << m_dst->get_paddr() << std::endl;
+    }
+    else{
+        std::cout << "Failed to allocate: " << std::dec << buff_size_bytes << " bytes" << std::endl;
+        success = false;
+    }
 
-    std::cout << "Write data returned " << success << std::endl;
+    memset(m_src->get_vaddr(), 'A', buff_size_bytes - 1);
+
+    if(success){
+
+      pi_core::core_dma::DmaControl* dctrl = new pi_core::core_dma::DmaControl();
+      pi_core::core_dma::DmaControlBlock* cb = new pi_core::core_dma::DmaControlBlock(pmem, pi_core::DREQ::NO_required);
+
+      dctrl->Initialize(pi_core::core_dma::DmaControl::cs_flags_test);
+
+      std::cout << "Start to process DMA Control Block SRC: " << std::hex << m_src->get_paddr() << " DST: " << m_dst->get_paddr() << std::endl;
+      cb->prepare(m_src->get_paddr(), m_dst->get_paddr(), m_src->get_size());
+
+      bool result = dctrl->process_control_block(cb);
+      if( result ){
+          int i = 0;
+          while( !dctrl->is_finished() && ++i < 10){
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            dctrl->print_status();
+          }
+
+          if(i>= 10){
+             std::cout << " ******* FAILED ************" << std::endl;
+             dctrl->print_status();
+             success = false;
+          }
+          else{
+            dctrl->print_status();
+          }
+
+          dctrl->reset();
+     }
+
+      //success = pwm->write_data(m_src->get_paddr(), minfo->get_size());
+
+      delete cb;
+      delete dctrl;
+      std::cout << "Write data returned " << success << std::endl << std::endl ;
+    }
+
+  printf("SRC -> %s\n", m_src->get_vaddr() ); 
+  printf("DST -> %s\n", m_dst->get_vaddr() ); 
 
   clear_data:
 
-    if(pwm != nullptr){
-      std::cout << "Free memory for buffer" << std::endl;
-      pwm->free_memory(minfo);
+    std::cout << "****** Release memory " << success << std::endl << std::endl;
 
-      std::cout << "Delete PWM object" << std::endl;
-      delete pwm;
-    }
+    pmem->free_memory(m_src);
+    pmem->free_memory(m_dst);
 
-    if(rbt != nullptr){
-      delete rbt;
-    }
+    delete pmem;
 
     std::cout << "Finished " << success << std::endl;
     exit( (success ? EXIT_SUCCESS : EXIT_FAILURE));

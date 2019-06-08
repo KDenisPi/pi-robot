@@ -52,7 +52,7 @@ public:
         return _len;
     }
 
-    volatile void* get_vaddr() const {
+    void* get_vaddr() const {
         return _vmemory;
     }
 
