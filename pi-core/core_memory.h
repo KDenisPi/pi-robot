@@ -133,8 +133,9 @@ public:
             return std::shared_ptr<MemInfo>();
         }
 
-        std::cout << "get_memory Addr: 0x" << std::hex << ph_mem << " PyAddr: 0x" << std::hex << (ph_mem | _sdram_addr) << std::endl;
-        ph_mem |= _sdram_addr;
+        //std::cout << "get_memory Addr: 0x" << std::hex << ph_mem << " PyAddr: 0x" << std::hex << (ph_mem | _sdram_addr) << std::endl << std::endl;
+        std::cout << "get_memory " << " PyAddr: 0x" << std::hex << ph_mem << std::endl << std::endl;
+        //ph_mem |= _sdram_addr;
 
         return std::shared_ptr<MemInfo>(new MemInfo(mem, ph_mem, len));
     }
@@ -196,7 +197,7 @@ protected:
 
         mlock(mem, len_page);
 
-        std::cout << "allocate_and_lock Success Allocated: " << std::dec << len_page << " Address " << std::hex << mem << std::endl;
+        std::cout << "allocate_and_lock Success Allocated: " << std::dec << len_page << " Address " << std::hex << mem << std::endl << std::endl;
         return mem;
     }
 
@@ -280,7 +281,7 @@ protected:
             return result;
         }
 
-        std::cout << "virtual_to_physical Addr: " << std::hex << vaddress << " psize: " << std::dec << psize << std::endl;
+        std::cout << "virtual_to_physical Addr: " << std::hex << vaddress << " psize: " << std::dec << psize << std::endl << std::endl;
 
         //detect page number
         uintptr_t page_number = (uintptr_t)(vaddress)/psize;
@@ -308,6 +309,8 @@ protected:
                     */
                     phys_page = phys_page & (~PAGEMAP_PAGE_FLAGS);
                     result = (uintptr_t)(phys_page*psize + byteOffsetFromPage);
+
+                    std::cout << "virtual_to_physical Page: " << std::dec << phys_page << " Address: " << std::hex << std::endl;
                 }
                 else{
                     logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " Page not present in memory");
