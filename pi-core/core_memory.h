@@ -77,8 +77,8 @@ protected:
         _len = 0;
     }
 
-    volatile void* _vmemory;
-    volatile uintptr_t _phmemory;
+    void* _vmemory;
+    uintptr_t _phmemory;
     size_t _len;
 };
 
@@ -194,6 +194,8 @@ protected:
         memset(mem, 0, len_page);
         //some also recommend to use mlock() after but I am not sure - mmap with MAP_LOCKED should work as mlock() here
 
+        mlock(mem, len_page);
+
         std::cout << "allocate_and_lock Success Allocated: " << std::dec << len_page << " Address " << std::hex << mem << std::endl;
         return mem;
     }
@@ -201,8 +203,11 @@ protected:
     /*
     * Unmap memory
     */
-    bool deallocate_and_unlock(volatile void* address, const size_t len){
+    bool deallocate_and_unlock(void* address, const size_t len){
             size_t len_page = align_to_page_size(len);
+
+            munlock(address, len_page);
+
             int res = munmap((void*)address, len_page);
             if(res == -1){
                 logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " munmap failed Error: " + std::to_string(errno));
