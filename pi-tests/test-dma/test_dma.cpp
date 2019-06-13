@@ -75,14 +75,14 @@ int main (int argc, char* argv[])
 
           if(i>= 10){
              std::cout << " ******* FAILED ************" << std::endl;
-             dctrl->print_status();
              success = false;
           }
           else{
-            dctrl->print_status();
           }
 
+          dctrl->print_status(true);
           dctrl->reset();
+          dctrl->print_status(true);
      }
 
       //success = pwm->write_data(m_src->get_paddr(), minfo->get_size());

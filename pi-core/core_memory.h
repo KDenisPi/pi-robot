@@ -21,6 +21,8 @@
 namespace pi_core {
 namespace core_mem {
 
+#define _USE_VALLOC_  1
+
 #define PAGEMAP_LENGTH 8
 #define PAGEMAP_PAGE_FILE_PAGE  ((uint_fast64_t)1 << 61)
 #define PAGEMAP_PAGE_SWAPPED    ((uint_fast64_t)1 << 62)
@@ -133,9 +135,10 @@ public:
             return std::shared_ptr<MemInfo>();
         }
 
-        std::cout << "get_memory PAddr: 0x" << std::hex << ph_mem << " PyAddr: 0x" << std::hex << (ph_mem | 0x40000000) << std::endl << std::endl;
+        uintptr_t ph_mem_base = 0xC0000000; //0xC0000000; 0x80000000; //0x40000000; //0x00000000
+        std::cout << "------> get_memory PAddr: 0x" << std::hex << ph_mem << " PyAddr: 0x" << std::hex << (ph_mem | ph_mem_base) << std::endl << std::endl;
         //std::cout << "get_memory " << " PyAddr: 0x" << std::hex << ph_mem << std::endl << std::endl;
-        ph_mem |= 0x40000000;
+        ph_mem |= ph_mem_base; //0xC0000000; 0x80000000; //0x40000000; //0x00000000
 
         return std::shared_ptr<MemInfo>(new MemInfo(mem, ph_mem, len));
     }
@@ -173,7 +176,7 @@ protected:
             result =  (len & page_mask) + page_size;
         }
 
-        std::cout << "align_to_page_size page size: " << std::dec << page_size << " In: " << len << " Out: " << result << " Modulo: " << modulo << std::endl;
+        //std::cout << "align_to_page_size page size: " << std::dec << page_size << " In: " << len << " Out: " << result << " Modulo: " << modulo << std::endl;
 
         return result;
     }
@@ -184,6 +187,7 @@ protected:
     void* allocate_and_lock(const size_t len){
 
 #ifdef _USE_VALLOC_
+        std::cout << "allocate_and_lock --- USE VALLOC ----" << std::endl;
         size_t len_page = len;
         void* mem = valloc(len);
 #else

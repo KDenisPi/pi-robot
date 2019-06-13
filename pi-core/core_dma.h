@@ -157,7 +157,7 @@ public:
     }
 
     const uint32_t _ti_flags_pwm = DMA_REG_TI_NO_WIDE_BURSTS | DMA_REG_TI_WAIT_RESP |  DMA_REQ_TI_SRC_INC | DMA_REG_TI_DEST_DREQ | DMA_REG_TI_PERMAP(5);
-    const uint32_t _ti_flags_test = DMA_REQ_TI_SRC_INC | DMA_REQ_TI_DEST_INC;
+    const uint32_t _ti_flags_test = DMA_REQ_TI_SRC_INC | DMA_REQ_TI_DEST_INC | DMA_REG_TI_NO_WIDE_BURSTS;
 
     /*
     * Initialize DMA control block
@@ -182,7 +182,8 @@ public:
 
 protected:
     void print() const {
-        std::cout << "DMA Addr: " << std::hex << (void*)_ctrk_blk << std::endl << " TI: 0x" << _ctrk_blk->_ti << " SRC: 0x" << _ctrk_blk->_src_addr << " DST: 0x" << _ctrk_blk->_dst_addr <<
+        std::cout << "DMA Addr: " << std::hex << (void*)_ctrk_blk << std::endl <<  "DMA PAddr: 0x" << std::hex << get_phys_ctrl_blk() << std::endl <<
+            " TI: 0x" << _ctrk_blk->_ti << " SRC: 0x" << _ctrk_blk->_src_addr << " DST: 0x" << _ctrk_blk->_dst_addr <<
             " txfr_len: 0x" << _ctrk_blk->_txfr_len << " 2D Stride: 0x" << _ctrk_blk->_2d_mode_stride << " Next: 0x " << _ctrk_blk->_next_ctrl_blk << std::endl;
     }
 
@@ -285,16 +286,23 @@ public:
 
         std::cout << "*** DMA Control reset() " << std::endl;
 
+        _dma_regs->_cs |= DMA_REG_CS_ABORT;  //Abort current execution
+        usleep(100); 
+        //std::this_thread::sleep_for(std::chrono::microseconds(100));
+
         _dma_regs->_cs = DMA_REG_CS_RESET;  //Reset DMA
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
+        usleep(300);
+        //std::this_thread::sleep_for(std::chrono::microseconds(1000));
 
         //Clear Interrupt (INT) and DMA end (END) statuses
         _dma_regs->_cs = (DMA_REG_CS_INT | DMA_REG_CS_END);
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
+        usleep(10);
+        //std::this_thread::sleep_for(std::chrono::microseconds(10));
 
         //clear error flags
         _dma_regs->_debug = (DMA_REG_DEBUG_READ_ERROR | DMA_REG_DEBUG_FIFO_ERROR | DMA_REG_DEBUG_READ_LAST_NOT_SET_ERROR);
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
+        usleep(10);
+        //std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
 
     /*
@@ -316,33 +324,37 @@ public:
         std::cout << "process_control_block reset" << std::endl;
         reset();
 
-        print_status();
+        print_status(true);
 
         _started = true;
 
         std::cout << "process_control_block set DMS CB" << std::endl;
+        std::cout << "process_control_block TI " << std::hex << ti_register_status(dma_ctrl_blk->get_ctrl_blk()->_ti) << std::endl;
 
         //Set DMA Control Block
         //TODO: use physical address here!!!!
         _dma_regs->_conblk_ad = dma_ctrl_blk->get_phys_ctrl_blk();
 
         //Start to process DMA Control Block
-        std::cout << "process_control_block CS " << std::hex << cs_register_status(_cs_flags | DMA_REG_CS_ACTIVE) << std::endl;
-        std::cout << "process_control_block TI " << std::hex << ti_register_status(dma_ctrl_blk->get_ctrl_blk()->_ti) << std::endl;
+        _dma_regs->_cs = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES; // | DMA_REG_CS_DISDEBUG;
+        //std::this_thread::sleep_for(std::chrono::microseconds(10));
+        _dma_regs->_cs = (DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES | DMA_REG_CS_ACTIVE);
+        //_dma_regs->_cs = DMA_REG_CS_ACTIVE;
+        usleep(100);
+        //std::this_thread::sleep_for(std::chrono::microseconds(100));
 
-        _dma_regs->_cs = (_cs_flags | DMA_REG_CS_ACTIVE);
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
-
-        std::cout << "process_control_block Started " << std::hex <<  cs_register_status(_dma_regs->_cs) << std::endl;
-        print_status();
+        print_status(true);
 
         return true;
    }
 
-   void print_status() const{
+   void print_status(const bool fstatus = false) {
         const uint32_t txrf_len = _dma_regs->_txrf_len;
         std::cout << "--------- Length  " << std::dec <<  txrf_len << std::endl;
-        //std::cout << "          Debug 0x" << std::hex <<  debug_reg << std::endl << std::endl;
+        if(fstatus){
+          const uint32_t  cs = _dma_regs->_cs;
+          std::cout << "process_control_block -----> " << cs_register_status(cs) << std::endl;
+        }
    }
 
    const bool is_error() const {
