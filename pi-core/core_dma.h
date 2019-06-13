@@ -182,7 +182,7 @@ public:
 
 protected:
     void print() const {
-        std::cout << "DMA Addr: " << std::hex << _ctrk_blk << std::endl << " TI: " << _ctrk_blk->_ti << " SRC: 0x" << _ctrk_blk->_src_addr << " DST: 0x" << _ctrk_blk->_dst_addr <<
+        std::cout << "DMA Addr: " << std::hex << (void*)_ctrk_blk << std::endl << " TI: 0x" << _ctrk_blk->_ti << " SRC: 0x" << _ctrk_blk->_src_addr << " DST: 0x" << _ctrk_blk->_dst_addr <<
             " txfr_len: 0x" << _ctrk_blk->_txfr_len << " 2D Stride: 0x" << _ctrk_blk->_2d_mode_stride << " Next: 0x " << _ctrk_blk->_next_ctrl_blk << std::endl;
     }
 
@@ -390,7 +390,7 @@ public:
     }
 
     static const uint32_t cs_flags_pwm = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES | DMA_REG_CS_PANIC_PRIORITY(15) | DMA_REG_CS_PRIORITY(15);
-    static const uint32_t cs_flags_test = 0; //DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES;
+    static const uint32_t cs_flags_test = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES;
 
 
     /*

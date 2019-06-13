@@ -183,26 +183,30 @@ protected:
     */
     void* allocate_and_lock(const size_t len){
 
+#ifdef _USE_VALLOC_
         size_t len_page = len;
-        /*
+        void* mem = valloc(len);
+#else
         size_t len_page = align_to_page_size(len);
-
         void* mem = mmap(NULL, len_page, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_LOCKED | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
-        */
-        void* mem =valloc(len);
+#endif
+
+#ifdef _USE_VALLOC_
+        if (mem == NULL) {
+#else
         if (mem == MAP_FAILED) {
+#endif
             logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " mmap failed Error: " + std::to_string(errno));
             std::cout << "allocate_and_lock Failed to allocate MMAP:" << errno << std::endl;
-
             return nullptr;
         }
 
-        memset(mem, 0, len_page);
-        //some also recommend to use mlock() after but I am not sure - mmap with MAP_LOCKED should work as mlock() here
-
+        ((char*)mem)[0] = 'D';
         mlock(mem, len_page);
 
-        std::cout << "allocate_and_lock Success Allocated: " << std::dec << len_page << " Address " << std::hex << mem << std::endl << std::endl;
+        memset(mem, 0, len_page);
+
+        std::cout << "allocate_and_lock Success Allocated: " << std::dec << len_page << "[" << len << "] Address " << std::hex << mem << std::endl << std::endl;
         return mem;
     }
 
@@ -210,21 +214,27 @@ protected:
     * Unmap memory
     */
     bool deallocate_and_unlock(void* address, const size_t len){
+       bool result = true;
+       std::cout << "deallocate_and_unlock Len: " << std::dec << len << " Address " << std::hex << address << std::endl;
 
-            size_t len_page = len;
-            ///size_t len_page = align_to_page_size(len);
-            munlock(address, len_page);
+#ifdef _USE_VALLOC_
+       size_t len_page = len;
+#else
+       size_t len_page = align_to_page_size(len);
+#endif
+       munlock(address, len_page);
 
-            /*
-            int res = munmap((void*)address, len_page);
-            if(res == -1){
-                logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " munmap failed Error: " + std::to_string(errno));
-            }
-            */
-            free(address);
-
-            std::cout << "deallocate_and_unlock Success Len: " << std::dec << len_page << " Address " << std::hex << address << std::endl;
-            return true; //(res == 0);
+#ifdef _USE_VALLOC_
+      free(address);
+#else
+      int res = munmap((void*)address, len_page);
+      if(res == -1){
+           logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " munmap failed Error: " + std::to_string(errno));
+           result = false;
+      }
+#endif
+      std::cout << "deallocate_and_unlock Success Len: " << std::dec << len_page << " Address " << std::hex << address << std::endl;
+      return result;
     }
 
     /*

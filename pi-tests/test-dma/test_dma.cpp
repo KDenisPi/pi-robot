@@ -54,6 +54,7 @@ int main (int argc, char* argv[])
     }
 
     memset(m_src->get_vaddr(), 'A', buff_size_bytes - 1);
+    memset(m_dst->get_vaddr(), 'B', buff_size_bytes - 1);
 
     if(success){
 
