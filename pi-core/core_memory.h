@@ -133,9 +133,9 @@ public:
             return std::shared_ptr<MemInfo>();
         }
 
-        //std::cout << "get_memory Addr: 0x" << std::hex << ph_mem << " PyAddr: 0x" << std::hex << (ph_mem | _sdram_addr) << std::endl << std::endl;
-        std::cout << "get_memory " << " PyAddr: 0x" << std::hex << ph_mem << std::endl << std::endl;
-        //ph_mem |= _sdram_addr;
+        std::cout << "get_memory PAddr: 0x" << std::hex << ph_mem << " PyAddr: 0x" << std::hex << (ph_mem | 0x40000000) << std::endl << std::endl;
+        //std::cout << "get_memory " << " PyAddr: 0x" << std::hex << ph_mem << std::endl << std::endl;
+        ph_mem |= 0x40000000;
 
         return std::shared_ptr<MemInfo>(new MemInfo(mem, ph_mem, len));
     }

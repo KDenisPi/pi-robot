@@ -24,7 +24,6 @@ using namespace std;
 int main (int argc, char* argv[])
 {
     size_t buff_size_bytes = LED_COUNT * 3 * 3 + 15; //10 leds
-    std::uint32_t ldata[LED_COUNT] = {0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000, 0x00AA0000};
     bool success = true;
 
     std::shared_ptr<pi_core::core_mem::MemInfo> m_src;
