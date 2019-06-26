@@ -136,7 +136,7 @@ public:
         }
 
         uintptr_t ph_mem_base = 0xC0000000; //0xC0000000; 0x80000000; //0x40000000; //0x00000000
-        std::cout << "------> get_memory PAddr: 0x" << std::hex << ph_mem << " PyAddr: 0x" << std::hex << (ph_mem | ph_mem_base) << std::endl << std::endl;
+        std::cout << "------> get_memory Base: "  << std::hex << ph_mem_base << " PAddr: 0x" << std::hex << ph_mem << " PyAddr: 0x" << std::hex << (ph_mem | ph_mem_base) << std::endl << std::endl;
         //std::cout << "get_memory " << " PyAddr: 0x" << std::hex << ph_mem << std::endl << std::endl;
         ph_mem |= ph_mem_base; //0xC0000000; 0x80000000; //0x40000000; //0x00000000
 

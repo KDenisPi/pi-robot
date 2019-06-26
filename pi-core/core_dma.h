@@ -50,6 +50,13 @@ using dma_regs = struct __attribute__((packed, aligned(4))) dma_regs_t {
     uint32_t _debug;        //Debug
 };
 
+using dma_ctrl_regs = struct __attribute__((packed, aligned(4))) dma_regs_ctrlt {
+    uint32_t _int_status;  //Internal status of each DMA channel
+    uint32_t _reserved[3];
+    uint32_t _enable;      //Global enable bits for each DMA channel
+};
+
+
 /*
 * DMA Control and Status register
 */
@@ -209,9 +216,17 @@ private:
 */
 class DmaControl {
 public:
+    /*
+    *
+    */
     DmaControl(const uint16_t dma = 10) : _addr(0), _dma(dma), _started(false), _dma_regs(nullptr){
         assert(dma < 15);
+
         _addr = dma_address(dma);
+        _addr_ctrl = dma_int_status_reg();
+
+        std::cout <<  "DmaCtrl DMA channel: " << dma <<  " addr: 0x" << std::hex << _addr << std::endl;
+        std::cout <<  "DmaCtrl DMA Control: 0x" << std::hex << _addr_ctrl << std::endl;
 
         std::cout << "** DMA Control Condtructor " << std::endl;
 
@@ -221,9 +236,22 @@ public:
             throw std::runtime_error(std::string("Fail to initialize DMA control"));
         }
 
+        _dma_ctrl_regs = piutils::map_memory<dma_ctrl_regs>(_addr_ctrl);
+        if(_dma_ctrl_regs == nullptr){
+            logger::log(logger::LLOG::ERROR, "DmaCtrl", std::string(__func__) + " Fail to initialize DMA control");
+            throw std::runtime_error(std::string("Fail to initialize DMA control register"));
+        }
+
+        std::cout <<  "DmaCtrl DMA Control: INT_STATUS 0x" << std::hex << _dma_ctrl_regs->_int_status << " Enable: " <<  _dma_ctrl_regs->_enable  << std::endl;
+
+        dma_channel_enable();
+
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " DMA channel: " + std::to_string(dma) + " addr: " + std::to_string(_addr));
     }
 
+    /*
+    *
+    */
     virtual ~DmaControl(){
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " addr: " + std::to_string(_addr));
 
@@ -242,24 +270,61 @@ public:
 
             if(i >= 100){
               std::cout << " Check if busy - FAILED" << std::endl;
+              this->abort();
             }
 
             //reset DMA control state
             reset();
 
+            //
             _dma_regs = piutils::unmap_memory<dma_regs>(static_cast<dma_regs*>((void*)_dma_regs));
+            _dma_ctrl_regs = piutils::unmap_memory<dma_ctrl_regs>(static_cast<dma_ctrl_regs*>((void*)_dma_ctrl_regs));
         }
     }
 
+    //
     static const uintptr_t dma_base = 0x00007000;
+
+    /*
+    *
+    */
     static const uintptr_t dma_address(const uint16_t dma){
         assert(dma < 15);
 
         uintptr_t ph_address = CoreCommon::get_peripheral_address();
         if(dma == 15)
-            return ph_address + 0x00e05000;
+            return ph_address + 0xe05000;
 
         return ph_address + dma_base + (0x100 * dma);
+    }
+
+    /*
+    *
+    */
+    static const uintptr_t dma_enable_reg(){
+        uintptr_t ph_address = CoreCommon::get_peripheral_address();
+        return ph_address + (dma_base | 0xFF0);
+    }
+
+
+    /*
+    *
+    */
+    static const uintptr_t dma_int_status_reg(){
+        uintptr_t ph_address = CoreCommon::get_peripheral_address();
+        return ph_address + (dma_base | 0xFE0);
+    }
+
+    void dma_channel_enable(){
+      uint32_t dma_bit = (1 << _dma);
+      uint32_t dma_enb = _dma_ctrl_regs->_enable;
+
+      std::cout <<  "dma_channel_enable: INT_STATUS 0x" << std::hex << _dma_ctrl_regs->_int_status << " Enable: " <<  _dma_ctrl_regs->_enable  << "  DMA:" << _dma << std::endl;
+
+      if( (dma_enb&dma_bit)==0 )
+        _dma_ctrl_regs->_enable |= dma_bit;
+
+      usleep(100);
     }
 
     /*
@@ -268,14 +333,25 @@ public:
     bool Initialize(const uint32_t cs_flags = cs_flags_pwm) {
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
-        _dma_regs->_cs = 0;         //initialize DMA control and status
-        _dma_regs->_txrf_len = 0;
+        std::cout << "************ DMA Control Initialize() **********" << std::endl;
+        std::cout << ti_register_status( _dma_regs->_ti) << std::endl;
 
         reset();
 
         set_cs_flags(cs_flags);
 
         return true;
+    }
+
+    /*
+    *  Abort current operation
+    */
+    void abort(){
+        logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
+        std::cout << "*** DMA Control abort() " << std::endl;
+
+        _dma_regs->_cs |= DMA_REG_CS_ABORT;  //Abort current execution
+        usleep(300);
     }
 
     /*
@@ -286,22 +362,18 @@ public:
 
         std::cout << "*** DMA Control reset() " << std::endl;
 
-        _dma_regs->_cs |= DMA_REG_CS_ABORT;  //Abort current execution
-        usleep(100); 
-        //std::this_thread::sleep_for(std::chrono::microseconds(100));
-
         _dma_regs->_cs = DMA_REG_CS_RESET;  //Reset DMA
         usleep(300);
         //std::this_thread::sleep_for(std::chrono::microseconds(1000));
 
         //Clear Interrupt (INT) and DMA end (END) statuses
         _dma_regs->_cs = (DMA_REG_CS_INT | DMA_REG_CS_END);
-        usleep(10);
+        usleep(50);
         //std::this_thread::sleep_for(std::chrono::microseconds(10));
 
         //clear error flags
         _dma_regs->_debug = (DMA_REG_DEBUG_READ_ERROR | DMA_REG_DEBUG_FIFO_ERROR | DMA_REG_DEBUG_READ_LAST_NOT_SET_ERROR);
-        usleep(10);
+        usleep(50);
         //std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
 
@@ -331,8 +403,7 @@ public:
         std::cout << "process_control_block set DMS CB" << std::endl;
         std::cout << "process_control_block TI " << std::hex << ti_register_status(dma_ctrl_blk->get_ctrl_blk()->_ti) << std::endl;
 
-        //Set DMA Control Block
-        //TODO: use physical address here!!!!
+        //Set DMA Control Block Note: use physical address here!!!!
         _dma_regs->_conblk_ad = dma_ctrl_blk->get_phys_ctrl_blk();
 
         //Start to process DMA Control Block
@@ -352,7 +423,7 @@ public:
         const uint32_t txrf_len = _dma_regs->_txrf_len;
         std::cout << "--------- Length  " << std::dec <<  txrf_len << std::endl;
         if(fstatus){
-          const uint32_t  cs = _dma_regs->_cs;
+          const uint32_t cs = _dma_regs->_cs;
           std::cout << "process_control_block -----> " << cs_register_status(cs) << std::endl;
         }
    }
@@ -399,6 +470,7 @@ public:
     */
     void set_cs_flags(const uint32_t cs_flags){
         _cs_flags = cs_flags;
+        usleep(10);
     }
 
     static const uint32_t cs_flags_pwm = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES | DMA_REG_CS_PANIC_PRIORITY(15) | DMA_REG_CS_PRIORITY(15);
@@ -458,12 +530,16 @@ public:
 
 private:
 
-    uintptr_t _addr; //DMA register address
-    uint16_t _dma;  //DMA number
+    uintptr_t _addr;       //DMA register address
+    uintptr_t _addr_ctrl;  //DMA control register address
+
+    uint16_t _dma;   //DMA number
     uint32_t _cs_flags; //default flags for CS register
 
     bool _started;  //Flag do we have active Control Block on processing
+
     volatile dma_regs* _dma_regs;
+    volatile dma_ctrl_regs* _dma_ctrl_regs;
 };
 
 
