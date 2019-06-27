@@ -23,7 +23,7 @@ using namespace std;
 
 int main (int argc, char* argv[])
 {
-    size_t buff_size_bytes = LED_COUNT * 3 * 3 + 15; //10 leds
+    size_t buff_size_bytes = 256; //LED_COUNT * 3 * 3 + 15; //10 leds
     bool success = true;
 
     std::shared_ptr<pi_core::core_mem::MemInfo> m_src;
@@ -57,7 +57,7 @@ int main (int argc, char* argv[])
 
     if(success){
 
-      pi_core::core_dma::DmaControl* dctrl = new pi_core::core_dma::DmaControl();
+      pi_core::core_dma::DmaControl* dctrl = new pi_core::core_dma::DmaControl(9);
       pi_core::core_dma::DmaControlBlock* cb = new pi_core::core_dma::DmaControlBlock(pmem, pi_core::DREQ::NO_required);
 
       dctrl->Initialize(pi_core::core_dma::DmaControl::cs_flags_test);

@@ -246,7 +246,7 @@ public:
     *
     */
     static const uintptr_t dma_address(const uint16_t dma){
-        assert(dma < 15);
+        assert(dma < 16);
 
         uintptr_t ph_address = CoreCommon::get_peripheral_address();
         if(dma == 15)
@@ -280,7 +280,7 @@ public:
         volatile dma_regs* dma_reg;
         uintptr_t dma_addr = dma_address(dma_channel);
 
-        std::cout << std::endl <<  "-----> DMA channel: " << dma_channel <<  " addr: 0x" << std::hex << dma_addr << " Enabled: " << is_enabled(dma_channel) << std::endl;
+        std::cout << std::endl <<  "-----> DMA channel: " << std::dec << dma_channel <<  " addr: 0x" << std::hex << dma_addr << " Enabled: " << is_enabled(dma_channel) << std::endl;
 
         dma_reg = piutils::map_memory<dma_regs>(dma_addr);
         if(dma_reg == nullptr){
@@ -425,6 +425,10 @@ public:
 
             //reset DMA control state
             reset();
+
+            std::cout << " Clear TI" << std::endl;
+            _dma_regs->_ti = 0;
+            usleep(100);
 
             //
             _dma_regs = piutils::unmap_memory<dma_regs>(static_cast<dma_regs*>((void*)_dma_regs));

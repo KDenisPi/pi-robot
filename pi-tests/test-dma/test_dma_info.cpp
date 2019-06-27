@@ -21,7 +21,7 @@ int main (int argc, char* argv[])
 
   pi_core::core_dma::DmaInfo* dinfo = new pi_core::core_dma::DmaInfo();
 
-  for(int i = 0; i < 5; i++){
+  for(int i = 9; i < 11; i++){
     dinfo->dma_channel_check(i);
   }
 
