@@ -212,29 +212,16 @@ private:
 };
 
 /*
-* DMA control class
+* DMA info class
+*
 */
-class DmaControl {
+class DmaInfo {
 public:
     /*
-    *
-    */
-    DmaControl(const uint16_t dma = 10) : _addr(0), _dma(dma), _started(false), _dma_regs(nullptr){
-        assert(dma < 15);
-
-        _addr = dma_address(dma);
+     */
+    DmaInfo() {
         _addr_ctrl = dma_int_status_reg();
-
-        std::cout <<  "DmaCtrl DMA channel: " << dma <<  " addr: 0x" << std::hex << _addr << std::endl;
         std::cout <<  "DmaCtrl DMA Control: 0x" << std::hex << _addr_ctrl << std::endl;
-
-        std::cout << "** DMA Control Condtructor " << std::endl;
-
-        _dma_regs = piutils::map_memory<dma_regs>(_addr);
-        if(_dma_regs == nullptr){
-            logger::log(logger::LLOG::ERROR, "DmaCtrl", std::string(__func__) + " Fail to initialize DMA control");
-            throw std::runtime_error(std::string("Fail to initialize DMA control"));
-        }
 
         _dma_ctrl_regs = piutils::map_memory<dma_ctrl_regs>(_addr_ctrl);
         if(_dma_ctrl_regs == nullptr){
@@ -243,43 +230,13 @@ public:
         }
 
         std::cout <<  "DmaCtrl DMA Control: INT_STATUS 0x" << std::hex << _dma_ctrl_regs->_int_status << " Enable: " <<  _dma_ctrl_regs->_enable  << std::endl;
-
-        dma_channel_enable();
-
-        logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " DMA channel: " + std::to_string(dma) + " addr: " + std::to_string(_addr));
     }
 
     /*
-    *
-    */
-    virtual ~DmaControl(){
-        logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " addr: " + std::to_string(_addr));
+     */
+    virtual ~DmaInfo() {
+        _dma_ctrl_regs = piutils::unmap_memory<dma_ctrl_regs>(static_cast<dma_ctrl_regs*>((void*)_dma_ctrl_regs));
 
-        std::cout << "** DMA Control Destructor " << std::endl;
-
-        if(_dma_regs){
-
-            logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Check if busy");
-            std::cout << " Check if busy" << std::endl;
-
-            int i = 0;
-            while( !is_finished() && ++i < 100){
-                //TODO: Add counter?
-            };
-
-
-            if(i >= 100){
-              std::cout << " Check if busy - FAILED" << std::endl;
-              this->abort();
-            }
-
-            //reset DMA control state
-            reset();
-
-            //
-            _dma_regs = piutils::unmap_memory<dma_regs>(static_cast<dma_regs*>((void*)_dma_regs));
-            _dma_ctrl_regs = piutils::unmap_memory<dma_ctrl_regs>(static_cast<dma_ctrl_regs*>((void*)_dma_ctrl_regs));
-        }
     }
 
     //
@@ -315,17 +272,165 @@ public:
         return ph_address + (dma_base | 0xFE0);
     }
 
-    void dma_channel_enable(){
-      uint32_t dma_bit = (1 << _dma);
+    /*
+    * Check DMA channel status
+    */
+   const bool dma_channel_check(const uint16_t dma_channel){
+
+        volatile dma_regs* dma_reg;
+        uintptr_t dma_addr = dma_address(dma_channel);
+
+        std::cout << std::endl <<  "-----> DMA channel: " << dma_channel <<  " addr: 0x" << std::hex << dma_addr << " Enabled: " << is_enabled(dma_channel) << std::endl;
+
+        dma_reg = piutils::map_memory<dma_regs>(dma_addr);
+        if(dma_reg == nullptr){
+            //logger::log(logger::LLOG::ERROR, "DmaCtrl", std::string(__func__) + " Fail to initialize DMA control");
+            throw std::runtime_error(std::string("Fail to initialize DMA control"));
+        }
+
+        std::cout <<  cs_register_status(dma_reg->_cs) << std::endl << std::endl;
+        std::cout <<  ti_register_status(dma_reg->_ti) << std::endl << std::endl;
+
+
+        dma_reg = piutils::unmap_memory<dma_regs>(static_cast<dma_regs*>((void*)dma_reg));
+    }
+
+    /*
+    *
+    */
+    const bool is_enabled(const uint16_t dma_channel) const{
+        return ( (_dma_ctrl_regs->_enable & (1 << dma_channel)) != 0 );
+    }
+
+    /*
+    *
+    */
+    void dma_channel_enable(const uint16_t dma_channel){
+      uint32_t dma_bit = (1 << dma_channel);
       uint32_t dma_enb = _dma_ctrl_regs->_enable;
 
-      std::cout <<  "dma_channel_enable: INT_STATUS 0x" << std::hex << _dma_ctrl_regs->_int_status << " Enable: " <<  _dma_ctrl_regs->_enable  << "  DMA:" << _dma << std::endl;
+      std::cout <<  "dma_channel_enable: INT_STATUS 0x" << std::hex << _dma_ctrl_regs->_int_status << " Enable: " <<  _dma_ctrl_regs->_enable  << "  DMA:" << dma_channel << std::endl;
 
-      if( (dma_enb&dma_bit)==0 )
+      if( (dma_enb&dma_bit) == 0 )
         _dma_ctrl_regs->_enable |= dma_bit;
 
       usleep(100);
     }
+
+    /*
+    * Get string with CS register status
+    */
+    static const std::string cs_register_status(const uint32_t cs_state) {
+        char buff[64];
+        std::string res = "CS register: ";
+        std::sprintf(buff, "0x%X\n", cs_state);
+        res += buff;
+        res += CoreCommon::bit_test(buff, cs_state, 0, "ACTIVE");
+        res += CoreCommon::bit_test(buff, cs_state, 1, "END");
+        res += CoreCommon::bit_test(buff, cs_state, 2, "INT");
+        res += CoreCommon::bit_test(buff, cs_state, 3, "DREQ");
+        res += CoreCommon::bit_test(buff, cs_state, 4, "PAUSED");
+        res += CoreCommon::bit_test(buff, cs_state, 5, "DREQ_STOPS_DMA");
+        res += CoreCommon::bit_test(buff, cs_state, 6, "WAITING_FOR_OUTSTANDING_WRITES");
+        res += CoreCommon::bit_test(buff, cs_state, 8, "ERROR");
+        res += CoreCommon::bits_test(buff,  ((cs_state>>16)&0xF), "PRIORITY");
+        res += CoreCommon::bits_test(buff,  ((cs_state>>20)&0xF), "PANIC PRIORITY");
+        res += CoreCommon::bit_test(buff, cs_state, 28, "WAIT_FOR_OUTSTANDING_WRITES");
+        res += CoreCommon::bit_test(buff, cs_state, 29, "DISDEBUG");
+
+        return res;
+    }
+
+    /*
+    * Get string with CS register status
+    */
+    static const std::string ti_register_status(const uint32_t ti_state) {
+        char buff[64];
+        std::string res = "TI register: ";
+        std::sprintf(buff, "0x%X\n", ti_state);
+        res += buff;
+        res += CoreCommon::bit_test(buff, ti_state, 0, "INTEN");
+        res += CoreCommon::bit_test(buff, ti_state, 1, "TDMODE");
+        res += CoreCommon::bit_test(buff, ti_state, 3, "WAIT_RESP");
+        res += CoreCommon::bit_test(buff, ti_state, 4, "DEST_INC");
+        res += CoreCommon::bit_test(buff, ti_state, 5, "DEST_WIDTH");
+        res += CoreCommon::bit_test(buff, ti_state, 6, "DEST_DREQ");
+        res += CoreCommon::bit_test(buff, ti_state, 7, "DEST_IGNORE");
+        res += CoreCommon::bit_test(buff, ti_state, 8, "SRC_INC");
+        res += CoreCommon::bit_test(buff, ti_state, 9, "SRC_WIDTH");
+        res += CoreCommon::bit_test(buff, ti_state, 10, "SRC_DREQ");
+        res += CoreCommon::bit_test(buff, ti_state, 11, "SRC_IGNORE");
+        res += CoreCommon::bits_test(buff,  ((ti_state>>12)&0xF), "15-12 BURST_LENGTH");
+        res += CoreCommon::bits_test(buff,  ((ti_state>>16)&0x1F), "20-16 PERMAP");
+        res += CoreCommon::bits_test(buff,  ((ti_state>>21)&0x1F), "25-21 WAITS");
+        res += CoreCommon::bit_test(buff, ti_state, 26, "NO_WIDE_BURSTS");
+
+        return res;
+    }
+
+private:
+    uintptr_t _addr_ctrl; //DMA control register address
+    volatile dma_ctrl_regs* _dma_ctrl_regs;
+};
+
+/*
+* DMA control class
+*/
+class DmaControl {
+public:
+    /*
+    *
+    */
+    DmaControl(const uint16_t dma = 10) : _addr(0), _dma(dma), _started(false), _dma_regs(nullptr){
+        assert(dma < 15);
+
+        _addr = DmaInfo::dma_address(dma);
+
+        std::cout <<  "DmaCtrl DMA channel: " << dma <<  " addr: 0x" << std::hex << _addr << std::endl;
+
+        std::cout << "** DMA Control Condtructor " << std::endl;
+
+        _dma_regs = piutils::map_memory<dma_regs>(_addr);
+        if(_dma_regs == nullptr){
+            logger::log(logger::LLOG::ERROR, "DmaCtrl", std::string(__func__) + " Fail to initialize DMA control");
+            throw std::runtime_error(std::string("Fail to initialize DMA control"));
+        }
+
+        logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " DMA channel: " + std::to_string(dma) + " addr: " + std::to_string(_addr));
+    }
+
+    /*
+    *
+    */
+    virtual ~DmaControl(){
+        logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " addr: " + std::to_string(_addr));
+
+        std::cout << "** DMA Control Destructor " << std::endl;
+
+        if(_dma_regs){
+
+            logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Check if busy");
+            std::cout << " Check if busy" << std::endl;
+
+            int i = 0;
+            while( !is_finished() && ++i < 100){
+                //TODO: Add counter?
+            };
+
+
+            if(i >= 100){
+              std::cout << " Check if busy - FAILED" << std::endl;
+              this->abort();
+            }
+
+            //reset DMA control state
+            reset();
+
+            //
+            _dma_regs = piutils::unmap_memory<dma_regs>(static_cast<dma_regs*>((void*)_dma_regs));
+        }
+    }
+
 
     /*
     * Initialize connection
@@ -334,7 +439,7 @@ public:
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
         std::cout << "************ DMA Control Initialize() **********" << std::endl;
-        std::cout << ti_register_status( _dma_regs->_ti) << std::endl;
+        std::cout << DmaInfo::ti_register_status( _dma_regs->_ti) << std::endl;
 
         reset();
 
@@ -401,7 +506,7 @@ public:
         _started = true;
 
         std::cout << "process_control_block set DMS CB" << std::endl;
-        std::cout << "process_control_block TI " << std::hex << ti_register_status(dma_ctrl_blk->get_ctrl_blk()->_ti) << std::endl;
+        std::cout << "process_control_block TI " << std::hex << DmaInfo::ti_register_status(dma_ctrl_blk->get_ctrl_blk()->_ti) << std::endl;
 
         //Set DMA Control Block Note: use physical address here!!!!
         _dma_regs->_conblk_ad = dma_ctrl_blk->get_phys_ctrl_blk();
@@ -424,7 +529,7 @@ public:
         std::cout << "--------- Length  " << std::dec <<  txrf_len << std::endl;
         if(fstatus){
           const uint32_t cs = _dma_regs->_cs;
-          std::cout << "process_control_block -----> " << cs_register_status(cs) << std::endl;
+          std::cout << "process_control_block -----> " << DmaInfo::cs_register_status(cs) << std::endl;
         }
    }
 
@@ -477,69 +582,14 @@ public:
     static const uint32_t cs_flags_test = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES;
 
 
-    /*
-    * Get string with CS register status
-    */
-    const std::string cs_register_status(const uint32_t cs_state) {
-        char buff[64];
-        std::string res = "CS register: ";
-        std::sprintf(buff, "0x%X\n", cs_state);
-        res += buff;
-        res += CoreCommon::bit_test(buff, cs_state, 0, "ACTIVE");
-        res += CoreCommon::bit_test(buff, cs_state, 1, "END");
-        res += CoreCommon::bit_test(buff, cs_state, 2, "INT");
-        res += CoreCommon::bit_test(buff, cs_state, 3, "DREQ");
-        res += CoreCommon::bit_test(buff, cs_state, 4, "PAUSED");
-        res += CoreCommon::bit_test(buff, cs_state, 5, "DREQ_STOPS_DMA");
-        res += CoreCommon::bit_test(buff, cs_state, 6, "WAITING_FOR_OUTSTANDING_WRITES");
-        res += CoreCommon::bit_test(buff, cs_state, 8, "ERROR");
-        res += CoreCommon::bits_test(buff,  ((cs_state>>16)&0xF), "PRIORITY");
-        res += CoreCommon::bits_test(buff,  ((cs_state>>20)&0xF), "PANIC PRIORITY");
-        res += CoreCommon::bit_test(buff, cs_state, 28, "WAIT_FOR_OUTSTANDING_WRITES");
-        res += CoreCommon::bit_test(buff, cs_state, 29, "DISDEBUG");
-
-        return res;
-    }
-
-    /*
-    * Get string with CS register status
-    */
-    const std::string ti_register_status(const uint32_t ti_state) {
-        char buff[64];
-        std::string res = "TI register: ";
-        std::sprintf(buff, "0x%X\n", ti_state);
-        res += buff;
-        res += CoreCommon::bit_test(buff, ti_state, 0, "INTEN");
-        res += CoreCommon::bit_test(buff, ti_state, 1, "TDMODE");
-        res += CoreCommon::bit_test(buff, ti_state, 3, "WAIT_RESP");
-        res += CoreCommon::bit_test(buff, ti_state, 4, "DEST_INC");
-        res += CoreCommon::bit_test(buff, ti_state, 5, "DEST_WIDTH");
-        res += CoreCommon::bit_test(buff, ti_state, 6, "DEST_DREQ");
-        res += CoreCommon::bit_test(buff, ti_state, 7, "DEST_IGNORE");
-        res += CoreCommon::bit_test(buff, ti_state, 8, "SRC_INC");
-        res += CoreCommon::bit_test(buff, ti_state, 9, "SRC_WIDTH");
-        res += CoreCommon::bit_test(buff, ti_state, 10, "SRC_DREQ");
-        res += CoreCommon::bit_test(buff, ti_state, 11, "SRC_IGNORE");
-        res += CoreCommon::bits_test(buff,  ((ti_state>>12)&0xF), "15-12 BURST_LENGTH");
-        res += CoreCommon::bits_test(buff,  ((ti_state>>16)&0x1F), "20-16 PERMAP");
-        res += CoreCommon::bits_test(buff,  ((ti_state>>21)&0x1F), "25-21 WAITS");
-        res += CoreCommon::bit_test(buff, ti_state, 26, "NO_WIDE_BURSTS");
-
-        return res;
-    }
 
 private:
-
+    volatile dma_regs* _dma_regs;
     uintptr_t _addr;       //DMA register address
-    uintptr_t _addr_ctrl;  //DMA control register address
-
     uint16_t _dma;   //DMA number
     uint32_t _cs_flags; //default flags for CS register
-
     bool _started;  //Flag do we have active Control Block on processing
 
-    volatile dma_regs* _dma_regs;
-    volatile dma_ctrl_regs* _dma_ctrl_regs;
 };
 
 

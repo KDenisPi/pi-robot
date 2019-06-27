@@ -17,6 +17,7 @@ message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
 add_executable(testPMem test_phys_mem.cpp)
+add_executable(testDmaInfo test_dma_info.cpp)
 add_executable(testDma test_dma.cpp)
 add_executable(testPwm test_pwm.cpp)
 
@@ -30,6 +31,7 @@ endif(REAL_HARDWARE)
 message( STATUS "Libs: ${TEST_DMA_LIBS}")
 
 target_link_libraries(testPMem ${TEST_DMA_LIBS})
+target_link_libraries(testDmaInfo ${TEST_DMA_LIBS})
 target_link_libraries(testDma ${TEST_DMA_LIBS})
 target_link_libraries(testPwm ${TEST_DMA_LIBS})
 

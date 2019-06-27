@@ -1,9 +1,9 @@
 /*
- * CircularBuffer.h
- *
- *  Created on: Sep 19, 2017
- *      Author: Denis Kudia
- */
+  //CircularBuffer.h
+
+   Created on: Sep 19, 2017
+       Author: Denis Kudia
+*/
 
  #ifndef PI_LIBRARY_CIRCULARBUFFER_H_
  #define PI_LIBRARY_CIRCULARBUFFER_H_
