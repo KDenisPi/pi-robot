@@ -83,18 +83,19 @@ private:
         netInfo.load_ip_list();
 
         auto ctxt = get_env<weather::Context>();
-        std::string ip4_address = ctxt->ip4_address;
-        std::string ip6_address = ctxt->ip6_address;
-
-        ctxt->ip4_address = detect_ip_address_by_type(&netInfo, piutils::netinfo::IpType::IP_V4);
-        ctxt->ip6_address = detect_ip_address_by_type(&netInfo, piutils::netinfo::IpType::IP_V6);
+        std::string ip4_address = detect_ip_address_by_type(&netInfo, piutils::netinfo::IpType::IP_V4);
+        std::string ip6_address = detect_ip_address_by_type(&netInfo, piutils::netinfo::IpType::IP_V6);
 
         //
         //If IP address was changed or just detected - generate EVENT
         //
-        if(!ctxt->ip4_address.empty() || !ctxt->ip6_address.empty()){
-            if((!ip4_address.empty() && ctxt->ip4_address != ip4_address) || (!ip6_address.empty() && ctxt->ip6_address != ip6_address)){
-                logger::log(logger::LLOG::INFO, "StInit", std::string(__func__) + " IP address changed IP4: " + ctxt->ip4_address + " IP6: " + ctxt->ip6_address);
+        if( !ip4_address.empty() ){
+            if((ctxt->ip4_address != ip4_address) ){
+                logger::log(logger::LLOG::INFO, "StInit", std::string(__func__) + " IP address changed from: " + ctxt->ip4_address +
+                        " [" + ctxt->ip6_address + "] to: " + ip4_address + "[" + ip6_address + "]");
+
+                ctxt->ip4_address = ip4_address;
+                ctxt->ip6_address = ip6_address;
 
                 std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_SHOW_IP));
                 EVENT(event);
