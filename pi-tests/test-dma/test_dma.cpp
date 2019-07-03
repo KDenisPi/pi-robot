@@ -57,7 +57,7 @@ int main (int argc, char* argv[])
 
     if(success){
 
-      pi_core::core_dma::DmaControl* dctrl = new pi_core::core_dma::DmaControl(9);
+      pi_core::core_dma::DmaControl* dctrl = new pi_core::core_dma::DmaControl(10);
       pi_core::core_dma::DmaControlBlock* cb = new pi_core::core_dma::DmaControlBlock(pmem, pi_core::DREQ::NO_required);
 
       dctrl->Initialize(pi_core::core_dma::DmaControl::cs_flags_test);

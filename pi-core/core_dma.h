@@ -342,7 +342,7 @@ public:
     }
 
     /*
-    * Get string with CS register status
+    * Get string with TI register status
     */
     static const std::string ti_register_status(const uint32_t ti_state) {
         char buff[64];
@@ -364,6 +364,27 @@ public:
         res += CoreCommon::bits_test(buff,  ((ti_state>>16)&0x1F), "20-16 PERMAP");
         res += CoreCommon::bits_test(buff,  ((ti_state>>21)&0x1F), "25-21 WAITS");
         res += CoreCommon::bit_test(buff, ti_state, 26, "NO_WIDE_BURSTS");
+
+        return res;
+    }
+
+
+    /*
+    * Get string with TI register status
+    */
+    static const std::string debug_register_status(const uint32_t debug_state) {
+        char buff[64];
+        std::string res = "DEBIG register: ";
+        std::sprintf(buff, "0x%X\n", debug_state);
+        res += buff;
+        res += CoreCommon::bit_test(buff, debug_state, 0, "RLAST_NSET_ERROR");
+        res += CoreCommon::bit_test(buff, debug_state, 0, "FIFO_ERROR");
+        res += CoreCommon::bit_test(buff, debug_state, 0, "READ_ERROR");
+        res += CoreCommon::bits_test(buff,  ((debug_state>>4)&0xf),  "7-4 OUTS_WRITES");
+        res += CoreCommon::bits_test(buff,  ((debug_state>>8)&0x7f), "15-8 DMA_ID");
+        res += CoreCommon::bits_test(buff,  ((debug_state>>16)&0xff), "24-16 DMA_STATE");
+        res += CoreCommon::bits_test(buff,  ((debug_state>>25)&0x7),  "27-25 VERSION");
+        res += CoreCommon::bit_test(buff, debug_state, 28, "LITE");
 
         return res;
     }
@@ -534,6 +555,9 @@ public:
         if(fstatus){
           const uint32_t cs = _dma_regs->_cs;
           std::cout << "process_control_block -----> " << DmaInfo::cs_register_status(cs) << std::endl;
+          const uint32_t debug_reg = _dma_regs->_debug;
+          std::cout << "process_control_block -----> " << DmaInfo::debug_register_status(debug_reg) << std::endl;
+
         }
    }
 
