@@ -445,11 +445,11 @@ public:
             }
 
             //reset DMA control state
-            reset();
+            //reset();
 
-            std::cout << " Clear TI" << std::endl;
-            _dma_regs->_ti = 0;
-            usleep(100);
+            //std::cout << " Clear TI" << std::endl;
+           // _dma_regs->_ti = 0;
+            //usleep(100);
 
             //
             _dma_regs = piutils::unmap_memory<dma_regs>(static_cast<dma_regs*>((void*)_dma_regs));
@@ -487,23 +487,25 @@ public:
     /*
     * Reset DMA
     */
-    void reset(){
+    void reset(const bool lite=false){
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
-        std::cout << "*** DMA Control reset() " << std::endl;
+        std::cout << "*** DMA Control reset() Lite: "  << lite << std::endl;
 
-        _dma_regs->_cs = DMA_REG_CS_RESET;  //Reset DMA
-        usleep(300);
-        //std::this_thread::sleep_for(std::chrono::microseconds(1000));
+        if(!lite){
+          _dma_regs->_cs = DMA_REG_CS_RESET;  //Reset DMA
+          usleep(500);
+          //std::this_thread::sleep_for(std::chrono::microseconds(1000));
+        }
 
         //Clear Interrupt (INT) and DMA end (END) statuses
         _dma_regs->_cs = (DMA_REG_CS_INT | DMA_REG_CS_END);
-        usleep(50);
+        usleep(100);
         //std::this_thread::sleep_for(std::chrono::microseconds(10));
 
         //clear error flags
         _dma_regs->_debug = (DMA_REG_DEBUG_READ_ERROR | DMA_REG_DEBUG_FIFO_ERROR | DMA_REG_DEBUG_READ_LAST_NOT_SET_ERROR);
-        usleep(50);
+        usleep(100);
         //std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
 
@@ -523,8 +525,8 @@ public:
             return false;
         }
 
-        std::cout << "process_control_block reset" << std::endl;
-        reset();
+        //std::cout << "process_control_block reset" << std::endl;
+        reset(true); //lite version
 
         print_status(true);
 
@@ -537,11 +539,11 @@ public:
         _dma_regs->_conblk_ad = dma_ctrl_blk->get_phys_ctrl_blk();
 
         //Start to process DMA Control Block
-        _dma_regs->_cs = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES; // | DMA_REG_CS_DISDEBUG;
+        //_dma_regs->_cs = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES; // | DMA_REG_CS_DISDEBUG;
         //std::this_thread::sleep_for(std::chrono::microseconds(10));
-        _dma_regs->_cs = (DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES | DMA_REG_CS_ACTIVE);
+        _dma_regs->_cs = DMA_REG_CS_ACTIVE;
         //_dma_regs->_cs = DMA_REG_CS_ACTIVE;
-        usleep(100);
+        usleep(500);
         //std::this_thread::sleep_for(std::chrono::microseconds(100));
 
         print_status(true);
@@ -603,7 +605,6 @@ public:
     */
     void set_cs_flags(const uint32_t cs_flags){
         _cs_flags = cs_flags;
-        usleep(10);
     }
 
     static const uint32_t cs_flags_pwm = DMA_REG_CS_WAIT_FOR_OUTSTANDING_WRITES | DMA_REG_CS_PANIC_PRIORITY(15) | DMA_REG_CS_PRIORITY(15);

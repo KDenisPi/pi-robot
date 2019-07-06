@@ -21,7 +21,7 @@
 namespace pi_core {
 namespace core_mem {
 
-//#define _USE_VALLOC_  1
+#define _USE_VALLOC_  1
 
 #define PAGEMAP_LENGTH 8
 #define PAGEMAP_PAGE_FILE_PAGE  ((uint_fast64_t)1 << 61)
@@ -135,10 +135,12 @@ public:
             return std::shared_ptr<MemInfo>();
         }
 
-        uintptr_t ph_mem_base = 0x40000000; //0xC0000000; 0x80000000; //0x40000000; //0x00000000
-        std::cout << "------> get_memory Base: "  << std::hex << ph_mem_base << " PAddr: 0x" << std::hex << ph_mem << " PyAddr: 0x" << std::hex << (ph_mem | ph_mem_base) << std::endl << std::endl;
+        //uintptr_t ph_mem_base = 0x40000000; //0xC0000000; 0x80000000; //0x40000000; //0x00000000
+        //std::cout << "------> get_memory Base: "  << std::hex << ph_mem_base << " PAddr: 0x" << std::hex << ph_mem << " PyAddr: 0x" << std::hex << (ph_mem | ph_mem_base) << std::endl << std::endl;
         //std::cout << "get_memory " << " PyAddr: 0x" << std::hex << ph_mem << std::endl << std::endl;
-        ph_mem |= ph_mem_base; //0xC0000000; 0x80000000; //0x40000000; //0x00000000
+        //ph_mem |= ph_mem_base; //0xC0000000; 0x80000000; //0x40000000; //0x00000000
+
+        std::cout << "------> get_memory "  << std::hex << " PAddr: 0x" << std::hex << ph_mem << std::endl << std::endl;
 
         return std::shared_ptr<MemInfo>(new MemInfo(mem, ph_mem, len));
     }
@@ -186,12 +188,13 @@ protected:
     */
     void* allocate_and_lock(const size_t len){
 
+        size_t len_page = align_to_page_size(len);
+
 #ifdef _USE_VALLOC_
         std::cout << "allocate_and_lock --- USE VALLOC ----" << std::endl;
-        size_t len_page = len;
-        void* mem = valloc(len);
+        //size_t len_page = len;
+        void* mem = valloc(len_page);
 #else
-        size_t len_page = align_to_page_size(len);
         void* mem = mmap(NULL, len_page, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_LOCKED | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
 #endif
 
@@ -205,7 +208,7 @@ protected:
             return nullptr;
         }
 
-        ((char*)mem)[0] = 'D';
+        ((int*)mem)[0] = 1;
         mlock(mem, len_page);
 
         memset(mem, 0, len_page);
@@ -220,12 +223,7 @@ protected:
     bool deallocate_and_unlock(void* address, const size_t len){
        bool result = true;
        std::cout << "deallocate_and_unlock Len: " << std::dec << len << " Address " << std::hex << address << std::endl;
-
-#ifdef _USE_VALLOC_
-       size_t len_page = len;
-#else
        size_t len_page = align_to_page_size(len);
-#endif
        munlock(address, len_page);
 
 #ifdef _USE_VALLOC_

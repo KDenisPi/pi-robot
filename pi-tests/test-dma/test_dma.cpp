@@ -52,8 +52,8 @@ int main (int argc, char* argv[])
         success = false;
     }
 
-    memset(m_src->get_vaddr(), 'A', buff_size_bytes - 1);
-    memset(m_dst->get_vaddr(), 'B', buff_size_bytes - 1);
+    //memset(m_src->get_vaddr(), 'A', buff_size_bytes - 1);
+    //memset(m_dst->get_vaddr(), 'B', buff_size_bytes - 1);
 
     if(success){
 
@@ -61,16 +61,25 @@ int main (int argc, char* argv[])
       pi_core::core_dma::DmaControlBlock* cb = new pi_core::core_dma::DmaControlBlock(pmem, pi_core::DREQ::NO_required);
 
       dctrl->Initialize(pi_core::core_dma::DmaControl::cs_flags_test);
+      int block_counter = 0;
 
-      std::cout << "Start to process DMA Control Block SRC: " << std::hex << m_src->get_paddr() << " DST: " << m_dst->get_paddr() << std::endl;
-      cb->prepare(m_src->get_paddr(), m_dst->get_paddr(), m_src->get_size());
+      //std::cout << "Start to process DMA Control Block SRC: " << std::hex << m_src->get_paddr() << " DST: " << m_dst->get_paddr() << std::endl;
+      //cb->prepare(m_src->get_paddr(), m_dst->get_paddr(), m_src->get_size());
 
-      bool result = dctrl->process_control_block(cb);
-      if( result ){
+      while(block_counter < 5 && success){
+
+        memset(m_src->get_vaddr(), 'A'+block_counter, buff_size_bytes - 1);
+        memset(m_dst->get_vaddr(), 'W', buff_size_bytes - 1);
+
+        std::cout << "Start to process DMA Control Block SRC: " << std::hex << m_src->get_paddr() << " DST: " << m_dst->get_paddr() << std::endl;
+        cb->prepare(m_src->get_paddr(), m_dst->get_paddr(), m_src->get_size());
+
+        bool result = dctrl->process_control_block(cb);
+        if( result ){
           int i = 0;
           while( !dctrl->is_finished() && ++i < 10){
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            dctrl->print_status();
+            //dctrl->print_status();
           }
 
           if(i>= 10){
@@ -80,20 +89,22 @@ int main (int argc, char* argv[])
           else{
           }
 
-          dctrl->print_status(true);
-          dctrl->reset();
-          dctrl->print_status(true);
-     }
+          //dctrl->print_status(true);
+        }
 
-      //success = pwm->write_data(m_src->get_paddr(), minfo->get_size());
+        //success = pwm->write_data(m_src->get_paddr(), minfo->get_size());
+        std::cout << " Loop :" << block_counter << std::endl;
+        printf("SRC -> %s\n", (char*)m_src->get_vaddr() );
+        printf("DST -> %s\n", (char*)m_dst->get_vaddr() );
+
+        block_counter++;
+      }//block loop
 
       delete cb;
       delete dctrl;
       std::cout << "Write data returned " << success << std::endl << std::endl ;
     }
 
-  printf("SRC -> %s\n", (char*)m_src->get_vaddr() );
-  printf("DST -> %s\n", (char*)m_dst->get_vaddr() );
 
   clear_data:
 
