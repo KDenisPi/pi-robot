@@ -464,7 +464,7 @@ public:
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
         std::cout << "************ DMA Control Initialize() **********" << std::endl;
-        std::cout << DmaInfo::ti_register_status( _dma_regs->_ti) << std::endl;
+        //std::cout << DmaInfo::ti_register_status( _dma_regs->_ti) << std::endl;
 
         reset();
 
@@ -528,7 +528,7 @@ public:
         //std::cout << "process_control_block reset" << std::endl;
         reset(true); //lite version
 
-        print_status(true);
+        //print_status(true);
 
         _started = true;
 

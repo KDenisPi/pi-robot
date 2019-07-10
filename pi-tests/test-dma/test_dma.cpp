@@ -57,7 +57,7 @@ int main (int argc, char* argv[])
 
     if(success){
 
-      pi_core::core_dma::DmaControl* dctrl = new pi_core::core_dma::DmaControl(10);
+      pi_core::core_dma::DmaControl* dctrl = new pi_core::core_dma::DmaControl(5);//10);
       pi_core::core_dma::DmaControlBlock* cb = new pi_core::core_dma::DmaControlBlock(pmem, pi_core::DREQ::NO_required);
 
       dctrl->Initialize(pi_core::core_dma::DmaControl::cs_flags_test);
@@ -66,7 +66,7 @@ int main (int argc, char* argv[])
       //std::cout << "Start to process DMA Control Block SRC: " << std::hex << m_src->get_paddr() << " DST: " << m_dst->get_paddr() << std::endl;
       //cb->prepare(m_src->get_paddr(), m_dst->get_paddr(), m_src->get_size());
 
-      while(block_counter < 5 && success){
+      while(block_counter < 1 && success){
 
         memset(m_src->get_vaddr(), 'A'+block_counter, buff_size_bytes - 1);
         memset(m_dst->get_vaddr(), 'W', buff_size_bytes - 1);

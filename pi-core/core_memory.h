@@ -331,7 +331,7 @@ protected:
                     phys_page = phys_page & (~PAGEMAP_PAGE_FLAGS);
                     result = (uintptr_t)(phys_page*psize + byteOffsetFromPage);
 
-                    std::cout << "virtual_to_physical Page: " << std::dec << phys_page << " Address: " << std::hex << std::endl;
+                    std::cout << "virtual_to_physical Page: " << std::dec << phys_page << " Address: " << std::hex << result << " Offset:" << byteOffsetFromPage <<  std::endl;
                 }
                 else{
                     logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " Page not present in memory");

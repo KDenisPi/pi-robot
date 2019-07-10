@@ -16,7 +16,9 @@ int main (int argc, char* argv[])
     bool success = true;
 
     pi_core::core_mailbox::MailboxCore* mbox = new pi_core::core_mailbox::MailboxCore();
-    uint32_t firmvare = mbox->get_firmware_version();
+    uint32_t firmware = mbox->get_firmware_version();
+
+    std::cout << "Firmware " << firmware << std::endl;
 
     delete mbox;
 

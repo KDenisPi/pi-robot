@@ -10,6 +10,8 @@
 #ifndef PI_CORE_PHYS_MAILBOX_ACCESS_H_
 #define PI_CORE_PHYS_MAILBOX_ACCESS_H_
 
+#include <linux/ioctl.h>
+#include <sys/ioctl.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -21,6 +23,9 @@
 
 namespace pi_core {
 namespace core_mailbox {
+
+#define MAJOR_NUM 100
+#define IOCTL_MBOX_PROPERTY _IOWR(MAJOR_NUM, 0, char *)
 
 /*
 Mailbox Read/Write Peek  Sender  Status    Config
@@ -60,14 +65,20 @@ public:
         _sdram_addr = pi_core::CoreCommon::get_sdram_address();
         _peripheral_addr = pi_core::CoreCommon::get_peripheral_address();
 
+        LLOGH("MailboxCore() SDRAM : ", _sdram_addr)
+        LLOGH("MailboxCore() PERPH : ", _peripheral_addr)
+
         _mailbox = piutils::map_memory<uint32_t>(_peripheral_addr + mailbox_base);
+        //_mailbox = static_cast<uint32_t*>((void*)(_peripheral_addr + mailbox_base));
         LLOGH("MailboxCore() mailbox : ", _mailbox)
 
-        _buffer = static_cast<uint32_t*>(aligned_alloc(16, 24*sizeof(uint32_t)));
+        _buffer = static_cast<uint32_t*>(aligned_alloc(1024, 24*sizeof(uint32_t)));
         if(!_buffer){
             LLOG("MailboxCore() Failed to allocate buffer: ", errno)
         }
         LLOGH("MailboxCore() buffer : ", _buffer)
+
+        _fd = mbox_open();
     }
 
     /*
@@ -80,8 +91,44 @@ public:
 
         if(_buffer)
             free(_buffer);
+
+        mbox_close(_fd);
     }
 
+
+int mbox_open(void) {
+    int file_desc;
+    char filename[64];
+
+    file_desc = open("/dev/vcio", 0);
+    if (file_desc >= 0) {
+        LLOG("mbox_open Success /dev/vcio ", file_desc);
+        return file_desc;
+    }
+
+    // open a char device file used for communicating with kernel mbox driver
+    sprintf(filename, "/tmp/mailbox-%d", getpid());
+    unlink(filename);
+    if (mknod(filename, S_IFCHR|0600, makedev(100, 0)) < 0) {
+        LLOG("Failed to create mailbox device", errno);
+        return -1;
+    }
+    file_desc = open(filename, 0);
+    if (file_desc < 0) {
+        LLOG("Can't open device file", errno);
+        unlink(filename);
+        return -1;
+    }
+    unlink(filename);
+
+    LLOG("mbox_open Success", file_desc);
+
+    return file_desc;
+}
+
+void mbox_close(int file_desc) {
+    close(file_desc);
+}
     /*
         Get firmvare version
 
@@ -99,36 +146,97 @@ public:
         _buffer[i++] = 0;
         _buffer[i++] = maibox_request;
         _buffer[i++] = tags_get_firmware;
-        _buffer[i++] = 0;
+        _buffer[i++] = 0; //length
+        _buffer[i++] = 0; //code
+        _buffer[i++] = 0; //end tag
+
         _buffer[0] = i*sizeof(uint32_t);
 
-        bool result = request_info(8, _buffer);
+        bool result = mbox_property((void*)_buffer);
         if(result){
             LLOGH(" get_firmware_version", _buffer[5]);
             return _buffer[5];
         }
 
+        LLOG(" **** Failed ", 0);
         return 0;
     }
 
 private:
-    /*
+/*
+ * use ioctl to send mbox property message
+ */
 
-    */
-    bool request_info(const u_int8_t channel, uint32_t* data){
+int mbox_property(void *buf) {
+    int ret_val = -1;
+
+    if (_fd < 0) {
+        _fd = mbox_open();
+    }
+
+    if (_fd >= 0) {
+        ret_val = ioctl(_fd, IOCTL_MBOX_PROPERTY, buf);
+
+        if (ret_val < 0) {
+            LLOG("ioctl_set_msg failed", errno);
+        }
+    }
+
+    return (ret_val >= 0);
+}
+
+
+/*
+        return false;
         //check mailbox state
         mbox_regs* mbox_1 = reinterpret_cast<mbox_regs*>(_mailbox + mailbox_1_offset);
+        mbox_regs* mbox_0 = reinterpret_cast<mbox_regs*>(_mailbox + mailbox_0_offset);
+        std::cout << "Mailboxes: 0: " << std::hex << mbox_0 << " status: " << std::hex << (void*)&mbox_0->_status << std::endl;
+        std::cout << "Mailboxes: 1: " << std::hex << mbox_1 << " status: " << std::hex << (void*)&mbox_1->_status << std::endl;
+
+        //return false;
+
         while( (mbox_1->_status & mailbox_full_flag) != 0){
         }
 
+        std::cout << "Request Length 0: 0x" << std::hex << data[0] << " Addr: " << std::hex << data << std::endl;
+        //uint32_t request = 0x40000000 | ((uintptr_t)data << 4) | channel;
+        //uint32_t request = 0x40000000 | ((uintptr_t)data << 4) | channel;
         uint32_t request = ((uintptr_t)data << 4) | channel;
+
+
+        std::cout << "Request Length 1: 0x" << std::hex << data[0] << " Addr: 0x" << std::hex << request << std::endl;
         mbox_1->_read_write = request;
+        std::cout << "Request Length 2: 0x" << std::hex << data[3] << " Code 0x" << std::hex << data[1] <<" Addr: 0x" << std::hex << request << std::endl;
 
-        std::cout << "Response Length: " << data[0] << " Status: " << std::hex << data[1] << std::endl;
+        //return false;
+
+        std::cout << "Start reading" << std::endl;
+        for(;;){
+           while( (mbox_0->_status & mailbox_empty_flag) != 0){
+
+           }
+
+           uint32_t response = mbox_0->_read_write;
+           uint8_t r_channel = response & 0x0F;
+           std::cout << "Response : 0x" << std::hex << response << " Channel: " << std::hex << r_channel << std::endl;
+
+           if(channel == r_channel){
+              response = (response >> 4);
+              std::cout << "****** Response : 0x" << std::hex << response << std::endl;
+
+              //uint32_t* r_data = static_cast<uint32_t*>((void*)response);
+              //std::cout << "****** Response Length: 0x" << std::hex << r_data[0] << " Status: " << std::hex << r_data[1] << std::endl;
+           }
+
+           break;
+        }
+
         //check response status
-        return (data[1] == 0x80000000);
+        return result;
     }
-
+*/
+    int _fd;
 
     uint32_t* _mailbox; // mapped Maibox registers
     uint32_t* _buffer;   //request/response buffer
