@@ -20,6 +20,7 @@ add_executable(testPMem test_phys_mem.cpp)
 add_executable(testDmaInfo test_dma_info.cpp)
 add_executable(testDma test_dma.cpp)
 add_executable(testPwm test_pwm.cpp)
+add_executable(testMBox test_mbox.cpp)
 
 set(TEST_DMA_LIBS pi-utils pi-library pi-core pthread ${WIPI_LIB} ${WIPI_LIB_DEV} crypt rt)
 
@@ -34,7 +35,9 @@ target_link_libraries(testPMem ${TEST_DMA_LIBS})
 target_link_libraries(testDmaInfo ${TEST_DMA_LIBS})
 target_link_libraries(testDma ${TEST_DMA_LIBS})
 target_link_libraries(testPwm ${TEST_DMA_LIBS})
+target_link_libraries(testMBox ${TEST_DMA_LIBS})
 
 add_test(NAME PMem COMMAND sudo testPMem)
+add_test(NAME MBox COMMAND sudo testMBox)
 add_test(NAME Pwm_1 COMMAND sudo testPwm)
 add_test(NAME Dma_1 COMMAND sudo testDma "../pi-tests/test-dma/dma_test.json" )
