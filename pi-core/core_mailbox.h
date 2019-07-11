@@ -17,6 +17,7 @@
 
 #include "smallthings.h"
 #include "core_common.h"
+#include "mailbox.h"
 
 #define LLOG(text, value) std::cout << text << value << std::endl;
 #define LLOGH(text, hvalue) std::cout << text << std::hex << hvalue << std::endl;
@@ -68,6 +69,7 @@ public:
         LLOGH("MailboxCore() SDRAM : ", _sdram_addr)
         LLOGH("MailboxCore() PERPH : ", _peripheral_addr)
 
+/*
         _mailbox = piutils::map_memory<uint32_t>(_peripheral_addr + mailbox_base);
         //_mailbox = static_cast<uint32_t*>((void*)(_peripheral_addr + mailbox_base));
         LLOGH("MailboxCore() mailbox : ", _mailbox)
@@ -77,7 +79,7 @@ public:
             LLOG("MailboxCore() Failed to allocate buffer: ", errno)
         }
         LLOGH("MailboxCore() buffer : ", _buffer)
-
+*/
         _fd = mbox_open();
     }
 
@@ -85,50 +87,17 @@ public:
 
      */
     virtual ~MailboxCore() {
+/*
         if(_mailbox){
             _mailbox = piutils::unmap_memory<uint32_t>((uint32_t*)_mailbox);
         }
 
         if(_buffer)
             free(_buffer);
-
+*/
         mbox_close(_fd);
     }
 
-
-int mbox_open(void) {
-    int file_desc;
-    char filename[64];
-
-    file_desc = open("/dev/vcio", 0);
-    if (file_desc >= 0) {
-        LLOG("mbox_open Success /dev/vcio ", file_desc);
-        return file_desc;
-    }
-
-    // open a char device file used for communicating with kernel mbox driver
-    sprintf(filename, "/tmp/mailbox-%d", getpid());
-    unlink(filename);
-    if (mknod(filename, S_IFCHR|0600, makedev(100, 0)) < 0) {
-        LLOG("Failed to create mailbox device", errno);
-        return -1;
-    }
-    file_desc = open(filename, 0);
-    if (file_desc < 0) {
-        LLOG("Can't open device file", errno);
-        unlink(filename);
-        return -1;
-    }
-    unlink(filename);
-
-    LLOG("mbox_open Success", file_desc);
-
-    return file_desc;
-}
-
-void mbox_close(int file_desc) {
-    close(file_desc);
-}
     /*
         Get firmvare version
 
@@ -142,6 +111,8 @@ void mbox_close(int file_desc) {
      */
 
     uint32_t get_firmware_version(){
+        /*
+
         int i = 0;
         _buffer[i++] = 0;
         _buffer[i++] = maibox_request;
@@ -152,39 +123,23 @@ void mbox_close(int file_desc) {
 
         _buffer[0] = i*sizeof(uint32_t);
 
-        bool result = mbox_property((void*)_buffer);
+        bool result = mbox_property(_fd, (void*)_buffer);
         if(result){
             LLOGH(" get_firmware_version", _buffer[5]);
             return _buffer[5];
         }
+*/
+        unsigned mem_ref = mem_alloc(_fd, 1024, 1024, (_sdram_addr == 0x40000000 ? 0xC : 0x4));
+        LLOGH(" Allocated ", mem_ref);
+        if( mem_ref ){
+            unsigned result = mem_free(_fd, mem_ref);
+            LLOG(" **** Result ", result);
+        }
 
-        LLOG(" **** Failed ", 0);
         return 0;
     }
 
 private:
-/*
- * use ioctl to send mbox property message
- */
-
-int mbox_property(void *buf) {
-    int ret_val = -1;
-
-    if (_fd < 0) {
-        _fd = mbox_open();
-    }
-
-    if (_fd >= 0) {
-        ret_val = ioctl(_fd, IOCTL_MBOX_PROPERTY, buf);
-
-        if (ret_val < 0) {
-            LLOG("ioctl_set_msg failed", errno);
-        }
-    }
-
-    return (ret_val >= 0);
-}
-
 
 /*
         return false;
