@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <memory>
 
+#include "mailbox.h"
 #include "core_common.h"
 #include "logger.h"
 
@@ -35,6 +36,8 @@ namespace core_mem {
 
 class PhysMemory;
 
+
+
 /*
 * First: memory map result
 * Second: physical address for memory map result
@@ -50,7 +53,7 @@ public:
     /*
     *
     */
-    const size_t get_size() const {
+    size_t get_size() const {
         return _len;
     }
 
@@ -66,9 +69,17 @@ public:
         return (_len== 0);
     }
 
+    int get_type() const {
+        return _alloc_type;
+    }
+
+    uint32_t get_handle() const {
+        return _mbox_handle;
+    }
+
 protected:
-    MemInfo(void* vmemory, uintptr_t phmemory, size_t len) :
-        _vmemory(vmemory), _phmemory(phmemory), _len(len)
+    MemInfo(void* vmemory, uintptr_t phmemory, size_t len, int alloc_type, uint32_t mbox_handle = 0) :
+        _vmemory(vmemory), _phmemory(phmemory), _len(len), _alloc_type(alloc_type), _mbox_handle(mbox_handle)
         {
 
         }
@@ -79,9 +90,12 @@ protected:
         _len = 0;
     }
 
-    void* _vmemory;
-    uintptr_t _phmemory;
-    size_t _len;
+    void* _vmemory;         //virtual address
+    uintptr_t _phmemory;    //physical address
+    size_t _len;            //memory length
+    int _alloc_type;        //type of allocation
+    uint32_t _mbox_handle;  //used for mailbox allocation only
+
 };
 
 /*
@@ -94,7 +108,7 @@ public:
     /*
     *
     */
-    PhysMemory( const std::string& dev = "/proc/self/pagemap") : _fd(-1){
+    PhysMemory( const std::string& dev = "/proc/self/pagemap") : _fd(-1), _fd_mailbox(-1){
         _fd = open(dev.c_str(), O_RDONLY);
         if( _fd < 0 ){
             logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " Could not open: " + dev + " Error: " + std::to_string(errno));
@@ -118,10 +132,44 @@ public:
     }
 
     /*
+    * Allocation type
+    * 1 - mmap, 2 - valloc, 3 - mailbox
+    *
     *
     */
-    const std::shared_ptr<MemInfo>  get_memory(const size_t len){
-        void* mem = allocate_and_lock(len);
+    const std::shared_ptr<MemInfo>  get_memory(const size_t len, const int alloc_type){
+
+        void* mem = nullptr;
+        uint32_t mbox_handle = 0;
+
+        switch(alloc_type){
+            case 1: //mmap
+                mem = allocate_and_lock_mmap(len);
+                break;
+            case 2: //valloc
+                mem = allocate_and_lock_valloc(len);
+                break;
+            case 3: //mailbox
+                if(_fd_mailbox < 0)
+                    _fd_mailbox = mbox_open();
+
+                if(_fd_mailbox > 0){
+                    mbox_handle = mem_alloc(_fd_mailbox, len, getpagesize(), (_sdram_addr == 0x40000000 ? 0xC : 0x4));
+                    if(mbox_handle){
+                        mem = (void*) mem_lock(_fd_mailbox, mbox_handle);
+                        if(!mem){
+                            mem_free(_fd_mailbox, mbox_handle);
+                            mbox_handle = 0;
+                        }
+                    }
+                    else
+                    {
+                        std::cout << "Mailbox mem_alloc Failed: " << std::endl;
+                    }
+                }
+                break;
+        };
+
         if( !mem ){
             std::cout << "Failed to allocate: " << len << " bytes" << std::endl;
             return std::shared_ptr<MemInfo>();
@@ -131,7 +179,7 @@ public:
         if( !ph_mem){
             std::cout << "Failed to receive physical address" << std::endl;
 
-            deallocate_and_unlock(mem, len);
+            deallocate_and_unlock(mem, len, alloc_type, mbox_handle);
             return std::shared_ptr<MemInfo>();
         }
 
@@ -142,14 +190,14 @@ public:
 
         std::cout << "------> get_memory "  << std::hex << " PAddr: 0x" << std::hex << ph_mem << std::endl << std::endl;
 
-        return std::shared_ptr<MemInfo>(new MemInfo(mem, ph_mem, len));
+        return std::shared_ptr<MemInfo>(new MemInfo(mem, ph_mem, len, alloc_type, mbox_handle));
     }
 
     /*
     *
     */
     void free_memory(std::shared_ptr<MemInfo>& minfo){
-        if( deallocate_and_unlock(minfo->_vmemory, minfo->_len)){
+        if( deallocate_and_unlock(minfo->get_vaddr(), minfo->get_size(), minfo->get_type(), minfo->get_handle())){
             minfo.reset();
         }
     }
@@ -162,6 +210,10 @@ protected:
         if(is_good()){
             close(_fd);
             _fd = -1;
+        }
+
+        if(_fd_mailbox > 0){
+            mbox_close(_fd_mailbox);
         }
     }
 
@@ -178,33 +230,20 @@ protected:
             result =  (len & page_mask) + page_size;
         }
 
-        //std::cout << "align_to_page_size page size: " << std::dec << page_size << " In: " << len << " Out: " << result << " Modulo: " << modulo << std::endl;
-
         return result;
     }
 
     /*
     * Map memoty in process address space and lock memory allocation
     */
-    void* allocate_and_lock(const size_t len){
+    void* allocate_and_lock_mmap(const size_t len){
 
         size_t len_page = align_to_page_size(len);
 
-#ifdef _USE_VALLOC_
-        std::cout << "allocate_and_lock --- USE VALLOC ----" << std::endl;
-        //size_t len_page = len;
-        void* mem = valloc(len_page);
-#else
         void* mem = mmap(NULL, len_page, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_LOCKED | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
-#endif
-
-#ifdef _USE_VALLOC_
-        if (mem == NULL) {
-#else
         if (mem == MAP_FAILED) {
-#endif
             logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " mmap failed Error: " + std::to_string(errno));
-            std::cout << "allocate_and_lock Failed to allocate MMAP:" << errno << std::endl;
+            std::cout << "allocate_and_lock_mmap Failed to allocate MMAP:" << errno << std::endl;
             return nullptr;
         }
 
@@ -213,29 +252,90 @@ protected:
 
         memset(mem, 0, len_page);
 
-        std::cout << "allocate_and_lock Success Allocated: " << std::dec << len_page << "[" << len << "] Address " << std::hex << mem << std::endl << std::endl;
+        std::cout << "allocate_and_lock_mmap Success Allocated: " << std::dec << len_page << "[" << len << "] Address " << std::hex << mem << std::endl << std::endl;
+        return mem;
+    }
+
+    /*
+    * Map memoty in process address space and lock memory allocation
+    */
+    void* allocate_and_lock_valloc(const size_t len){
+
+        size_t len_page = align_to_page_size(len);
+
+        void* mem = valloc(len_page);
+        if (mem == NULL) {
+            logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " mmap failed Error: " + std::to_string(errno));
+            std::cout << "allocate_and_lock_valloc Failed to allocate MMAP:" << errno << std::endl;
+            return nullptr;
+        }
+
+        ((int*)mem)[0] = 1;
+        mlock(mem, len_page);
+
+        memset(mem, 0, len_page);
+
+        std::cout << "allocate_and_lock_valloc Success Allocated: " << std::dec << len_page << "[" << len << "] Address " << std::hex << mem << std::endl << std::endl;
         return mem;
     }
 
     /*
     * Unmap memory
     */
-    bool deallocate_and_unlock(void* address, const size_t len){
+    bool deallocate_and_unlock(void* addr, size_t len, int alloc_type, uint32_t handle){
+        if(alloc_type == 1)
+            return deallocate_and_unlock_mmap(addr, len);
+        if(alloc_type == 2)
+            return deallocate_and_unlock_valloc(addr, len);
+        if(alloc_type == 3)
+            return deallocate_and_unlock_mailbox(addr, len, handle);
+
+        return false;
+    }
+
+    /*
+    * Unmap memory
+    */
+    bool deallocate_and_unlock_mmap(void* address, const size_t len){
        bool result = true;
-       std::cout << "deallocate_and_unlock Len: " << std::dec << len << " Address " << std::hex << address << std::endl;
+       std::cout << "deallocate_and_unlock_mmap Len: " << std::dec << len << " Address " << std::hex << address << std::endl;
        size_t len_page = align_to_page_size(len);
        munlock(address, len_page);
 
-#ifdef _USE_VALLOC_
-      free(address);
-#else
       int res = munmap((void*)address, len_page);
       if(res == -1){
            logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " munmap failed Error: " + std::to_string(errno));
            result = false;
       }
-#endif
-      std::cout << "deallocate_and_unlock Success Len: " << std::dec << len_page << " Address " << std::hex << address << std::endl;
+
+      std::cout << "deallocate_and_unlock_mmap Success Len: " << std::dec << len_page << " Address " << std::hex << address << std::endl;
+      return result;
+    }
+
+    /*
+    * Unmap memory
+    */
+    bool deallocate_and_unlock_valloc(void* address, const size_t len){
+       bool result = true;
+       std::cout << "deallocate_and_unlock_valloc Len: " << std::dec << len << " Address " << std::hex << address << std::endl;
+       size_t len_page = align_to_page_size(len);
+       munlock(address, len_page);
+
+      free(address);
+
+      std::cout << "deallocate_and_unlock_valloc Success Len: " << std::dec << len_page << " Address " << std::hex << address << std::endl;
+      return result;
+    }
+
+    /*
+    * Unmap memory
+    */
+    bool deallocate_and_unlock_mailbox(void* address, const size_t len, uint32_t mbox_handler){
+       bool result = true;
+       std::cout << "deallocate_and_unlock_mailbox Handler: " << std::hex << mbox_handler << " Address " << std::hex << address << std::endl;
+       mem_unlock(_fd_mailbox, mbox_handler);
+       mem_free(_fd_mailbox, mbox_handler);
+
       return result;
     }
 
@@ -351,6 +451,8 @@ protected:
 private:
     int _fd; //memory file descriptor
     uintptr_t _sdram_addr;
+
+    int _fd_mailbox;
 };
 
 } //namespace core_mem

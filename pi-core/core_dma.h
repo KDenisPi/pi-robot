@@ -116,7 +116,7 @@ public:
 
         std::cout << "**** DMA Control Block Condtructor " << std::endl;
 
-        _minfo = _mem_alloc->get_memory(sizeof(dma_ctrl_blk));
+        _minfo = _mem_alloc->get_memory(sizeof(dma_ctrl_blk), 1);
         if(_minfo->is_empty()){
             logger::log(logger::LLOG::ERROR, "DmaCtrl", std::string(__func__) + " Could not allocate memory for DMA CB");
             throw std::runtime_error(std::string("Could not allocate memory for DMA CB"));

@@ -33,8 +33,8 @@ int main (int argc, char* argv[])
 
     std::cout << "Starting..." << std::endl;
 
-    m_src = pmem->get_memory(buff_size_bytes);
-    m_dst = pmem->get_memory(buff_size_bytes);
+    m_src = pmem->get_memory(buff_size_bytes, 3);
+    m_dst = pmem->get_memory(buff_size_bytes, 3);
 
     if( m_src ){
         std::cout << "Allocated " << std::dec << m_src->get_size() << " bites. VAddr: " << std::hex  << m_src->get_vaddr() << " PhysAddr: " << std::hex << m_src->get_paddr() << std::endl;
