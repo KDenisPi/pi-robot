@@ -15,7 +15,6 @@
 #include <fcntl.h>
 #include <memory>
 
-#include "mailbox.h"
 #include "core_common.h"
 #include "logger.h"
 
@@ -34,69 +33,7 @@ namespace core_mem {
 */
 #define PAGEMAP_PAGE_FLAGS      ((uint_fast64_t)0x1FF << 55)
 
-class PhysMemory;
 
-
-
-/*
-* First: memory map result
-* Second: physical address for memory map result
-*/
-class MemInfo {
-public:
-    friend class PhysMemory;
-
-    virtual ~MemInfo(){
-
-    }
-
-    /*
-    *
-    */
-    size_t get_size() const {
-        return _len;
-    }
-
-    void* get_vaddr() const {
-        return _vmemory;
-    }
-
-    uintptr_t get_paddr() const {
-        return _phmemory;
-    }
-
-    const bool is_empty() const {
-        return (_len== 0);
-    }
-
-    int get_type() const {
-        return _alloc_type;
-    }
-
-    uint32_t get_handle() const {
-        return _mbox_handle;
-    }
-
-protected:
-    MemInfo(void* vmemory, uintptr_t phmemory, size_t len, int alloc_type, uint32_t mbox_handle = 0) :
-        _vmemory(vmemory), _phmemory(phmemory), _len(len), _alloc_type(alloc_type), _mbox_handle(mbox_handle)
-        {
-
-        }
-
-    void clear(){
-        _vmemory = nullptr;
-        _phmemory = 0L;
-        _len = 0;
-    }
-
-    void* _vmemory;         //virtual address
-    uintptr_t _phmemory;    //physical address
-    size_t _len;            //memory length
-    int _alloc_type;        //type of allocation
-    uint32_t _mbox_handle;  //used for mailbox allocation only
-
-};
 
 /*
 * Allocate memory in process address space and provide direct physical access to this memory
@@ -108,7 +45,7 @@ public:
     /*
     *
     */
-    PhysMemory( const std::string& dev = "/proc/self/pagemap") : _fd(-1), _fd_mailbox(-1){
+    PhysMemory( const std::string& dev = "/proc/self/pagemap") : _fd(-1){
         _fd = open(dev.c_str(), O_RDONLY);
         if( _fd < 0 ){
             logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " Could not open: " + dev + " Error: " + std::to_string(errno));
@@ -133,15 +70,11 @@ public:
 
     /*
     * Allocation type
-    * 1 - mmap, 2 - valloc, 3 - mailbox
-    *
-    *
+    * 1 - mmap, 2 - valloc
     */
-    const std::shared_ptr<MemInfo>  get_memory(const size_t len, const int alloc_type){
+    const std::shared_ptr<pi_core::MemInfo>  get_memory(const size_t len, const int alloc_type){
 
         void* mem = nullptr;
-        uint32_t mbox_handle = 0;
-
         switch(alloc_type){
             case 1: //mmap
                 mem = allocate_and_lock_mmap(len);
@@ -149,38 +82,18 @@ public:
             case 2: //valloc
                 mem = allocate_and_lock_valloc(len);
                 break;
-            case 3: //mailbox
-                if(_fd_mailbox < 0)
-                    _fd_mailbox = mbox_open();
-
-                if(_fd_mailbox > 0){
-                    mbox_handle = mem_alloc(_fd_mailbox, len, getpagesize(), (_sdram_addr == 0x40000000 ? 0xC : 0x4));
-                    if(mbox_handle){
-                        mem = (void*) mem_lock(_fd_mailbox, mbox_handle);
-                        if(!mem){
-                            mem_free(_fd_mailbox, mbox_handle);
-                            mbox_handle = 0;
-                        }
-                    }
-                    else
-                    {
-                        std::cout << "Mailbox mem_alloc Failed: " << std::endl;
-                    }
-                }
-                break;
         };
 
         if( !mem ){
             std::cout << "Failed to allocate: " << len << " bytes" << std::endl;
-            return std::shared_ptr<MemInfo>();
+            return std::shared_ptr<pi_core::MemInfo>();
         }
 
         uintptr_t ph_mem = virtual_to_physical(mem);
         if( !ph_mem){
             std::cout << "Failed to receive physical address" << std::endl;
-
-            deallocate_and_unlock(mem, len, alloc_type, mbox_handle);
-            return std::shared_ptr<MemInfo>();
+            deallocate_and_unlock(mem, len, alloc_type);
+            return std::shared_ptr<pi_core::MemInfo>();
         }
 
         //uintptr_t ph_mem_base = 0x40000000; //0xC0000000; 0x80000000; //0x40000000; //0x00000000
@@ -190,14 +103,14 @@ public:
 
         std::cout << "------> get_memory "  << std::hex << " PAddr: 0x" << std::hex << ph_mem << std::endl << std::endl;
 
-        return std::shared_ptr<MemInfo>(new MemInfo(mem, ph_mem, len, alloc_type, mbox_handle));
+        return std::shared_ptr<pi_core::MemInfo>(new pi_core::MemInfo(mem, ph_mem, len, alloc_type));
     }
 
     /*
     *
     */
-    void free_memory(std::shared_ptr<MemInfo>& minfo){
-        if( deallocate_and_unlock(minfo->get_vaddr(), minfo->get_size(), minfo->get_type(), minfo->get_handle())){
+    void free_memory(std::shared_ptr<pi_core::MemInfo>& minfo){
+        if( deallocate_and_unlock(minfo->get_vaddr(), minfo->get_size(), minfo->get_type())){
             minfo.reset();
         }
     }
@@ -210,10 +123,6 @@ protected:
         if(is_good()){
             close(_fd);
             _fd = -1;
-        }
-
-        if(_fd_mailbox > 0){
-            mbox_close(_fd_mailbox);
         }
     }
 
@@ -282,13 +191,11 @@ protected:
     /*
     * Unmap memory
     */
-    bool deallocate_and_unlock(void* addr, size_t len, int alloc_type, uint32_t handle){
+    bool deallocate_and_unlock(void* addr, size_t len, int alloc_type){
         if(alloc_type == 1)
             return deallocate_and_unlock_mmap(addr, len);
         if(alloc_type == 2)
             return deallocate_and_unlock_valloc(addr, len);
-        if(alloc_type == 3)
-            return deallocate_and_unlock_mailbox(addr, len, handle);
 
         return false;
     }
@@ -324,18 +231,6 @@ protected:
       free(address);
 
       std::cout << "deallocate_and_unlock_valloc Success Len: " << std::dec << len_page << " Address " << std::hex << address << std::endl;
-      return result;
-    }
-
-    /*
-    * Unmap memory
-    */
-    bool deallocate_and_unlock_mailbox(void* address, const size_t len, uint32_t mbox_handler){
-       bool result = true;
-       std::cout << "deallocate_and_unlock_mailbox Handler: " << std::hex << mbox_handler << " Address " << std::hex << address << std::endl;
-       mem_unlock(_fd_mailbox, mbox_handler);
-       mem_free(_fd_mailbox, mbox_handler);
-
       return result;
     }
 
@@ -451,8 +346,6 @@ protected:
 private:
     int _fd; //memory file descriptor
     uintptr_t _sdram_addr;
-
-    int _fd_mailbox;
 };
 
 } //namespace core_mem

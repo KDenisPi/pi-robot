@@ -26,8 +26,8 @@ int main (int argc, char* argv[])
     size_t buff_size_bytes = 256; //LED_COUNT * 3 * 3 + 15; //10 leds
     bool success = true;
 
-    std::shared_ptr<pi_core::core_mem::MemInfo> m_src;
-    std::shared_ptr<pi_core::core_mem::MemInfo> m_dst;
+    std::shared_ptr<pi_core::MemInfo> m_src;
+    std::shared_ptr<pi_core::MemInfo> m_dst;
 
     pi_core::core_mem::PhysMemory* pmem = new pi_core::core_mem::PhysMemory();
 

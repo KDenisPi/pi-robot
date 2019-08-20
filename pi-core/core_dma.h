@@ -208,7 +208,7 @@ private:
     uint32_t _ti_flags;
 
     pi_core::core_mem::PhysMemory* _mem_alloc;
-    std::shared_ptr<pi_core::core_mem::MemInfo> _minfo;
+    std::shared_ptr<pi_core::MemInfo> _minfo;
 };
 
 /*

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <memory>
 
-#include "core_memory.h"
+#include "core_mailbox.h"
 
 using namespace std;
 
@@ -16,14 +16,14 @@ int main (int argc, char* argv[])
     bool success = true;
 
     size_t size_1 = 1024*100;
-    std::shared_ptr<pi_core::core_mem::MemInfo> minfo;
+    std::shared_ptr<pi_core::MemInfo> minfo;
 
     std::cout << "Starting..." << std::endl;
 
-    pi_core::core_mem::PhysMemory* pmem = new pi_core::core_mem::PhysMemory();
+    pi_core::core_mailbox::MailboxCore* pmem = new pi_core::core_mailbox::MailboxCore();
 
     std::cout << "Allocate: " << size_1 << " bytes" << std::endl;
-    minfo = pmem->get_memory(size_1, 3);
+    minfo = pmem->get_memory(size_1);
     if( minfo ){
         std::cout << "Allocated " << std::dec << minfo->get_size() << " bites. VAddr: " << std::hex << minfo->get_vaddr() << " PAddr " << std::hex << minfo->get_paddr() << std::endl;
     }

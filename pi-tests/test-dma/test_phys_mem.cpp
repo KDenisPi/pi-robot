@@ -16,7 +16,7 @@ int main (int argc, char* argv[])
 {
     bool success = true;
     size_t size_1 = 1024, size_2 = 5000;
-    std::shared_ptr<pi_core::core_mem::MemInfo> minfo;
+    std::shared_ptr<pi_core::MemInfo> minfo;
 
     std::cout << "Starting..." << std::endl;
 

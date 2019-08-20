@@ -15,9 +15,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "mailbox.h"
+
 #include "smallthings.h"
 #include "core_common.h"
-#include "mailbox.h"
 
 #define LLOG(text, value) std::cout << text << value << std::endl;
 #define LLOGH(text, hvalue) std::cout << text << std::hex << hvalue << std::endl;
@@ -41,6 +42,18 @@ using mbox_regs = struct __attribute__((packed, aligned(4))) mbox_regs_t{
     uint32_t _status;
     uint32_t _config;
 };
+
+#define MEM_FLAG_DISCARDABLE    (1 << 0) /* can be resized to 0 at any time. Use for cached data */
+#define MEM_FLAG_NORMAL         (0 << 2) /* normal allocating alias. Don't use from ARM */
+#define MEM_FLAG_DIRECT         (1 << 2) /* 0xC alias uncached */
+#define MEM_FLAG_COHERENT       (2 << 2) /* 0x8 alias. Non-allocating in L2 but coherent */
+#define MEM_FLAG_L1_NONALLOCATING (MEM_FLAG_DIRECT | MEM_FLAG_COHERENT) /* Allocating in L2 */
+#define MEM_FLAG_ZERO           (1 << 4) /* initialise buffer to all zeros */
+#define MEM_FLAG_NO_INIT        (1 << 5) /* don't initialise (default is initialise to all ones */
+#define MEM_FLAG_HINT_PERMALOCK (1 << 6) /* Likely to be locked for long periods of time. */
+
+
+#define BUS_TO_PHYS(x)                           ((x)&~0xC0000000)
 
 class MailboxCore {
 public:
@@ -79,22 +92,53 @@ public:
         mbox_close(_fd);
     }
 
-    /*
-        Get firmvare version
+/*
+    * Allocation type
+    * 1 - mmap, 2 - valloc, 3 - mailbox
+    *
+    *
+    */
+    const std::shared_ptr<pi_core::MemInfo>  get_memory(const size_t len){
 
-        Tag: 0x00000001
-            Request:
-                Length: 0
-            Response:
-                Length: 4
-                Value:
-                    u32: firmware revision
-     */
+        void* mem = nullptr; //virtual address
+        uint32_t mbox_handle_alloc = 0; //allocated address
+        uint32_t mbox_handle_lock = 0;  //bus address (physical address)
 
-    uint32_t get_firmware_version(){
-        return 0;
+        mbox_handle_alloc = mem_alloc(_fd, len, getpagesize(), (_sdram_addr == 0x40000000 ? 0xC : 0x4));
+        std::cout << "get_memory Hnd Alloc: " << std::hex << mbox_handle_alloc << std::endl;
+
+        if(mbox_handle_alloc){
+            mbox_handle_lock =  mem_lock(_fd, mbox_handle_alloc);
+            std::cout << "get_memory Hnd Lock: " << std::hex << mbox_handle_alloc << std::endl;
+
+            if(mbox_handle_lock){
+                //virtual address
+                mem = mapmem(mbox_handle_lock, len);
+                std::cout << "get_memory Mapmem: " << std::hex << mbox_handle_alloc << std::endl;
+            }
+        }
+
+        if(!mem){
+            std::cout << "Mailbox mem_alloc Failed: " << std::endl;
+            mem_unlock(_fd, mbox_handle_lock);
+            mem_free(_fd, mbox_handle_alloc);
+        }
+
+        return std::shared_ptr<pi_core::MemInfo>(new pi_core::MemInfo(mem, mbox_handle_lock, len, 3, mbox_handle_alloc, mbox_handle_lock));
     }
 
+        /*
+    *
+    */
+    void free_memory(std::shared_ptr<pi_core::MemInfo>& minfo){
+       std::cout << "deallocate_and_unlock_mailbox Bus address: " << std::hex << minfo->get_handle_lock() << " Len: " << std::hex << minfo->get_size() << std::endl;
+
+        unmapmem(minfo->get_vaddr(), minfo->get_size());
+        mem_unlock(_fd, minfo->get_handle_lock());
+        mem_free(_fd, minfo->get_handle_alloc());
+
+      return;
+    }
 
 
 private:
