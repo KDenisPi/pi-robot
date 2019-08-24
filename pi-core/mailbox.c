@@ -57,13 +57,13 @@ void *mapmem(unsigned base, unsigned size)
       MAP_SHARED/*|MAP_FIXED*/,
       mem_fd,
       base);
-#ifdef DEBUG
+//#ifdef DEBUG
    printf("base=0x%x, mem=%p\n", base, mem);
-#endif
+//#endif
    if (mem == MAP_FAILED) {
       printf("mmap error %d\n", (int)mem);
       //exit (-1);
-      return nullptr;
+      return NULL;
    }
    close(mem_fd);
    return (char *)mem + offset;
@@ -93,11 +93,11 @@ int mbox_property(int file_desc, void *buf)
       printf("ioctl_set_msg failed:%d\n", ret_val);
    }
 
-//#ifdef DEBUG
+#ifdef DEBUG
    unsigned *p = buf; int i; unsigned size = *(unsigned *)buf;
    for (i=0; i<size/4; i++)
       printf("%04x: 0x%08x\n", i*sizeof *p, p[i]);
-//#endif
+#endif
    return ret_val;
 }
 

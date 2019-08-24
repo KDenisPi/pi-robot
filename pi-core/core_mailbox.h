@@ -113,7 +113,7 @@ public:
 
             if(mbox_handle_lock){
                 //virtual address
-                mem = mapmem(BUS_TO_PHYS(mbox_handle_lock), len, DEV_MEM);
+                mem = mapmem(BUS_TO_PHYS(mbox_handle_lock), len);
                 std::cout << "get_memory Mapmem: " << std::hex << mbox_handle_alloc << std::endl;
             }
         }
@@ -131,11 +131,17 @@ public:
     *
     */
     void free_memory(std::shared_ptr<pi_core::MemInfo>& minfo){
-       std::cout << "deallocate_and_unlock_mailbox Bus address: " << std::hex << minfo->get_handle_lock() << " Len: " << std::hex << minfo->get_size() << std::endl;
 
+        uint32_t mbox_handle_alloc = minfo->get_handle_alloc(); //allocated address
+        uint32_t mbox_handle_lock = minfo->get_handle_lock();  //bus address (physical address)
+        std::cout << "deallocate_and_unlock_mailbox Unmap VAddr: " << std::hex << minfo->get_vaddr() << " Len: " << std::hex << minfo->get_size() << std::endl;
         unmapmem(minfo->get_vaddr(), minfo->get_size());
-        mem_unlock(_fd, minfo->get_handle_lock());
-        mem_free(_fd, minfo->get_handle_alloc());
+
+        std::cout << "deallocate_and_unlock_mailbox Unlock: " << std::hex << mbox_handle_lock << " Len: " << std::hex << minfo->get_size() << std::endl;
+        mem_unlock(_fd, mbox_handle_lock);
+
+        std::cout << "deallocate_and_unlock_mailbox Alloc: " << std::hex <<  mbox_handle_alloc << " Len: " << std::hex << minfo->get_size() << std::endl;
+        mem_free(_fd,  mbox_handle_alloc);
 
       return;
     }

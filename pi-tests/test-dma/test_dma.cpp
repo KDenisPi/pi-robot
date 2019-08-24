@@ -5,6 +5,7 @@
 #include "logger.h"
 
 #include "PiRobot.h"
+#include "core_mailbox.h"
 #include "core_memory.h"
 #include "core_pwm.h"
 
@@ -29,12 +30,13 @@ int main (int argc, char* argv[])
     std::shared_ptr<pi_core::MemInfo> m_src;
     std::shared_ptr<pi_core::MemInfo> m_dst;
 
+    pi_core::core_mailbox::MailboxCore* mmem = new pi_core::core_mailbox::MailboxCore();
     pi_core::core_mem::PhysMemory* pmem = new pi_core::core_mem::PhysMemory();
 
     std::cout << "Starting..." << std::endl;
 
-    m_src = pmem->get_memory(buff_size_bytes, 3);
-    m_dst = pmem->get_memory(buff_size_bytes, 3);
+    m_src = mmem->get_memory(buff_size_bytes);
+    m_dst = mmem->get_memory(buff_size_bytes);
 
     if( m_src ){
         std::cout << "Allocated " << std::dec << m_src->get_size() << " bites. VAddr: " << std::hex  << m_src->get_vaddr() << " PhysAddr: " << std::hex << m_src->get_paddr() << std::endl;
@@ -66,19 +68,24 @@ int main (int argc, char* argv[])
       //std::cout << "Start to process DMA Control Block SRC: " << std::hex << m_src->get_paddr() << " DST: " << m_dst->get_paddr() << std::endl;
       //cb->prepare(m_src->get_paddr(), m_dst->get_paddr(), m_src->get_size());
 
-      while(block_counter < 1 && success){
+      while(block_counter < 5 && success){
 
-        memset(m_src->get_vaddr(), 'A'+block_counter, buff_size_bytes - 1);
-        memset(m_dst->get_vaddr(), 'W', buff_size_bytes - 1);
+        void* p_src = m_src->get_vaddr();
+        void* p_dst = m_dst->get_vaddr();
+        volatile uintptr_t py_src = m_src->get_paddr();
+        volatile uintptr_t py_dst = m_dst->get_paddr();
 
-        std::cout << "Start to process DMA Control Block SRC: " << std::hex << m_src->get_paddr() << " DST: " << m_dst->get_paddr() << std::endl;
-        cb->prepare(m_src->get_paddr(), m_dst->get_paddr(), m_src->get_size());
+        memset(p_src, 'A'+block_counter, buff_size_bytes - 1);
+        memset(p_dst, 'W', buff_size_bytes - 1);
+
+        std::cout << "Start to process DMA Control Block SRC: " << std::hex << py_src << " DST: " << py_dst << std::endl;
+        cb->prepare(py_src, py_dst, m_src->get_size());
 
         bool result = dctrl->process_control_block(cb);
         if( result ){
           int i = 0;
           while( !dctrl->is_finished() && ++i < 10){
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(std::chrono::microseconds(200));
             //dctrl->print_status();
           }
 
@@ -94,9 +101,12 @@ int main (int argc, char* argv[])
 
         //success = pwm->write_data(m_src->get_paddr(), minfo->get_size());
         std::cout << " Loop :" << block_counter << std::endl;
-        printf("SRC -> %s\n", (char*)m_src->get_vaddr() );
-        printf("DST -> %s\n", (char*)m_dst->get_vaddr() );
+        printf("SRC -> %s\n", (char*)p_src );
+        printf("DST -> %s\n", (char*)p_dst );
 
+        if(!success) break;
+
+        sleep(1);
         block_counter++;
       }//block loop
 
@@ -110,10 +120,11 @@ int main (int argc, char* argv[])
 
     std::cout << "****** Release memory " << success << std::endl << std::endl;
 
-    pmem->free_memory(m_src);
-    pmem->free_memory(m_dst);
+    mmem->free_memory(m_src);
+    mmem->free_memory(m_dst);
 
     delete pmem;
+    delete mmem;
 
     std::cout << "Finished " << success << std::endl;
     exit( (success ? EXIT_SUCCESS : EXIT_FAILURE));

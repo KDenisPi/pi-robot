@@ -74,6 +74,8 @@ public:
     */
     const std::shared_ptr<pi_core::MemInfo>  get_memory(const size_t len, const int alloc_type){
 
+        std::cout << "Allocate: " << len << " bytes. Type: " << alloc_type << std::endl;
+
         void* mem = nullptr;
         switch(alloc_type){
             case 1: //mmap
