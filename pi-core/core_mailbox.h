@@ -113,7 +113,7 @@ public:
 
             if(mbox_handle_lock){
                 //virtual address
-                mem = mapmem(mbox_handle_lock, len);
+                mem = mapmem(BUS_TO_PHYS(mbox_handle_lock), len, DEV_MEM);
                 std::cout << "get_memory Mapmem: " << std::hex << mbox_handle_alloc << std::endl;
             }
         }
