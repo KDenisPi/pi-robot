@@ -6,6 +6,7 @@
 #include "core_pwm.h"
 #include "core_mailbox.h"
 #include "sled_data.h"
+#include "PiRobot.h"
 
 using namespace std;
 
@@ -23,9 +24,32 @@ int main (int argc, char* argv[])
     uint32_t ldata = 0x00505050;
 
     std::shared_ptr<pi_core::MemInfo> m_src;
+    pirobot::PiRobot* rbt = nullptr;
+    pi_core::core_pwm::PwmCore* pwm = nullptr;
 
     std::cout << "Starting..." << std::endl;
-    pi_core::core_pwm::PwmCore* pwm = new  pi_core::core_pwm::PwmCore();
+    if( argc < 2 ){
+      std::cout << "Failed. No configuration file" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+
+    rbt = new pirobot::PiRobot();
+    success = rbt->configure(argv[1]);
+    if( !success ){
+      std::cout << "Invalid configuration file " << std::string(argv[1]) << std::endl;
+      goto clear_data;
+    }
+
+    rbt->printConfig();
+
+    success = rbt->start();
+    if( !success ){
+      std::cout << "Could not start Pi-Robot " << std::endl;
+      goto clear_data;
+    }
+
+
+    pwm = new  pi_core::core_pwm::PwmCore();
     success = pwm->Initialize();
     if(success){
       sleep(1);
@@ -72,8 +96,11 @@ int main (int argc, char* argv[])
       delete mmem;
     }
 
+clear_data:
     std::cout << "Release objects" << std::endl;
+
     delete pwm;
+    delete rbt;
 
     std::cout << "Finished " << success << std::endl;
 
