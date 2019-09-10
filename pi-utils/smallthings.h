@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/mman.h>
+#include <fcntl.h>
 
 #include "logger.h"
 namespace piutils {
@@ -48,45 +49,29 @@ int get_dir_content(const std::string& dirname, std::string& result, const int m
 const std::string trim(std::string& str);
 
 /*
+*
+*/
+void* map_memory_void(const uint32_t address, size_t len, const std::string& dev = "/dev/mem");
+
+/*
 * Map memory to the process address space
 */
 template<class T>
 T* map_memory(const uint32_t address, const std::string& dev = "/dev/mem"){
-    uint32_t page_size = getpagesize() - 1;
-    uint32_t page_mask = ~0L ^ page_size;
-    uint32_t offset = (address & page_size);
-
-    int fd = open(dev.c_str(), O_RDWR | O_SYNC);
-    if( fd < 0 ){
-        logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " Could not open: " + dev + " Error: " + std::to_string(errno));
-        return nullptr;
-    }
-
-    void* mem = mmap(0, sizeof(T), PROT_READ|PROT_WRITE, MAP_SHARED, fd, address & page_mask);
-    if (mem == MAP_FAILED) {
-        logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " mmap failed Error: " + std::to_string(errno));
-        return nullptr;
-    }
-
-    close(fd);
-
-    return static_cast<T*>((void*)((char*)mem + (address & offset)));
+    void* result = map_memory_void(address, sizeof(T), dev);
+    return static_cast<T*>(result);
 }
+
+/*
+* Unmap memory
+*/
+void unmap_memory_void(void* address, size_t len);
 
 template<class T>
 T* unmap_memory(T* address){
-
-    uint32_t page_size = getpagesize() - 1;
-    uint32_t page_mask = ~0L ^ page_size;
-    uintptr_t ptr = (uintptr_t)address & page_mask;
-
-    int res = munmap( (void*)ptr, sizeof(T));
-    if( res < 0 ){
-        logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " munmap failed Error: " + std::to_string(errno));
-    }
-
+    unmap_memory_void((void*)address, sizeof(T));
     return nullptr;
 }
 
-}
+}//namespace piutils
 #endif

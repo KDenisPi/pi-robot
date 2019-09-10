@@ -118,4 +118,52 @@ const std::string trim(std::string& str){
     return str.substr( first, last - first);
 }
 
+/*
+*
+*/
+
+/*
+* Map memory to the process address space
+*/
+void* map_memory_void(const uint32_t address, size_t len, const std::string& dev){
+    uint32_t page_size = getpagesize() - 1;
+    uint32_t page_mask = ~0L ^ page_size;
+    uint32_t offset = (address & page_size);
+
+    int fd = open(dev.c_str(), O_RDWR | O_SYNC);
+    if( fd < 0 ){
+        logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " Could not open: " + dev + " Error: " + std::to_string(errno));
+        return nullptr;
+    }
+
+    void* mem = mmap(0, len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, address & page_mask);
+
+    logger::log(logger::LLOG::DEBUG, "map_memory", std::string(__func__) + "Address: " + std::to_string(address) +
+        " offset: " + std::to_string(offset) + " (address & page_mask) : " + std::to_string((address & page_mask)) + " Length: " + std::to_string(len) +
+        " Page mask: " + std::to_string(page_mask));
+
+    close(fd);
+
+    if (mem == MAP_FAILED) {
+        logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " mmap failed Error: " + std::to_string(errno));
+        return nullptr;
+    }
+
+    return (void*)((char*)mem + offset);
+}
+
+/*
+* Unmap memory
+*/
+void unmap_memory_void(void* address, size_t len){
+    uint32_t page_size = getpagesize() - 1;
+    uint32_t page_mask = ~0L ^ page_size;
+    uintptr_t ptr = (uintptr_t)address & page_mask;
+
+    int res = munmap( (void*)ptr, len);
+    if( res < 0 ){
+        logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " munmap failed Error: " + std::to_string(errno));
+    }
+}
+
 }
