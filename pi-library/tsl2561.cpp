@@ -9,8 +9,6 @@
  *      Author: Denis Kudia
  */
 
-#include "wiringPi.h"
-#include "I2CWrapper.h"
 #include "tsl2561.h"
 #include "logger.h"
 
@@ -27,16 +25,14 @@ Tsl2561::Tsl2561(const std::string& name,
         const std::shared_ptr<pirobot::i2c::I2C> i2c,
         const uint8_t i2c_addr,
         const std::string& comment) :
-    Item(name, comment, ItemTypes::SGP30), _i2caddr(i2c_addr) {
+    Item(name, comment, ItemTypes::SGP30),  _i2c(i2c), _i2caddr(i2c_addr) {
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
 
     //register I2C user
-    i2c->add_user(name, _i2caddr);
+    _i2c->add_user(name, _i2caddr);
 
-    I2CWrapper::lock();
-    m_fd = I2CWrapper::I2CSetup(_i2caddr);
-    I2CWrapper::unlock();
+    m_fd = _i2c->I2CSetup(_i2caddr);
 
     //get timing value
     get_timing();
@@ -55,9 +51,9 @@ Tsl2561::~Tsl2561(){
 
 //
 const uint8_t Tsl2561::get_timing(){
-    I2CWrapper::lock();
-    _timing = I2CWrapper::I2CReadReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_TIMING);
-    I2CWrapper::unlock();
+    _i2c->lock();
+    _timing = _i2c->I2CReadReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_TIMING);
+    _i2c->unlock();
 
     _tsl2561IntegrationTime = get_integration_time();
     _tsl2561Gain = get_gain();
@@ -74,9 +70,9 @@ void  Tsl2561::set_timing(const tsl2561IntegrationTime_t integ, const tsl2561Gai
 
     _timing = (gain << 4) | (manual << 3) | integ;
 
-    I2CWrapper::lock();
-    int status = I2CWrapper::I2CWriteReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_TIMING, _timing);
-    I2CWrapper::unlock();
+    _i2c->lock();
+    int status = _i2c->I2CWriteReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_TIMING, _timing);
+    _i2c->unlock();
 
     _tsl2561IntegrationTime = get_integration_time();
     _tsl2561Gain = get_gain();
@@ -88,9 +84,9 @@ void  Tsl2561::set_timing(const tsl2561IntegrationTime_t integ, const tsl2561Gai
 
 //get revision number
 const uint8_t Tsl2561::get_id(){
-    I2CWrapper::lock();
-    uint8_t id = I2CWrapper::I2CReadReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_ID);
-    I2CWrapper::unlock();
+    _i2c->lock();
+    uint8_t id = _i2c->I2CReadReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_ID);
+    _i2c->unlock();
 
     _stat_info.read(id);
 
@@ -133,9 +129,9 @@ uint16_t Tsl2561::read16(const uint8_t reg){
     uint8_t buff[2];
     uint16_t result;
 
-    I2CWrapper::lock();
-    int rlen = I2CWrapper::I2CReadData(m_fd, TSL2561_COMMAND_BIT | TSL2561_BLOCK_BIT | reg, buff, 2);
-    I2CWrapper::unlock();
+    _i2c->lock();
+    int rlen = _i2c->I2CReadData(m_fd, TSL2561_COMMAND_BIT | TSL2561_BLOCK_BIT | reg, buff, 2);
+    _i2c->unlock();
 
     _stat_info.read(rlen);
 
@@ -354,9 +350,9 @@ void Tsl2561::set_power(const bool on_off){
 
   _is_power_on = on_off;
 
-  I2CWrapper::lock();
-  I2CWrapper::I2CWriteReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_CONTROL, (_is_power_on ? TSL2561_CONTROL_POWERON : TSL2561_CONTROL_POWEROFF));
-  I2CWrapper::unlock();
+  _i2c->lock();
+  _i2c->I2CWriteReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_CONTROL, (_is_power_on ? TSL2561_CONTROL_POWERON : TSL2561_CONTROL_POWEROFF));
+  _i2c->unlock();
 };
 
 }//item

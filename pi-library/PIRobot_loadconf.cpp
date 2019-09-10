@@ -66,9 +66,6 @@ bool PiRobot::configure(const std::string& cfile){
 
         if(is_real_world()) //Under PI
         {
-            int wiPi = wiringPiSetup();
-            logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " WiringPiSetup: " + std::to_string(wiPi));
-
             //Rasbery based GPIO provider present always
             providers["SIMPLE"] = std::shared_ptr<pirobot::gpio::GpioProvider>(new pirobot::gpio::GpioProviderSimple());
             providers["I2C"] = std::shared_ptr<pirobot::provider::Provider>(new pirobot::i2c::I2C());

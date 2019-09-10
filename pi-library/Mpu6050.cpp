@@ -9,11 +9,9 @@
 #include <cmath>
 #include <iostream>
 
-#include <wiringPi.h>
-
+#include "timers.h"
 #include "Mpu6050.h"
 #include "logger.h"
-#include "I2CWrapper.h"
 
 namespace pirobot {
 namespace mpu6050 {
@@ -26,10 +24,9 @@ float Mpu6050::gyro_LSB_Sensitivity[] = {131.0, 65.5, 32.8, 16.4};
 Mpu6050::Mpu6050(const std::string& name,
     const std::shared_ptr<pirobot::i2c::I2C> i2c,
     const std::string& comment,
-    const uint8_t i2caddr, 
+    const uint8_t i2caddr,
     const unsigned int loop_delay) :
-    item::Item(name, comment, item::ItemTypes::MPU6050),
-    _i2caddr(i2caddr), m_fd(0),
+    item::Item(name, comment, item::ItemTypes::MPU6050), _i2c(i2c),_i2caddr(i2caddr), m_fd(0),
     m_val({0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}),
     base_x_accel(0.0),
     base_y_accel(0.0),
@@ -42,16 +39,14 @@ Mpu6050::Mpu6050(const std::string& name,
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Address: " + std::to_string(_i2caddr));
 
     set_loop_delay(loop_delay);
-    
+
     int error;
     uint8_t model, value;
     char buff[10];
 
     //register I2C user
-    i2c->add_user(name, _i2caddr);
-
-    I2CWrapper::lock();
-    m_fd = I2CWrapper::I2CSetup(_i2caddr);
+    _i2c->add_user(name, _i2caddr);
+    m_fd = _i2c->I2CSetup(_i2caddr);
 
     // default at power-up:
     //    Gyro at 250 degrees second
@@ -59,15 +54,17 @@ Mpu6050::Mpu6050(const std::string& name,
     //    Clock source at internal 8MHz
     //    The device is in sleep mode.
     //
-    model = I2CWrapper::I2CReadReg8(m_fd, MPU6050_WHO_AM_I);
-    std::sprintf(buff, "0x%X", model);
+    _i2c->lock();
 
+    model = _i2c->I2CReadReg8(m_fd, MPU6050_WHO_AM_I);
     initialize();
 
     m_gyro_conf = gyro_get_full_scale_range();
     m_accel_conf = accel_get_full_scale_range();
 
-    I2CWrapper::unlock();
+    _i2c->unlock();
+
+    std::sprintf(buff, "0x%X", model);
 
     m_sleep_mode = get_sleep();
     if(m_sleep_mode)
@@ -92,14 +89,14 @@ Mpu6050::~Mpu6050() {
 }
 
 bool Mpu6050::initialize(){
-    I2CWrapper::I2CWriteReg8(m_fd, MPU6050_USER_CTRL, 0x07);
-    delay(200);
+    _i2c->I2CWriteReg8(m_fd, MPU6050_USER_CTRL, 0x07);
+    piutils::timers::Timers::delay(200); //milliseconds
     return true;
 }
 
 void Mpu6050::gyro_set_full_scale_range(int range){
-    I2CWrapper::lock();
-    uint8_t value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_CONFIG);
+    _i2c->lock();
+    uint8_t value = _i2c->I2CReadReg8(m_fd, MPU6050_GYRO_CONFIG);
 
     switch(range){
       case 0:
@@ -113,24 +110,21 @@ void Mpu6050::gyro_set_full_scale_range(int range){
         return;
     }
 
-    I2CWrapper::I2CWriteReg8(m_fd, MPU6050_GYRO_CONFIG, value);
-    I2CWrapper::unlock();
+    _i2c->I2CWriteReg8(m_fd, MPU6050_GYRO_CONFIG, value);
+    _i2c->unlock();
 
     m_gyro_conf = range;
 }
 
 int Mpu6050::gyro_get_full_scale_range(){
-    I2CWrapper::lock();
-    uint8_t value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_CONFIG);
-    I2CWrapper::unlock();
-
+    uint8_t value = _i2c->I2CReadReg8(m_fd, MPU6050_GYRO_CONFIG);
     return (value & 0x18) >> 3;
 }
 
 void Mpu6050::accel_set_full_scale_range(int range){
 
-    I2CWrapper::lock();
-    uint8_t value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_CONFIG);
+    _i2c->lock();
+    uint8_t value = _i2c->I2CReadReg8(m_fd, MPU6050_ACCEL_CONFIG);
 
     switch(range){
       case 0:
@@ -143,39 +137,36 @@ void Mpu6050::accel_set_full_scale_range(int range){
      default:
         return;
     }
-    
-    I2CWrapper::I2CWriteReg8(m_fd, MPU6050_ACCEL_CONFIG, value);
-    I2CWrapper::unlock();
-    
+
+    _i2c->I2CWriteReg8(m_fd, MPU6050_ACCEL_CONFIG, value);
+    _i2c->unlock();
+
     m_accel_conf = range;
 }
 
 int  Mpu6050::accel_get_full_scale_range(){
-    I2CWrapper::lock();
-    uint8_t value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_CONFIG);
-    I2CWrapper::unlock();
-
+    uint8_t value = _i2c->I2CReadReg8(m_fd, MPU6050_ACCEL_CONFIG);
     return (value & 0x18) >> 3;
 }
 
 // Set device to to sleep (true) or wake up (false)
 void Mpu6050::set_sleep(bool sleep_mode){
-    I2CWrapper::lock();
-    uint8_t value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_PWR_MGMT_1);
+    _i2c->lock();
 
+    uint8_t value = _i2c->I2CReadReg8(m_fd, MPU6050_PWR_MGMT_1);
     value = (sleep_mode ? SET_BIT(value, MPU6050_D6) : (value&0xBF));
-    
-    I2CWrapper::I2CWriteReg8(m_fd, MPU6050_PWR_MGMT_1, value);
+    _i2c->I2CWriteReg8(m_fd, MPU6050_PWR_MGMT_1, value);
+    _i2c->unlock();
+
     m_sleep_mode = sleep_mode;
-    I2CWrapper::unlock();
-    delay(100);
+    piutils::timers::Timers::delay(100); //milliseconds
 }
 
 //get sleep mode from device
 bool Mpu6050::get_sleep(){
-    I2CWrapper::lock();
-    uint8_t value = I2CWrapper::I2CReadReg8(m_fd, MPU6050_PWR_MGMT_1);
-    I2CWrapper::unlock();
+    _i2c->lock();
+    uint8_t value = _i2c->I2CReadReg8(m_fd, MPU6050_PWR_MGMT_1);
+    _i2c->unlock();
     return IF_BIT(value, MPU6050_D6);
 }
 
@@ -183,19 +174,19 @@ bool Mpu6050::get_sleep(){
 * Run self check procedure
 */
 void Mpu6050::self_check(){
-    I2CWrapper::lock();
-    I2CWrapper::I2CWriteReg8(m_fd, MPU6050_ACCEL_CONFIG, 0xE0);
-    I2CWrapper::I2CWriteReg8(m_fd, MPU6050_GYRO_CONFIG, 0xE0);
-    I2CWrapper::unlock();
+    _i2c->lock();
+    _i2c->I2CWriteReg8(m_fd, MPU6050_ACCEL_CONFIG, 0xE0);
+    _i2c->I2CWriteReg8(m_fd, MPU6050_GYRO_CONFIG, 0xE0);
+    _i2c->unlock();
 
-    delay(500);
+    piutils::timers::Timers::delay(500); //milliseconds
 
-    I2CWrapper::lock();
-    I2CWrapper::I2CWriteReg8(m_fd, MPU6050_ACCEL_CONFIG, 0x00);
-    I2CWrapper::I2CWriteReg8(m_fd, MPU6050_GYRO_CONFIG, 0x00);
-    I2CWrapper::unlock();
+    _i2c->lock();
+    _i2c->I2CWriteReg8(m_fd, MPU6050_ACCEL_CONFIG, 0x00);
+    _i2c->I2CWriteReg8(m_fd, MPU6050_GYRO_CONFIG, 0x00);
+    _i2c->unlock();
 
-    delay(100);
+    piutils::timers::Timers::delay(100); //milliseconds
 }
 
 /*
@@ -241,26 +232,26 @@ int Mpu6050::read_gyro_accel_vals(uint8_t* accel_t_gyro_ptr){
     int error = 0;
     accel_t_gyro_union* accel_t_gyro = (accel_t_gyro_union *) accel_t_gyro_ptr;
 
-    I2CWrapper::lock();
-    //int error = I2CWrapper::I2CReadData(m_fd, MPU6050_ACCEL_XOUT_H, (uint8_t *) accel_t_gyro, sizeof(*accel_t_gyro));
-    accel_t_gyro->reg.x_accel_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_XOUT_H);
-    accel_t_gyro->reg.x_accel_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_XOUT_L);
-    accel_t_gyro->reg.y_accel_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_YOUT_H);
-    accel_t_gyro->reg.y_accel_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_YOUT_L);
-    accel_t_gyro->reg.z_accel_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_ZOUT_H);
-    accel_t_gyro->reg.z_accel_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_ACCEL_ZOUT_L);
+    _i2c->lock();
+    //int error = _i2c->I2CReadData(m_fd, MPU6050_ACCEL_XOUT_H, (uint8_t *) accel_t_gyro, sizeof(*accel_t_gyro));
+    accel_t_gyro->reg.x_accel_h = _i2c->I2CReadReg8(m_fd, MPU6050_ACCEL_XOUT_H);
+    accel_t_gyro->reg.x_accel_l = _i2c->I2CReadReg8(m_fd, MPU6050_ACCEL_XOUT_L);
+    accel_t_gyro->reg.y_accel_h = _i2c->I2CReadReg8(m_fd, MPU6050_ACCEL_YOUT_H);
+    accel_t_gyro->reg.y_accel_l = _i2c->I2CReadReg8(m_fd, MPU6050_ACCEL_YOUT_L);
+    accel_t_gyro->reg.z_accel_h = _i2c->I2CReadReg8(m_fd, MPU6050_ACCEL_ZOUT_H);
+    accel_t_gyro->reg.z_accel_l = _i2c->I2CReadReg8(m_fd, MPU6050_ACCEL_ZOUT_L);
 
-    accel_t_gyro->reg.x_gyro_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_XOUT_H);
-    accel_t_gyro->reg.x_gyro_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_XOUT_L);
-    accel_t_gyro->reg.y_gyro_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_YOUT_H);
-    accel_t_gyro->reg.y_gyro_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_YOUT_L);
-    accel_t_gyro->reg.z_gyro_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_ZOUT_H);
-    accel_t_gyro->reg.z_gyro_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_GYRO_ZOUT_L);
+    accel_t_gyro->reg.x_gyro_h = _i2c->I2CReadReg8(m_fd, MPU6050_GYRO_XOUT_H);
+    accel_t_gyro->reg.x_gyro_l = _i2c->I2CReadReg8(m_fd, MPU6050_GYRO_XOUT_L);
+    accel_t_gyro->reg.y_gyro_h = _i2c->I2CReadReg8(m_fd, MPU6050_GYRO_YOUT_H);
+    accel_t_gyro->reg.y_gyro_l = _i2c->I2CReadReg8(m_fd, MPU6050_GYRO_YOUT_L);
+    accel_t_gyro->reg.z_gyro_h = _i2c->I2CReadReg8(m_fd, MPU6050_GYRO_ZOUT_H);
+    accel_t_gyro->reg.z_gyro_l = _i2c->I2CReadReg8(m_fd, MPU6050_GYRO_ZOUT_L);
 
-    accel_t_gyro->reg.t_h = I2CWrapper::I2CReadReg8(m_fd, MPU6050_TEMP_OUT_H);
-    accel_t_gyro->reg.t_l = I2CWrapper::I2CReadReg8(m_fd, MPU6050_TEMP_OUT_L);
+    accel_t_gyro->reg.t_h = _i2c->I2CReadReg8(m_fd, MPU6050_TEMP_OUT_H);
+    accel_t_gyro->reg.t_l = _i2c->I2CReadReg8(m_fd, MPU6050_TEMP_OUT_L);
 
-    I2CWrapper::unlock();
+    _i2c->unlock();
 
     // Swap all high and low bytes.
     // After this, the registers values are swapped,
@@ -292,7 +283,7 @@ void Mpu6050::calibrate_sensors(){
   float                 y_gyro = 0;
   float                 z_gyro = 0;
   accel_t_gyro_union    accel_t_gyro;
-  char buff[2048]; 
+  char buff[2048];
 
   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
@@ -310,7 +301,7 @@ void Mpu6050::calibrate_sensors(){
     y_gyro += accel_t_gyro.value.y_gyro;
     z_gyro += accel_t_gyro.value.z_gyro;
 
-    delay(100);
+    piutils::timers::Timers::delay(100); //milliseconds
   }
 
   x_accel /= num_readings;
@@ -356,7 +347,7 @@ void Mpu6050::update_values(){
     error = read_gyro_accel_vals((uint8_t*) &accel_t_gyro);
 
     // Get the time of reading for rotation computations
-    unsigned long t_now = millis();
+    unsigned long t_now = piutils::timers::Timers::milliseconds();
 
     // The temperature sensor is -40 to +85 degrees Celsius.
     // It is a signed integer.
@@ -416,14 +407,14 @@ const std::string Mpu6050::print_current(){
     struct mpu6050_values val;
     get_last_read_angle_data(val);
 
-    std::sprintf(buff, "Time:%ld Angle [X:%.3f Y:%.3f Z:%.3f] Gyro [X:%.3f Y:%.3f Z:%.3f] Temp:%.2f", 
+    std::sprintf(buff, "Time:%ld Angle [X:%.3f Y:%.3f Z:%.3f] Gyro [X:%.3f Y:%.3f Z:%.3f] Temp:%.2f",
     val.last_read_time,
     val.last_x_angle/get_accel_sens(),
     val.last_y_angle/get_accel_sens(),
     val.last_z_angle/get_accel_sens(),
     val.last_gyro_x_angle/get_gyro_sens(),
-    val.last_gyro_y_angle/get_gyro_sens(), 
-    val.last_gyro_z_angle/get_gyro_sens(), 
+    val.last_gyro_y_angle/get_gyro_sens(),
+    val.last_gyro_z_angle/get_gyro_sens(),
     val.last_temperature);
 
     return std::string(buff);
@@ -442,7 +433,7 @@ void Mpu6050::stop(){
 bool Mpu6050::start(void)
 {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started...");
-    return piutils::Threaded::start<Mpu6050>(this);	
+    return piutils::Threaded::start<Mpu6050>(this);
 }
 
 /*

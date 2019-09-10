@@ -9,7 +9,6 @@
 #define PI_LIBRARY_GPIOPROVIDERMCP23017_H_
 
 #include "logger.h"
-#include "I2CWrapper.h"
 #include "GpioProviderMCP230xx.h"
 
 namespace pirobot {
@@ -27,19 +26,19 @@ public:
         // Confifure device and set initial values
         //
 
-        I2CWrapper::lock();
-        m_fd = I2CWrapper::I2CSetup(_i2caddr);
+        m_fd = _i2c->I2CSetup(_i2caddr);
 
-        I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IOCON, 0x3A);
-        I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IOCONB, 0x3A);
+        _i2c->lock();
+        _i2c->I2CWriteReg8(m_fd, MCP23x17_IOCON, 0x3A);
+        _i2c->I2CWriteReg8(m_fd, MCP23x17_IOCONB, 0x3A);
 
-        I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IODIRA, 0x00);
-        I2CWrapper::I2CWriteReg8(m_fd, MCP23x17_IODIRB, 0x00);
+        _i2c->I2CWriteReg8(m_fd, MCP23x17_IODIRA, 0x00);
+        _i2c->I2CWriteReg8(m_fd, MCP23x17_IODIRB, 0x00);
 
-        m_OLATA = I2CWrapper::I2CReadReg8 (m_fd, MCP23x17_GPIOA);
-        m_OLATB = I2CWrapper::I2CReadReg8 (m_fd, MCP23x17_GPIOB);
+        m_OLATA = _i2c->I2CReadReg8 (m_fd, MCP23x17_GPIOA);
+        m_OLATB = _i2c->I2CReadReg8 (m_fd, MCP23x17_GPIOB);
 
-        I2CWrapper::unlock();
+        _i2c->unlock();
 
         logger::log(logger::LLOG::DEBUG, "MCP23017", std::string(__func__) + " Descr: " + std::to_string(m_fd));
         logger::log(logger::LLOG::DEBUG, "MCP23017", std::string(__func__) + " ---> OLATA: " + std::to_string(m_OLATA));

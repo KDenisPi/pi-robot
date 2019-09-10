@@ -9,8 +9,6 @@
 #include "DRV8834StepperMotor.h"
 #include "logger.h"
 
-#include <wiringPi.h>
-
 const char TAG[] = "ST_8834";
 
 
@@ -220,7 +218,7 @@ void DRV8834_StepperMotor::step(const int num_steps /*= 1*/){
 			unsigned int state = GENERAL_NTFY::GN_DONE;
 			this->notify(this->type(), name, (void*)(&state));
 		}
-		
+
 		logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Thread finished for: " + name);
 	};
 

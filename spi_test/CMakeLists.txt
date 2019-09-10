@@ -11,8 +11,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqqt pi-h
 message( STATUS "EXTRA_LIBS (proj):  ${EXTRA_LIBS}" )
 
 
-include_directories(BEFORE ${WIRINGPI_INC}
-    ${PROJECT_SOURCE_DIR}/../pi-utils
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/../pi-utils
     ${PROJECT_SOURCE_DIR}/../pi-library
     ${PROJECT_SOURCE_DIR}/../pi-smachine
     ${PROJECT_SOURCE_DIR}/../pi-mqqt
@@ -20,9 +19,6 @@ include_directories(BEFORE ${WIRINGPI_INC}
 )
 
 aux_source_directory(${PROJECT_SOURCE_DIR} SPI_TEST_SOURCES)
-
 add_executable(spi_test ${SPI_TEST_SOURCES})
 
-target_link_libraries(spi_test ${EXTRA_LIBS}  ${WIPI_LIB} ${WIPI_LIB_DEV}  crypt)
-
-#configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)
+target_link_libraries(spi_test ${EXTRA_LIBS} crypt)

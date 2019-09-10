@@ -10,7 +10,7 @@ set(VER_MIN 9)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqqt pi-http pthread dl curl)
 
-include_directories(BEFORE ${WIRINGPI_INC}
+include_directories(BEFORE
     ${MOSQUITTO_HOME}/lib/cpp
     ${MOSQUITTO_HOME}/lib
     ${PROJECT_SOURCE_DIR}/../pi-utils
@@ -29,7 +29,7 @@ message( STATUS "EXTRA_LIBS (proj):  ${EXTRA_LIBS}" )
 aux_source_directory(${PROJECT_SOURCE_DIR} WEATHER_SOURCES)
 
 add_executable(${DAEMON} ${WEATHER_SOURCES})
-target_link_libraries(${DAEMON} ${EXTRA_LIBS} ${WIPI_LIB} ${WIPI_LIB_DEV} crypt)
+target_link_libraries(${DAEMON} ${EXTRA_LIBS} crypt)
 
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)
 

@@ -10,8 +10,6 @@
 #include "DRV8825StepperMotor.h"
 #include "logger.h"
 
-#include <wiringPi.h>
-
 const char TAG[] = "ST_8825";
 
 namespace pirobot {

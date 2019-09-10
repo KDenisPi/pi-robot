@@ -3,7 +3,7 @@
  * I2C Humidity and Temperature Sensor
  *
  *  Note: This device always uses 0x40 address
- * 
+ *
  *  Created on: Feb 18, 2018
  *      Author: Denis Kudia
  */
@@ -59,7 +59,7 @@ public:
     static const uint8_t s_measure_Temp[4];
 
     virtual const std::string printConfig() override{
-        return std::string(" User Register. Measurement Resolution: ") + std::to_string(get_measument_resolution()) + " VDD OK: " + std::to_string(is_VDD_OK()) + 
+        return std::string(" User Register. Measurement Resolution: ") + std::to_string(get_measument_resolution()) + " VDD OK: " + std::to_string(is_VDD_OK()) +
             " Heater: " + std::to_string(is_Heater_Enabled());
     }
 
@@ -68,10 +68,11 @@ public:
 private:
     uint8_t _i2caddr;
     int m_fd;
+    std::shared_ptr<pirobot::i2c::I2C> _i2c;
 
     struct Si7021_data {
         float _last_MRH; //last value for MRH measument
-        float _last_Temp;//last value for Temperature measument 
+        float _last_Temp;//last value for Temperature measument
     } values;
 
     uint8_t _user_reg; //current state of user register
@@ -88,7 +89,7 @@ private:
 
     pirobot::stat::Statistics _stat_info;
 
-public:    
+public:
     //Detect Measurement Resolution from User Register value
     const uint8_t get_measument_resolution() const{
         uint8_t mes_res = 0x00; //Measurement Resolution
@@ -110,10 +111,10 @@ public:
 
     //Reset
     inline void reset();
-};    
+};
 
 }//item
 }//pirobot
 
 
-#endif 
+#endif

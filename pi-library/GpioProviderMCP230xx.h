@@ -13,7 +13,6 @@
 #include <mcp23x0817.h>
 
 #include "I2C.h"
-#include "I2CWrapper.h"
 #include "GpioProvider.h"
 
 namespace pirobot {
@@ -42,9 +41,9 @@ public:
     void dgtWrite8(const uint8_t value, const int pin = 0){
         int gpio = get_GPIO_addr(pin);
 
-        I2CWrapper::lock();
-        I2CWrapper::I2CWriteReg8(m_fd, gpio, value);
-        I2CWrapper::unlock();
+        _i2c->lock();
+        _i2c->I2CWriteReg8(m_fd, gpio, value);
+        _i2c->unlock();
 
         set_OLAT(value, pin);
     }
@@ -65,6 +64,7 @@ private:
 protected:
     uint8_t _i2caddr;
     int m_fd;
+    std::shared_ptr<pirobot::i2c::I2C> _i2c;
 };
 
 } /* namespace gpio */

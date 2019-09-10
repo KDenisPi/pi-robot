@@ -3,7 +3,7 @@
  * I2C Sensurion Gas Platform
  *
  *  Note: This device always uses 0x58 address
- * 
+ *
  *  Created on: Feb 21, 2018
  *      Author: Denis Kudia
  */
@@ -76,6 +76,7 @@ public:
 private:
     uint8_t _i2caddr;
     int m_fd;
+    std::shared_ptr<pirobot::i2c::I2C> _i2c;
 
     std::mutex cv_m_data;
     std::condition_variable cv_data;
@@ -91,7 +92,7 @@ private:
     //statistics
     pirobot::stat::Statistics _stat_info;
 
-    // Read data 
+    // Read data
     int read_data(uint8_t* data, const int len, const uint16_t cmd, const int delay);
     int write_data(uint8_t* data, const int len, const uint16_t cmd, const int delay);
 

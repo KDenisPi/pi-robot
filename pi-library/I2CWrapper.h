@@ -12,8 +12,6 @@
 #include <sys/ioctl.h>
 #include <mutex>
 
-#include <wiringPiI2C.h>
-
 /*
  * I have detected that wiringPi does not implement data block read/write
  *
@@ -21,6 +19,7 @@
  */
 
 namespace pirobot {
+namespace i2c {
 
 // I2C definitions
 
@@ -70,42 +69,38 @@ struct i2c_smbus_ioctl_data
 
 class I2CWrapper {
 public:
-	I2CWrapper() {}
-	virtual ~I2CWrapper() {}
+    I2CWrapper() {}
+    virtual ~I2CWrapper() {}
 
-	static void lock() { i2c.lock(); }
-	static void unlock() { i2c.unlock(); }
+    inline void lock() { i2c.lock(); }
+    inline void unlock() { i2c.unlock(); }
 
-	static int I2CRead           (const int fd) ;
-	static int I2CReadReg8       (const int fd, const int reg) ;
-	static int I2CReadReg16      (const int fd, const int reg) ;
+    int I2CRead           (const int fd) ;
+    int I2CReadReg8       (const int fd, const int reg) ;
+    int I2CReadReg16      (const int fd, const int reg) ;
+    int I2CWriteData	(const int fd, const int reg, const uint8_t* buffer, const int size);
+    int I2CReadData	(const int fd, const int reg, uint8_t* buffer, const int size);
+    int I2CWrite          (const int fd, const int data) ;
+    int I2CWriteReg8      (const int fd, const int reg, const int data) ;
+    int I2CWriteReg16     (const int fd, const int reg, const int data) ;
+    int I2CSetupInterface (const char *device, int devId) ;
+    int I2CSetup          (const int devId) ;
+    inline int i2c_smbus_access (int fd, char rw, uint8_t command, int size, union i2c_smbus_data *data)
+    {
+      struct i2c_smbus_ioctl_data args ;
 
-	static int I2CWriteData	(const int fd, const int reg, const uint8_t* buffer, const int size);
-	static int I2CReadData	(const int fd, const int reg, uint8_t* buffer, const int size);
-
-	static int I2CWrite          (const int fd, const int data) ;
-	static int I2CWriteReg8      (const int fd, const int reg, const int data) ;
-	static int I2CWriteReg16     (const int fd, const int reg, const int data) ;
-
-	static int I2CSetupInterface (const char *device, int devId) ;
-	static int I2CSetup          (const int devId) ;
-
-	static inline int i2c_smbus_access (int fd, char rw, uint8_t command, int size, union i2c_smbus_data *data)
-	{
-	  struct i2c_smbus_ioctl_data args ;
-
-	  args.read_write = rw ;
-	  args.command    = command ;
-	  args.size       = size ;
-	  args.data       = data ;
-	  return ioctl (fd, I2C_SMBUS, &args) ;
-	}
+      args.read_write = rw ;
+      args.command    = command ;
+      args.size       = size ;
+      args.data       = data ;
+      return ioctl (fd, I2C_SMBUS, &args) ;
+    }
 
 private:
-	static std::recursive_mutex i2c;
-
+    std::recursive_mutex i2c;
 };
 
+}//namespace i2c
 } /* namespace pirobot */
 
 #endif /* PI_LIBRARY_I2CWRAPPER_H_ */

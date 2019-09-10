@@ -108,14 +108,14 @@ struct mpu6050_values {
 };
 
 #define IF_BIT(VALUE,BITN) (((VALUE>>BITN)&0x01)==1)
-#define SET_BIT(VALUE,BITN) ((0x01<<BITN)|VALUE) 
+#define SET_BIT(VALUE,BITN) ((0x01<<BITN)|VALUE)
 
 class Mpu6050 : public item::Item, public piutils::Threaded {
 public:
     Mpu6050(const std::string& name,
         const std::shared_ptr<pirobot::i2c::I2C> i2c,
         const std::string& comment = "",
-        const uint8_t i2caddr = MPU6050_I2C_ADDRESS, 
+        const uint8_t i2caddr = MPU6050_I2C_ADDRESS,
         const unsigned int loop_delay = 100);
 
     virtual ~Mpu6050();
@@ -148,10 +148,10 @@ public:
     */
     virtual bool initialize() override;
 
-  	virtual const std::string printConfig() override {
+    virtual const std::string printConfig() override {
         return name() + " I2C addr: " + std::to_string(_i2caddr) + "\n";
     }
-    
+
     /*
      * Update values - will be used in loop
      */
@@ -187,6 +187,8 @@ public:
 private:
     uint8_t _i2caddr;
     int m_fd;
+    std::shared_ptr<pirobot::i2c::I2C> _i2c;
+
     int m_gyro_conf;
     int m_accel_conf;
 

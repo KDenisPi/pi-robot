@@ -9,7 +9,6 @@
 #define PI_LIBRARY_GPIOPROVIDERMCP23008_H_
 
 #include "logger.h"
-#include "I2CWrapper.h"
 #include "GpioProviderMCP230xx.h"
 
 namespace pirobot {
@@ -26,14 +25,14 @@ public:
         //
         // Confifure device and set initial values
         //
-        I2CWrapper::lock();
 
-        m_fd = I2CWrapper::I2CSetup(_i2caddr);
-        I2CWrapper::I2CWriteReg8(m_fd, MCP23x08_IOCON, 0x3A);
-        I2CWrapper::I2CWriteReg8(m_fd, MCP23x08_IODIR, 0x00);
-        m_OLAT = I2CWrapper::I2CReadReg8 (m_fd, MCP23x08_GPIO);
+        m_fd = _i2c->I2CSetup(_i2caddr);
 
-        I2CWrapper::unlock();
+        _i2c->lock();
+        _i2c->I2CWriteReg8(m_fd, MCP23x08_IOCON, 0x3A);
+        _i2c->I2CWriteReg8(m_fd, MCP23x08_IODIR, 0x00);
+        m_OLAT = _i2c->I2CReadReg8 (m_fd, MCP23x08_GPIO);
+        _i2c->unlock();
 
         logger::log(logger::LLOG::DEBUG, "MCP23008", std::string(__func__) + " Descr: " + std::to_string(m_fd));
         logger::log(logger::LLOG::DEBUG, "MCP23008", std::string(__func__) + " ---> OLAT: " + std::to_string(m_OLAT));
@@ -76,9 +75,9 @@ private:
 
     //Get current value for register data
     virtual unsigned int get_OLAT(const int pin){
-        I2CWrapper::lock();
-        m_OLAT = I2CWrapper::I2CReadReg8 (m_fd, MCP23x08_GPIO);
-        I2CWrapper::unlock();
+        _i2c->lock();
+        m_OLAT = _i2c->I2CReadReg8 (m_fd, MCP23x08_GPIO);
+        _i2c->unlock();
 
         //logger::log(logger::LLOG::DEBUG, "MCP23008", std::string(__func__) + " OLAT " + std::to_string(m_OLAT));
         return m_OLAT;

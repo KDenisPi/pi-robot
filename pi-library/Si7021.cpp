@@ -9,7 +9,6 @@
 #include <cmath>
 #include "logger.h"
 #include "I2C.h"
-#include "I2CWrapper.h"
 #include "Si7021.h"
 
 namespace pirobot {
@@ -22,17 +21,14 @@ const uint8_t Si7021::s_measure_RH[4] = {12, 8, 10, 11};
 const uint8_t Si7021::s_measure_Temp[4] = {14,12,13,11};
 
 
-Si7021::Si7021(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i2c, const std::string& comment) : 
-    Item(name, comment, ItemTypes::SI7021), _i2caddr(s_i2c_addr), _user_reg(0x00), values({0.0, 0.0}) {
+Si7021::Si7021(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i2c, const std::string& comment) :
+    Item(name, comment, ItemTypes::SI7021), _i2c(i2c),_i2caddr(s_i2c_addr), _user_reg(0x00), values({0.0, 0.0}) {
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
 
     //register I2C user
-    i2c->add_user(name, _i2caddr);
-
-    I2CWrapper::lock();
-    m_fd = I2CWrapper::I2CSetup(_i2caddr);
-    I2CWrapper::unlock();
+    _i2c->add_user(name, _i2caddr);
+    m_fd = _i2c->I2CSetup(_i2caddr);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Descr: " + std::to_string(m_fd));
 
@@ -42,7 +38,7 @@ Si7021::Si7021(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C>
 
     firmware();
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Measument Resolution  Relative Humidity: " + std::to_string(s_measure_RH[mes_res]) + 
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Measument Resolution  Relative Humidity: " + std::to_string(s_measure_RH[mes_res]) +
             " bit. Temperature: " + std::to_string(s_measure_Temp[mes_res]) + " bit.");
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " VDD status: " + ( is_VDD_OK() ? "OK" : "Low"));
@@ -66,9 +62,9 @@ Si7021::~Si7021(){
 //
 uint8_t Si7021::get_user_reg(){
 
-    I2CWrapper::lock();
-    _user_reg = I2CWrapper::I2CReadReg8(m_fd, SI7021_READ_UR_1);
-    I2CWrapper::unlock();
+    _i2c->lock();
+    _user_reg = _i2c->I2CReadReg8(m_fd, SI7021_READ_UR_1);
+    _i2c->unlock();
 
     _stat_info.read(_user_reg);
 
@@ -82,9 +78,9 @@ uint8_t Si7021::get_user_reg(){
 void Si7021::set_user_reg(const uint8_t value){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Value: " + std::to_string(_user_reg));
 
-    I2CWrapper::lock();
-    int status = I2CWrapper::I2CWriteReg8(m_fd, SI7021_WRITE_UR_1, value);
-    I2CWrapper::unlock();
+    _i2c->lock();
+    int status = _i2c->I2CWriteReg8(m_fd, SI7021_WRITE_UR_1, value);
+    _i2c->unlock();
 
     _stat_info.write(status);
 }
@@ -93,9 +89,9 @@ void Si7021::set_user_reg(const uint8_t value){
 void Si7021::reset(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
 
-    I2CWrapper::lock();
-    int status = I2CWrapper::I2CWrite(m_fd, SI7021_RESET);
-    I2CWrapper::unlock();
+    _i2c->lock();
+    int status = _i2c->I2CWrite(m_fd, SI7021_RESET);
+    _i2c->unlock();
 
     _stat_info.write(status);
 
@@ -108,13 +104,13 @@ void Si7021::reset(){
 //
 void Si7021::firmware(){
 
-    I2CWrapper::lock();
-    int status = I2CWrapper::I2CWriteReg8(m_fd, SI7021_READ_FIRMWARE_1, SI7021_READ_FIRMWARE_2);
+    _i2c->lock();
+    int status = _i2c->I2CWriteReg8(m_fd, SI7021_READ_FIRMWARE_1, SI7021_READ_FIRMWARE_2);
     _stat_info.read(status);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    uint8_t _firmware = I2CWrapper::I2CRead(m_fd);
-    I2CWrapper::unlock();
+    uint8_t _firmware = _i2c->I2CRead(m_fd);
+    _i2c->unlock();
 
     _stat_info.read(_firmware);
 
@@ -146,31 +142,31 @@ void Si7021::get_results(float& humidity, float& temperature, float& abs_humidit
     uint8_t mrh[2] = {0,0}, temp[2] = {0,0};
     uint16_t last_MRH = 0, last_Temp = 0;
 
-    I2CWrapper::lock();
+    _i2c->lock();
 
     // Measure Relative Humidity - send command
-    int status = I2CWrapper::I2CWrite(m_fd, SI7021_MRH_NHMM);
+    int status = _i2c->I2CWrite(m_fd, SI7021_MRH_NHMM);
 
     _stat_info.write(status);
     //accordingly specification it takes us 12ms for MRH and 11ms for Temp = 30ms
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
 
     //read two bytes
-    mrh[1] = I2CWrapper::I2CRead(m_fd);
-    mrh[0] = I2CWrapper::I2CRead(m_fd);
+    mrh[1] = _i2c->I2CRead(m_fd);
+    mrh[0] = _i2c->I2CRead(m_fd);
     last_MRH = mrh[1]*256 + mrh[0];
 
     //TGemperature already measured durint MRH detecting - just read value
-    status = I2CWrapper::I2CWrite(m_fd, SI7021_RT_NHMM);
+    status = _i2c->I2CWrite(m_fd, SI7021_RT_NHMM);
 
-    temp[1] = I2CWrapper::I2CRead(m_fd);
-    temp[0] = I2CWrapper::I2CRead(m_fd);
+    temp[1] = _i2c->I2CRead(m_fd);
+    temp[0] = _i2c->I2CRead(m_fd);
     last_Temp = temp[1]*256 + temp[0];
 
-    I2CWrapper::unlock();
+    _i2c->unlock();
 
     _stat_info.write(status);
-    _stat_info.read(mrh[0]);   
+    _stat_info.read(mrh[0]);
     _stat_info.read(mrh[1]);
     _stat_info.read(temp[0]);
     _stat_info.read(temp[1]);
@@ -180,9 +176,9 @@ void Si7021::get_results(float& humidity, float& temperature, float& abs_humidit
 
     values._last_MRH = (125*last_MRH)/65536 - 6;
     //check border values
-    if(values._last_MRH < 0) 
+    if(values._last_MRH < 0)
         values._last_MRH == 0.0;
-    else if(values._last_MRH > 100.0) 
+    else if(values._last_MRH > 100.0)
         values._last_MRH = 100.0;
 
     values._last_Temp = (175.72*last_Temp)/65536 - 46.85;
