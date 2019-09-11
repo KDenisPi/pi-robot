@@ -17,8 +17,14 @@ namespace pirobot{
 namespace gpio {
 
 enum GPIO_MODE {
-	IN = 0,
-	OUT = 1
+	IN 		= 0x0,  // 0b000
+	OUT 	= 0x1,	// 0b001
+	ALT5 	= 0x2,	// 0b010
+	ALT4	= 0x3,  // 0b011
+	ALT0    = 0x4,  // 0b100
+	ALT1    = 0x5,  // 0b101
+	ALT2    = 0x6,  // 0b110
+	ALT3	= 0x7	// 0b111
 };
 
 // Pull up/down/none
@@ -54,8 +60,11 @@ public:
 	/*
 	 *
 	 */
-	int getRealPin(const int pin) const {
+	int getRealPin(const int pin) const noexcept(false){
 		assert(pin < m_pcount);
+		if(pin >= m_pcount){
+			throw std::runtime_error(std::string("Invalid Pin number"));
+		}
 		return pin;
 	}
 
