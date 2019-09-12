@@ -40,11 +40,7 @@ public:
     //Write 8-bit value
     void dgtWrite8(const uint8_t value, const int pin = 0){
         int gpio = get_GPIO_addr(pin);
-
-        _i2c->lock();
         _i2c->I2CWriteReg8(m_fd, gpio, value);
-        _i2c->unlock();
-
         set_OLAT(value, pin);
     }
 

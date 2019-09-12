@@ -30,9 +30,7 @@ Tsl2561::Tsl2561(const std::string& name,
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
 
     //register I2C user
-    _i2c->add_user(name, _i2caddr);
-
-    m_fd = _i2c->I2CSetup(_i2caddr);
+    m_fd = _i2c->add_user(name, _i2caddr);
 
     //get timing value
     get_timing();
@@ -46,14 +44,13 @@ Tsl2561::Tsl2561(const std::string& name,
 //
 //
 Tsl2561::~Tsl2561(){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
+    _i2c->del_user(name(), m_fd);
 }
 
 //
 const uint8_t Tsl2561::get_timing(){
-    _i2c->lock();
     _timing = _i2c->I2CReadReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_TIMING);
-    _i2c->unlock();
 
     _tsl2561IntegrationTime = get_integration_time();
     _tsl2561Gain = get_gain();
@@ -69,10 +66,7 @@ const uint8_t Tsl2561::get_timing(){
 void  Tsl2561::set_timing(const tsl2561IntegrationTime_t integ, const tsl2561Gain_t gain, tsl2561Manual_t manual){
 
     _timing = (gain << 4) | (manual << 3) | integ;
-
-    _i2c->lock();
     int status = _i2c->I2CWriteReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_TIMING, _timing);
-    _i2c->unlock();
 
     _tsl2561IntegrationTime = get_integration_time();
     _tsl2561Gain = get_gain();
@@ -84,14 +78,10 @@ void  Tsl2561::set_timing(const tsl2561IntegrationTime_t integ, const tsl2561Gai
 
 //get revision number
 const uint8_t Tsl2561::get_id(){
-    _i2c->lock();
     uint8_t id = _i2c->I2CReadReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_ID);
-    _i2c->unlock();
-
     _stat_info.read(id);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ID: " + std::to_string(id) + " Part number: " + (((id >> 4)&0001) ? "TSL2561" : "TSL2560") + " Revision: " + std::to_string((id&0x0F)));
-
     return id;
 }
 
@@ -129,10 +119,7 @@ uint16_t Tsl2561::read16(const uint8_t reg){
     uint8_t buff[2];
     uint16_t result;
 
-    _i2c->lock();
     int rlen = _i2c->I2CReadData(m_fd, TSL2561_COMMAND_BIT | TSL2561_BLOCK_BIT | reg, buff, 2);
-    _i2c->unlock();
-
     _stat_info.read(rlen);
 
     result = buff[1];
@@ -349,10 +336,7 @@ void Tsl2561::set_power(const bool on_off){
       return;
 
   _is_power_on = on_off;
-
-  _i2c->lock();
   _i2c->I2CWriteReg8(m_fd, TSL2561_COMMAND_BIT | TSL2561_REGISTER_CONTROL, (_is_power_on ? TSL2561_CONTROL_POWERON : TSL2561_CONTROL_POWEROFF));
-  _i2c->unlock();
 };
 
 }//item

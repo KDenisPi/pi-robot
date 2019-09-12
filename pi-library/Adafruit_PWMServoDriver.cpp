@@ -41,8 +41,7 @@ Adafruit_PWMServoDriver::Adafruit_PWMServoDriver(const std::string& name,
   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Name: " + name + " Addr: " + std::to_string(i2c_addr));
 
   //register I2C user
-  _i2c->add_user(name, _i2caddr);
-  m_fd = _i2c->I2CSetup(_i2caddr);
+  m_fd = _i2c->add_user(name, _i2caddr);
 }
 
 //
@@ -50,6 +49,7 @@ Adafruit_PWMServoDriver::Adafruit_PWMServoDriver(const std::string& name,
 //
 Adafruit_PWMServoDriver::~Adafruit_PWMServoDriver() {
   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
+  _i2c->del_user(get_name(), m_fd);
 }
 
 
@@ -113,10 +113,7 @@ void Adafruit_PWMServoDriver::setFrequency(float freq) {
 }
 
 void Adafruit_PWMServoDriver::setPWM(uint8_t num, uint16_t on, uint16_t off) {
-  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) +
-	" Pin: " + std::to_string(num) +
-        " On: " + std::to_string(on) +
-        " Off: " + std::to_string(off));
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pin: " + std::to_string(num) + " On: " + std::to_string(on) + " Off: " + std::to_string(off));
 
   int offset = 4*num;
   write8(LED0_ON_L + offset, on);
@@ -179,14 +176,10 @@ void Adafruit_PWMServoDriver::getPin(uint8_t num, LED_DATA& data){
 
 
 uint8_t Adafruit_PWMServoDriver::read8(uint8_t addr) {
-
-  _i2c->lock();
-  uint8_t result = _i2c->I2CReadReg8(m_fd, addr);
-  return result;
+  return _i2c->I2CReadReg8(m_fd, addr);
 }
 
 void Adafruit_PWMServoDriver::write8(uint8_t addr, uint8_t d){
-  _i2c->lock();
   _i2c->I2CWriteReg8(m_fd, addr, d);
 }
 

@@ -59,9 +59,7 @@ Bmp280::Bmp280(const std::string& name,
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
 
     //register I2C user
-    _i2c->add_user(name, _i2caddr);
-
-    m_fd = _i2c->I2CSetup(_i2caddr);
+    m_fd = _i2c->add_user(name, _i2caddr);
 
     /*
     * 1. Switch to SLEEP and set Measure control parameters
@@ -80,15 +78,13 @@ Bmp280::Bmp280(const std::string& name,
 
 //
 Bmp280::~Bmp280(){
-
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
+  _i2c->del_user(name(), m_fd);
 }
 
 //Get chip ID
 uint8_t Bmp280::get_id(){
-    _i2c->lock();
     uint8_t id = _i2c->I2CReadReg8(m_fd, BMP280_ID);
-    _i2c->unlock();
-
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ID: " + std::to_string(id));
     return id;
 }
@@ -96,17 +92,12 @@ uint8_t Bmp280::get_id(){
 //Reset
 void Bmp280::reset(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
-
-    _i2c->lock();
     _i2c->I2CWriteReg8(m_fd, BMP280_RESET, BMP280_RESET_CODE);
-    _i2c->unlock();
 }
 
 //Get status
 const uint8_t Bmp280::get_status(){
-    _i2c->lock();
     uint8_t status = _i2c->I2CReadReg8(m_fd, BMP280_STATUS);
-    _i2c->unlock();
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Status Measuring: " + ((status & BMP280_STATUS_MEASURING) ? "Yes" : "No") +
                     "  Data update: " + ((status & BMP280_STATUS_DATA_UPDATE) ? "Yes" : "No"));
@@ -131,18 +122,13 @@ bool Bmp280::set_measure_control(const uint8_t power_mode, const uint8_t pressur
 
     uint8_t meas_ctrl = (temp_over_val << 5) | (pressure_over << 2) | power_mode;
 
-    _i2c->lock();
     _i2c->I2CWriteReg8(m_fd, BMP280_CTRL_MEASURE, meas_ctrl);
-    _i2c->unlock();
-
     return true;
 }
 
 //Get measure control parameters
 const uint8_t Bmp280::get_measure_control(){
-    _i2c->lock();
     uint8_t meas_ctrl = _i2c->I2CReadReg8(m_fd, BMP280_CTRL_MEASURE);
-    _i2c->unlock();
 
     uint8_t mode = (meas_ctrl & 0x03);
     uint8_t osrs_p = ((meas_ctrl >> 2) & 0x07);
@@ -155,9 +141,7 @@ const uint8_t Bmp280::get_measure_control(){
 
 //Get config
 const uint8_t Bmp280::get_config(){
-    _i2c->lock();
     uint8_t config = _i2c->I2CReadReg8(m_fd, BMP280_CONFIG);
-    _i2c->unlock();
 
     uint8_t spi = (config & 0x01);
     uint8_t filter = ((config >> 2) & 0x07);
@@ -174,10 +158,7 @@ void Bmp280::set_config(const uint8_t spi, const uint8_t filter, const uint8_t s
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " SPI: " + std::to_string(spi) + " Filter: " + std::to_string(filter) + " SB Time: " + std::to_string(standby_time));
 
     int8_t config = (standby_time << 5) | (filter << 2) | spi;
-
-    _i2c->lock();
     _i2c->I2CWriteReg8(m_fd, BMP280_CONFIG, config);
-    _i2c->unlock();
 }
 
 //Return current pressure and temperature values
@@ -188,10 +169,7 @@ void Bmp280::get_results(float& pressure, float& temp, float& altitude){
     if(m_mode != BMP280_POWER_MODE_NORMAL)
         set_measure_control(m_mode, m_pressure_oversampling, m_temperature_oversampling);
 
-    _i2c->lock();
     int read_bytes = _i2c->I2CReadData(m_fd, BMP280_PRESSURE_MSB, raw, 6);
-    _i2c->unlock();
-
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Read bytes: " + std::to_string(read_bytes));
 
     int32_t raw_pressure = construct_value(raw[0], raw[1], (raw[2] >> 4));
@@ -208,11 +186,10 @@ void Bmp280::get_results(float& pressure, float& temp, float& altitude){
         " Altitude: " + std::to_string(altitude));
 }
 
-//Read compensation value
+// TODO: Read array?
+// Read compensation value
 void Bmp280::read_compensation(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
-
-    _i2c->lock();
 
     dig_T1 = (uint16_t)_i2c->I2CReadReg16(m_fd, BMP280_dig_T1);
     dig_T2 = (int16_t)_i2c->I2CReadReg16(m_fd, BMP280_dig_T2);
@@ -227,8 +204,6 @@ void Bmp280::read_compensation(){
     dig_P7 = (int16_t)_i2c->I2CReadReg16(m_fd, BMP280_dig_P7);
     dig_P8 = (int16_t)_i2c->I2CReadReg16(m_fd, BMP280_dig_P8);
     dig_P9 = (int16_t)_i2c->I2CReadReg16(m_fd, BMP280_dig_P9);
-
-    _i2c->unlock();
 }
 
 //calculate temperature

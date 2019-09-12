@@ -27,8 +27,7 @@ Si7021::Si7021(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C>
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
 
     //register I2C user
-    _i2c->add_user(name, _i2caddr);
-    m_fd = _i2c->I2CSetup(_i2caddr);
+    m_fd = _i2c->add_user(name, _i2caddr);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Descr: " + std::to_string(m_fd));
 
@@ -54,18 +53,15 @@ Si7021::Si7021(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C>
 }
 
 Si7021::~Si7021(){
-
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
+    _i2c->del_user(name(), m_fd);
 }
 
 //
 //Read user register value
 //
 uint8_t Si7021::get_user_reg(){
-
-    _i2c->lock();
     _user_reg = _i2c->I2CReadReg8(m_fd, SI7021_READ_UR_1);
-    _i2c->unlock();
-
     _stat_info.read(_user_reg);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Value: " + std::to_string(_user_reg));
@@ -77,10 +73,7 @@ uint8_t Si7021::get_user_reg(){
 //
 void Si7021::set_user_reg(const uint8_t value){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Value: " + std::to_string(_user_reg));
-
-    _i2c->lock();
     int status = _i2c->I2CWriteReg8(m_fd, SI7021_WRITE_UR_1, value);
-    _i2c->unlock();
 
     _stat_info.write(status);
 }
@@ -88,13 +81,9 @@ void Si7021::set_user_reg(const uint8_t value){
 //Reset
 void Si7021::reset(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
-
-    _i2c->lock();
     int status = _i2c->I2CWrite(m_fd, SI7021_RESET);
-    _i2c->unlock();
 
     _stat_info.write(status);
-
     //wait 15ms before use
     std::this_thread::sleep_for(std::chrono::milliseconds(15));
 }
@@ -103,17 +92,13 @@ void Si7021::reset(){
 //Read firmware value
 //
 void Si7021::firmware(){
-
-    _i2c->lock();
     int status = _i2c->I2CWriteReg8(m_fd, SI7021_READ_FIRMWARE_1, SI7021_READ_FIRMWARE_2);
     _stat_info.read(status);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     uint8_t _firmware = _i2c->I2CRead(m_fd);
-    _i2c->unlock();
 
     _stat_info.read(_firmware);
-
     //possible values  0xFF - 1.0 , 0x20 - 2.0
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Firmaware version: " + (_firmware == 0xFF ? "1.0" : "2.0") + " RAW: " + std::to_string(_firmware));
 }
@@ -142,8 +127,6 @@ void Si7021::get_results(float& humidity, float& temperature, float& abs_humidit
     uint8_t mrh[2] = {0,0}, temp[2] = {0,0};
     uint16_t last_MRH = 0, last_Temp = 0;
 
-    _i2c->lock();
-
     // Measure Relative Humidity - send command
     int status = _i2c->I2CWrite(m_fd, SI7021_MRH_NHMM);
 
@@ -162,8 +145,6 @@ void Si7021::get_results(float& humidity, float& temperature, float& abs_humidit
     temp[1] = _i2c->I2CRead(m_fd);
     temp[0] = _i2c->I2CRead(m_fd);
     last_Temp = temp[1]*256 + temp[0];
-
-    _i2c->unlock();
 
     _stat_info.write(status);
     _stat_info.read(mrh[0]);

@@ -26,8 +26,16 @@ public:
     /*
     // Add an Item connected to I2C
     */
-    void add_user(const std::string name, const uint8_t addr){
+    int add_user(const std::string name, const uint8_t addr){
+        int fd = I2CSetup(addr);
         m_users.push_back(std::make_pair(name, addr));
+
+        return fd;
+    }
+
+    void del_user(const std::string name, const int fd){
+        I2CClose(fd);
+        //TODO: remove from list
     }
 
     /*

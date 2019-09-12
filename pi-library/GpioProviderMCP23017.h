@@ -25,10 +25,6 @@ public:
         //
         // Confifure device and set initial values
         //
-
-        m_fd = _i2c->I2CSetup(_i2caddr);
-
-        _i2c->lock();
         _i2c->I2CWriteReg8(m_fd, MCP23x17_IOCON, 0x3A);
         _i2c->I2CWriteReg8(m_fd, MCP23x17_IOCONB, 0x3A);
 
@@ -38,18 +34,14 @@ public:
         m_OLATA = _i2c->I2CReadReg8 (m_fd, MCP23x17_GPIOA);
         m_OLATB = _i2c->I2CReadReg8 (m_fd, MCP23x17_GPIOB);
 
-        _i2c->unlock();
-
-        logger::log(logger::LLOG::DEBUG, "MCP23017", std::string(__func__) + " Descr: " + std::to_string(m_fd));
-        logger::log(logger::LLOG::DEBUG, "MCP23017", std::string(__func__) + " ---> OLATA: " + std::to_string(m_OLATA));
-        logger::log(logger::LLOG::DEBUG, "MCP23017", std::string(__func__) + " ---> OLATB: " + std::to_string(m_OLATB));
+        logger::log(logger::LLOG::DEBUG, "MCP23017", std::string(__func__) + " Descr: " + std::to_string(m_fd)+ " ---> OLATA: " + std::to_string(m_OLATA)+ " ---> OLATB: " + std::to_string(m_OLATB));
     }
 
     //
     //
     //
     virtual ~GpioProviderMCP23017() {
-        logger::log(logger::LLOG::DEBUG, "MCP23017", std::string(__func__) + " Started " + this->to_string());
+        logger::log(logger::LLOG::DEBUG, "MCP23008", std::string(__func__));
     }
 
 

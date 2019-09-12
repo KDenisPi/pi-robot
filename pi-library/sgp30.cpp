@@ -32,8 +32,7 @@ Sgp30::Sgp30(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i
     baseline.uiTVOC = 0;
 
     //register I2C user
-    _i2c->add_user(name, _i2caddr);
-    m_fd = _i2c->I2CSetup(_i2caddr);
+    m_fd = _i2c->add_user(name, _i2caddr);
 
     get_feature_set_version();
 
@@ -66,9 +65,6 @@ int Sgp30::read_data(uint8_t* data, const int len, const uint16_t cmd, const int
     int msb = (cmd >> 8);
     int lsb = (cmd & 0x00FF);
 
-    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MSB: " + std::to_string(msb) + " LSB:" + std::to_string(lsb));
-
-    _i2c->lock();
     int status = _i2c->I2CWriteReg8(m_fd, msb, lsb);
     _stat_info.write(status);
 
@@ -76,8 +72,6 @@ int Sgp30::read_data(uint8_t* data, const int len, const uint16_t cmd, const int
 
     status = _i2c->I2CReadData(m_fd, msb, data, len);
     _stat_info.read(status);
-
-    _i2c->unlock();
 
     //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Len: " + std::to_string(status));
     return status;
@@ -105,6 +99,9 @@ void Sgp30::get_feature_set_version(){
 Sgp30::~Sgp30(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
     stop();
+
+    _i2c->del_user(name(), m_fd);
+
 }
 
 //
@@ -116,10 +113,7 @@ void Sgp30::init_air_quality(){
     int msb = (SGP30_INIT_AIR_QUALITY >> 8);
     int lsb = (SGP30_INIT_AIR_QUALITY & 0x00FF);
 
-    _i2c->lock();
     _i2c->I2CWriteReg8(m_fd, msb, lsb);
-    _i2c->unlock();
-
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "  Set baseline");
@@ -206,10 +200,7 @@ int Sgp30::write_data(uint8_t* data, const int len, const uint16_t cmd, const in
     int lsb = (cmd & 0x00FF);
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MSB: " + std::to_string(msb) + " LSB:" + std::to_string(lsb));
 
-    _i2c->lock();
     int status = _i2c->I2CWriteData(m_fd, msb, data, len);
-    _i2c->unlock();
-
     _stat_info.write(status);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
