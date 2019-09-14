@@ -69,10 +69,10 @@ int I2CWrapper::I2CWrite(const int fd, const int wdata){
 * Write byte to register
 */
 int I2CWrapper::I2CWriteReg8(const int fd, const int reg, const int wdata){
-  i2c_data data ;
+    i2c_data data ;
 
-  data.byte = wdata ;
-  int err = i2c_smbus_access (fd, I2C_SMBUS_WRITE, reg, I2C_SMBUS_BYTE_DATA, &data) ;
+    data.byte = wdata ;
+    int err = i2c_smbus_access (fd, I2C_SMBUS_WRITE, reg, I2C_SMBUS_BYTE_DATA, &data) ;
     if(err < 0){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + std::string(" Errno: ") + std::to_string(errno));
     }
@@ -83,10 +83,10 @@ int I2CWrapper::I2CWriteReg8(const int fd, const int reg, const int wdata){
 * Write word to register
 */
 int I2CWrapper::I2CWriteReg16(const int fd, const int reg, const int wdata){
-  i2c_data data ;
+    i2c_data data ;
 
-  data.word = wdata ;
-  int err = i2c_smbus_access (fd, I2C_SMBUS_WRITE, reg, I2C_SMBUS_WORD_DATA, &data) ;
+    data.word = wdata ;
+    int err = i2c_smbus_access (fd, I2C_SMBUS_WRITE, reg, I2C_SMBUS_WORD_DATA, &data) ;
     if(err < 0){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + std::string(" Errno: ") + std::to_string(errno));
     }
@@ -100,30 +100,41 @@ int I2CWrapper::I2CSetup(const int slave_addr){
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + std::string(" Slave Addres: ") + std::to_string(slave_addr));
 
     int fd;
-    std::lock_guard<std::mutex> lock(_i2c);
+    std::string err;
 
-    //open device
-    fd = open (_device.c_str(), O_RDWR);
-    if(fd < 0){
-        const std::string err = std::string(" Could not initialize device. errno: ") + std::to_string(errno);
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + err);
-        throw std::runtime_error(err);
+    {
+        std::lock_guard<std::mutex> lock(_i2c);
+        //open device
+        fd = open (_device.c_str(), O_RDWR);
+        if(fd < 0){
+            err = std::string(" Could not initialize device. errno: ") + std::to_string(errno);
+            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + err);
+        }
+        else {
+            //connect slave device
+            if(ioctl(fd, I2C_SLAVE, slave_addr) < 0){
+                close(fd);
+                fd = -1;
+                err = std::string(" Could not initialize slave device errno: ") + std::to_string(errno);
+                logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + err);
+            }
+        }
     }
 
-    //connect slave device
-    if(ioctl(fd, I2C_SLAVE, slave_addr) < 0){
-        close(fd);
-        const std::string err = std::string(" Could not initialize slave device errno: ") + std::to_string(errno);
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + err);
+    if(fd < 0){
         throw std::runtime_error(err);
     }
 
     return fd;
 }
 
+/*
+*Close I2C connection
+*/
 void I2CWrapper::I2CClose(const int fd){
-    if(fd >0)
+    if(fd >0){
         close(fd);
+    }
 }
 
 

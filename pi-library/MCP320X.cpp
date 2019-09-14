@@ -53,11 +53,14 @@ void MCP320X::stop(){
             break;
 
         //activate my SPI channel
-        owner->activate_spi_channel();
+        if(!owner->activate_spi_channel()){
+            //could not activate channel
+            continue;
+        }
 
         /*
-        * Should I switch MCP320X after EACH reading or not? 
-          I do not think so. 
+        * Should I switch MCP320X after EACH reading or not?
+          I do not think so.
 
         3.7 Chip Select/Shutdown (CS/SHDN)
             The CS/SHDN pin is used to initiate communication
@@ -67,7 +70,7 @@ void MCP320X::stop(){
             high between conversions.
         */
 
-        //switch device On    
+        //switch device On
         owner->On();
 
 
@@ -98,33 +101,31 @@ void MCP320X::stop(){
                 if(fn_is_active_agent(i)){
                     value = fn_read_data(buff, (unsigned char)i);
                     owner->m_receivers[i]->data(value);
-
-                    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Received data: " + std::to_string(value) + " for: " +  std::to_string(i));
                 }
             }
 
             std::this_thread::sleep_for(std::chrono::milliseconds(owner->get_loop_delay()));
         }
 
-        //switch device Off    
+        //switch device Off
         owner->Off();
     }
 }
 
 void MCP320X::activate_data_receiver(const int input_idx){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Received activate signal from: " + 
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Received activate signal from: " +
                         std::to_string(input_idx));
     cv.notify_one();
 }
 
 /*
-* Register data receiver 
+* Register data receiver
 */
-bool MCP320X::register_data_receiver(const int input_idx, 
+bool MCP320X::register_data_receiver(const int input_idx,
     const std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> receiver){
 
     if(input_idx >= m_anlg_inputs){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + 
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) +
                 " Invalid channel number Idx: " + std::to_string(input_idx));
         throw std::runtime_error(std::string("Invalid channel number"));
     }
@@ -136,8 +137,7 @@ bool MCP320X::register_data_receiver(const int input_idx,
 
     m_receivers[input_idx] = receiver;
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + 
-            " Added data received " + receiver->pname() + " for input: " + std::to_string(input_idx));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Added data received " + receiver->pname() + " for input: " + std::to_string(input_idx));
     return true;
 }
 
