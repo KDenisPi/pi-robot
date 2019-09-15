@@ -4,7 +4,7 @@
  *
  *  Note: This device uses address 0x76 if SDO connected to GND
  *  or 0x77 if SDO connected to VDD (3,3 V)
- * 
+ *
  *  Created on: Mar 3, 2018
  *      Author: Denis Kudia
  */
@@ -74,7 +74,7 @@ namespace item {
 class Bmp280 : public item::Item {
 
 public:
-    Bmp280(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i2c, 
+    Bmp280(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i2c,
             const uint8_t i2c_addr = s_i2c_addr,
             const uint8_t mode = BMP280_POWER_MODE_FORCED,
             const uint8_t pressure_oversampling = 1,
@@ -92,7 +92,7 @@ public:
     static const char* s_oversampling[8];
     static const char* s_standby_time[8];
 
-    //Detect mode by name. 
+    //Detect mode by name.
     //TODO: exception for unknown name?
     static const uint8_t get_mode_by_name(const std::string& mode){
         if(mode == "FORCED") return BMP280_POWER_MODE_FORCED;
@@ -108,7 +108,7 @@ public:
     //Reset
     void reset();
 
-    //Get chip ID 
+    //Get chip ID
     uint8_t get_id();
 
     //Get status
@@ -120,7 +120,7 @@ public:
     //Get measure mode
     const uint8_t get_measure_mode(const uint8_t meas_ctrl){
         uint8_t mode = (meas_ctrl & 0x03);
-        if( mode == 1 || mode == 2) 
+        if( mode == 1 || mode == 2)
             return BMP280_POWER_MODE_FORCED;
 
         return mode;
@@ -136,7 +136,7 @@ public:
     //Set measure control parameters
     //
     // -- Type --                   -- Pressure --                      -- Temp --
-    // Pressure measurement off     BMP280_OVERSAMPLING_SKIPPED         Any valid value 
+    // Pressure measurement off     BMP280_OVERSAMPLING_SKIPPED         Any valid value
     // Ultra low power              BMP280_OVERSAMPLING_1               BMP280_OVERSAMPLING_1
     // Low power                    BMP280_OVERSAMPLING_1               BMP280_OVERSAMPLING_1
     // Standart resolution          BMP280_OVERSAMPLING_1               BMP280_OVERSAMPLING_1
@@ -152,6 +152,7 @@ public:
 private:
     uint8_t _i2caddr;
     int m_fd;
+    std::shared_ptr<pirobot::i2c::I2C> _i2c;
 
     uint8_t m_mode;
     uint8_t m_pressure_oversampling;
@@ -160,7 +161,7 @@ private:
     uint8_t m_filter; //0,2,4,8,16
     int m_spi;
     int m_spi_channel;
-    
+
     //compensation values
     uint16_t dig_T1;
     int16_t  dig_T2;

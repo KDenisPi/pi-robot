@@ -220,6 +220,7 @@ public:
 private:
     uint8_t _i2caddr;
     int m_fd;
+    std::shared_ptr<pirobot::i2c::I2C> _i2c;
 
     bool _is_power_on = false;
     uint8_t _timing = 0;

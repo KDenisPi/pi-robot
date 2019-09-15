@@ -12,8 +12,6 @@ const char TAG[] = "ST_U2003";
 #include "ULN2003StepperMotor.h"
 #include "logger.h"
 
-#include <wiringPi.h>
-
 namespace pirobot {
 namespace item {
 

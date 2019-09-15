@@ -10,13 +10,14 @@
 
 #include <vector>
 #include "provider.h"
+#include "I2CWrapper.h"
 
 namespace pirobot {
 namespace i2c {
 
 using i2c_user = std::pair<std::string, uint8_t>;
 
-class I2C : public provider::Provider {
+class I2C : public provider::Provider, public I2CWrapper {
 
 public:
     I2C() : provider::Provider(provider::PROVIDER_TYPE::PROV_I2C, "I2C") {}
@@ -25,8 +26,16 @@ public:
     /*
     // Add an Item connected to I2C
     */
-    void add_user(const std::string name, const uint8_t addr){
+    int add_user(const std::string name, const uint8_t addr){
+        int fd = I2CSetup(addr);
         m_users.push_back(std::make_pair(name, addr));
+
+        return fd;
+    }
+
+    void del_user(const std::string name, const int fd){
+        I2CClose(fd);
+        //TODO: remove from list
     }
 
     /*

@@ -35,7 +35,7 @@ GpioProviderPCA9685::~GpioProviderPCA9685() {
  */
 const int GpioProviderPCA9685::dgtRead(const int pin){
     struct LED_DATA data;
-    m_pwm->getPin(getRealPin(pin), data);
+    m_pwm->getPin(pin, data);
 
         logger::log(logger::LLOG::DEBUG, TAG,
             std::string(__func__) + " Pin:" + std::to_string(pin) + " Value:" + std::to_string(data.off));
@@ -50,11 +50,11 @@ void GpioProviderPCA9685::dgtWrite(const int pin, const int value){
     struct LED_DATA data = {0, 0};
 
         logger::log(logger::LLOG::DEBUG, TAG,
-            std::string(__func__) + " Pin:" + std::to_string(pin) + "[" + std::to_string(getRealPin(pin)) +
+            std::string(__func__) + " Pin:" + std::to_string(pin) + "[" + std::to_string(pin) +
          "] Value:" + std::to_string(value));
 
     data.off = (value==1 ? 4095 : value);
-    m_pwm->setPWM(getRealPin(pin), data.on, data.off);
+    m_pwm->setPWM(pin, data.on, data.off);
 }
 
 void GpioProviderPCA9685::dgtWritePWM(const int pin, const float dutyCycle, const float phaseOffset){
@@ -84,7 +84,7 @@ void GpioProviderPCA9685::dgtWritePWM(const int pin, const float dutyCycle, cons
           data.off = data.off - 4096;
         }
     }
-    m_pwm->setPWM(getRealPin(pin), data.on, data.off);
+    m_pwm->setPWM(pin, data.on, data.off);
 }
 
 
@@ -111,7 +111,7 @@ void GpioProviderPCA9685::setPulse(const int pin, const uint16_t pulselen){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" to pin: ") + std::to_string(pin) +
             " pulselen(ms): " + std::to_string(pulselen) + " pulse: " + std::to_string(data.off));
 
-    m_pwm->setPWM(getRealPin(pin), data.on, data.off);
+    m_pwm->setPWM(pin, data.on, data.off);
 }
 
 

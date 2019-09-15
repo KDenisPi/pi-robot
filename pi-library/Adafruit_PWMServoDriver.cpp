@@ -1,24 +1,24 @@
-/*************************************************** 
+/***************************************************
   This is a library for our Adafruit 16-channel PWM & Servo driver
 
   Pick one up today in the adafruit shop!
   ------> http://www.adafruit.com/products/815
 
-  These displays use I2C to communicate, 2 pins are required to  
+  These displays use I2C to communicate, 2 pins are required to
   interface. For Arduino UNOs, thats SCL -> Analog 5, SDA -> Analog 4
 
-  Adafruit invests time and resources providing this open source code, 
-  please support Adafruit and open-source hardware by purchasing 
+  Adafruit invests time and resources providing this open source code,
+  please support Adafruit and open-source hardware by purchasing
   products from Adafruit!
 
-  Written by Limor Fried/Ladyada for Adafruit Industries.  
+  Written by Limor Fried/Ladyada for Adafruit Industries.
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
 #include <math.h>
 #include <algorithm>
 
-#include "I2CWrapper.h"
+#include "timers.h"
 #include "Adafruit_PWMServoDriver.h"
 #include "logger.h"
 
@@ -34,20 +34,14 @@ const uint8_t Adafruit_PWMServoDriver::s_i2c_addr = 0x40;
 // Set to true to print some debug messages, or false to disable them.
 #define ENABLE_DEBUG_OUTPUT false
 
-Adafruit_PWMServoDriver::Adafruit_PWMServoDriver(const std::string& name, 
-    std::shared_ptr<pirobot::i2c::I2C> i2c, 
-    const uint8_t i2c_addr) : Provider(pirobot::provider::PROVIDER_TYPE::PROV_PWM, name), m_prescale(0) {
+Adafruit_PWMServoDriver::Adafruit_PWMServoDriver(const std::string& name,
+    std::shared_ptr<pirobot::i2c::I2C> i2c,
+    const uint8_t i2c_addr) : Provider(pirobot::provider::PROVIDER_TYPE::PROV_PWM, name), m_prescale(0), _i2c(i2c), _i2caddr(i2c_addr) {
 
   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Name: " + name + " Addr: " + std::to_string(i2c_addr));
 
-  _i2caddr = i2c_addr;
-
   //register I2C user
-  i2c->add_user(name, i2c_addr);
-
-  I2CWrapper::lock();
-  m_fd = I2CWrapper::I2CSetup(_i2caddr);
-  I2CWrapper::unlock();
+  m_fd = _i2c->add_user(name, _i2caddr);
 }
 
 //
@@ -55,6 +49,7 @@ Adafruit_PWMServoDriver::Adafruit_PWMServoDriver(const std::string& name,
 //
 Adafruit_PWMServoDriver::~Adafruit_PWMServoDriver() {
   logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
+  _i2c->del_user(get_name(), m_fd);
 }
 
 
@@ -104,22 +99,21 @@ void Adafruit_PWMServoDriver::setFrequency(float freq) {
   prescaleval /= freq;
   prescaleval -= 1;
   m_prescale = floor(prescaleval + 0.5);
-  
+
   uint8_t oldmode = read8(PCA9685_MODE1);
   uint8_t newmode = (oldmode & 0x7F) | MODE1_ENABLE_SLEEP; // sleep
   write8(PCA9685_MODE1, newmode); // go to sleep
   write8(PCA9685_PRESCALE, m_prescale); // set the prescaler
   write8(PCA9685_MODE1, oldmode);
-  delay(5);
+
+  piutils::timers::Timers::delay(5); //milliseconds
+
   write8(PCA9685_MODE1, oldmode | PCA9685_MODE1_DEFAULT); //  This sets the MODE1 register to turn on auto increment.
   	  	  	  	  	  	  	  	  	  	  	  	  	  	  // This is why the beginTransmission below was not working.
 }
 
 void Adafruit_PWMServoDriver::setPWM(uint8_t num, uint16_t on, uint16_t off) {
-  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) +
-	" Pin: " + std::to_string(num) +
-        " On: " + std::to_string(on) +
-        " Off: " + std::to_string(off));
+  logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pin: " + std::to_string(num) + " On: " + std::to_string(on) + " Off: " + std::to_string(off));
 
   int offset = 4*num;
   write8(LED0_ON_L + offset, on);
@@ -182,18 +176,11 @@ void Adafruit_PWMServoDriver::getPin(uint8_t num, LED_DATA& data){
 
 
 uint8_t Adafruit_PWMServoDriver::read8(uint8_t addr) {
-
-  I2CWrapper::lock();
-  uint8_t result = I2CWrapper::I2CReadReg8(m_fd, addr);
-  I2CWrapper::unlock();
-
-  return result;
+  return _i2c->I2CReadReg8(m_fd, addr);
 }
 
 void Adafruit_PWMServoDriver::write8(uint8_t addr, uint8_t d){
-  I2CWrapper::lock();
-  I2CWrapper::I2CWriteReg8(m_fd, addr, d);
-  I2CWrapper::unlock();
+  _i2c->I2CWriteReg8(m_fd, addr, d);
 }
 
 } /* namespace gpio */

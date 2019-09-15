@@ -7,7 +7,6 @@
 
 #include <cassert>
 #include <unistd.h>
-#include <wiringPi.h>
 
 #include "button.h"
 #include "logger.h"

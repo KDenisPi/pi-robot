@@ -9,7 +9,6 @@
 #define PI_LIBRARY_GPIOPROVIDERMCP23008_H_
 
 #include "logger.h"
-#include "I2CWrapper.h"
 #include "GpioProviderMCP230xx.h"
 
 namespace pirobot {
@@ -26,24 +25,19 @@ public:
         //
         // Confifure device and set initial values
         //
-        I2CWrapper::lock();
+        _i2c->I2CWriteReg8(m_fd, MCP23x08_IOCON, 0x3A);
+        _i2c->I2CWriteReg8(m_fd, MCP23x08_IODIR, 0x00);
 
-        m_fd = I2CWrapper::I2CSetup(_i2caddr);
-        I2CWrapper::I2CWriteReg8(m_fd, MCP23x08_IOCON, 0x3A);
-        I2CWrapper::I2CWriteReg8(m_fd, MCP23x08_IODIR, 0x00);
-        m_OLAT = I2CWrapper::I2CReadReg8 (m_fd, MCP23x08_GPIO);
+        m_OLAT = _i2c->I2CReadReg8 (m_fd, MCP23x08_GPIO);
 
-        I2CWrapper::unlock();
-
-        logger::log(logger::LLOG::DEBUG, "MCP23008", std::string(__func__) + " Descr: " + std::to_string(m_fd));
-        logger::log(logger::LLOG::DEBUG, "MCP23008", std::string(__func__) + " ---> OLAT: " + std::to_string(m_OLAT));
+        logger::log(logger::LLOG::DEBUG, "MCP23008", std::string(__func__) + " Descr: " + std::to_string(m_fd) + " ---> OLAT: " + std::to_string(m_OLAT));
     }
 
     //
     //
     //
     virtual ~GpioProviderMCP23008() {
-        logger::log(logger::LLOG::DEBUG, "MCP23008", std::string(__func__) + " Started " + this->to_string());
+        logger::log(logger::LLOG::DEBUG, "MCP23008", std::string(__func__));
     }
 
     /*
@@ -76,11 +70,7 @@ private:
 
     //Get current value for register data
     virtual unsigned int get_OLAT(const int pin){
-        I2CWrapper::lock();
-        m_OLAT = I2CWrapper::I2CReadReg8 (m_fd, MCP23x08_GPIO);
-        I2CWrapper::unlock();
-
-        //logger::log(logger::LLOG::DEBUG, "MCP23008", std::string(__func__) + " OLAT " + std::to_string(m_OLAT));
+        m_OLAT = _i2c->I2CReadReg8 (m_fd, MCP23x08_GPIO);
         return m_OLAT;
     }
     //Save current value register data

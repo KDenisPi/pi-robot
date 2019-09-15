@@ -1,17 +1,17 @@
-/*************************************************** 
+/***************************************************
   This is a library for our Adafruit 16-channel PWM & Servo driver
 
   Pick one up today in the adafruit shop!
   ------> http://www.adafruit.com/products/815
 
-  These displays use I2C to communicate, 2 pins are required to  
+  These displays use I2C to communicate, 2 pins are required to
   interface. For Arduino UNOs, thats SCL -> Analog 5, SDA -> Analog 4
 
-  Adafruit invests time and resources providing this open source code, 
-  please support Adafruit and open-source hardware by purchasing 
+  Adafruit invests time and resources providing this open source code,
+  please support Adafruit and open-source hardware by purchasing
   products from Adafruit!
 
-  Written by Limor Fried/Ladyada for Adafruit Industries.  
+  Written by Limor Fried/Ladyada for Adafruit Industries.
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
@@ -20,7 +20,6 @@
 
 #include <cstdint>
 #include <memory>
-#include <wiringPi.h>
 
 #include "I2C.h"
 #include "provider.h"
@@ -32,8 +31,8 @@ namespace gpio {
 #define PCA9685_SUBADR2 0x3
 #define PCA9685_SUBADR3 0x4
 
-#define PCA9685_MODE1    0x00          
-#define PCA9685_MODE2    0x01          
+#define PCA9685_MODE1    0x00
+#define PCA9685_MODE2    0x01
 #define PCA9685_ALLCALLADR     0x05   //LED All Call i2c-bus address
 #define PCA9685_PRESCALE 0xFE
 
@@ -91,6 +90,7 @@ class Adafruit_PWMServoDriver :  public pirobot::provider::Provider {
   uint8_t _i2caddr;
   int m_fd;
   uint8_t m_prescale;
+  std::shared_ptr<pirobot::i2c::I2C> _i2c;
 
   uint8_t read8(uint8_t addr);
   void write8(uint8_t addr, uint8_t d);

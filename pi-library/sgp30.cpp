@@ -8,9 +8,7 @@
  *      Author: Denis Kudia
  */
 
-#include "wiringPi.h"
 #include "logger.h"
-#include "I2CWrapper.h"
 #include "sgp30.h"
 #include "crc.h"
 
@@ -24,7 +22,7 @@ const uint8_t Sgp30::s_i2c_addr = 0x58;
 //
 //
 Sgp30::Sgp30(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i2c, const std::string& comment) :
-    Item(name, comment, ItemTypes::SGP30), _i2caddr(s_i2c_addr), _humidity(0) {
+    Item(name, comment, ItemTypes::SGP30), _i2c(i2c), _i2caddr(s_i2c_addr), _humidity(0) {
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Addr: " + std::to_string(_i2caddr));
 
@@ -34,11 +32,7 @@ Sgp30::Sgp30(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i
     baseline.uiTVOC = 0;
 
     //register I2C user
-    i2c->add_user(name, _i2caddr);
-
-    I2CWrapper::lock();
-    m_fd = I2CWrapper::I2CSetup(_i2caddr);
-    I2CWrapper::unlock();
+    m_fd = _i2c->add_user(name, _i2caddr);
 
     get_feature_set_version();
 
@@ -66,30 +60,25 @@ bool Sgp30::measure_test(){
 }
 
 //
-// Read data 
+// Read data
 int Sgp30::read_data(uint8_t* data, const int len, const uint16_t cmd, const int delay_ms){
     int msb = (cmd >> 8);
     int lsb = (cmd & 0x00FF);
 
-    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MSB: " + std::to_string(msb) + " LSB:" + std::to_string(lsb));
-
-    I2CWrapper::lock();
-    int status = I2CWrapper::I2CWriteReg8(m_fd, msb, lsb);
+    int status = _i2c->I2CWriteReg8(m_fd, msb, lsb);
     _stat_info.write(status);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
 
-    status = I2CWrapper::I2CReadData(m_fd, msb, data, len);
+    status = _i2c->I2CReadData(m_fd, msb, data, len);
     _stat_info.read(status);
-
-    I2CWrapper::unlock();
 
     //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Len: " + std::to_string(status));
     return status;
 }
 
 //
-// Get feature set version. Data return 3 bytes. Delay max 2ms 
+// Get feature set version. Data return 3 bytes. Delay max 2ms
 //
 void Sgp30::get_feature_set_version(){
     uint8_t data[3] = {0x00, 0x00, 0x00};
@@ -110,6 +99,9 @@ void Sgp30::get_feature_set_version(){
 Sgp30::~Sgp30(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
     stop();
+
+    _i2c->del_user(name(), m_fd);
+
 }
 
 //
@@ -121,10 +113,7 @@ void Sgp30::init_air_quality(){
     int msb = (SGP30_INIT_AIR_QUALITY >> 8);
     int lsb = (SGP30_INIT_AIR_QUALITY & 0x00FF);
 
-    I2CWrapper::lock();
-    I2CWrapper::I2CWriteReg8(m_fd, msb, lsb);
-    I2CWrapper::unlock();
-
+    _i2c->I2CWriteReg8(m_fd, msb, lsb);
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "  Set baseline");
@@ -211,10 +200,7 @@ int Sgp30::write_data(uint8_t* data, const int len, const uint16_t cmd, const in
     int lsb = (cmd & 0x00FF);
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MSB: " + std::to_string(msb) + " LSB:" + std::to_string(lsb));
 
-    I2CWrapper::lock();
-    int status = I2CWrapper::I2CWriteData(m_fd, msb, data, len);
-    I2CWrapper::unlock();
-
+    int status = _i2c->I2CWriteData(m_fd, msb, data, len);
     _stat_info.write(status);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));

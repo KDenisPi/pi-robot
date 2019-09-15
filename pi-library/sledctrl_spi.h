@@ -68,7 +68,7 @@ public:
 private:
 
     std::shared_ptr<pirobot::spi::SPI> _spi;
-    int _spi_channel;
+    pirobot::spi::SPI_CHANNELS _spi_channel;
 };
 
 

@@ -11,7 +11,6 @@
 #include "item.h"
 #include "Threaded.h"
 #include "logger.h"
-#include <wiringPi.h>
 
 namespace pirobot {
 namespace item {

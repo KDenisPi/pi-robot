@@ -8,10 +8,10 @@
 
  #ifndef PI_LIBRARY_MCP320X_H_
  #define PI_LIBRARY_MCP320X_H_
-  
+
 #include "item.h"
 #include "Threaded.h"
-#include "SPI.h" 
+#include "SPI.h"
 #include "AnalogDataProviderItf.h"
 
 namespace pirobot {
@@ -36,17 +36,17 @@ public:
     * Constructor.
     * GPIO is used for switch ON/OFF (CS/SHDN) Low - On, High - Off
     */
-    MCP320X(const std::shared_ptr<pirobot::spi::SPI> spi, 
-        const std::shared_ptr<pirobot::gpio::Gpio> gpio, 
+    MCP320X(const std::shared_ptr<pirobot::spi::SPI> spi,
+        const std::shared_ptr<pirobot::gpio::Gpio> gpio,
         const std::string& name,
         const std::string& comment = "",
         MCP320X_INPUTS anlg_inputs = MCP320X_INPUTS::MCP3208,
         spi::SPI_CHANNELS channel = spi::SPI_CHANNELS::SPI_0,
-        const unsigned int loop_delay = 5) : 
+        const unsigned int loop_delay = 5) :
             item::Item(gpio, name, comment, item::ItemTypes::AnlgDgtConvertor),
             m_spi(spi),
             m_anlg_inputs((int)anlg_inputs),
-            m_channel((int)channel)
+            m_channel(channel)
     {
         assert(get_gpio() != NULL);
         assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);
@@ -54,7 +54,7 @@ public:
         assert(!name.empty());
 
         set_loop_delay(loop_delay);
-        
+
         //switch device off
         get_gpio()->High();
     }
@@ -65,7 +65,7 @@ public:
     virtual ~MCP320X();
 
 	virtual const std::string printConfig() override {
-        std::string result =  name() + " SPI Channel: " + std::to_string(m_channel) + " Analog Inputs: " + 
+        std::string result =  name() + " SPI Channel: " + std::to_string(m_channel) + " Analog Inputs: " +
             std::to_string(m_anlg_inputs) + "\n";
         for(int i = 0; i < m_anlg_inputs; i++){
                 result += (" channel: " + std::to_string(i) + (m_receivers[i]? " ON" : " OFF") + "\n");
@@ -82,9 +82,9 @@ public:
     }
 
     /*
-    * Register data receiver 
+    * Register data receiver
     */
-    virtual bool register_data_receiver(const int input_idx, 
+    virtual bool register_data_receiver(const int input_idx,
         const std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> receiver) noexcept(false) override;
 
     /*
@@ -107,8 +107,8 @@ public:
         get_gpio()->High();
     }
 
-    void activate_spi_channel(){
-        m_spi->set_channel_on(m_channel);
+    bool activate_spi_channel(){
+        return m_spi->set_channel_on(m_channel);
     }
 
     const bool is_active_agents() const {
@@ -138,7 +138,7 @@ public:
 private:
     std::shared_ptr<pirobot::spi::SPI> m_spi;
     int m_anlg_inputs;
-    int m_channel;
+    pirobot::spi::SPI_CHANNELS m_channel;
 
 public:
     std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> m_receivers[MAX_NUMBER_ANALOG_INPUTS];
