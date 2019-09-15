@@ -76,7 +76,7 @@
     // mode - GPIO mode can be "IN" or "OUT"
     // provider - provider is "name" attribute for provider object defined above
     //
-    "gpios": [{"name": "gpio_name", "provider": "provider_name", "pin": 0, "mode": "IN/OUT"}],
+    "gpios": [{"name": "gpio_name", "provider": "provider_name", "pin": 0, "mode": "IN/OUT/PWM"}],
 
     //
     // Items (all elements another then providers, and gpios)
@@ -273,6 +273,20 @@
             "stripes": 1,        //maximun number of LED stripes supported by controller
             "stripe": [{"name": "LED stripe", "leds": 30, "comment": "optional", "type": "WS2810"}]  //LED stripes list. Possible types WS2810, WS2812B
 
+        },
+
+        //
+        // LED Stripe. PWM based controller
+        //
+        {
+            "type": "SLEDCRTLPWM",
+            "name": "item_name",
+            "gpio": "gpio_pwm",
+            "comment": "",
+            "stripes": 1,        //maximun number of LED stripes supported by controller
+            "stripe": [{"name": "LED stripe", "leds": 30, "comment": "optional", "type": "WS2812B"}]  //LED stripes list. Possible types WS2810, WS2812B
+
         }
+
     ]
 }

@@ -95,7 +95,7 @@ private:
     * Create GPIO for the provider. Provider should created before using add_provider function
     */
     void add_gpio(const std::string& name, const std::string& provider_name,
-        const pirobot::gpio::GPIO_MODE gpio_mode, const int pin) noexcept(false);
+        const pirobot::gpio::GPIO_MODE gpio_mode, const int pin, const pirobot::gpio::PULL_MODE pull_mode) noexcept(false);
 
     /*
     *

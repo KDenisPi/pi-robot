@@ -161,17 +161,6 @@ public:
         return false;
     }
 
-    /*
-    * Get peripheral address
-    */
-    static const uint32_t get_peripheral_address() {
-#ifdef REAL_HARDWARE
-        return bcm_host_get_peripheral_address();
-#else
-        return 0x3f000000;
-#endif
-    }
-
     //callback function for upper level notification
     std::function<void(int, std::string&, void*)> notify;
 

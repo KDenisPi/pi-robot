@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 #project name
 project(pi-robot)
+enable_testing()
 
 set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../third-party")
 
@@ -40,7 +41,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 #
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("debug mode")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -std=c++11 -fexceptions -Wno-psabi")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -g -std=c++11 -fexceptions -Wno-psabi -Og")
 ELSE(CMAKE_BUILD_TYPE NOT STREQUAL "Debug")
     message("release with debug info mode")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_RELWITHDEBINFO} -std=c++11 -fexceptions -Wno-psabi")
@@ -62,14 +63,17 @@ set(EXTRA_LIBS ${EXTRA_LIBS} ${MOSQT_LIB} ${MOSQT_LIB_CPP})
 message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
+add_subdirectory(${PROJECT_SOURCE_DIR}/pi-core)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-sql)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-mqqt)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-http)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smachine)
 
+#add_subdirectory(${PROJECT_SOURCE_DIR}/pi-tests)
+
 #add_subdirectory(${PROJECT_SOURCE_DIR}/version1)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/project1)
-add_subdirectory(${PROJECT_SOURCE_DIR}/spi_test)
+#add_subdirectory(${PROJECT_SOURCE_DIR}/spi_test)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/storage)
-add_subdirectory(${PROJECT_SOURCE_DIR}/weather)
+#add_subdirectory(${PROJECT_SOURCE_DIR}/weather)

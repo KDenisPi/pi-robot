@@ -40,6 +40,17 @@ public:
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " name " + name + " Max SLEDs: " + std::to_string(sleds));
     }
 
+    SLedCtrl(item::ItemTypes itype,
+        const int sleds,
+        const std::string& name,
+        const std::shared_ptr<pirobot::gpio::Gpio> gpio,
+        const std::string& comment="") :
+            item::Item(gpio, name, comment, itype) ,
+             _data_buff(nullptr), _max_leds(0), _max_sleds(sleds), _data_buff_len(0), _transf_idx(0) {
+
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " name " + name + " Max SLEDs: " + std::to_string(sleds));
+    }
+
     virtual ~SLedCtrl(){
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " name " + name());
 
@@ -55,7 +66,7 @@ public:
             free(_data_buff);
     }
 
-    virtual bool write_data(unsigned char* data, int len) = 0;
+    virtual bool write_data(uint8_t* data, int len) = 0;
     virtual void On() = 0;
     virtual void Off() = 0;
 
@@ -405,7 +416,7 @@ private:
     /*
     *   Calculate buffer length
     *
-    *   WS2812B: LEDs * 3(RGB) * 3(3 SPI bits for 1 data bit) + 15 (50us)
+    *   WS2812B: LEDs * 3(RGB) * 3 (3 bits for 1 data bit) + 15 (50us)
     */
     const std::size_t get_buffer_length(const int leds, pirobot::item::SLedType stype) {
         std::size_t bsize =  leds * 3;

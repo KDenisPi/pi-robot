@@ -17,7 +17,7 @@ namespace pirobot{
 namespace gpio {
 
 enum GPIO_MODE {
-	IN 		= 0x0,  // 0b000
+	IN 	= 0x0,  // 0b000
 	OUT 	= 0x1,	// 0b001
 	ALT5 	= 0x2,	// 0b010
 	ALT4	= 0x3,  // 0b011
@@ -80,7 +80,7 @@ public:
 	virtual const int dgtRead(const int pin) = 0;
 	virtual void dgtWrite(const int pin, const int value) = 0;
 	virtual void dgtWritePWM(const int pin, const float dutyCycle, const float phaseOffset) {};
-	virtual void setmode(const int pin, const gpio::GPIO_MODE mode) = 0;
+	virtual void setmode(const int pin, const gpio::GPIO_MODE mode) noexcept(false) = 0;
 	virtual void pullUpDownControl(const int pin, const gpio::PULL_MODE pumode) {};
 	virtual void setPulse(const int pin, const uint16_t pulselen) {};
 

@@ -179,8 +179,8 @@ bool PiRobot::configure(const std::string& cfile){
                         " Speed[1]: " + std::to_string(spi_config.speed[1]) + " Mode[1]: " + std::to_string(spi_config.mode[1]));
                     }
 
-                    add_gpio("SPI_CE0_N", "SIMPLE", gpio::GPIO_MODE::OUT, 10); //SPI_CE0_N
-                    add_gpio("SPI_CE1_N", "SIMPLE", gpio::GPIO_MODE::OUT, 11); //SPI_CE1_N
+                    add_gpio("SPI_CE0_N", "SIMPLE", gpio::GPIO_MODE::OUT, 10, pirobot::gpio::PULL_MODE::PULL_OFF); //SPI_CE0_N
+                    add_gpio("SPI_CE1_N", "SIMPLE", gpio::GPIO_MODE::OUT, 11, pirobot::gpio::PULL_MODE::PULL_OFF); //SPI_CE1_N
 
                     //Ignore name
                     providers["SPI"] = std::shared_ptr<pirobot::provider::Provider>(
@@ -211,16 +211,26 @@ bool PiRobot::configure(const std::string& cfile){
                 auto gpio_pin = jsonhelper::get_attr_mandatory<int>(json_gpio, "pin");
                 auto gpio_mode = jsonhelper::get_attr_mandatory<std::string>(json_gpio, "mode");
                 auto gpio_name = jsonhelper::get_attr<std::string>(json_gpio, "name", get_gpio_name(gpio_provider, gpio_pin));
+                auto gpio_pull_mode = jsonhelper::get_attr<std::string>(json_gpio, "pull_mode", "OFF");
+
 
                 logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " GPIO Name: " + gpio_name + " Provider: " + gpio_provider +
                     " Pin:" + std::to_string(gpio_pin) + " Mode:" + gpio_mode);
 
-                if( !(gpio_mode == "IN" || gpio_mode == "OUT") ){
-                    logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid GPIO mode value IN/OUT");
+                if( !(gpio_mode == "IN" || gpio_mode == "OUT" || gpio_mode == "PWM") ){
+                    logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid GPIO mode value IN/OUT/PWM");
                     throw std::runtime_error(std::string("Invalid GPIO mode value IN/OUT"));
                 }
 
-                add_gpio(gpio_name, gpio_provider, (gpio_mode == "IN" ? gpio::GPIO_MODE::IN : gpio::GPIO_MODE::OUT), gpio_pin);
+                if( !(gpio_pull_mode == "UP" || gpio_pull_mode == "DOWN" || gpio_pull_mode == "OFF") ){
+                    logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid GPIO pull mode value UP/DOWM/OFF");
+                    throw std::runtime_error(std::string("Invalid GPIO pull mode value UP/DOWM/OFF"));
+                }
+
+                gpio::GPIO_MODE mode = (gpio_mode == "IN" ? gpio::GPIO_MODE::IN : (gpio_mode == "OUT" ? gpio::GPIO_MODE::OUT : gpio::GPIO_MODE::PWM_OUT));
+                gpio::PULL_MODE pull_mode = (gpio_pull_mode == "UP" ? gpio::PULL_MODE::PULL_UP : (gpio_pull_mode == "DOWN" ? gpio::PULL_DOWN : gpio::PULL_MODE::PULL_OFF));
+
+                add_gpio(gpio_name, gpio_provider, mode, gpio_pin, pull_mode);
             }
         }
         else
@@ -633,6 +643,7 @@ bool PiRobot::configure(const std::string& cfile){
                     case item::ItemTypes::SLEDCRTLPWM:
                     {
                         auto stripes  =  jsonhelper::get_attr<int>(json_item, "stripes", 0);
+                        std::string pwm_gpio = f_get_gpio_name(json_item, "gpio_pwm", item_name);
 
                         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item: " + item_name + " Comment: " + item_comment);
 
@@ -641,6 +652,7 @@ bool PiRobot::configure(const std::string& cfile){
                                     new pirobot::item::sledctrl::SLedCtrlPwm(
                                         stripes,
                                         item_name,
+                                        get_gpio(pwm_gpio),
                                         item_comment
                                     )));
 
