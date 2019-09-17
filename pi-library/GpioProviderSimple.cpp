@@ -87,10 +87,23 @@ void GpioProviderSimple::dgtWrite(const int pin, const int value)
         _gctrl->_GPSET[idx] = mask;
 }
 
-void GpioProviderSimple::setmode(const int pin, const GPIO_MODE mode){
+void GpioProviderSimple::setmode(const int pin, GPIO_MODE mode){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" for pin: ") + std::to_string(pin) + " mode: " + std::to_string(mode));
-
     int phpin = phys_pin(pin);
+
+    /*
+    * For PWM mode detect real mode
+    */
+    if(mode == GPIO_MODE::PWM_OUT){
+        GPIO_MODE pwm_mode = get_pwm_mode(phpin);
+        if(pwm_mode == mode){
+            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + std::string(" We do not support PWM for pin: ") + std::to_string(pin));
+            return;
+        }
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" PWM mode: ") + std::to_string(pwm_mode));
+        mode = pwm_mode;
+    }
+
     int idx = (phpin/9); // 9 GPIO by register
     const uint32_t mask = (mode << (3*(phpin%9)));
 
@@ -99,6 +112,7 @@ void GpioProviderSimple::setmode(const int pin, const GPIO_MODE mode){
     std::lock_guard<std::mutex> lock(_mx_gpio);
     _gctrl->_GPFSEL[idx] |= mask;
 }
+
 /*
 BCM2835 ARM Peripheral Section 6.1
 GPIO Pull-up/down Register (GPPUD) & GPIO Pull-up/down Clock Registers (GPPUDCLKn)

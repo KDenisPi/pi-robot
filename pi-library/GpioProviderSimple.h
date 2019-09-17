@@ -102,6 +102,25 @@ private:
         4,
         14, 15
     };
+
+    using pin_mode = std::tuple<int, GPIO_MODE>;
+
+    const pin_mode pins_pwm[4] = {
+        std::make_tuple(12, GPIO_MODE::ALT0),
+        std::make_tuple(18, GPIO_MODE::ALT5),
+        std::make_tuple(13, GPIO_MODE::ALT0),
+        std::make_tuple(18, GPIO_MODE::ALT5)
+    };
+
+    GPIO_MODE get_pwm_mode(const int pin) const {
+        for(int i = 0; i < 4; i++){
+            if(std::get<0>(pins_pwm[i]) == pin)
+                return std::get<1>(pins_pwm[i]);
+        }
+
+        return GPIO_MODE::PWM_OUT;
+    }
+
 };
 
 }

@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.0)
 #project name
 project(pi-library)
 
-include_directories(BEFORE ${PROJECT_SOURCE_DIR}/../pi-utils
+include_directories(BEFORE
+   ${PROJECT_SOURCE_DIR}/../pi-utils
+   ${PROJECT_SOURCE_DIR}/../pi-core
    ${JSONCONS}
 )
 
