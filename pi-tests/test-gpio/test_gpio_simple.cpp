@@ -21,14 +21,20 @@ using pgpio = std::shared_ptr<pirobot::gpio::Gpio>;
 
 void get_gpio_level(const pgpio pg);
 void set_gpio_level(const pgpio pg, int val);
+pirobot::gpio::GPIO_MODE get_gpio_mode(const pgpio pg);
 
 void get_gpio_level(const pgpio pg) {
-    std::cout << "GPIO " << pg->getPin() << " Level: " << pg->digitalRead() << std::endl;
+    std::cout << "GPIO " << pg->getPin() << " Get Level: " << pg->digitalRead() << std::endl;
 }
 void set_gpio_level(const pgpio pg, int val) {
     pg->digitalWrite(val);
-    std::cout << "GPIO " << pg->getPin() << " Level: " << val << std::endl;
+    std::cout << "GPIO " << pg->getPin() << " Set Level: " << val << std::endl;
 }
+
+pirobot::gpio::GPIO_MODE get_gpio_mode(const pgpio pg){
+    std::cout << "GPIO " << pg->getPin() << " Get Mode: " << pg->getmode() << std::endl;
+}
+
 
 
 using namespace std;
@@ -48,27 +54,40 @@ int main (int argc, char* argv[])
     pgpio p_gpio_1 = std::make_shared<pirobot::gpio::Gpio>(1, pirobot::gpio::GPIO_MODE::IN, p_smp);
     pgpio p_gpio_2 = std::make_shared<pirobot::gpio::Gpio>(2, pirobot::gpio::GPIO_MODE::OUT, p_smp);
 
-    std::cout << "GPIO. Change mode " << std::endl;
+    get_gpio_mode(p_gpio_0);
+    get_gpio_mode(p_gpio_1);
+    get_gpio_mode(p_gpio_2);
+
+    sleep(3);
+
+    std::cout << std::endl << "GPIO. Change mode " << std::endl;
     p_gpio_0->setMode(pirobot::gpio::GPIO_MODE::OUT);
     p_gpio_1->setMode(pirobot::gpio::GPIO_MODE::OUT);
 
+    get_gpio_mode(p_gpio_0);
+    get_gpio_mode(p_gpio_1);                                                                                                                                                                                                                                                                                                     get_gpio_mode(p_gpio_2); 
+    get_gpio_mode(p_gpio_2);
 
-    std::cout << "GPIOs Get Level " << std::endl;
+    sleep(3);
+
+    std::cout << std::endl << "GPIOs Get Level " << std::endl;
     get_gpio_level(p_gpio_0);
     get_gpio_level(p_gpio_1);
     get_gpio_level(p_gpio_2);
 
-    std::cout << "GPIOs Set Level " << std::endl;
+    std::cout << std::endl << "GPIOs Set Level " << std::endl;
     set_gpio_level(p_gpio_0, 1);
     set_gpio_level(p_gpio_1, 1);
     set_gpio_level(p_gpio_2, 1);
 
-    std::cout << "GPIOs Get Level " << std::endl;
+    std::cout << std::endl << "GPIOs Get Level " << std::endl;
     get_gpio_level(p_gpio_0);
     get_gpio_level(p_gpio_1);
     get_gpio_level(p_gpio_2);
 
-    std::cout << "Release GPIO objects " << std::endl;
+    sleep(3);
+
+    std::cout << std::endl <<"Release GPIO objects " << std::endl;
     p_gpio_0.reset();
     p_gpio_1.reset();
     p_gpio_2.reset();

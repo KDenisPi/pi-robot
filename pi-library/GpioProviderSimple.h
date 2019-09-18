@@ -69,7 +69,7 @@ public:
     virtual void pullUpDownControl(const int pin, const PULL_MODE pumode) override;
     virtual void setPulse(const int pin, const uint16_t pulselen) override;
 
-    const GPIO_MODE getMode(const int pin);
+    virtual const GPIO_MODE getmode(const int pin) override;
 
     virtual const GPIO_PROVIDER_TYPE get_type() const override { return GPIO_PROVIDER_TYPE::PROV_SIMPLE; }
     virtual const std::string to_string() override;
