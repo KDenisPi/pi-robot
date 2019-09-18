@@ -70,7 +70,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/pi-http)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smachine)
 
-#add_subdirectory(${PROJECT_SOURCE_DIR}/pi-tests)
+add_subdirectory(${PROJECT_SOURCE_DIR}/pi-tests)
 
 #add_subdirectory(${PROJECT_SOURCE_DIR}/version1)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/project1)

@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdint.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#include <errno.h>
 
 #include "mailbox.h"
 
@@ -48,7 +49,7 @@ void *mapmem(unsigned base, unsigned size)
    /* open /dev/mem */
    if ((mem_fd = open("/dev/mem", O_RDWR|O_SYNC) ) < 0) {
       printf("can't open /dev/mem\nThis program should be run as root. Try prefixing command with: sudo\n");
-      exit (-1);
+      return NULL;
    }
    void *mem = mmap(
       0,
@@ -61,7 +62,7 @@ void *mapmem(unsigned base, unsigned size)
    printf("base=0x%x, mem=%p\n", base, mem);
 //#endif
    if (mem == MAP_FAILED) {
-      printf("mmap error %d\n", (int)mem);
+      printf("mmap error %d\n", errno);
       //exit (-1);
       return NULL;
    }
