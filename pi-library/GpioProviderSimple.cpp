@@ -113,6 +113,19 @@ void GpioProviderSimple::setmode(const int pin, GPIO_MODE mode){
     _gctrl->_GPFSEL[idx] |= mask;
 }
 
+const GPIO_MODE GpioProviderSimple::getMode(const int pin){
+    int phpin = phys_pin(pin);
+    int idx = (phpin/9); // 9 GPIO by register
+    const uint32_t shift = (3*(phpin%9));
+    uint32_t value = _gctrl->_GPFSEL[idx];
+
+    uint8_t mode = (value >> shift) & 0x07;
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" ph pin: ") + std::to_string(phpin) + " Idx: " + std::to_string(idx) + 
+        " Shift: " + std::to_string(shift) + " Value: " + std::to_string(mode));
+        
+    return (GPIO_MODE)mode;
+}
+
 /*
 BCM2835 ARM Peripheral Section 6.1
 GPIO Pull-up/down Register (GPPUD) & GPIO Pull-up/down Clock Registers (GPPUDCLKn)
