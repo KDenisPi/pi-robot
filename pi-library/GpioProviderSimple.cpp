@@ -16,6 +16,7 @@ namespace gpio {
 
 const char TAG[] = "PrvSmpl";
 
+#define GPIO_MODE_SELECT_BY_REG    10
 /*
 *
 */
@@ -104,8 +105,8 @@ void GpioProviderSimple::setmode(const int pin, GPIO_MODE mode){
         mode = pwm_mode;
     }
 
-    int idx = (phpin/9); // 9 GPIO by register
-    const uint32_t mask = (mode << (3*(phpin%9)));
+    int idx = (phpin/GPIO_MODE_SELECT_BY_REG); // 10 GPIO by register
+    const uint32_t mask = (mode << (3*(phpin%GPIO_MODE_SELECT_BY_REG)));
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" ph pin: ") + std::to_string(phpin) + " Idx: " + std::to_string(idx) + " Mask: " + std::to_string(mask));
 
@@ -115,8 +116,8 @@ void GpioProviderSimple::setmode(const int pin, GPIO_MODE mode){
 
 const GPIO_MODE GpioProviderSimple::getmode(const int pin){
     int phpin = phys_pin(pin);
-    int idx = (phpin/9); // 9 GPIO by register
-    const uint32_t shift = (3*(phpin%9));
+    int idx = (phpin/GPIO_MODE_SELECT_BY_REG); // 10 GPIO by register
+    const uint32_t shift = (3*(phpin%GPIO_MODE_SELECT_BY_REG));
     uint32_t value = _gctrl->_GPFSEL[idx];
 
     uint8_t mode = (value >> shift) & 0x07;

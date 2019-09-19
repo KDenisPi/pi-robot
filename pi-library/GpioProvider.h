@@ -25,7 +25,7 @@ enum GPIO_MODE {
 	ALT1    = 0x5,  // 0b101
 	ALT2    = 0x6,  // 0b110
 	ALT3	= 0x7,	// 0b111
-	PWM_OUT = 0xF	//fake value, replaced by real one for appropriate GPIO
+	PWM_OUT = 0xF	// 0b1111 fake value, replaced by real one for appropriate GPIO
 };
 
 // Pull up/down/none
