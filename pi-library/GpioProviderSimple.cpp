@@ -24,7 +24,7 @@ GpioProviderSimple::GpioProviderSimple(const std::string name, const int pins) :
         GpioProvider(name, pins)
 {
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + std::string(" pins: ") + std::to_string(pins));
-    _gctrl = piutils::map_memory<gpio_ctrl>(0, "/dev/gpiomem");
+    _gctrl = piutils::map_memory<gpio_ctrl>(0x00200000, "/dev/gpiomem");
     if(!_gctrl){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + std::string(" Could not map GPIO control registers"));
         throw std::runtime_error(std::string("Could not map GPIO memory"));
@@ -106,12 +106,12 @@ void GpioProviderSimple::setmode(const int pin, GPIO_MODE mode){
     }
 
     int idx = (phpin/GPIO_MODE_SELECT_BY_REG); // 10 GPIO by register
-    const uint32_t mask = (mode << (3*(phpin%GPIO_MODE_SELECT_BY_REG)));
-
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" ph pin: ") + std::to_string(phpin) + " Idx: " + std::to_string(idx) + " Mask: " + std::to_string(mask));
+    int shift = (3*(phpin%GPIO_MODE_SELECT_BY_REG));
+    const uint32_t set_mask = (mode << shift);
+    const uint32_t cl_mask = ~(0x7 << shift);
 
     std::lock_guard<std::mutex> lock(_mx_gpio);
-    _gctrl->_GPFSEL[idx] |= mask;
+    _gctrl->_GPFSEL[idx] = _gctrl->_GPFSEL[idx] & cl_mask | set_mask;
 }
 
 const GPIO_MODE GpioProviderSimple::getmode(const int pin){

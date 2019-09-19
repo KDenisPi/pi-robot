@@ -78,6 +78,15 @@ public:
         return to_string() + "\n";
     }
 
+    const std::string print_mode() {
+      std::string result;
+
+      for(int i = 0; i < 26; i++){
+           result +=  "Pin: " + std::to_string(i) + " [" + std::to_string(phys_pin(i)) + "] Mode: " + std::to_string(getmode(i)) + "\n";
+      }
+      return result;
+    }
+
 private:
     volatile gpio_ctrl* _gctrl; //pointer to GPIO registers map
     std::mutex _mx_gpio;
