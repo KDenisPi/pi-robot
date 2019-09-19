@@ -32,7 +32,7 @@ void set_gpio_level(const pgpio pg, int val) {
 }
 
 pirobot::gpio::GPIO_MODE get_gpio_mode(const pgpio pg){
-    std::cout << "GPIO " << pg->getPin() << " Get Mode: " << pg->getmode() << std::endl;
+    std::cout << "GPIO " << pg->getPin() << " Get Mode Provider: " << pg->get_provider()->getmode(pg->getPin()) << " Gpio: " << pg->getMode() << std::endl;
 }
 
 
@@ -65,7 +65,7 @@ int main (int argc, char* argv[])
     p_gpio_1->setMode(pirobot::gpio::GPIO_MODE::OUT);
 
     get_gpio_mode(p_gpio_0);
-    get_gpio_mode(p_gpio_1);                                                                                                                                                                                                                                                                                                     get_gpio_mode(p_gpio_2); 
+    get_gpio_mode(p_gpio_1);                                                                                                                                                                                                                                                                                                     get_gpio_mode(p_gpio_2);
     get_gpio_mode(p_gpio_2);
 
     sleep(3);
