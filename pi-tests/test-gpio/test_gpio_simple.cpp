@@ -19,11 +19,11 @@ using pgpio = std::shared_ptr<pirobot::gpio::Gpio>;
 */
 
 
-void print_info(const int gpios, const pirobot::gpio::GPIO_MODE* p_modes, pirobot::gpio::GPIO_MODE* g_modes, const int* g_levels)
+void print_info(const int gpios, const pirobot::gpio::GPIO_MODE* p_modes, pirobot::gpio::GPIO_MODE* g_modes, const int* g_levels);
 
 void print_info(const int gpios, const pgpio* p_gpio, const pirobot::gpio::GPIO_MODE* p_modes, pirobot::gpio::GPIO_MODE* g_modes, const int* g_levels){
     for(int i = 0; i < gpios; i++){
-        std::cout << i << " PIN: " << p_gpio[i]->>getPin() << " PMode: " << p_modes[i] << " GMode: " << g_modes[i] << "Level: " << g_levels << std::endl;
+        std::cout << i << " PIN: " << p_gpio[i]->getPin() << " PMode: " << p_modes[i] << " GMode: " << g_modes[i] << " Level: " << g_levels[i] << std::endl;
     }
 }
 
