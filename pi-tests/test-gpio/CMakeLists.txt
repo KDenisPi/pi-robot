@@ -13,6 +13,8 @@ include_directories(BEFORE
 message( STATUS "GPIO GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "GPIO CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
+message( STATUS "GPIO REAL_HARDWARE:  ${REAL_HARDWARE}" )
+
 add_executable(test_gpio test_gpio_simple.cpp)
 
 set(TEST_GPIO_LIBS pi-library pi-utils pthread crypt rt)

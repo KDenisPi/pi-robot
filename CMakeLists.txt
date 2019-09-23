@@ -4,7 +4,16 @@ cmake_minimum_required(VERSION 3.0)
 project(pi-robot)
 enable_testing()
 
-set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../third-party")
+message( STATUS "REAL_HARDWARE:  ${REAL_HARDWARE}" )
+#set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../third-party")
+
+IF(REAL_HARDWARE)
+    set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../third-party")
+ELSE(REAL_HARDWARE)
+    set(THIRD_PARTY_HOME "$ENV{HOME}/third-party")
+ENDIF(REAL_HARDWARE)
+
+message( STATUS "THIRD_PARTY_HOME: ${THIRD_PARTY_HOME}")
 
 set(MOSQUITTO_HOME "${THIRD_PARTY_HOME}/mosquitto")
 set(MOSQUITTO_LIB "${MOSQUITTO_HOME}/build/lib")
