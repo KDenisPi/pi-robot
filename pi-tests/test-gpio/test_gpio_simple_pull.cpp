@@ -68,9 +68,13 @@ int main (int argc, char* argv[])
            success = false;
         }
 
-        if(p_modes[i] == pirobot::gpio::GPIO_MODE::IN && g_levels[i] != 0){
-           std::cout << "Level for GPIO IN is incorrect" << std::endl;
-           success = false;
+        if(p_modes[i] == pirobot::gpio::GPIO_MODE::IN){
+           if(g_levels[i] != 0){
+              std::cout << "Low Level for GPIO IN detected incorrectly" << std::endl;
+              success = false;
+           }
+           else
+              std::cout << "Low Level for GPIO IN is correct (0)" << std::endl;
         }
     }
 
@@ -83,12 +87,16 @@ int main (int argc, char* argv[])
     for(int i = 0; i < num_gpios; i++){
         g_levels[i] = p_gpio[i]->digitalRead();
 
-        if(p_modes[i] == pirobot::gpio::GPIO_MODE::IN && g_levels[i] != 1){
-           std::cout << "Level for GPIO IN detected incorrectly" << std::endl;
-           success = false;
+        if(p_modes[i] == pirobot::gpio::GPIO_MODE::IN){
+           if(g_levels[i] != 1){
+               std::cout << "High Level for GPIO IN detected incorrectly" << std::endl;
+               success = false;
+           }
+           else
+               std::cout << "High Level for GPIO IN is correct (1)" << std::endl;
         }
     }
-    
+
     print_info(num_gpios, p_gpio, p_modes, g_modes, g_levels);
     p_gpio[0]->digitalWrite(0);
 
