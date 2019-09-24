@@ -151,9 +151,9 @@ void GpioProviderSimple::pullUpDownControl(const int pin, const PULL_MODE pumode
 
     std::lock_guard<std::mutex> lock(_mx_gpio);
     _gctrl->_GPPUD = (uint32_t)pumode;          //step 1
-    piutils::timers::Timers::delay_micro(10);   //step 2
+    piutils::timers::Timers::delay(150);   //step 2
     _gctrl->_GPPUDCLK[idx] = mask;              //step 3
-    piutils::timers::Timers::delay_micro(10);   //step 4
+    piutils::timers::Timers::delay(150);   //step 4
     _gctrl->_GPPUD = 0;                         //step 5
     _gctrl->_GPPUDCLK[idx] = 0;                 //step 6
 }
