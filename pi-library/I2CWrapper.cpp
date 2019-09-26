@@ -125,6 +125,7 @@ int I2CWrapper::I2CSetup(const int slave_addr){
         throw std::runtime_error(err);
     }
 
+    logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Addr: " + std::to_string(slave_addr) + " FD: " + std::to_string(fd));
     return fd;
 }
 
@@ -132,6 +133,8 @@ int I2CWrapper::I2CSetup(const int slave_addr){
 *Close I2C connection
 */
 void I2CWrapper::I2CClose(const int fd){
+    logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " FD: " + std::to_string(fd));
+
     if(fd >0){
         close(fd);
     }

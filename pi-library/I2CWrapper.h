@@ -102,10 +102,12 @@ public:
     *
     */
     I2CWrapper(const std::string dname = "/dev/i2c-1") : _device(dname) {
-
+        logger::log(logger::LLOG::INFO, "I2C", std::string(__func__) + " Device name: " + _device);
     }
 
-    virtual ~I2CWrapper() {}
+    virtual ~I2CWrapper() {
+        logger::log(logger::LLOG::INFO, "I2C", std::string(__func__) + " Device name: " + _device);
+    }
 
     int I2CRead(const int fd) ;
     int I2CReadReg8(const int fd, const int reg) ;
