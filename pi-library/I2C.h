@@ -32,7 +32,7 @@ public:
     // Add an Item connected to I2C
     */
     int add_user(const std::string name, const uint8_t addr){
-        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Name: " + name + " Addr: " + std::to_string(addr));
+        logger::log(logger::LLOG::INFO, "I2C", std::string(__func__) + " Name: " + name + " Addr: " + std::to_string(addr));
 
         int fd = I2CSetup(addr);
         m_users.push_back(std::make_pair(name, addr));
@@ -41,7 +41,7 @@ public:
     }
 
     void del_user(const std::string name, const int fd){
-        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Name: " + name + " FD: " + std::to_string(fd));
+        logger::log(logger::LLOG::INFO, "I2C", std::string(__func__) + " Name: " + name + " FD: " + std::to_string(fd));
 
         I2CClose(fd);
         //TODO: remove from list. Use map by name?
