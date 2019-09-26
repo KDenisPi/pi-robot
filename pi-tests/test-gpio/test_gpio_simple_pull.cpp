@@ -13,9 +13,9 @@ using pgpio = std::shared_ptr<pirobot::gpio::Gpio>;
 
 /*
 * Pull UP Pull Down GPIO test.
-* Preconfition: Use two GPIO
-   GPIO 0 - set to OUT, level 0
-   GPIO 1 - Set to IN, Pull mode Down
+* Preconfition: Concatenate two GPIOs. 
+   GPIO 0 (PIN 11)- set to OUT, level 0
+   GPIO 1 (PIN 12)- Set to IN, Pull mode Down
 * 1. Initilize GPIO simple provider
 * 2. Get value for GPIO 1 (should be 0)
 * 3. Set Level UP (1) for GPIO 0
