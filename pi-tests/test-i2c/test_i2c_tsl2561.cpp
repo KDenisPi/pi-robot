@@ -26,9 +26,9 @@ int main (int argc, char* argv[])
     std::cout << "Started " << std::endl;
 
     std::cout << "Create provider" << std::endl;
-    pi2c p_pi2c = std::make_shared<pirobot::item::Tsl2561>();
+    pi2c p_pi2c = std::make_shared<pirobot::i2c::I2C>();
 
-    ptsl2561 p_ptsl2561 = std::make_shared<pirobot::i2c::I2C>("TSL2561", p_pi2c);
+    ptsl2561 p_ptsl2561 = std::make_shared<pirobot::item::Tsl2561>("TSL2561", p_pi2c);
 
 
     std::cout << "Release TSL2561 objects " << std::endl;
