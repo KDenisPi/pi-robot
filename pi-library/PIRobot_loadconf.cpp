@@ -79,12 +79,12 @@ bool PiRobot::configure(const std::string& cfile){
         //
         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " ------------ Load providers ------------");
 
-        if(conf.has_key("providers"))
+        if(conf.contains("providers"))
         {
-            auto json_providers  =  conf["providers"];
+            const jsoncons::json& json_providers  =  conf["providers"];
             for(const auto& provider : json_providers.array_range()){
                 std::string provider_type = provider["type"].as<std::string>();
-                std::string provider_name = (provider.has_key("name") ? provider["name"].as<std::string>() : provider_type);
+                std::string provider_name = (provider.contains("name") ? provider["name"].as<std::string>() : provider_type);
 
                 logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Try to create provider. Name: " + provider_name + " Type: " + provider_type);
 
@@ -199,8 +199,8 @@ bool PiRobot::configure(const std::string& cfile){
         // Create GPIO
         */
         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " ------------ Load GPIOs ------------");
-        if(conf.has_key("gpios")){
-            auto json_gpios  =  conf["gpios"];
+        if(conf.contains("gpios")){
+            const jsoncons::json&  json_gpios  =  conf["gpios"];
             for(const auto& json_gpio : json_gpios.array_range()){
 
                 //
@@ -247,7 +247,7 @@ bool PiRobot::configure(const std::string& cfile){
             //
             // If GPIO has his own name - use it without checking provider and PIN
             //
-            if(gpio_object.has_key("name")){
+            if(gpio_object.contains("name")){
                 return jsonhelper::get_attr_mandatory<std::string>(gpio_object, "name");
             }
 
@@ -278,8 +278,8 @@ bool PiRobot::configure(const std::string& cfile){
             return (direction_name == "CLOCKWISE" ? item::MOTOR_DIR::DIR_CLOCKWISE : item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
         };
 
-        if(conf.has_key("items")){
-            auto json_items  =  conf["items"];
+        if(conf.contains("items")){
+            const jsoncons::json&  json_items  =  conf["items"];
             for(const auto& json_item : json_items.array_range()){
 
                 auto item_type = jsonhelper::get_attr_mandatory<std::string>(json_item, "type");
@@ -302,7 +302,7 @@ bool PiRobot::configure(const std::string& cfile){
                     case item::ItemTypes::DCMotor:
                     case item::ItemTypes::AnlgDgtConvertor:
                     {
-                        if(!json_item.has_key("gpio")){
+                        if(!json_item.contains("gpio")){
                             logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid Item configuration. GPIO information is absent.");
                             throw std::runtime_error(std::string(" Invalid Item configuration. GPIO information is absent."));
                         }
@@ -680,9 +680,9 @@ bool PiRobot::configure(const std::string& cfile){
         else
             logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " No Items information");
     }
-    catch(jsoncons::parse_error& perr){
+    catch(jsoncons::ser_error& perr){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid configuration " +
-            perr.what() + " Line: " + std::to_string(perr.line_number()) + " Column: " + std::to_string(perr.column_number()));
+            perr.what() + " Line: " + std::to_string(perr.line()) + " Column: " + std::to_string(perr.column()));
     }
 
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot configuration is finished");

@@ -35,9 +35,9 @@ bool Context::load_initial_data(const std::string& filename){
         data.spg30_base_tvoc = jsonhelper::get_attr<uint16_t>(conf, "base_tvoc", 0);
 
     }
-    catch(jsoncons::parse_error& perr){
+    catch(jsoncons::ser_error& perr){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid configuration " +
-            perr.what() + " Line: " + std::to_string(perr.line_number()) + " Column: " + std::to_string(perr.column_number()));
+            perr.what() + " Line: " + std::to_string(perr.line()) + " Column: " + std::to_string(perr.column()));
         return false;
     }
 

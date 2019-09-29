@@ -84,9 +84,9 @@ public:
             /*
             * Load general application parameters
             */
-            if(conf.has_key("context"))
+            if(conf.contains("context"))
             {
-                auto json_context  =  conf["context"];
+                const jsoncons::json& json_context  =  conf["context"];
                 _log_path = jsonhelper::get_attr<std::string>(json_context, "log_path", "/var/log/pi-robot");
                 _log_name = jsonhelper::get_attr<std::string>(json_context, "log_name", "async_file_logger");
                 _log_file = jsonhelper::get_attr<std::string>(json_context, "log_file", "async_log");
@@ -96,9 +96,9 @@ public:
             /*
             * Load email parameters
             */
-            if(conf.has_key("email"))
+            if(conf.contains("email"))
             {
-                auto json_context  =  conf["email"];
+                const jsoncons::json& json_context  =  conf["email"];
                 _email_server = jsonhelper::get_attr<std::string>(json_context, "server", "");
                 _email_cert = jsonhelper::get_attr<std::string>(json_context, "certificate", "");
                 _email_user = jsonhelper::get_attr<std::string>(json_context, "user", "");
@@ -110,9 +110,9 @@ public:
             /*
             * Load MQQT configuration
             */
-            if(conf.has_key("mqqt"))
+            if(conf.contains("mqqt"))
             {
-                auto json_mqqt  =  conf["mqqt"];
+                const jsoncons::json& json_mqqt  =  conf["mqqt"];
                 //host name is mandatory
                 auto mqqt_enable = jsonhelper::get_attr<bool>(json_mqqt, "enable", false);
                 auto host = jsonhelper::get_attr_mandatory<std::string>(json_mqqt, "host");
@@ -142,9 +142,9 @@ public:
                 }
             }
         }
-        catch(jsoncons::parse_error& perr){
+        catch(jsoncons::ser_error& perr){
             logger::log(logger::LLOG::ERROR, "Env", std::string(__func__) + " Invalid configuration " +
-                perr.what() + " Line: " + std::to_string(perr.line_number()) + " Column: " + std::to_string(perr.column_number()));
+                perr.what() + " Line: " + std::to_string(perr.line()) + " Column: " + std::to_string(perr.column()));
 
             return false;
         }

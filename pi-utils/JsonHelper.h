@@ -19,7 +19,7 @@ namespace jsonhelper {
 */
 template<class T>
 T get_attr(const jsoncons::json& object, const std::string& name, const T& attr_default){
-        return (object.has_key(name) ? object[name].as<T>() : attr_default);
+        return (object.contains(name) ? object[name].as<T>() : attr_default);
 };
 
 /*
@@ -27,24 +27,13 @@ T get_attr(const jsoncons::json& object, const std::string& name, const T& attr_
 */
 template<class T>
 T get_attr_mandatory(const jsoncons::json& object, const std::string& name){
-    if(!object.has_key(name)){
+    if(!object.contains(name)){
         logger::log(logger::LLOG::ERROR, "JsonHelper", std::string(__func__) + " Absent mandatory attribute " + name);
         throw std::runtime_error(std::string("Absent mandatory attribute. Name: ") + name);
     }
     return object[name].as<T>();
 };
 
-/*
-//
-*/
-/*
-std::string str_toupper(std::string s) {
-    std::transform(s.begin(), s.end(), s.begin(), 
-        [](unsigned char c){ return std::toupper(c); } // correct
-     );
-    return s;
-}
-*/
 } // end namespace
 
 #endif
