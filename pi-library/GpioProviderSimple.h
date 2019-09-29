@@ -8,8 +8,11 @@
 #ifndef PI_LIBRARY_GPIOPROVIDERSIMPLE_H_
 #define PI_LIBRARY_GPIOPROVIDERSIMPLE_H_
 
+#include <cstdlib>
+
 #include "GpioProvider.h"
 #include "smallthings.h"
+#include "timers.h"
 
 namespace pirobot {
 namespace gpio {
@@ -78,10 +81,78 @@ public:
         return to_string() + "\n";
     }
 
+	/*
+	* Some GPIO providers supoprt level detection through interrupt
+	* It can be useful for detection multiple states changing (usually IN; for example buttons) instead of polling
+	*/
+    const size_t s_buff_size = 32;
+
+	virtual bool export_gpio(const int pin) override {
+        logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" pin: ") + std::to_string(pin));
+
+        bool result = false;
+        auto pin_dir = get_gpio_path(pin);
+        
+        if(!piutils::chkfile(pin_dir)){
+            logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " No folder for pin: " + pin_dir);
+            std::string command = std::string("echo ") + std::to_string(pin) + std::string(" > /sys/class/gpio/export");
+
+            int res = std::system(command.c_str());
+            logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " Executed command: " + command + " result: " + std::to_string(res));
+
+            piutils::timers::Timers::delay(500);
+
+            //check result
+            if(!piutils::chkfile(pin_dir)){
+                logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + std::string(" Could not create folder: ") + pin_dir);
+                return result;
+            }
+        }
+
+
+        //GPIO exported. Add it to pool
+
+        return result;
+    }
+
+	virtual bool unexport_gpio(const int pin) override {
+        logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" pin: ") + std::to_string(pin));
+
+        //
+        //Stop check procedure
+        //
+
+        auto pin_dir = get_gpio_path(pin);
+        if(piutils::chkfile(pin_dir)){
+            logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " Folder exist: " + pin_dir);
+            std::string command = std::string("echo ") + std::to_string(pin) + std::string(" > /sys/class/gpio/unexport");
+
+            int res = std::system(command.c_str());
+            logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " Executed command: " + command + " result: " + std::to_string(res));
+
+            piutils::timers::Timers::delay(500);
+
+            if(piutils::chkfile(pin_dir)){
+                logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + std::string(" Could not delete folder: ") + pin_dir);
+                return false;
+            }
+        }
+
+        return true;
+    }
+	
+    virtual bool is_support_group() override {
+        return true;
+    }
+
+
+    /*
+    * Print mode for each GPIO PIN
+    */
     const std::string print_mode() {
       std::string result;
 
-      for(int i = 0; i < 26; i++){
+      for(int i = 0; i < pins(); i++){
            result +=  "Pin: " + std::to_string(i) + " [" + std::to_string(phys_pin(i)) + "] Mode: " + std::to_string(getmode(i)) + "\n";
       }
       return result;
@@ -93,6 +164,15 @@ private:
 
     const int phys_pin(const int pin) const {
         return pins_map[getRealPin(pin)];
+    }
+
+    //Prepare directory name for PIN
+    const std::string get_gpio_path(const int pin){
+        char buff[s_buff_size];
+        snprintf(buff, s_buff_size, "/sys/class/gpio/gpio%d/value", pin);
+        std::string pin_dir = buff;
+
+        return pin_dir;
     }
 
     /*

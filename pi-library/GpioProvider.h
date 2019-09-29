@@ -10,6 +10,7 @@
 
 #include <cassert>
 #include <string>
+#include <functional>
 
 #include "provider.h"
 
@@ -49,6 +50,8 @@ enum GPIO_PROVIDER_TYPE {
         PROV_MCP23008  // MCP 23008
 };
 
+using gpio_notify = std::function<void(uint32_t)>;
+
 class GpioProvider : public pirobot::provider::Provider {
 public:
 	GpioProvider(const std::string& name, const int pin_count = 0, const std::string comment = "") :
@@ -63,7 +66,7 @@ public:
 	 */
 	int getRealPin(const int pin) const noexcept(false){
 		assert(pin < m_pcount);
-		if(pin >= m_pcount){
+		if(pin < 0 || pin >= m_pcount){
 			throw std::runtime_error(std::string("Invalid Pin number"));
 		}
 		return pin;
@@ -85,6 +88,19 @@ public:
 	virtual void pullUpDownControl(const int pin, const gpio::PULL_MODE pumode) {};
 	virtual void setPulse(const int pin, const uint16_t pulselen) {};
 	virtual const gpio::GPIO_MODE getmode(const int pin) { return gpio::GPIO_MODE::PWM_OUT; }
+
+	//Get number of PINs
+	const int pins() const {
+		return m_pcount;
+	}
+
+	/*
+	* Some GPIO providers supoprt level detection through interrupt
+	* It can be useful for detection multiple states changing (usually IN; for example buttons) instead of polling
+	*/
+	virtual bool export_gpio(const int pin) {return false;}
+	virtual bool unexport_gpio(const int pin) {return true;}
+	virtual bool is_support_group() {return false;}
 
 private:
 	int m_pcount;
