@@ -42,12 +42,26 @@ enum SGN_LEVEL {
     SGN_HIGH = 1
 };
 
+//Type of GPIO providers
 enum GPIO_PROVIDER_TYPE {
         PROV_FAKE,     //Fake provider for test purpose only
         PROV_SIMPLE,   // Rasberry Pi
         PROV_PCA9685,  // PCA 9685
         PROV_MCP23017, // MCP 23017
         PROV_MCP23008  // MCP 23008
+};
+
+/*
+* Enums for GPIO edge and level detection
+*/
+enum GPIO_EDGE_LEVEL {
+	EDGE_LEVEL_OFF,
+	EDGE_RAISING,
+	EDGE_FALLING,
+	EDGE_BOTH,
+	LEVEL_HIGH,
+	LEVEL_LOW,
+	LEVEL_BOTH
 };
 
 using gpio_notify = std::function<void(uint32_t)>;
@@ -94,15 +108,16 @@ public:
 		return m_pcount;
 	}
 
+	//set edge and level detection for pin (if supported)
+	virtual bool set_egde_level(const int pin, GPIO_EDGE_LEVEL edgs_level){ return false;}
+
+private:
 	/*
 	* Some GPIO providers supoprt level detection through interrupt
 	* It can be useful for detection multiple states changing (usually IN; for example buttons) instead of polling
 	*/
-	virtual bool export_gpio(const int pin) {return false;}
-	virtual bool unexport_gpio(const int pin) {return true;}
 	virtual bool is_support_group() {return false;}
 
-private:
 	int m_pcount;
 };
 

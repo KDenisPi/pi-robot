@@ -60,10 +60,12 @@ using gpio_ctrl = struct __attribute__((packed, aligned(4))) gpio_ctrl {
     uint32_t _reserved12;
 };
 
+class Gpio;
+
 class GpioProviderSimple : public GpioProvider
 {
 public:
-    GpioProviderSimple(const std::string name = "SIMPLE", const int pins = 26) noexcept(false);
+    GpioProviderSimple(const std::string name = "SIMPLE", const int pins = s_pins) noexcept(false);
     virtual ~GpioProviderSimple();
 
     virtual const int dgtRead(const int pin) override;
@@ -81,16 +83,105 @@ public:
         return to_string() + "\n";
     }
 
+    virtual bool is_support_group() override {
+        return true;
+    }
+
+    static const int s_pins = 26;
+
+	//set edge and level detection for pin (if supported)
+	virtual bool set_egde_level(const int pin, GPIO_EDGE_LEVEL edgs_level) override { 
+        logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" pin: ") + std::to_string(pin) + " Edge&Level: " + std::to_string(edgs_level));
+
+        if( !is_support_group())
+            return false;
+
+        int phpin = phys_pin(pin);
+        int idx = (phpin/32); // 32 GPIO by register
+        const uint32_t mask = (1 << (phpin%32));
+
+        std::lock_guard<std::mutex> lock(_mx_gpio);
+
+        //clear previous values
+        _gctrl->_GPREN[idx] = _gctrl->_GPREN[idx] & (~mask);
+        _gctrl->_GPFEN[idx] = _gctrl->_GPFEN[idx] & (~mask);
+        _gctrl->_GPHEN[idx] = _gctrl->_GPHEN[idx] & (~mask);
+        _gctrl->_GPLEN[idx] = _gctrl->_GPLEN[idx] & (~mask);
+
+        //set new value
+        if(edgs_level == GPIO_EDGE_LEVEL::EDGE_RAISING || edgs_level == GPIO_EDGE_LEVEL::EDGE_BOTH){
+            _gctrl->_GPREN[idx] = _gctrl->_GPREN[idx] | mask;
+        }
+
+        if(edgs_level == GPIO_EDGE_LEVEL::EDGE_FALLING || edgs_level == GPIO_EDGE_LEVEL::EDGE_BOTH){
+            _gctrl->_GPFEN[idx] = _gctrl->_GPFEN[idx] | mask;
+        }
+
+        if(edgs_level == GPIO_EDGE_LEVEL::LEVEL_HIGH || edgs_level == GPIO_EDGE_LEVEL::LEVEL_BOTH){
+            _gctrl->_GPHEN[idx] = _gctrl->_GPHEN[idx] | mask;
+        }
+
+        if(edgs_level == GPIO_EDGE_LEVEL::LEVEL_LOW || edgs_level == GPIO_EDGE_LEVEL::LEVEL_BOTH){
+            _gctrl->_GPLEN[idx] = _gctrl->_GPLEN[idx] | mask;
+        }
+
+        /*
+        * Switch GPIO detection off
+        * We will not export GPIO each time
+        */
+        if(edgs_level == GPIO_EDGE_LEVEL::EDGE_LEVEL_OFF){
+            if( _fds[pin] > 0){
+                logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Switch OFF detection for pin: ") + std::to_string(pin));
+
+                close(_fds[pin]);
+                _fds[pin] = -1;
+            }
+            return true;
+        }
+
+        //Chec if GPIO was exported and export if not
+        if( !export_gpio(pin)){
+            return false;
+        }
+
+        //if file for this GPIO is not open yet - do it
+        if( _fds[pin] < 0){
+            auto pin_dir = get_gpio_path(pin) + "/value";
+            _fds[pin] = open(pin_dir.c_str(), O_RDONLY);
+            if( _fds[pin] < 0){
+                logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Could not open: ") + pin_dir + " Error:" + std::to_string(errno));
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    /*
+    * Print mode for each GPIO PIN
+    */
+    const std::string print_mode() {
+      std::string result;
+
+      for(int i = 0; i < pins(); i++){
+           result +=  "Pin: " + std::to_string(i) + " [" + std::to_string(phys_pin(i)) + "] Mode: " + std::to_string(getmode(i)) + "\n";
+      }
+      return result;
+    }
+
+    friend class Gpio;
+
+protected:
+
 	/*
 	* Some GPIO providers supoprt level detection through interrupt
 	* It can be useful for detection multiple states changing (usually IN; for example buttons) instead of polling
 	*/
-    const size_t s_buff_size = 32;
+    static const size_t s_buff_size = 32;
 
-	virtual bool export_gpio(const int pin) override {
+	bool export_gpio(const int pin) {
         logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" pin: ") + std::to_string(pin));
-
-        bool result = false;
         auto pin_dir = get_gpio_path(pin);
         
         if(!piutils::chkfile(pin_dir)){
@@ -105,22 +196,18 @@ public:
             //check result
             if(!piutils::chkfile(pin_dir)){
                 logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + std::string(" Could not create folder: ") + pin_dir);
-                return result;
+                return false;
             }
         }
 
-
-        //GPIO exported. Add it to pool
-
-        return result;
+        return true;
     }
 
-	virtual bool unexport_gpio(const int pin) override {
+    /*
+    *
+    */
+	bool unexport_gpio(const int pin) {
         logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" pin: ") + std::to_string(pin));
-
-        //
-        //Stop check procedure
-        //
 
         auto pin_dir = get_gpio_path(pin);
         if(piutils::chkfile(pin_dir)){
@@ -141,24 +228,9 @@ public:
         return true;
     }
 	
-    virtual bool is_support_group() override {
-        return true;
-    }
+    int _fds[s_pins];
 
-
-    /*
-    * Print mode for each GPIO PIN
-    */
-    const std::string print_mode() {
-      std::string result;
-
-      for(int i = 0; i < pins(); i++){
-           result +=  "Pin: " + std::to_string(i) + " [" + std::to_string(phys_pin(i)) + "] Mode: " + std::to_string(getmode(i)) + "\n";
-      }
-      return result;
-    }
-
-private:
+private:    
     volatile gpio_ctrl* _gctrl; //pointer to GPIO registers map
     std::mutex _mx_gpio;
 

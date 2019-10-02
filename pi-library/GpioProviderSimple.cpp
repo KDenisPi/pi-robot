@@ -30,6 +30,9 @@ GpioProviderSimple::GpioProviderSimple(const std::string name, const int pins) :
         throw std::runtime_error(std::string("Could not map GPIO memory"));
     }
 
+    for(int i = 0; i < s_pins; i++) 
+        _fds[i] = -1;
+
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" GPIO control registers mapped"));
 }
 
@@ -38,6 +41,17 @@ GpioProviderSimple::GpioProviderSimple(const std::string name, const int pins) :
 */
 GpioProviderSimple::~GpioProviderSimple() {
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__));
+
+    for(int i = 0; i < s_pins; i++){
+        if( _fds[i] > 0){
+            //close handle
+            close(_fds[i]);
+            //unexport GPIO
+            unexport_gpio(i);
+            
+            _fds[i] = -1;
+        }
+    }
 
     if(_gctrl){
         piutils::unmap_memory<gpio_ctrl>(static_cast<gpio_ctrl*>((void*)_gctrl));
