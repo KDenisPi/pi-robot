@@ -113,8 +113,7 @@ void MCP320X::stop(){
 }
 
 void MCP320X::activate_data_receiver(const int input_idx){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Received activate signal from: " +
-                        std::to_string(input_idx));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Received activate signal from: " + std::to_string(input_idx));
     cv.notify_one();
 }
 

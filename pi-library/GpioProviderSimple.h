@@ -9,10 +9,12 @@
 #define PI_LIBRARY_GPIOPROVIDERSIMPLE_H_
 
 #include <cstdlib>
+#include <poll.h>
 
 #include "GpioProvider.h"
 #include "smallthings.h"
 #include "timers.h"
+#include "Threaded.h"
 
 namespace pirobot {
 namespace gpio {
@@ -62,7 +64,7 @@ using gpio_ctrl = struct __attribute__((packed, aligned(4))) gpio_ctrl {
 
 class Gpio;
 
-class GpioProviderSimple : public GpioProvider
+class GpioProviderSimple : public GpioProvider, public piutils::Threaded
 {
 public:
     GpioProviderSimple(const std::string name = "SIMPLE", const int pins = s_pins) noexcept(false);
@@ -90,7 +92,7 @@ public:
     static const int s_pins = 26;
 
 	//set edge and level detection for pin (if supported)
-	virtual bool set_egde_level(const int pin, GPIO_EDGE_LEVEL edgs_level) override { 
+	virtual bool set_egde_level(const int pin, GPIO_EDGE_LEVEL edgs_level) override {
         logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" pin: ") + std::to_string(pin) + " Edge&Level: " + std::to_string(edgs_level));
 
         if( !is_support_group())
@@ -107,6 +109,15 @@ public:
         _gctrl->_GPFEN[idx] = _gctrl->_GPFEN[idx] & (~mask);
         _gctrl->_GPHEN[idx] = _gctrl->_GPHEN[idx] & (~mask);
         _gctrl->_GPLEN[idx] = _gctrl->_GPLEN[idx] & (~mask);
+
+        /*
+        * Switch GPIO detection off
+        * We will not export GPIO each time
+        */
+        if(edgs_level == GPIO_EDGE_LEVEL::EDGE_LEVEL_OFF){
+            close_gpio_folder(pin);
+            return true;
+        }
 
         //set new value
         if(edgs_level == GPIO_EDGE_LEVEL::EDGE_RAISING || edgs_level == GPIO_EDGE_LEVEL::EDGE_BOTH){
@@ -125,36 +136,7 @@ public:
             _gctrl->_GPLEN[idx] = _gctrl->_GPLEN[idx] | mask;
         }
 
-        /*
-        * Switch GPIO detection off
-        * We will not export GPIO each time
-        */
-        if(edgs_level == GPIO_EDGE_LEVEL::EDGE_LEVEL_OFF){
-            if( _fds[pin] > 0){
-                logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Switch OFF detection for pin: ") + std::to_string(pin));
-
-                close(_fds[pin]);
-                _fds[pin] = -1;
-            }
-            return true;
-        }
-
-        //Chec if GPIO was exported and export if not
-        if( !export_gpio(pin)){
-            return false;
-        }
-
-        //if file for this GPIO is not open yet - do it
-        if( _fds[pin] < 0){
-            auto pin_dir = get_gpio_path(pin) + "/value";
-            _fds[pin] = open(pin_dir.c_str(), O_RDONLY);
-            if( _fds[pin] < 0){
-                logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Could not open: ") + pin_dir + " Error:" + std::to_string(errno));
-                return false;
-            }
-        }
-
-        return true;
+        return open_gpio_folder(pin);
     }
 
 
@@ -172,7 +154,94 @@ public:
 
     friend class Gpio;
 
+    /*
+    *
+    */
+    static void worker(GpioProviderSimple* owner){
+        logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + "Worker started.");
+
+        struct pollfd* pfd = owner->get_fds();
+        nfds_t nfd = GpioProviderSimple::s_pins;
+        int fd_timeout = 600000;
+        char rbuff[5];
+
+        //check if we ready to start - we has GPIO for test
+        auto fn = [owner]{return (owner->is_stop_signal() | owner->fd_count() > 0);};
+
+        while(!owner->is_stop_signal()){
+
+            {
+                std::unique_lock<std::mutex> lk(owner->cv_m);
+                owner->cv.wait(lk, fn);
+
+                logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" FD count: ") + std::to_string(owner->fd_count()));
+            }
+
+            //initialize data
+            for(int i=0; i<nfd; i++){
+                pfd[i].events = POLLPRI;
+                pfd[i].revents = 0;
+            }
+
+            //make request
+            int res = poll(pfd, nfd, fd_timeout);
+            if(res == 0){
+                //nothing happened or timeout
+                continue;
+            }
+            else if(res < 0){
+                logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll error: " + std::to_string(errno));
+                //TODO: what next?
+            }
+            else{
+                //process events one by one
+                for(int i = 0; i < nfd && res > 0; i++ ){
+                    //we have something for this descriptor
+                    if(pfd[i].fd > 0 && pfd[i].revents != 0){
+                        if((pfd[i].revents&POLLPRI) != 0){
+                            //get a new value and notify
+                            memset(rbuff, 0x00, 5);
+		                    lseek(pfd[i].fd, 0, SEEK_SET);
+                            int rres = read(pfd[i].fd, rbuff, 4);
+                            if(rres < 0){
+                                logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Read error: " + std::to_string(errno));
+                            }
+
+                            uint32_t value = *((uint32_t*)rbuff);
+                            logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Value: " + std::to_string(value));
+
+                            res--; //not need to check if we have already processed all
+                        }
+                        else if((pfd[i].revents&POLLERR) != 0){
+                            //something wrong here
+                            logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Revents: " + std::to_string(pfd[i].revents));
+                        }
+                    }
+                }
+            }
+
+        }
+
+        logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + "Worker finished.");
+    }
+
+    void stop(){
+        logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__));
+        piutils::Threaded::stop();
+    }
+
+
 protected:
+
+    struct pollfd* get_fds() {
+        return _fds;
+    }
+
+    const int fd_count() const {
+        return _fd_count;
+    }
+
+    int _fd_count = 0;
 
 	/*
 	* Some GPIO providers supoprt level detection through interrupt
@@ -183,7 +252,7 @@ protected:
 	bool export_gpio(const int pin) {
         logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" pin: ") + std::to_string(pin));
         auto pin_dir = get_gpio_path(pin);
-        
+
         if(!piutils::chkfile(pin_dir)){
             logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " No folder for pin: " + pin_dir);
             std::string command = std::string("echo ") + std::to_string(pin) + std::string(" > /sys/class/gpio/export");
@@ -227,12 +296,59 @@ protected:
 
         return true;
     }
-	
-    int _fds[s_pins];
 
-private:    
+    /*
+    *
+    */
+    bool open_gpio_folder(const int pin){
+        //Check if GPIO was exported and export if not
+        if( !export_gpio(pin)){
+            return false;
+        }
+
+        //if file for this GPIO is not open yet - do it
+        if( _fds[pin].fd < 0){
+            auto pin_dir = get_gpio_path(pin) + "/value";
+            _fds[pin].fd = open(pin_dir.c_str(), O_RDONLY);
+            if( _fds[pin].fd < 0){
+                logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Could not open: ") + pin_dir + " Error:" + std::to_string(errno));
+                return false;
+            }
+            _fd_count++;
+        }
+        return true;
+    }
+
+    /*
+    *
+    */
+    void close_gpio_folder(const int pin, const bool unexport = false){
+        if( _fds[pin].fd > 0){
+            logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Switch OFF detection for pin: ") + std::to_string(pin));
+            close(_fds[pin].fd);
+            _fds[pin].fd = -1;
+
+            _fd_count--;
+        }
+
+        if(unexport){ //unexport GPIO
+            unexport_gpio(pin);
+        }
+    }
+
+private:
     volatile gpio_ctrl* _gctrl; //pointer to GPIO registers map
     std::mutex _mx_gpio;
+
+    //poll of GPIO descriptors
+    /*
+    struct pollfd {
+               int   fd;         // file descriptor
+               short events;     // requested events
+               short revents;    // returned events
+           };
+    */
+    struct pollfd _fds[s_pins];
 
     const int phys_pin(const int pin) const {
         return pins_map[getRealPin(pin)];

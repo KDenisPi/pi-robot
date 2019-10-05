@@ -155,14 +155,12 @@ void Button::worker(Button* owner){
          if(state != owner->state()){
             owner->set_state(state);
 
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** State changed!!!! " + owner->name() +
-                " New state:" + std::to_string(state));
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** State changed!!!! " + owner->name() + " New state:" + std::to_string(state));
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " New level:" + std::to_string(level) + " " + owner->to_string());
 
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " New level:" + std::to_string(level) + " " +
-                    owner->to_string());
-
-            if(owner->notify)
+            if(owner->notify){
                 owner->notify(owner->type(), name, (void*)(&state));
+            }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(owner->get_loop_delay()));
     }

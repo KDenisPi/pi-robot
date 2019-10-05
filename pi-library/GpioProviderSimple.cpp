@@ -20,7 +20,7 @@ const char TAG[] = "PrvSmpl";
 /*
 *
 */
-GpioProviderSimple::GpioProviderSimple(const std::string name, const int pins) : _gctrl(nullptr),
+GpioProviderSimple::GpioProviderSimple(const std::string name, const int pins) : _gctrl(nullptr), _fd_count(0),
         GpioProvider(name, pins)
 {
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + std::string(" pins: ") + std::to_string(pins));
@@ -30,8 +30,11 @@ GpioProviderSimple::GpioProviderSimple(const std::string name, const int pins) :
         throw std::runtime_error(std::string("Could not map GPIO memory"));
     }
 
-    for(int i = 0; i < s_pins; i++) 
-        _fds[i] = -1;
+    for(int i = 0; i < s_pins; i++)
+        _fds[i].fd = -1;
+
+    //start thread
+    piutils::Threaded::start<GpioProviderSimple>(this);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" GPIO control registers mapped"));
 }
@@ -43,13 +46,8 @@ GpioProviderSimple::~GpioProviderSimple() {
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__));
 
     for(int i = 0; i < s_pins; i++){
-        if( _fds[i] > 0){
-            //close handle
-            close(_fds[i]);
-            //unexport GPIO
-            unexport_gpio(i);
-            
-            _fds[i] = -1;
+        if( _fds[i].fd > 0){
+            close_gpio_folder(i, true);
         }
     }
 
