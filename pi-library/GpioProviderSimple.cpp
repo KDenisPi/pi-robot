@@ -45,6 +45,8 @@ GpioProviderSimple::GpioProviderSimple(const std::string name, const int pins) :
 GpioProviderSimple::~GpioProviderSimple() {
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__));
 
+    stop();
+
     for(int i = 0; i < s_pins; i++){
         if( _fds[i].fd > 0){
             close_gpio_folder(i, true);

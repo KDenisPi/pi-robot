@@ -2,7 +2,7 @@
 #define gpio_INC
 
 #include <string>
-#include "logger.h"
+
 #include "gpio.h"
 
 namespace pirobot{
@@ -13,11 +13,12 @@ const char TAG[] = "GPIO";
 /*
  * Constructor
  */
-Gpio::Gpio(int pin, GPIO_MODE mode, std::shared_ptr<gpio::GpioProvider> provider, const PULL_MODE pull_mode) :
+Gpio::Gpio(const int pin, const GPIO_MODE mode, const std::shared_ptr<gpio::GpioProvider> provider, const PULL_MODE pull_mode, const GPIO_EDGE_LEVEL edge_level) :
   m_pin(pin),
   m_mode(mode),
   m_prov(provider),
-  _pull_mode(pull_mode)
+  _pull_mode(pull_mode),
+  _edge_level(edge_level)
 {
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" pin: ") + std::to_string(pin) + " mode: " + std::to_string((int)mode) +
 			" pull mode: " + std::to_string((int)pull_mode));

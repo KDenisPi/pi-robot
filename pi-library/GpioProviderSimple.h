@@ -102,6 +102,21 @@ public:
         int idx = (phpin/32); // 32 GPIO by register
         const uint32_t mask = (1 << (phpin%32));
 
+        /*
+        * Switch GPIO detection off
+        * We will not export GPIO each time
+        */
+        if(edgs_level == GPIO_EDGE_LEVEL::EDGE_LEVEL_OFF){
+            close_gpio_folder(pin);
+        }
+        else
+        {
+            /* code */
+            if(!open_gpio_folder(pin)){
+                return false;
+            }
+        }
+
         std::lock_guard<std::mutex> lock(_mx_gpio);
 
         //clear previous values
@@ -109,15 +124,6 @@ public:
         _gctrl->_GPFEN[idx] = _gctrl->_GPFEN[idx] & (~mask);
         _gctrl->_GPHEN[idx] = _gctrl->_GPHEN[idx] & (~mask);
         _gctrl->_GPLEN[idx] = _gctrl->_GPLEN[idx] & (~mask);
-
-        /*
-        * Switch GPIO detection off
-        * We will not export GPIO each time
-        */
-        if(edgs_level == GPIO_EDGE_LEVEL::EDGE_LEVEL_OFF){
-            close_gpio_folder(pin);
-            return true;
-        }
 
         //set new value
         if(edgs_level == GPIO_EDGE_LEVEL::EDGE_RAISING || edgs_level == GPIO_EDGE_LEVEL::EDGE_BOTH){
@@ -136,7 +142,7 @@ public:
             _gctrl->_GPLEN[idx] = _gctrl->_GPLEN[idx] | mask;
         }
 
-        return open_gpio_folder(pin);
+        return true;
     }
 
 
@@ -174,32 +180,31 @@ public:
                 std::unique_lock<std::mutex> lk(owner->cv_m);
                 owner->cv.wait(lk, fn);
 
-                logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" FD count: ") + std::to_string(owner->fd_count()));
+                logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + std::string(" FD count: ") + std::to_string(owner->fd_count()));
             }
 
             //initialize data
             for(int i=0; i<nfd; i++){
-                pfd[i].events = POLLPRI;
+                pfd[i].events = (pfd[i].fd > 0 ? POLLPRI : 0);
                 pfd[i].revents = 0;
             }
 
             //make request
             int res = poll(pfd, nfd, fd_timeout);
-            if(res == 0){
-                //nothing happened or timeout
+            if(res == 0){ //nothing happened or timeout
                 continue;
             }
-            else if(res < 0){
+            else if(res < 0){ //error
                 logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll error: " + std::to_string(errno));
                 //TODO: what next?
             }
-            else{
+            else{ //we have an update for some descriptors
+                std::lock_guard<std::mutex> lock(owner->get_mutex());
                 //process events one by one
                 for(int i = 0; i < nfd && res > 0; i++ ){
                     //we have something for this descriptor
                     if(pfd[i].fd > 0 && pfd[i].revents != 0){
-                        if((pfd[i].revents&POLLPRI) != 0){
-                            //get a new value and notify
+                        if((pfd[i].revents&POLLPRI) != 0){ //get a new value and notify
                             memset(rbuff, 0x00, 5);
 		                    lseek(pfd[i].fd, 0, SEEK_SET);
                             int rres = read(pfd[i].fd, rbuff, 4);
@@ -212,14 +217,12 @@ public:
 
                             res--; //not need to check if we have already processed all
                         }
-                        else if((pfd[i].revents&POLLERR) != 0){
-                            //something wrong here
+                        else if((pfd[i].revents&POLLERR) != 0){ //something wrong here
                             logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Revents: " + std::to_string(pfd[i].revents));
                         }
                     }
                 }
             }
-
         }
 
         logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + "Worker finished.");
@@ -237,8 +240,13 @@ protected:
         return _fds;
     }
 
-    const int fd_count() const {
+    const int fd_count() {
+        std::lock_guard<std::mutex> lock(_mx_gpio);
         return _fd_count;
+    }
+
+    std::mutex& get_mutex() {
+        return _mx_gpio;
     }
 
     int _fd_count = 0;
@@ -306,6 +314,7 @@ protected:
             return false;
         }
 
+        std::lock_guard<std::mutex> lock(_mx_gpio);
         //if file for this GPIO is not open yet - do it
         if( _fds[pin].fd < 0){
             auto pin_dir = get_gpio_path(pin) + "/value";
@@ -323,12 +332,15 @@ protected:
     *
     */
     void close_gpio_folder(const int pin, const bool unexport = false){
-        if( _fds[pin].fd > 0){
-            logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Switch OFF detection for pin: ") + std::to_string(pin));
-            close(_fds[pin].fd);
-            _fds[pin].fd = -1;
 
-            _fd_count--;
+        {
+            std::lock_guard<std::mutex> lock(_mx_gpio);
+            if( _fds[pin].fd > 0){
+                logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Switch OFF detection for pin: ") + std::to_string(pin));
+                close(_fds[pin].fd);
+                _fds[pin].fd = -1;
+                _fd_count--;
+            }
         }
 
         if(unexport){ //unexport GPIO

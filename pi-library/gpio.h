@@ -9,7 +9,9 @@
 #define PI_LIBRARY_GPIO_H_
 
 #include <memory>
+
 #include "GpioProvider.h"
+#include "logger.h"
 
 namespace pirobot {
 namespace gpio {
@@ -18,11 +20,15 @@ class Gpio
 {
   public:
 
-    Gpio(int pin, GPIO_MODE mode, const std::shared_ptr<gpio::GpioProvider> provider, const PULL_MODE pull_mode = PULL_MODE::PULL_OFF);
+    Gpio(const int pin, const GPIO_MODE mode, const std::shared_ptr<gpio::GpioProvider> provider, 
+        const PULL_MODE pull_mode = PULL_MODE::PULL_OFF, 
+        const GPIO_EDGE_LEVEL edge_level = GPIO_EDGE_LEVEL::EDGE_LEVEL_OFF);
+
     virtual ~Gpio();
 
-    const int getPin() const {return m_pin;};
-    const GPIO_MODE getMode() const {return m_mode;};
+    const int getPin() const {return m_pin;}
+    const GPIO_MODE getMode() const {return m_mode;}
+    const GPIO_EDGE_LEVEL get_edge_level() const {return _edge_level;}
 
    /*
     * Probably not all providers allow change mode (?)
@@ -64,12 +70,30 @@ class Gpio
      digitalWrite(level);
     }
 
+  //set edge and level detection for pin (if supported)
+	bool set_egde_level(GPIO_EDGE_LEVEL edgs_level){
+  	logger::log(logger::LLOG::DEBUG, "GPIO", std::string(__func__) + " set edge/level: " + std::to_string((int)edgs_level));
+
+    if((m_mode != GPIO_MODE::IN) && (m_mode != GPIO_MODE::IN)){
+      return false; //we support this functionality for IN/OUT modes only
+    }
+
+    bool ret = m_prov->set_egde_level(m_pin, edgs_level);
+    if(ret){
+      _edge_level = edgs_level;
+    }
+
+  	logger::log(logger::LLOG::DEBUG, "GPIO", std::string(__func__) + " edge/level: " + std::to_string((int)_edge_level) + " result: " +  std::to_string(ret));
+  }
+
+
   private:
     int m_pin;
     GPIO_MODE m_mode; //INPUT/OUTPUT
     PULL_MODE _pull_mode; //OFF/DOWN/UP
-
-    std::shared_ptr<gpio::GpioProvider> m_prov;
+    GPIO_EDGE_LEVEL _edge_level; //control change GPIO level using interrupt processing (if provided supported it)
+    
+    std::shared_ptr<gpio::GpioProvider> m_prov; //provider
 };
 
 }
