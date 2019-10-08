@@ -91,8 +91,8 @@ public:
 
     static const int s_pins = 26;
 
-	//set edge and level detection for pin (if supported)
-	virtual bool set_egde_level(const int pin, GPIO_EDGE_LEVEL edgs_level) override {
+    //set edge and level detection for pin (if supported)
+    virtual bool set_egde_level(const int pin, GPIO_EDGE_LEVEL edgs_level) override {
         logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" pin: ") + std::to_string(pin) + " Edge&Level: " + std::to_string(edgs_level));
 
         if( !is_support_group())
@@ -212,7 +212,7 @@ public:
                     if(pfd[i].fd > 0 && pfd[i].revents != 0){
                         if((pfd[i].revents&POLLPRI) != 0){ //get a new value and notify
                             memset(rbuff, 0x00, 5);
-	                    lseek(pfd[i].fd, 0, SEEK_SET);
+                        lseek(pfd[i].fd, 0, SEEK_SET);
                             int rres = read(pfd[i].fd, rbuff, 4);
                             if(rres < 0){
                                 logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Read error: " + std::to_string(errno));
@@ -259,40 +259,40 @@ protected:
 
     int _fd_count = 0;
 
-	/*
-	* Some GPIO providers supoprt level detection through interrupt
-	* It can be useful for detection multiple states changing (usually IN; for example buttons) instead of polling
-	*/
+    /*
+    * Some GPIO providers supoprt level detection through interrupt
+    * It can be useful for detection multiple states changing (usually IN; for example buttons) instead of polling
+    */
     static const size_t s_buff_size = 32;
 
-	bool export_gpio(const int pin) {
-            logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" pin: ") + std::to_string(pin));
+    bool export_gpio(const int pin) {
+        logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" pin: ") + std::to_string(pin));
 
-            int phpin = phys_pin(pin);
-            auto pin_dir = get_gpio_path(phpin);
+        int phpin = phys_pin(pin);
+        auto pin_dir = get_gpio_path(phpin);
+        if(!piutils::chkfile(pin_dir)){
+            logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " No folder for pin: " + pin_dir);
+            std::string command = std::string("echo ") + std::to_string(phpin) + std::string(" > /sys/class/gpio/export");
+
+            int res = std::system(command.c_str());
+            logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " Executed command: " + command + " result: " + std::to_string(res));
+
+            piutils::timers::Timers::delay(500);
+
+            //check result
             if(!piutils::chkfile(pin_dir)){
-                logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " No folder for pin: " + pin_dir);
-                std::string command = std::string("echo ") + std::to_string(phpin) + std::string(" > /sys/class/gpio/export");
-
-                int res = std::system(command.c_str());
-                logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " Executed command: " + command + " result: " + std::to_string(res));
-
-                piutils::timers::Timers::delay(500);
-
-                //check result
-                if(!piutils::chkfile(pin_dir)){
-                    logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + std::string(" Could not create folder: ") + pin_dir);
-                    return false;
-               }
+                logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + std::string(" Could not create folder: ") + pin_dir);
+                return false;
             }
+        }
 
-            return true;
-       }
+        return true;
+    }
 
     /*
     *
     */
-	bool unexport_gpio(const int pin) {
+    bool unexport_gpio(const int pin) {
         logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" pin: ") + std::to_string(pin));
 
         int phpin = phys_pin(pin);

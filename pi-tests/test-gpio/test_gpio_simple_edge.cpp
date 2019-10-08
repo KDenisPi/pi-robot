@@ -54,10 +54,13 @@ int main (int argc, char* argv[])
     p_gpio[0]->set_egde_level(pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_RAISING);
     p_gpio[1]->set_egde_level(pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_RAISING);
 
-    p_gpio[0]->digitalWrite(0);
-    sleep(1);
+    std::cout << std::endl <<" Change GPIO OUT 0 (17) to High (1) and wait" << std::endl;
+    p_gpio[0]->High();
+    sleep(3);
 
-    p_gpio[0]->digitalWrite(0);
+    std::cout << std::endl <<" Change GPIO OUT 0 (17) to High (0) and wait" << std::endl;
+    p_gpio[0]->Low();
+    sleep(3);
 
     std::cout << std::endl <<"Release GPIO objects " << std::endl;
 
