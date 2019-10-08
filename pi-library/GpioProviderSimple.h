@@ -177,10 +177,16 @@ public:
         while(!owner->is_stop_signal()){
 
             {
+                std::cout << "wait for signal" << std::endl;
                 std::unique_lock<std::mutex> lk(owner->cv_m);
                 owner->cv.wait(lk, fn);
 
+                std::cout << "signal detected" << std::endl;
                 logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + std::string(" FD count: ") + std::to_string(owner->fd_count()));
+            }
+
+            if(owner->is_stop_signal()){
+                 break;
             }
 
             //initialize data
@@ -206,7 +212,7 @@ public:
                     if(pfd[i].fd > 0 && pfd[i].revents != 0){
                         if((pfd[i].revents&POLLPRI) != 0){ //get a new value and notify
                             memset(rbuff, 0x00, 5);
-		                    lseek(pfd[i].fd, 0, SEEK_SET);
+	                    lseek(pfd[i].fd, 0, SEEK_SET);
                             int rres = read(pfd[i].fd, rbuff, 4);
                             if(rres < 0){
                                 logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Read error: " + std::to_string(errno));
@@ -230,6 +236,8 @@ public:
 
     void stop(){
         logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__));
+
+        std::cout << "--- stop ----" <<  std::endl;
         piutils::Threaded::stop();
     }
 
@@ -258,27 +266,28 @@ protected:
     static const size_t s_buff_size = 32;
 
 	bool export_gpio(const int pin) {
-        logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" pin: ") + std::to_string(pin));
-        auto pin_dir = get_gpio_path(pin);
+            logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" pin: ") + std::to_string(pin));
 
-        if(!piutils::chkfile(pin_dir)){
-            logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " No folder for pin: " + pin_dir);
-            std::string command = std::string("echo ") + std::to_string(pin) + std::string(" > /sys/class/gpio/export");
-
-            int res = std::system(command.c_str());
-            logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " Executed command: " + command + " result: " + std::to_string(res));
-
-            piutils::timers::Timers::delay(500);
-
-            //check result
+            int phpin = phys_pin(pin);
+            auto pin_dir = get_gpio_path(phpin);
             if(!piutils::chkfile(pin_dir)){
-                logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + std::string(" Could not create folder: ") + pin_dir);
-                return false;
-            }
-        }
+                logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " No folder for pin: " + pin_dir);
+                std::string command = std::string("echo ") + std::to_string(phpin) + std::string(" > /sys/class/gpio/export");
 
-        return true;
-    }
+                int res = std::system(command.c_str());
+                logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " Executed command: " + command + " result: " + std::to_string(res));
+
+                piutils::timers::Timers::delay(500);
+
+                //check result
+                if(!piutils::chkfile(pin_dir)){
+                    logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + std::string(" Could not create folder: ") + pin_dir);
+                    return false;
+               }
+            }
+
+            return true;
+       }
 
     /*
     *
@@ -286,10 +295,11 @@ protected:
 	bool unexport_gpio(const int pin) {
         logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" pin: ") + std::to_string(pin));
 
-        auto pin_dir = get_gpio_path(pin);
+        int phpin = phys_pin(pin);
+        auto pin_dir = get_gpio_path(phpin);
         if(piutils::chkfile(pin_dir)){
             logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " Folder exist: " + pin_dir);
-            std::string command = std::string("echo ") + std::to_string(pin) + std::string(" > /sys/class/gpio/unexport");
+            std::string command = std::string("echo ") + std::to_string(phpin) + std::string(" > /sys/class/gpio/unexport");
 
             int res = std::system(command.c_str());
             logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " Executed command: " + command + " result: " + std::to_string(res));
@@ -317,7 +327,7 @@ protected:
         std::lock_guard<std::mutex> lock(_mx_gpio);
         //if file for this GPIO is not open yet - do it
         if( _fds[pin].fd < 0){
-            auto pin_dir = get_gpio_path(pin) + "/value";
+            const auto pin_dir = get_gpio_path(phys_pin(pin));
             _fds[pin].fd = open(pin_dir.c_str(), O_RDONLY);
             if( _fds[pin].fd < 0){
                 logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Could not open: ") + pin_dir + " Error:" + std::to_string(errno));
@@ -366,10 +376,10 @@ private:
         return pins_map[getRealPin(pin)];
     }
 
-    //Prepare directory name for PIN
-    const std::string get_gpio_path(const int pin){
+    //Prepare directory name for physical PIN number
+    const std::string get_gpio_path(const int phpin){
         char buff[s_buff_size];
-        snprintf(buff, s_buff_size, "/sys/class/gpio/gpio%d/value", pin);
+        snprintf(buff, s_buff_size, "/sys/class/gpio/gpio%d/value", phpin);
         std::string pin_dir = buff;
 
         return pin_dir;
