@@ -324,9 +324,10 @@ protected:
             return false;
         }
 
-        std::lock_guard<std::mutex> lock(_mx_gpio);
         //if file for this GPIO is not open yet - do it
         if( _fds[pin].fd < 0){
+            std::lock_guard<std::mutex> lock(_mx_gpio);
+
             const auto pin_dir = get_gpio_path(phys_pin(pin));
             _fds[pin].fd = open(pin_dir.c_str(), O_RDONLY);
             if( _fds[pin].fd < 0){
@@ -334,7 +335,9 @@ protected:
                 return false;
             }
             _fd_count++;
+            cv.notify_one();
         }
+
         return true;
     }
 
@@ -343,14 +346,14 @@ protected:
     */
     void close_gpio_folder(const int pin, const bool unexport = false){
 
-        {
+        if( _fds[pin].fd > 0){
             std::lock_guard<std::mutex> lock(_mx_gpio);
-            if( _fds[pin].fd > 0){
-                logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Switch OFF detection for pin: ") + std::to_string(pin));
-                close(_fds[pin].fd);
-                _fds[pin].fd = -1;
-                _fd_count--;
-            }
+            logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Switch OFF detection for pin: ") + std::to_string(pin));
+            close(_fds[pin].fd);
+            _fds[pin].fd = -1;
+
+            _fd_count--;
+            cv.notify_one();
         }
 
         if(unexport){ //unexport GPIO
