@@ -52,15 +52,20 @@ int main (int argc, char* argv[])
     p_gpio[0]->pullUpDnControl(pirobot::gpio::PULL_MODE::PULL_OFF);
     p_gpio[1]->pullUpDnControl(pirobot::gpio::PULL_MODE::PULL_DOWN);
 
+    std::cout << std::endl <<" Change GPIO OUT 0 (17) to High (1)" << std::endl;
+    p_gpio[0]->Low(); //High();
+
     std::cout << "GPIO Edge" << std::endl;
-    p_gpio[0]->set_egde_level(pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_RAISING);
-    //p_gpio[1]->set_egde_level(pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_RAISING);
+    //p_gpio[0]->set_egde_level(pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_RAISING);
+    p_gpio[1]->set_egde_level(pirobot::gpio::GPIO_EDGE_LEVEL::LEVEL_HIGH); //EDGE_RAISING);
+    sleep(1);
 
-    std::cout << std::endl <<" Change GPIO OUT 0 (17) to High (1) and wait" << std::endl;
-    p_gpio[0]->High();
-    sleep(3);
+    std::cout << std::endl <<" Start gpio edge" << std::endl;
+    p_smp->start();
+    //p_gpio[0]->High();
+    //sleep(2);
 
-    std::cout << std::endl <<" Change GPIO OUT 0 (17) to High (0) and wait" << std::endl;
+    //std::cout << std::endl <<" Change GPIO OUT 0 (17) to High (0) and wait" << std::endl;
 //    p_gpio[0]->Low();
 //    sleep(3);
 

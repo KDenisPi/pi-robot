@@ -257,12 +257,11 @@ public:
                                 logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Read error: " + std::to_string(errno));
                             }
 
-                            uint32_t value = *((uint32_t*)rbuff);
-                            logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Value: " + std::to_string(value));
+                            printf("Value %x:%x:%x:%x\n", rbuff[0], rbuff[1], rbuff[2], rbuff[3]);
+                            std::cout << "descriptor counter " << res << " read: " << rres << std::endl;
 
                             res--; //not need to check if we have already processed all
 
-                            std::cout << "descriptor counter " << res << " value: " << value << " read: " << rres << std::endl;
                         }
                         else if((loc_pfd[i].revents&POLLERR) != 0){ //something wrong here
                             logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Revents: " + std::to_string(loc_pfd[i].revents));
@@ -386,6 +385,9 @@ protected:
                 std::lock_guard<std::mutex> lock(_mx_gpio);
                 const auto pin_dir = get_gpio_path(phys_pin(pin));
                 _fds[pin].fd = open(pin_dir.c_str(), O_RDONLY);
+
+                std::cout << "open_gpio_folder opened GPIO " << pin << " FD: " << _fds[pin].fd << std::endl;
+
                 if( _fds[pin].fd < 0){
                     logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Could not open: ") + pin_dir + " Error:" + std::to_string(errno));
                     return false;
