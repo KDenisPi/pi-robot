@@ -33,10 +33,11 @@ GpioProviderSimple::GpioProviderSimple(const std::string name, const int pins) :
     for(int i = 0; i < s_pins; i++)
         _fds[i].fd = -1;
 
-    //start thread
-    piutils::Threaded::start<GpioProviderSimple>(this);
-
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" GPIO control registers mapped"));
+}
+
+void GpioProviderSimple::start() {
+    piutils::Threaded::start<GpioProviderSimple>(this);
 }
 
 /*

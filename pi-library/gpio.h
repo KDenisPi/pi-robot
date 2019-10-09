@@ -74,7 +74,7 @@ class Gpio
 	bool set_egde_level(GPIO_EDGE_LEVEL edgs_level){
   	logger::log(logger::LLOG::DEBUG, "GPIO", std::string(__func__) + " set edge/level: " + std::to_string((int)edgs_level));
 
-    if((m_mode != GPIO_MODE::IN) && (m_mode != GPIO_MODE::IN)){
+    if((m_mode != GPIO_MODE::IN) && (m_mode != GPIO_MODE::OUT)){
       return false; //we support this functionality for IN/OUT modes only
     }
 

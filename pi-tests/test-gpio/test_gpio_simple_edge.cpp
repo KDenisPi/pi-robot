@@ -48,19 +48,21 @@ int main (int argc, char* argv[])
     p_gpio[0] = std::make_shared<pirobot::gpio::Gpio>(0, pirobot::gpio::GPIO_MODE::OUT, p_smp);
     p_gpio[1] = std::make_shared<pirobot::gpio::Gpio>(1, pirobot::gpio::GPIO_MODE::IN, p_smp);
 
+    std::cout << "GPIO Pull Mode" << std::endl;
     p_gpio[0]->pullUpDnControl(pirobot::gpio::PULL_MODE::PULL_OFF);
     p_gpio[1]->pullUpDnControl(pirobot::gpio::PULL_MODE::PULL_DOWN);
 
+    std::cout << "GPIO Edge" << std::endl;
     p_gpio[0]->set_egde_level(pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_RAISING);
-    p_gpio[1]->set_egde_level(pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_RAISING);
+    //p_gpio[1]->set_egde_level(pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_RAISING);
 
     std::cout << std::endl <<" Change GPIO OUT 0 (17) to High (1) and wait" << std::endl;
     p_gpio[0]->High();
     sleep(3);
 
     std::cout << std::endl <<" Change GPIO OUT 0 (17) to High (0) and wait" << std::endl;
-    p_gpio[0]->Low();
-    sleep(3);
+//    p_gpio[0]->Low();
+//    sleep(3);
 
     std::cout << std::endl <<"Release GPIO objects " << std::endl;
 
