@@ -379,22 +379,26 @@ protected:
         }
 
         std::cout << "open_gpio_folder EXPORTed GPIO " << pin << " FD: " << _fds[pin].fd << std::endl;
-        //if file for this GPIO is not open yet - do it
-        if( _fds[pin].fd < 0){
+        
+        if( _fds[pin].fd < 0){ //if file for this GPIO is not open yet - do it
+
             {
                 std::lock_guard<std::mutex> lock(_mx_gpio);
                 const auto pin_dir = get_gpio_path(phys_pin(pin));
                 _fds[pin].fd = open(pin_dir.c_str(), O_RDONLY);
-
-                std::cout << "open_gpio_folder opened GPIO " << pin << " FD: " << _fds[pin].fd << std::endl;
-
-                if( _fds[pin].fd < 0){
-                    logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Could not open: ") + pin_dir + " Error:" + std::to_string(errno));
-                    return false;
-                }
-                _fd_count++;
+                if( _fds[pin].fd > 0)
+                    _fd_count++;
             }
-            cv.notify_one();
+        
+            std::cout << "open_gpio_folder opened GPIO " << pin << " FD: " << _fds[pin].fd << " File: " << pin_dir.c_str() << std::endl;
+
+            if( _fds[pin].fd < 0){
+                logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Could not open: ") + pin_dir + " Error:" + std::to_string(errno));
+                return false;
+            }
+            else{
+                cv.notify_one();
+            }
         }
 
         std::cout << "open_gpio_folder success " << std::endl;
@@ -407,13 +411,13 @@ protected:
     void close_gpio_folder(const int pin, const bool unexport = false){
 
         if( _fds[pin].fd > 0){
-           {
-            std::lock_guard<std::mutex> lock(_mx_gpio);
             logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Switch OFF detection for pin: ") + std::to_string(pin));
-            close(_fds[pin].fd);
-            _fds[pin].fd = -1;
+            {
+                std::lock_guard<std::mutex> lock(_mx_gpio);
+                close(_fds[pin].fd);
+                _fds[pin].fd = -1;
 
-            _fd_count--;
+                _fd_count--;
            }
            //cv.notify_one();
         }
