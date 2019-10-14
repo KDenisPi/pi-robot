@@ -55,13 +55,10 @@ enum GPIO_PROVIDER_TYPE {
 * Enums for GPIO edge and level detection
 */
 enum GPIO_EDGE_LEVEL {
-	EDGE_LEVEL_OFF,
+	EDGE_NONE,
 	EDGE_RAISING,
 	EDGE_FALLING,
-	EDGE_BOTH,
-	LEVEL_HIGH,
-	LEVEL_LOW,
-	LEVEL_BOTH
+	EDGE_BOTH
 };
 
 using gpio_notify = std::function<void(uint32_t)>;

@@ -104,10 +104,6 @@ public:
             return false;
         }
 
-        int phpin = phys_pin(pin);
-        int idx = (phpin/32); // 32 GPIO by register
-        const uint32_t mask = (1 << (phpin%32));
-
         /*
         * Switch GPIO detection off
         * We will not export GPIO each time
@@ -115,42 +111,31 @@ public:
         if(edgs_level == GPIO_EDGE_LEVEL::EDGE_LEVEL_OFF){
             std::cout << "set_egde_level edge OFF" << std::endl;
 
+            //check if GPIO was exported - if TRUE - change value in /edge folder
+            if(is_gpio_exported(pin)){
+                close_gpio_folder(pin);
+
+                return _set_gpio_edge(edgs_level);
+            }
+
+            return true;
+        }
+
+        if(is_gpio_exported(pin)){
             close_gpio_folder(pin);
         }
-        else
-        {
-            std::cout << "set_egde_level OPEN folder" << std::endl;
-            /* code */
-            if(!open_gpio_folder(pin)){
-                std::cout << "set_egde_level Open folder failed" << std::endl;
-                return false;
-            }
+        else if(!export_gpio(pin)){ 
+            std::cout << "open_gpio_folder EXPORT GPIO failed " << std::endl;
+            return false;
         }
 
-        std::cout << "MASK " << std::hex << mask << std::endl;
-
-        std::lock_guard<std::mutex> lock(_mx_gpio);
-        //clear previous values
-        _gctrl->_GPREN[idx] = _gctrl->_GPREN[idx] & (~mask);
-        _gctrl->_GPFEN[idx] = _gctrl->_GPFEN[idx] & (~mask);
-        _gctrl->_GPHEN[idx] = _gctrl->_GPHEN[idx] & (~mask);
-        _gctrl->_GPLEN[idx] = _gctrl->_GPLEN[idx] & (~mask);
-
-        //set new value
-        if(edgs_level == GPIO_EDGE_LEVEL::EDGE_RAISING || edgs_level == GPIO_EDGE_LEVEL::EDGE_BOTH){
-            _gctrl->_GPREN[idx] = _gctrl->_GPREN[idx] | mask;
+        if(!_set_gpio_edge(edgs_level)){
+            return false;
         }
 
-        if(edgs_level == GPIO_EDGE_LEVEL::EDGE_FALLING || edgs_level == GPIO_EDGE_LEVEL::EDGE_BOTH){
-            _gctrl->_GPFEN[idx] = _gctrl->_GPFEN[idx] | mask;
-        }
-
-        if(edgs_level == GPIO_EDGE_LEVEL::LEVEL_HIGH || edgs_level == GPIO_EDGE_LEVEL::LEVEL_BOTH){
-            _gctrl->_GPHEN[idx] = _gctrl->_GPHEN[idx] | mask;
-        }
-
-        if(edgs_level == GPIO_EDGE_LEVEL::LEVEL_LOW || edgs_level == GPIO_EDGE_LEVEL::LEVEL_BOTH){
-            _gctrl->_GPLEN[idx] = _gctrl->_GPLEN[idx] | mask;
+        if(!open_gpio_folder(pin)){
+            std::cout << "set_egde_level Open folder failed" << std::endl;
+            return false;
         }
 
         return true;
@@ -337,18 +322,19 @@ protected:
 
             std::cout << "export_gpio command res: " << res << std::endl;
 
-            //piutils::timers::Timers::delay(500);
-
-            std::cout << "export_gpio check folder " << pin_dir << std::endl;
             //check result
             if(!piutils::chkfile(pin_dir)){
                 //logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + std::string(" Could not create folder: ") + pin_dir);
                 std::cout << "export_gpio check NO folder " << std::endl;
                 return false;
             }
+
+            std::cout << "export_gpio success" << std::endl;
+        }
+        else{
+            std::cout << "export_gpio already exported" << std::endl;
         }
 
-        std::cout << "export_gpio success" << std::endl;
         return true;
     }
 
@@ -379,25 +365,68 @@ protected:
     }
 
     /*
+    * Is GPIO exported
+    */
+   bool is_gpio_exported(const int pin){
+        int phpin = phys_pin(pin);
+        auto pin_dir = get_gpio_path(phpin);
+        return piutils::chkfile(pin_dir);
+   }
+
+    /*
+    *
+    */
+    const std::string get_edge_name(const GPIO_EDGE_LEVEL edgs_level) const{
+
+        if(edgs_level == GPIO_EDGE_LEVEL::EDGE_RAISING) return std::string("rising");
+        if(edgs_level == GPIO_EDGE_LEVEL::EDGE_FALLING) return std::string("falling");
+        if(edgs_level == GPIO_EDGE_LEVEL::EDGE_BOTH) return std::string("both");
+
+        return std::string("none");
+    }
+
+    /*
+    *
+    */
+   bool _set_gpio_edge(const int pin, GPIO_EDGE_LEVEL edgs_level){
+       
+        const std::string edge = get_edge_name(edge_level);
+        int phpin = phys_pin(pin);
+        auto pin_dir = get_gpio_path(phpin, std::string("edge"));
+
+        std::string command = std::string("echo ") +edge + std::string(" > ") + pin_dir;
+        int res = std::system(command.c_str());
+
+        logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " Executed command: " + command + " result: " + std::to_string(res));
+        return true;
+   }
+
+    /*
     *
     */
     bool open_gpio_folder(const int pin){
-        //Check if GPIO was exported and export if not
-        if( !export_gpio(pin)){
-            std::cout << "open_gpio_folder EXPORT GPIO failed " << std::endl;
-            return false;
-        }
 
         std::cout << "open_gpio_folder EXPORTed GPIO " << pin << " FD: " << _fds[pin].fd << std::endl;
 
         if( _fds[pin].fd < 0){ //if file for this GPIO is not open yet - do it
 
-            const auto pin_dir = get_gpio_path(phys_pin(pin));
+            const auto pin_dir = get_gpio_path(phys_pin(pin), std::string("value"));
             {
                 std::lock_guard<std::mutex> lock(_mx_gpio);
                 _fds[pin].fd = open(pin_dir.c_str(), O_RDONLY);
-                if( _fds[pin].fd > 0)
+                
+                if( _fds[pin].fd > 0){
                     _fd_count++;
+
+                    int cnt = 0;
+                    int res = ioctl(_fds[pin].fd, FIONREAD , &cnt);
+                    if(res >= 0){ //read all older values
+                        char ch;
+                        for(int i=0; i<cnt; i++){
+                            read(_fds[pin].fd, 1, &ch);
+                        }
+                    }
+                }
             }
 
             std::cout << "open_gpio_folder opened GPIO " << pin << " FD: " << _fds[pin].fd << " File: " << pin_dir.c_str() << std::endl;
@@ -455,9 +484,13 @@ private:
     }
 
     //Prepare directory name for physical PIN number
-    const std::string get_gpio_path(const int phpin){
+    const std::string get_gpio_path(const int phpin, const std::string folder){
         char buff[s_buff_size];
-        snprintf(buff, s_buff_size, "/sys/class/gpio/gpio%d/value", phpin);
+        if(folder.length() > 0)
+            snprintf(buff, s_buff_size, "/sys/class/gpio/gpio%d/%s", phpin, folder.c_str());
+        else
+            snprintf(buff, s_buff_size, "/sys/class/gpio/gpio%d", phpin);
+
         std::string pin_dir = buff;
 
         return pin_dir;
