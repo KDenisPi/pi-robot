@@ -379,19 +379,18 @@ protected:
         }
 
         std::cout << "open_gpio_folder EXPORTed GPIO " << pin << " FD: " << _fds[pin].fd << std::endl;
-        
+
         if( _fds[pin].fd < 0){ //if file for this GPIO is not open yet - do it
 
+            const auto pin_dir = get_gpio_path(phys_pin(pin));
             {
                 std::lock_guard<std::mutex> lock(_mx_gpio);
-                const auto pin_dir = get_gpio_path(phys_pin(pin));
                 _fds[pin].fd = open(pin_dir.c_str(), O_RDONLY);
                 if( _fds[pin].fd > 0)
                     _fd_count++;
             }
-        
-            std::cout << "open_gpio_folder opened GPIO " << pin << " FD: " << _fds[pin].fd << " File: " << pin_dir.c_str() << std::endl;
 
+            std::cout << "open_gpio_folder opened GPIO " << pin << " FD: " << _fds[pin].fd << " File: " << pin_dir.c_str() << std::endl;
             if( _fds[pin].fd < 0){
                 logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Could not open: ") + pin_dir + " Error:" + std::to_string(errno));
                 return false;

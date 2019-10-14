@@ -51,7 +51,7 @@ GpioProviderSimple::~GpioProviderSimple() {
 
     for(int i = 0; i < s_pins; i++){
         if( _fds[i].fd > 0){
-            close_gpio_folder(i, true);
+            close_gpio_folder(i, false);//true);
         }
     }
 
