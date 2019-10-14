@@ -127,10 +127,9 @@ public:
             }
         }
 
+        std::cout << "MASK " << std::hex << mask << std::endl;
+
         std::lock_guard<std::mutex> lock(_mx_gpio);
-
-        std::cout << " after lock" << std::endl;
-
         //clear previous values
         _gctrl->_GPREN[idx] = _gctrl->_GPREN[idx] & (~mask);
         _gctrl->_GPFEN[idx] = _gctrl->_GPFEN[idx] & (~mask);
@@ -154,10 +153,21 @@ public:
             _gctrl->_GPLEN[idx] = _gctrl->_GPLEN[idx] | mask;
         }
 
-        std::cout << " set_egde_level return true" << std::endl;
         return true;
     }
 
+    /*
+    * Print status for all Edge related registers
+    */
+    const std::string print_edge_status() {
+        std::string result = 
+            "Rising  Edge GPREN1: " + std::to_string(_gctrl->_GPREN[0]) +
+            "\nFalling Edge GPFEN1: " + std::to_string(_gctrl->_GPFEN[0]) + 
+            "\nHigh Detect  GPHEN1: " + std::to_string(_gctrl->_GPHEN[0]) + 
+            "\nLow  Detect  GPLEN1: " + std::to_string(_gctrl->_GPLEN[0]) + "\n";
+
+        return result;
+    }
 
     /*
     * Print mode for each GPIO PIN
