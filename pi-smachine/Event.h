@@ -35,7 +35,7 @@ public:
         _int = 0;
     }
 
-    EventData(EventData&& evtd){
+    EventData(EventData&& evtd) noexcept {
         _ushort[0] = evtd._ushort[0];
         _ushort[1] = evtd._ushort[1];
         _int = evtd._int;
