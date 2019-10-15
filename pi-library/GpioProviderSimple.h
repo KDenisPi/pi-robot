@@ -255,7 +255,7 @@ public:
                                     logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Read error: " + std::to_string(errno));
                                 }
 
-                                printf("Value %x:%x:%x:%x\n", rbuff[0], rbuff[1], rbuff[2], rbuff[3]);
+                                printf("Len: %d I: %d Value %x:%x:%x:%x\n", rres, i, rbuff[0], rbuff[1], rbuff[2], rbuff[3]);
                                 std::cout << "descriptor counter " << res << " read: " << rres << std::endl;
 
                                 res--; //not need to check if we have already processed all
