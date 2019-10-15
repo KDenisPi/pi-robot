@@ -10,6 +10,7 @@
 
 #include <cstdlib>
 #include <poll.h>
+#include <sys/ioctl.h>
 
 #include "GpioProvider.h"
 #include "smallthings.h"
@@ -108,14 +109,14 @@ public:
         * Switch GPIO detection off
         * We will not export GPIO each time
         */
-        if(edgs_level == GPIO_EDGE_LEVEL::EDGE_LEVEL_OFF){
+        if(edgs_level == GPIO_EDGE_LEVEL::EDGE_NONE){
             std::cout << "set_egde_level edge OFF" << std::endl;
 
             //check if GPIO was exported - if TRUE - change value in /edge folder
             if(is_gpio_exported(pin)){
                 close_gpio_folder(pin);
 
-                return _set_gpio_edge(edgs_level);
+                return _set_gpio_edge(pin, edgs_level);
             }
 
             return true;
@@ -129,7 +130,7 @@ public:
             return false;
         }
 
-        if(!_set_gpio_edge(edgs_level)){
+        if(!_set_gpio_edge(pin, edgs_level)){
             return false;
         }
 
@@ -203,68 +204,71 @@ public:
                  break;
             }
 
-            if(fd_cnt == 0){
-                 continue;
-            }
 
-            {
-                std::lock_guard<std::mutex> lock(owner->get_mutex());
-                //initialize data
-                int cnt = 0;
-                for(int i=0; i<nfd && cnt<fd_cnt; i++){
-                    if(pfd[i].fd < 0 )
-                       continue;
-                    loc_pfd[cnt].fd = pfd[i].fd;
-                    loc_pfd[cnt].events = POLLPRI;
-                    loc_pfd[cnt].revents = 0;
-                    cnt++;
+            while(1){
+
+                if(fd_cnt == 0 || owner->is_stop_signal()){
+                    break;
                 }
-            }
-
-            //sleep(2);
-            //make request
-            std::cout << "before poll signal detected" << std::endl;
-            int res = poll(loc_pfd, fd_cnt, fd_timeout);
-
-            std::cout << "after poll signal detected " << res <<std::endl;
-            if(res == 0){ //nothing happened or timeout
-                continue;
-            }
-            else if(res < 0){ //error
-                logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll error: " + std::to_string(errno));
-                //TODO: what next?
-            }
-            else{ //we have an update for some descriptors
-                //process events one by one
-
-                std::cout << "start check descriptors " << std::endl;
-                for(int i = 0; i < fd_cnt && res > 0; i++ ){
-                    //we have something for this descriptor
-                    if(loc_pfd[i].fd > 0 && loc_pfd[i].revents != 0){
-
-                        std::cout << "descriptor " << i << " revents: " << loc_pfd[i].revents << std::endl;
-
-                        if((loc_pfd[i].revents&POLLPRI) != 0){ //get a new value and notify
-                            memset(rbuff, 0x00, 5);
-                            lseek(loc_pfd[i].fd, 0, SEEK_SET);
-                            int rres = read(loc_pfd[i].fd, rbuff, 4);
-                            if(rres < 0){
-                                logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Read error: " + std::to_string(errno));
-                            }
-
-                            printf("Value %x:%x:%x:%x\n", rbuff[0], rbuff[1], rbuff[2], rbuff[3]);
-                            std::cout << "descriptor counter " << res << " read: " << rres << std::endl;
-
-                            res--; //not need to check if we have already processed all
-
-                        }
-                        else if((loc_pfd[i].revents&POLLERR) != 0){ //something wrong here
-                            logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Revents: " + std::to_string(loc_pfd[i].revents));
-                        }
+                else {
+                    std::lock_guard<std::mutex> lock(owner->get_mutex());
+                    //initialize data
+                    int cnt = 0;
+                    for(int i=0; i<nfd && cnt<fd_cnt; i++){
+                        if(pfd[i].fd < 0 )
+                        continue;
+                        loc_pfd[cnt].fd = pfd[i].fd;
+                        loc_pfd[cnt].events = POLLPRI;
+                        loc_pfd[cnt].revents = 0;
+                        cnt++;
                     }
                 }
 
-                std::cout << "stop check descriptors " << std::endl;
+                //sleep(2);
+                //make request
+                std::cout << "before poll signal detected" << std::endl;
+                int res = poll(loc_pfd, fd_cnt, fd_timeout);
+
+                std::cout << "after poll signal detected " << res <<std::endl;
+                if(res == 0){ //nothing happened or timeout
+                    continue;
+                }
+                else if(res < 0){ //error
+                    logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll error: " + std::to_string(errno));
+                    //TODO: what next?
+                }
+                else{ //we have an update for some descriptors
+                    //process events one by one
+
+                    std::cout << "start check descriptors " << std::endl;
+                    for(int i = 0; i < fd_cnt && res > 0; i++ ){
+                        //we have something for this descriptor
+                        if(loc_pfd[i].fd > 0 && loc_pfd[i].revents != 0){
+
+                            std::cout << "descriptor " << i << " revents: " << loc_pfd[i].revents << std::endl;
+
+                            if((loc_pfd[i].revents&POLLPRI) != 0){ //get a new value and notify
+                                memset(rbuff, 0x00, 5);
+                                lseek(loc_pfd[i].fd, 0, SEEK_SET);
+                                int rres = read(loc_pfd[i].fd, rbuff, 4);
+                                if(rres < 0){
+                                    logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Read error: " + std::to_string(errno));
+                                }
+
+                                printf("Value %x:%x:%x:%x\n", rbuff[0], rbuff[1], rbuff[2], rbuff[3]);
+                                std::cout << "descriptor counter " << res << " read: " << rres << std::endl;
+
+                                res--; //not need to check if we have already processed all
+
+                            }
+                            else if((loc_pfd[i].revents&POLLERR) != 0){ //something wrong here
+                                logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Revents: " + std::to_string(loc_pfd[i].revents));
+                            }
+                        }
+                    }
+
+                    std::cout << "stop check descriptors " << std::endl;
+                }
             }
         }
 
@@ -388,7 +392,7 @@ protected:
     /*
     *
     */
-   bool _set_gpio_edge(const int pin, GPIO_EDGE_LEVEL edgs_level){
+   bool _set_gpio_edge(const int pin, GPIO_EDGE_LEVEL edge_level){
        
         const std::string edge = get_edge_name(edge_level);
         int phpin = phys_pin(pin);
@@ -416,16 +420,17 @@ protected:
                 _fds[pin].fd = open(pin_dir.c_str(), O_RDONLY);
                 
                 if( _fds[pin].fd > 0){
-                    _fd_count++;
-
                     int cnt = 0;
                     int res = ioctl(_fds[pin].fd, FIONREAD , &cnt);
                     if(res >= 0){ //read all older values
                         char ch;
                         for(int i=0; i<cnt; i++){
-                            read(_fds[pin].fd, 1, &ch);
+                            ssize_t rret = read(_fds[pin].fd, &ch, 1);
+                            if(rret < 0) break;
                         }
                     }
+                    _fd_count++;
+                    cv.notify_one();
                 }
             }
 
@@ -433,9 +438,6 @@ protected:
             if( _fds[pin].fd < 0){
                 logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" Could not open: ") + pin_dir + " Error:" + std::to_string(errno));
                 return false;
-            }
-            else{
-                cv.notify_one();
             }
         }
 
@@ -484,7 +486,7 @@ private:
     }
 
     //Prepare directory name for physical PIN number
-    const std::string get_gpio_path(const int phpin, const std::string folder){
+    const std::string get_gpio_path(const int phpin, const std::string folder = ""){
         char buff[s_buff_size];
         if(folder.length() > 0)
             snprintf(buff, s_buff_size, "/sys/class/gpio/gpio%d/%s", phpin, folder.c_str());
