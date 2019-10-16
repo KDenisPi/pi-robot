@@ -199,7 +199,7 @@ public:
                 std::unique_lock<std::mutex> lk(owner->cv_m);
                 owner->cv.wait(lk, fn);
 
-                logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + std::string(" FD count: ") + std::to_string(owner->fd_count()));
+                logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + std::string(" Signal detected FD count: ") + std::to_string(owner->fd_count()));
             }
 
 
@@ -212,9 +212,10 @@ public:
 
                 volatile int fd_cnt = owner->fd_count();
                 bool is_stop = owner->is_stop_signal();
-                std::cout << "signal detected FD count: " << fd_cnt << " is stop : " << is_stop << std::endl;
+                //std::cout << "signal detected FD count: " << fd_cnt << " is stop : " << is_stop << std::endl;
 
                 if(fd_cnt == 0 || is_stop){
+                    logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + std::string(" Stop signel or no more FD: ") + std::to_string(owner->fd_count()));
                     break;
                 }
                 else {
@@ -243,7 +244,7 @@ public:
                 else{ //we have an update for some descriptors
                     //process events one by one
 
-                    std::cout << "start check descriptors Pool: " << res << std::endl;
+                    //std::cout << "start check descriptors Pool: " << res << std::endl;
                     for(int i = 0; i < fd_cnt && res > 0; i++ ){
                         //we have something for this descriptor
                         if(loc_pfd[i].fd > 0 && loc_pfd[i].revents != 0){
@@ -260,8 +261,9 @@ public:
                                 /*
                                 * Value has view 0\n or 1\n
                                 */
-                                int value = (int)rbuff[0];
-                                std::cout << "descriptor counter " << res << " read: " << rres << std::endl;
+                                int value = (rbuff[0]==0x30 ? 0 : (rbuff[0]==0x31 ? 1 : (int)rbuff[0]));
+                                logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + " FD: " + std::to_string(loc_pfd[i].fd) + " Value:" + std::to_string(value));
+                                //std::cout << "descriptor counter " << res << " read: " << rres << " value:" << value << std::endl;
 
                                 res--; //not need to check if we have already processed all
 
