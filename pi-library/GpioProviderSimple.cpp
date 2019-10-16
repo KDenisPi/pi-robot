@@ -51,10 +51,13 @@ GpioProviderSimple::~GpioProviderSimple() {
 
     for(int i = 0; i < s_pins; i++){
         if( _fds[i].fd > 0){
-            close_gpio_folder(i, false);//true);
+            //I am not sure that need to unexport GPIO here.
+            //Probably it will be used by another application
+            close_gpio_folder(i, false);
         }
     }
 
+    //Release registers map
     if(_gctrl){
         piutils::unmap_memory<gpio_ctrl>(static_cast<gpio_ctrl*>((void*)_gctrl));
     }
