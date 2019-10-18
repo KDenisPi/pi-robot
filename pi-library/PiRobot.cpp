@@ -106,8 +106,7 @@ void PiRobot::add_gpio(const std::string& name,
         throw std::runtime_error(std::string(" GPIO with such name is present already: ") + gpio_name);
     }
 
-    gpios_add(gpio_name,
-            std::shared_ptr<pirobot::gpio::Gpio>(new pirobot::gpio::Gpio(pin, gpio_mode, gpio_provider, pull_mode)));
+    gpios_add(gpio_name, std::make_shared<pirobot::gpio::Gpio>(pin, gpio_mode, gpio_provider, pull_mode));
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Provider: " + provider_name + ". Added PIN: " + std::to_string(pin) + " Name: " + gpio_name);
 }
