@@ -141,7 +141,7 @@ private:
     }
 
     bool m_realWorld;
-    std::recursive_mutex mutex_sm;
+    std::mutex mutex_sm;
 
     std::string m_configuration; //full defined path to the hardware configuration file
 

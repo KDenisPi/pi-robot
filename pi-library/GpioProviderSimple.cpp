@@ -30,9 +30,11 @@ GpioProviderSimple::GpioProviderSimple(const std::string name, const int pins) :
         throw std::runtime_error(std::string("Could not map GPIO memory"));
     }
 
+    //initialize array of file descriptors used for edge GPIO
     for(int i = 0; i < s_pins; i++)
         _fds[i].fd = -1;
 
+    //start working thread
     start();
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" GPIO control registers mapped"));

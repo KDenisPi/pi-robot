@@ -127,10 +127,9 @@ StateMachine::~StateMachine() {
  */
 const std::shared_ptr<Event> StateMachine::get_event(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-    mutex_sm.lock();
+    std::lock_guard<std::mutex> lock(mutex_sm);
     std::shared_ptr<Event> event = m_events.front();
     m_events.pop();
-    mutex_sm.unlock();
     return event;
 }
 
@@ -139,13 +138,17 @@ const std::shared_ptr<Event> StateMachine::get_event(){
  */
 void StateMachine::put_event(const std::shared_ptr<Event>& event, bool force){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started:" + event->name());
-    mutex_sm.lock();
-    if(force){
-        while(!m_events.empty())
-            m_events.pop();
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_sm);
+        if(force){
+            std::queue<std::shared_ptr<Event>> events_empty;
+            m_events.swap(events_empty);
+            //while(!m_events.empty())
+            //    m_events.pop();
+        }
+        m_events.push(std::move(event));
     }
-    m_events.push(std::move(event));
-    mutex_sm.unlock();
 
     cv.notify_one();
 }

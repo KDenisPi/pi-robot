@@ -117,7 +117,7 @@ private:
 
     void state_push(const std::shared_ptr<state::State> state);
 
-    std::recursive_mutex mutex_sm;
+    std::mutex mutex_sm;
     std::queue<std::shared_ptr<Event>> m_events;
     std::shared_ptr<std::list<std::shared_ptr<state::State>>> m_states;
 
