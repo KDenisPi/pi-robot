@@ -17,8 +17,6 @@ namespace item {
 
 class DRV8834_StepperMotor: public Item, public Motor {
 public:
-	DRV8834_StepperMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio);
-
 	DRV8834_StepperMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 			const std::string name,
 			const std::string comment);

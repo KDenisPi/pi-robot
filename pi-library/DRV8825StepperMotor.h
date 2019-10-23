@@ -28,8 +28,6 @@ enum DRV8825_DECAY {
 class DRV8825_StepperMotor: public Item, public Motor {
 public:
 	// GPIO on constructor is used for STEP command (pin 22)
-	DRV8825_StepperMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio);
-
 	DRV8825_StepperMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 			const std::string name,
 			const std::string comment);

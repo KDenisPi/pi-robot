@@ -16,26 +16,6 @@ namespace pirobot {
 namespace item {
 
 Drv8835::Drv8835(const std::shared_ptr<pirobot::gpio::Gpio> gpio_mode,
-		DRV8835_MODE mode) :
-			Item(gpio_mode, ItemTypes::DRV8835),
-			m_mode(mode)
-{
-	assert(get_gpio() != NULL);
-	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);
-
-	//
-	//DRV8835 page 5
-	//
-
-	//set mode
-	//Logic low selects IN/IN mode
-	//Logic high selects PH/EN mode
-	get_gpio()->digitalWrite((mode == DRV8835_MODE::IN_IN) ? gpio::SGN_LEVEL::SGN_LOW : gpio::SGN_LEVEL::SGN_HIGH);
-
-}
-
-
-Drv8835::Drv8835(const std::shared_ptr<pirobot::gpio::Gpio> gpio_mode,
 		const std::string name,
 		const std::string comment,
 		DRV8835_MODE mode) :

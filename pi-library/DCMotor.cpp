@@ -20,26 +20,6 @@ namespace dcmotor {
 DCMotor::DCMotor(const std::shared_ptr<pirobot::item::Drv8835> drv8835,
         const std::shared_ptr<pirobot::gpio::Gpio> gpio_direction,
         const std::shared_ptr<pirobot::gpio::Gpio> gpio_pwm,
-        const MOTOR_DIR direction) :
-                Item(gpio_direction, ItemTypes::DCMotor),
-                m_drv8835(drv8835),
-                m_gpio_pwm(gpio_pwm),
-                m_direction(direction)
-{
-    assert(get_gpio() != NULL);
-    assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);
-    assert(gpio_pwm.get() != NULL);
-    assert(gpio_pwm->getMode() ==  gpio::GPIO_MODE::OUT);
-
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-    set_direction(m_direction);
-
-    stop();
-}
-
-DCMotor::DCMotor(const std::shared_ptr<pirobot::item::Drv8835> drv8835,
-        const std::shared_ptr<pirobot::gpio::Gpio> gpio_direction,
-        const std::shared_ptr<pirobot::gpio::Gpio> gpio_pwm,
         const std::string name,
         const std::string comment,
         const MOTOR_DIR direction) :

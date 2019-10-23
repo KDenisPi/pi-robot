@@ -19,11 +19,6 @@ public:
 	DCMotor(const std::shared_ptr<pirobot::item::Drv8835> drv8835,
 			const std::shared_ptr<pirobot::gpio::Gpio> gpio_direction,
 			const std::shared_ptr<pirobot::gpio::Gpio> gpio_pwm,
-			MOTOR_DIR direction = MOTOR_DIR::DIR_CLOCKWISE);
-
-	DCMotor(const std::shared_ptr<pirobot::item::Drv8835> drv8835,
-			const std::shared_ptr<pirobot::gpio::Gpio> gpio_direction,
-			const std::shared_ptr<pirobot::gpio::Gpio> gpio_pwm,
 			const std::string name,
 			const std::string comment,
 			MOTOR_DIR direction = MOTOR_DIR::DIR_CLOCKWISE);

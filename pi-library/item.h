@@ -80,10 +80,12 @@ public:
     m_type(itype),
     notify(nullptr),
     m_debug(false)
-    {};
+    {
+        assert(name.length() > 0);
+    };
 
     //Constructor for GPIO base Items
-    Item(const std::shared_ptr<pirobot::gpio::Gpio> gpio, int itype) : Item(gpio, "", "", itype) {};
+    //Item(const std::shared_ptr<pirobot::gpio::Gpio> gpio, int itype) : Item(gpio, "", "", itype) {};
 
     Item(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
           const std::string& name,

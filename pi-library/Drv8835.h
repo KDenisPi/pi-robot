@@ -23,9 +23,6 @@ enum DRV8835_MODE {
 class Drv8835: public Item {
 public:
 	Drv8835(const std::shared_ptr<pirobot::gpio::Gpio> gpio_mode,
-			DRV8835_MODE mode = DRV8835_MODE::PH_EN);
-
-	Drv8835(const std::shared_ptr<pirobot::gpio::Gpio> gpio_mode,
 			const std::string name,
 			const std::string comment,
 			DRV8835_MODE mode = DRV8835_MODE::PH_EN);

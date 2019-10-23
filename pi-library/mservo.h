@@ -16,15 +16,12 @@ namespace item {
 
 class ServoMotor: public Item {
 public:
-	ServoMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
-			const float plusMinusRange = 90.0f);
+    ServoMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
+            const std::string name,
+            const std::string comment,
+            const float plusMinusRange = 90.0f);
 
-	ServoMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
-			const std::string name,
-			const std::string comment,
-			const float plusMinusRange = 90.0f);
-
-	virtual ~ServoMotor();
+    virtual ~ServoMotor();
 
     virtual bool initialize() override;
     virtual void stop() override;
@@ -37,9 +34,9 @@ public:
 
     void setPulse(const uint16_t pulselen);
 private:
-	float m_minDutyCycle, m_maxDutyCycle, m_zeroDutyCycle;  ///< The calibrated duty cycles
-	float m_plusMinusRange;                             ///< The range of the servo (e.g., +/- 90)
-	float m_angleStepSize;                              ///< Calculated from other duty cycles and range
+    float m_minDutyCycle, m_maxDutyCycle, m_zeroDutyCycle;  ///< The calibrated duty cycles
+    float m_plusMinusRange;                             ///< The range of the servo (e.g., +/- 90)
+    float m_angleStepSize;                              ///< Calculated from other duty cycles and range
 };
 
 } /* namespace item */

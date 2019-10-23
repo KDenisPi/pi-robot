@@ -18,23 +18,6 @@ namespace item {
 /*
  *
  */
-DRV8834_StepperMotor::DRV8834_StepperMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio) :
-	Item(gpio, ItemTypes::STEPPER),
-	m_gpio_enable(nullptr),
-	m_gpio_sleep(nullptr),
-	m_gpio_mode_0(nullptr),
-	m_gpio_mode_1(nullptr),
-	m_gpio_dir(nullptr),
-	m_enable(true),
-	m_sleep(false),
-	m_direction(MOTOR_DIR::DIR_CLOCKWISE),
-	m_step_size(DRV8834_MICROSTEP::STEP34_FULL)
-{
-	assert(get_gpio() != NULL);
-	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);
-
-}
-
 DRV8834_StepperMotor::DRV8834_StepperMotor(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
 		const std::string name,
 		const std::string comment) :

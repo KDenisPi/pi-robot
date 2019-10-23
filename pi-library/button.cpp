@@ -45,23 +45,6 @@ const char* Item::ItemNames[] = {
  *
  */
 Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
-   const BUTTON_STATE state, const gpio::PULL_MODE pullmode, const int itype) :
-   Item(gpio, itype), m_pullmode(pullmode), m_state(state)
-{
-    assert(get_gpio() != NULL);
-    assert(get_gpio()->getMode() == gpio::GPIO_MODE::IN);
-
-    inverse_value = (get_gpio()->get_provider_type() == gpio::GPIO_PROVIDER_TYPE::PROV_MCP23017 ? true : false);
-
-    set_name(type_name(type()) + "_over_" + get_gpio()->to_string());
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started. " + to_string() + " Inverse:" + std::to_string(inverse_value) +
-           " Provider: " + std::to_string(get_gpio()->get_provider_type()) + " GPIO:" + get_gpio()->to_string());
-}
-
-/*
- *
- */
-Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
         const std::string name, const std::string comment,
         const BUTTON_STATE state, const gpio::PULL_MODE pullmode, const int itype) :
           Item(gpio, name, comment, itype), m_pullmode(pullmode), m_state(state)

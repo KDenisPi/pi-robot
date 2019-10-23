@@ -14,40 +14,24 @@ namespace item {
 const char TAG[] = "led";
 
 Led::Led(const std::shared_ptr<gpio::Gpio> gpio,
-		const LED_STATE init_state,
-		const bool init_always) :
-	Item(gpio, ItemTypes::LED),
-	m_state(LED_STATE::OFF),
-	m_init_state(init_state),
-	m_init_always(init_always)
+        const std::string name,
+        const std::string comment,
+        const LED_STATE init_state,
+        const bool init_always)
+            : Item(gpio, name, comment, ItemTypes::LED),
+              m_init_state(init_state),
+              m_state(LED_STATE::OFF),
+              m_init_always(init_always)
 {
-	assert(get_gpio() != NULL);
-	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);
+    assert(get_gpio() != NULL);
+    assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);
 
-	set_name("LED_over_" + get_gpio()->to_string());
+    if(name.empty())
+        set_name("LED_over_" + get_gpio()->to_string());
 }
-
-
-Led::Led(const std::shared_ptr<gpio::Gpio> gpio,
-		const std::string name,
-		const std::string comment,
-		const LED_STATE init_state,
-		const bool init_always)
-			: Item(gpio, name, comment, ItemTypes::LED),
-			  m_init_state(init_state),
-			  m_state(LED_STATE::OFF),
-			  m_init_always(init_always)
-{
-	assert(get_gpio() != NULL);
-	assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);
-
-	if(name.empty())
-		set_name("LED_over_" + get_gpio()->to_string());
-}
-
 
 Led::~Led() {
-	// TODO Auto-generated destructor stub
+    // TODO Auto-generated destructor stub
 }
 
 bool Led::initialize(void)
@@ -65,14 +49,14 @@ bool Led::initialize(void)
  *
  */
 const std::string Led::to_string(){
-	return name() + (m_state == LED_STATE::OFF ? " OFF" : " ON");
+    return name() + (m_state == LED_STATE::OFF ? " OFF" : " ON");
 }
 
 /*
  *
  */
 const std::string Led::printConfig(){
-	return name() + " GPIO: " + get_gpio()->to_string();
+    return name() + " GPIO: " + get_gpio()->to_string();
 }
 
 void Led::set_state(const LED_STATE state){
