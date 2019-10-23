@@ -49,6 +49,11 @@ public:
         return name();
     }
 
+    //Should we set callback function during initialization for this Item or not
+    virtual bool is_notify() override{
+        return true;
+    }
+
     /*
     *
     */

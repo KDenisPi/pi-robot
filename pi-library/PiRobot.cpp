@@ -125,7 +125,7 @@ bool PiRobot::start(){
          * Set callback for Button
          * TODO: Add another types if needed
          */
-        if(it->second->have_notify()){
+        if(it->second->is_notify()){
             logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Add callback function " + it->first);
             it->second->notify = std::bind(&PiRobot::notify_stm,
                     this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);

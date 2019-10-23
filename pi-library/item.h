@@ -150,14 +150,7 @@ public:
     static const char* ItemNames[];
 
     //Should we set callback function during initialization for this Item or not
-    inline bool have_notify(){
-        if(m_type == ItemTypes::BUTTON ||
-            m_type == ItemTypes::TILT_SWITCH ||
-            m_type == ItemTypes::BLINKER ||
-            m_type == ItemTypes::AnalogLightMeter ||
-            m_type == ItemTypes::STEPPER) {
-                return true;
-        }
+    virtual bool is_notify() {
         return false;
     }
 

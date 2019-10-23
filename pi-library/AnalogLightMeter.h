@@ -83,6 +83,10 @@ public:
         m_provider->activate_data_receiver(get_idx());
     }
 
+    //Should we set callback function during initialization for this Item or not
+    virtual bool is_notify() override{
+        return true;
+    }
 
     /*
     *
