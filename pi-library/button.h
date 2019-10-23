@@ -41,6 +41,11 @@ public:
     virtual const std::string to_string() override;
     virtual const std::string printConfig() override;
 
+    //Should we set callback function during initialization for this Item or not
+    virtual bool is_notify() override{
+        return true;
+    }
+
     static void worker(Button* owner);
     virtual void stop() override;
 
