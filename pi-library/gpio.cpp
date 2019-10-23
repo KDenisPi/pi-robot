@@ -64,14 +64,6 @@ void Gpio::setMode(GPIO_MODE mode)
 /*
  *
  */
-const std::string Gpio::to_string()
-{
-	return "GPIO_" + std::to_string(m_pin) + " Prov:" + m_prov->to_string();
-}
-
-/*
- *
- */
 const int Gpio::digitalRead(){
 	return m_prov->dgtRead(m_pin);
 }

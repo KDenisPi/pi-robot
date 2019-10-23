@@ -11,6 +11,7 @@
 #include <cassert>
 #include <string>
 #include <functional>
+#include <map>
 
 #include "provider.h"
 
@@ -61,15 +62,20 @@ enum GPIO_EDGE_LEVEL {
 	EDGE_BOTH
 };
 
-using gpio_notify = std::function<void(uint32_t)>;
+using item_over_gpio = std::pair<int, std::string>;
 
 class GpioProvider : public pirobot::provider::Provider {
 public:
-	GpioProvider(const std::string& name, const int pin_count = 0, const std::string comment = "") :
+	GpioProvider(const std::string& name, const int pin_count, const std::string comment = "") :
 		Provider(pirobot::provider::PROVIDER_TYPE::PROV_GPIO, name, comment), m_pcount(pin_count)
-	{}
+	{
 
-	virtual ~GpioProvider() {}
+	}
+
+	virtual ~GpioProvider() {
+
+	}
+
     virtual GPIO_PROVIDER_TYPE const get_type() const = 0;
 
 	/*
@@ -108,14 +114,31 @@ public:
 	//set edge and level detection for pin (if supported)
 	virtual bool set_egde_level(const int pin, GPIO_EDGE_LEVEL edgs_level){ return false;}
 
-private:
+	void add_gpio_user(const int idx, const item_over_gpio gpio_user){
+		_gpio_user[idx] = gpio_user;
+	}
+
+	const item_over_gpio get_gpio_user(const int idx){
+		auto result = _gpio_user.find(idx);
+    	if (result != _gpio_user.end())
+			return result->second;
+
+		return std::make_pair<int, std::string>(-1, std::string());
+	}
+
+protected:
 	/*
 	* Some GPIO providers supoprt level detection through interrupt
 	* It can be useful for detection multiple states changing (usually IN; for example buttons) instead of polling
 	*/
 	virtual bool is_support_group() {return false;}
 
+private:
+	//maximum number of GPIO supported by this provider
 	int m_pcount;
+
+	//Map contains link between GPIO and GPIO user (Item)
+	std::map<int, item_over_gpio> _gpio_user;
 };
 
 } //namespace gpio

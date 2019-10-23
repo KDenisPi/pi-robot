@@ -102,6 +102,7 @@ public:
     void start();
 
     static const int s_pins = 26;
+    static const int s_poll_timeout = 500; //ms
 
     //set edge and level detection for pin (if supported)
     virtual bool set_egde_level(const int pin, GPIO_EDGE_LEVEL edgs_level) override {
@@ -186,9 +187,11 @@ public:
 
         struct pollfd* pfd = owner->get_fds();
         nfds_t nfd = GpioProviderSimple::s_pins;
-        int fd_timeout = 950;
-        char rbuff[5];
-        struct pollfd loc_pfd[5];
+        int fd_timeout = GpioProviderSimple::s_poll_timeout;
+        struct pollfd loc_pfd[GpioProviderSimple::s_pins];
+
+        const int rbuff_size = 3;
+        char rbuff[rbuff_size];
 
         //check if we ready to start - we has GPIO for test
         auto fn = [owner]{return (owner->is_stop_signal() | owner->fd_count() > 0);};
@@ -250,9 +253,9 @@ public:
                         if(loc_pfd[i].fd > 0 && loc_pfd[i].revents != 0){
 
                             if((loc_pfd[i].revents & POLLPRI) != 0){ //get a new value and notify
-                                memset(rbuff, 0x00, 5);
+                                memset(rbuff, 0x00, rbuff_size);
                                 lseek(loc_pfd[i].fd, 0, SEEK_SET);
-                                int rres = read(loc_pfd[i].fd, rbuff, 4);
+                                int rres = read(loc_pfd[i].fd, rbuff, rbuff_size);
                                 if(rres < 0){
                                     logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Read error: " + std::to_string(errno));
                                     continue;

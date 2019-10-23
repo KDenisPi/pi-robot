@@ -14,8 +14,8 @@ namespace pirobot{
 namespace provider{
 
 enum PROVIDER_TYPE {
-	PROV_GPIO = 0,
-	PROV_SPI  = 1,
+    PROV_GPIO = 0,
+    PROV_SPI  = 1,
     PROV_I2C = 2,
     PROV_PWM = 3
 };
@@ -26,7 +26,7 @@ public:
     ProviderInfo(const std::string name, const std::string comment = "") :
         m_name(name), m_comment(comment) {}
 
-    virtual ~ ProviderInfo() {}
+    virtual ~ProviderInfo() {}
 
     const std::string get_name() const {
         return m_name;

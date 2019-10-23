@@ -156,6 +156,12 @@ public:
         return false;
     }
 
+    //is item based on GPIO
+    const bool is_gpio_based() const {
+        if(m_gpio) return true;
+
+        return false;
+    }
     //callback function for upper level notification
     std::function<void(int, std::string&, void*)> notify;
 

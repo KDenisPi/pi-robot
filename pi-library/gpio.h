@@ -20,8 +20,8 @@ class Gpio
 {
   public:
 
-    Gpio(const int pin, const GPIO_MODE mode, const std::shared_ptr<gpio::GpioProvider> provider, 
-        const PULL_MODE pull_mode = PULL_MODE::PULL_OFF, 
+    Gpio(const int pin, const GPIO_MODE mode, const std::shared_ptr<gpio::GpioProvider> provider,
+        const PULL_MODE pull_mode = PULL_MODE::PULL_OFF,
         const GPIO_EDGE_LEVEL edge_level = GPIO_EDGE_LEVEL::EDGE_NONE);
 
     virtual ~Gpio();
@@ -41,7 +41,9 @@ class Gpio
     void pullUpDnControl(PULL_MODE pumode);
     void setPulse(const uint16_t pulselen);
 
-    const std::string to_string();
+    const std::string to_string() const {
+    	return "GPIO_" + std::to_string(m_pin) + " Prov:" + m_prov->to_string();
+    }
 
     const GPIO_PROVIDER_TYPE get_provider_type() const { return m_prov->get_type(); }
     const std::shared_ptr<gpio::GpioProvider> get_provider() {return m_prov;}
@@ -92,7 +94,7 @@ class Gpio
     GPIO_MODE m_mode; //INPUT/OUTPUT
     PULL_MODE _pull_mode; //OFF/DOWN/UP
     GPIO_EDGE_LEVEL _edge_level; //control change GPIO level using interrupt processing (if provided supported it)
-    
+
     std::shared_ptr<gpio::GpioProvider> m_prov; //provider
 };
 
