@@ -188,10 +188,10 @@ public:
         struct pollfd* pfd = owner->get_fds();
         nfds_t nfd = GpioProviderSimple::s_pins;
         int fd_timeout = GpioProviderSimple::s_poll_timeout;
-        struct pollfd loc_pfd[GpioProviderSimple::s_pins];
 
         const int rbuff_size = 3;
         char rbuff[rbuff_size];
+        const std::string name = owner->get_name();
 
         //check if we ready to start - we has GPIO for test
         auto fn = [owner]{return (owner->is_stop_signal() | owner->fd_count() > 0);};
@@ -213,7 +213,7 @@ public:
 
             while(1){
 
-                volatile int fd_cnt = owner->fd_count();
+                volatile nfds_t fd_cnt = owner->fd_count();
                 bool is_stop = owner->is_stop_signal();
                 //std::cout << "signal detected FD count: " << fd_cnt << " is stop : " << is_stop << std::endl;
 
@@ -224,19 +224,17 @@ public:
                 else {
                     std::lock_guard<std::mutex> lock(owner->get_mutex());
                     //initialize data
-                    int cnt = 0;
-                    for(int i=0; i<nfd && cnt<fd_cnt; i++){
+                    for(int i=0; i<nfd; i++){
                         if(pfd[i].fd < 0 )
                             continue;
 
-                        loc_pfd[cnt].fd = pfd[i].fd;
-                        loc_pfd[cnt].events = POLLPRI;
-                        loc_pfd[cnt].revents = 0;
-                        cnt++;
+                        pfd[i].events = POLLPRI;
+                        pfd[i].revents = 0;
                     }
                 }
 
-                int res = poll(loc_pfd, fd_cnt, fd_timeout);
+
+                int res = poll(pfd, fd_cnt, fd_timeout);
                 if(res == 0){ //nothing happened or timeout
                     continue;
                 }
@@ -248,14 +246,14 @@ public:
                     //process events one by one
 
                     //std::cout << "start check descriptors Pool: " << res << std::endl;
-                    for(int i = 0; i < fd_cnt && res > 0; i++ ){
+                    for(int i = 0; i < nfd && res > 0; i++ ){
                         //we have something for this descriptor
-                        if(loc_pfd[i].fd > 0 && loc_pfd[i].revents != 0){
+                        if(pfd[i].fd > 0 && pfd[i].revents != 0){
 
-                            if((loc_pfd[i].revents & POLLPRI) != 0){ //get a new value and notify
+                            if((pfd[i].revents & POLLPRI) != 0){ //get a new value and notify
                                 memset(rbuff, 0x00, rbuff_size);
-                                lseek(loc_pfd[i].fd, 0, SEEK_SET);
-                                int rres = read(loc_pfd[i].fd, rbuff, rbuff_size);
+                                lseek(pfd[i].fd, 0, SEEK_SET);
+                                int rres = read(pfd[i].fd, rbuff, rbuff_size);
                                 if(rres < 0){
                                     logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Read error: " + std::to_string(errno));
                                     continue;
@@ -265,14 +263,19 @@ public:
                                 * Value has view 0\n or 1\n
                                 */
                                 int value = (rbuff[0]==0x30 ? 0 : (rbuff[0]==0x31 ? 1 : (int)rbuff[0]));
-                                logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + " FD: " + std::to_string(loc_pfd[i].fd) + " Value:" + std::to_string(value));
+                                logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + " FD: " + std::to_string(pfd[i].fd) + " Value:" + std::to_string(value));
                                 //std::cout << "descriptor counter " << res << " read: " << rres << " value:" << value << std::endl;
+
+                                //notify about changes
+                                if(owner->notify){
+                                    owner->notify(pirobot::provider::PROVIDER_TYPE::PROV_GPIO, name, std::make_shared<pirobot::provider::ProviderData>(i, value));
+                                }
 
                                 res--; //not need to check if we have already processed all
 
                             }
-                            else if((loc_pfd[i].revents & POLLERR) != 0){ //something wrong here
-                                logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Revents: " + std::to_string(loc_pfd[i].revents));
+                            else if((pfd[i].revents & POLLERR) != 0){ //something wrong here
+                                logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " Poll Pin: " + std::to_string(i) + " Revents: " + std::to_string(pfd[i].revents));
                             }
                         }
                     }

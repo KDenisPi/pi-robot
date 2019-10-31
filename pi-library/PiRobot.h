@@ -73,11 +73,6 @@ private:
         items[name] = item;
     }
 
-    const std::string get_gpio_name(const std::string& provider_name, const int pin) const {
-        std::string gpio_ = provider_name + "_" + std::to_string(pin);
-        return gpio_;
-    }
-
     /*
     * Get provider by name
     */
@@ -108,8 +103,21 @@ public:
      */
     void notify_stm(int itype, std::string& name, void* data);
 
+    //pointer to State Mashine notification function
     std::function<void(int, std::string&, void*)> stm_notification;
 
+    /*
+        Low level notification function (provider callback etc)
+        Parameters:
+            ptype - provider type
+            pname - provider name
+            pdata - provider data used for notification
+    */
+    void notify_low(const pirobot::provider::PROVIDER_TYPE ptype, const std::string& pname, std::shared_ptr<pirobot::provider::ProviderData> pdata) {
+
+    }
+
+    //pring configuration
     void printConfig();
 
     /*
@@ -129,12 +137,6 @@ public:
    }
 
 private:
-    //
-    //
-    //
-    void gpios_add(const std::string& name, const std::shared_ptr<gpio::Gpio> gpio){
-        gpios[name] = gpio;
-    }
 
     void set_real_world(const bool real_world){
         m_realWorld = real_world;
@@ -153,6 +155,12 @@ private:
         std::less<std::string>,
         std::allocator<std::pair<const std::string, std::shared_ptr<gpio::Gpio>> >
     > gpios;
+
+    std::map <std::string,
+        std::shared_ptr<gpio::Gpio>,
+        std::less<std::string>,
+        std::allocator<std::pair<const std::string, std::shared_ptr<gpio::Gpio>> >
+    > gpios_low;
 
     std::map <std::string,
         std::shared_ptr<item::Item>,

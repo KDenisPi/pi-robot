@@ -42,7 +42,7 @@ class Gpio
     void setPulse(const uint16_t pulselen);
 
     const std::string to_string() const {
-    	return "GPIO_" + std::to_string(m_pin) + " Prov:" + m_prov->to_string();
+        return "GPIO_" + std::to_string(m_pin) + " Prov:" + m_prov->to_string();
     }
 
     const GPIO_PROVIDER_TYPE get_provider_type() const { return m_prov->get_type(); }
@@ -86,6 +86,12 @@ class Gpio
         }
 
         logger::log(logger::LLOG::DEBUG, "GPIO", std::string(__func__) + " edge/level: " + std::to_string((int)_edge_level) + " result: " +  std::to_string(ret));
+    }
+
+    //Return low level GPIO name created on base provider name and PIN
+    static const std::string get_gpio_name(const std::string& provider_name, const int pin) {
+        std::string gpio_ = provider_name + "_" + std::to_string(pin);
+        return gpio_;
     }
 
 

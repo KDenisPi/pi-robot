@@ -57,6 +57,27 @@ public:
     void set_state(const BUTTON_STATE state);
     const BUTTON_STATE state() { return m_state; }
 
+    /*
+    * Transform level to state
+    */
+    void process_level(gpio::SGN_LEVEL level){
+        const BUTTON_STATE state = get_state_by_level(level);
+
+        if(this->state() != state){
+            set_state(state);
+
+            logger::log(logger::LLOG::DEBUG, "button", std::string(__func__) + " ** State changed!!!! " + name() + " New state:" + std::to_string(state));
+            logger::log(logger::LLOG::DEBUG, "button", std::string(__func__) + " New level:" + std::to_string(level) + " " + to_string());
+
+            if(notify){
+                std::string name = this->name();
+                notify(type(), name, (void*)(&state));
+            }
+        }
+
+    }
+
+
 private:
     gpio::PULL_MODE m_pullmode;
     BUTTON_STATE m_state; //

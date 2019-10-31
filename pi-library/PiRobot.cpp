@@ -48,7 +48,7 @@ std::shared_ptr<gpio::Gpio> PiRobot::get_gpio(const std::string& name) const{
  * Get GPIO by provider name and PIN number
  */
  std::shared_ptr<gpio::Gpio> PiRobot::get_gpio(const std::string provider_name, const int pin)  const{
-    auto name = get_gpio_name(provider_name, pin);
+    auto name = gpio::Gpio::get_gpio_name(provider_name, pin);
     return get_gpio(name);
 }
 
@@ -98,15 +98,24 @@ void PiRobot::add_gpio(const std::string& name,
         throw std::runtime_error(std::string(" Invalid pin number: ") + std::to_string(pin));
     }
 
-    auto gpio_name = (name.empty() ? get_gpio_name(provider_name, pin) : name);
+    const std::string gpio_name_low = gpio::Gpio::get_gpio_name(provider_name, pin);
+    const std::string gpio_name = (name.empty() ? gpio_name_low : name);
 
-    auto pgpio = this->gpios.find(gpio_name);
-    if(pgpio != gpios.end()){
+    auto f_gpio = this->gpios.find(gpio_name);
+    if(f_gpio != gpios.end()){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " GPIO with such name is present already: " + gpio_name + " Provider: " + provider_name);
         throw std::runtime_error(std::string(" GPIO with such name is present already: ") + gpio_name);
     }
 
-    gpios_add(gpio_name, std::make_shared<pirobot::gpio::Gpio>(pin, gpio_mode, gpio_provider, pull_mode));
+    auto f_gpio_low = this->gpios_low.find(gpio_name_low);
+    if(f_gpio_low != gpios_low.end()){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " GPIO with such name is present already: " + gpio_name_low + " Provider: " + provider_name);
+        throw std::runtime_error(std::string(" GPIO with such name is present already: ") + gpio_name_low);
+    }
+
+    const std::shared_ptr<gpio::Gpio> p_gpio = std::make_shared<pirobot::gpio::Gpio>(pin, gpio_mode, gpio_provider, pull_mode);
+    gpios[gpio_name] = p_gpio;
+    gpios_low[gpio_name_low] = p_gpio;
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Provider: " + provider_name + ". Added PIN: " + std::to_string(pin) + " Name: " + gpio_name);
 }
@@ -127,8 +136,7 @@ bool PiRobot::start(){
          */
         if(it->second->is_notify()){
             logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Add callback function " + it->first);
-            it->second->notify = std::bind(&PiRobot::notify_stm,
-                    this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+            it->second->notify = std::bind(&PiRobot::notify_stm, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
         }
 
         const bool res = it->second->initialize();

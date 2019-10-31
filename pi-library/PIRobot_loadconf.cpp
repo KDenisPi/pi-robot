@@ -74,6 +74,8 @@ bool PiRobot::configure(const std::string& cfile){
             providers["SIMPLE"] = std::make_shared<pirobot::gpio::GpioProviderFake>("SIMPLE", 12);
         }
 
+        providers["SIMPLE"]->notify = std::bind(&PiRobot::notify_low, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+
         //
         // First step - Load providers configuration
         //
@@ -203,7 +205,7 @@ bool PiRobot::configure(const std::string& cfile){
                 auto gpio_provider = jsonhelper::get_attr_mandatory<std::string>(json_gpio, "provider");
                 auto gpio_pin = jsonhelper::get_attr_mandatory<int>(json_gpio, "pin");
                 auto gpio_mode = jsonhelper::get_attr_mandatory<std::string>(json_gpio, "mode");
-                auto gpio_name = jsonhelper::get_attr<std::string>(json_gpio, "name", get_gpio_name(gpio_provider, gpio_pin));
+                auto gpio_name = jsonhelper::get_attr<std::string>(json_gpio, "name", gpio::Gpio::get_gpio_name(gpio_provider, gpio_pin));
                 auto gpio_pull_mode = jsonhelper::get_attr<std::string>(json_gpio, "pull_mode", "OFF");
 
 
@@ -257,7 +259,7 @@ bool PiRobot::configure(const std::string& cfile){
                 throw std::runtime_error(msg);
             }
 
-            return get_gpio_name(gpio_provider, gpio_pin);
+            return gpio::Gpio::get_gpio_name(gpio_provider, gpio_pin);
         };
 
         auto f_get_motor_direction = [this](const jsoncons::json& object, const std::string& item_name) -> item::MOTOR_DIR{

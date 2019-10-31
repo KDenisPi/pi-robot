@@ -52,28 +52,31 @@ Button::Button(const std::shared_ptr<pirobot::gpio::Gpio> gpio,
     assert(get_gpio() != NULL);
     assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::IN);
 
-    inverse_value = (get_gpio()->get_provider_type() == gpio::GPIO_PROVIDER_TYPE::PROV_MCP23017 ? true : false);
+    //not safety
+    const std::shared_ptr<pirobot::gpio::Gpio> pgpio = get_gpio();
 
-    if(name.empty())
-        set_name(type_name(type())  + "_over_" + get_gpio()->to_string());
+    inverse_value = (pgpio->get_provider_type() == gpio::GPIO_PROVIDER_TYPE::PROV_MCP23017 ? true : false);
+
+    if(name.empty()){
+        set_name(type_name(type())  + "_over_" + pgpio->to_string());
+    }
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started. " + to_string() + " Inverse:" + std::to_string(inverse_value) +
-           " Provider: " + std::to_string(get_gpio()->get_provider_type()) + " GPIO:" + get_gpio()->to_string());
+           " Provider: " + std::to_string(pgpio->get_provider_type()) + " GPIO:" + pgpio->to_string());
 }
 
 /*
  *
  */
 Button::~Button() {
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started.");
-
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + name());
 }
 
 /*
  *
  */
 void Button::stop(){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started.");
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + name());
     piutils::Threaded::stop();
 }
 
@@ -82,19 +85,26 @@ void Button::stop(){
  */
 bool Button::initialize(void)
 {
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started... PullMode: " + std::to_string(m_pullmode));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + name() + " PullMode: " + std::to_string(m_pullmode));
 
     /*
      * Set PULL MODE
      */
-    get_gpio()->pullUpDnControl(m_pullmode);
+    const std::shared_ptr<pirobot::gpio::Gpio> gpio = get_gpio();
 
-    gpio::SGN_LEVEL level = get_gpio()->get_level();
+    gpio->pullUpDnControl(m_pullmode);
+
+    gpio::SGN_LEVEL level = gpio->get_level();
     set_state(get_state_by_level(level));
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + this->to_string() + " Current level:" + std::to_string(level));
 
-    return piutils::Threaded::start<Button>(this);
+    if(gpio->get_edge_level() != gpio::GPIO_EDGE_LEVEL::EDGE_NONE){
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + this->to_string() + " GPIO supported EGDE. Do not start thread");
+        return piutils::Threaded::start<Button>(this);
+    }
+
+    return true;
 }
 
 /*
@@ -124,26 +134,16 @@ void Button::set_state(const BUTTON_STATE state){
  *
  */
 void Button::worker(Button* owner){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "Worker started. Initial State :" + std::to_string(owner->state()));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "Worker started Item:" + owner->name() + " Initial State :" + std::to_string(owner->state()));
 
-    std::string name = owner->name();
-
-    int level = owner->get_gpio()->digitalRead();
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Current level:" + std::to_string(level));
+    gpio::SGN_LEVEL curr_level = owner->get_gpio()->get_level();
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Current level:" + std::to_string(curr_level));
 
     while(!owner->is_stop_signal()){
         gpio::SGN_LEVEL level = owner->get_gpio()->get_level();
-        const BUTTON_STATE state = owner->get_state_by_level(level);
-
-         if(state != owner->state()){
-            owner->set_state(state);
-
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ** State changed!!!! " + owner->name() + " New state:" + std::to_string(state));
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " New level:" + std::to_string(level) + " " + owner->to_string());
-
-            if(owner->notify){
-                owner->notify(owner->type(), name, (void*)(&state));
-            }
+        if(level != curr_level){
+            owner->process_level(level);
+            curr_level = level;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(owner->get_loop_delay()));
     }

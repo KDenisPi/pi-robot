@@ -48,8 +48,7 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
     //set callback function for hardware calls
     if(pirobot){
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Created callback notification function");
-        pirobot->stm_notification = std::bind(&StateMachine::process_robot_notification,
-                this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+        pirobot->stm_notification = std::bind(&StateMachine::process_robot_notification, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
     }
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");

@@ -9,6 +9,8 @@
 #define PI_LIBRARY_PROVIDER_H_
 
 #include <string>
+#include <functional>
+#include <memory>
 
 namespace pirobot{
 namespace provider{
@@ -18,6 +20,16 @@ enum PROVIDER_TYPE {
     PROV_SPI  = 1,
     PROV_I2C = 2,
     PROV_PWM = 3
+};
+
+class ProviderData {
+public:
+
+    ProviderData() noexcept {}
+    ProviderData(const int pin, const int value) noexcept : _i_pin(pin), _i_value(value) {}
+
+    int _i_pin;
+    int _i_value;
 };
 
 class  ProviderInfo {
@@ -55,6 +67,8 @@ public:
     }
 
     virtual const std::string printConfig() = 0;
+
+    std::function<void(const pirobot::provider::PROVIDER_TYPE, const std::string&, std::shared_ptr<ProviderData>)> notify;
 
 private:
     PROVIDER_TYPE m_type;
