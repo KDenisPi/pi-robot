@@ -28,6 +28,14 @@ public:
     ProviderData() noexcept {}
     ProviderData(const int pin, const int value) noexcept : _i_pin(pin), _i_value(value) {}
 
+    const int pin() const {
+        return _i_pin;
+    }
+
+    const int value() const {
+        return _i_value;
+    }
+    
     int _i_pin;
     int _i_value;
 };

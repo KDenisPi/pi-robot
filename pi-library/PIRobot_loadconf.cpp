@@ -207,10 +207,10 @@ bool PiRobot::configure(const std::string& cfile){
                 auto gpio_mode = jsonhelper::get_attr_mandatory<std::string>(json_gpio, "mode");
                 auto gpio_name = jsonhelper::get_attr<std::string>(json_gpio, "name", gpio::Gpio::get_gpio_name(gpio_provider, gpio_pin));
                 auto gpio_pull_mode = jsonhelper::get_attr<std::string>(json_gpio, "pull_mode", "OFF");
-
+                auto gpio_edge_level = jsonhelper::get_attr<std::string>(json_gpio, "edge_level", "NONE");
 
                 logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " GPIO Name: " + gpio_name + " Provider: " + gpio_provider +
-                    " Pin:" + std::to_string(gpio_pin) + " Mode:" + gpio_mode);
+                    " Pin:" + std::to_string(gpio_pin) + " Mode:" + gpio_mode + " Edge:" + gpio_edge_level);
 
                 if( !(gpio_mode == "IN" || gpio_mode == "OUT" || gpio_mode == "PWM") ){
                     logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid GPIO mode value IN/OUT/PWM");
@@ -222,10 +222,21 @@ bool PiRobot::configure(const std::string& cfile){
                     throw std::runtime_error(std::string("Invalid GPIO pull mode value UP/DOWM/OFF"));
                 }
 
+                if( !(gpio_edge_level == "NONE" || gpio_edge_level == "RAISING" || gpio_edge_level == "FALLING" || gpio_edge_level == "BOTH") ){
+                    logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid GPIO edge value NONE/RAISING/FALLING/BOTH");
+                    throw std::runtime_error(std::string("Invalid GPIO edge value NONE/RAISING/FALLING/BOTH"));
+                }
+
                 gpio::GPIO_MODE mode = (gpio_mode == "IN" ? gpio::GPIO_MODE::IN : (gpio_mode == "OUT" ? gpio::GPIO_MODE::OUT : gpio::GPIO_MODE::PWM_OUT));
                 gpio::PULL_MODE pull_mode = (gpio_pull_mode == "UP" ? gpio::PULL_MODE::PULL_UP : (gpio_pull_mode == "DOWN" ? gpio::PULL_DOWN : gpio::PULL_MODE::PULL_OFF));
 
-                add_gpio(gpio_name, gpio_provider, mode, gpio_pin, pull_mode);
+                gpio::GPIO_EDGE_LEVEL edge_level = gpio::GPIO_EDGE_LEVEL::EDGE_NONE;
+                if(gpio_edge_level == "RAISING") edge_level = gpio::GPIO_EDGE_LEVEL::EDGE_RAISING;
+                else if(gpio_edge_level == "FALLING") edge_level = gpio::GPIO_EDGE_LEVEL::EDGE_FALLING;
+                else if(gpio_edge_level == "BOTH") edge_level = gpio::GPIO_EDGE_LEVEL::EDGE_BOTH;
+
+
+                add_gpio(gpio_name, gpio_provider, mode, gpio_pin, pull_mode, edge_level);
             }
         }
         else
@@ -249,8 +260,7 @@ bool PiRobot::configure(const std::string& cfile){
             auto gpio_provider = jsonhelper::get_attr_mandatory<std::string>(gpio_object, "provider");
             auto gpio_pin = jsonhelper::get_attr_mandatory<int>(gpio_object, "pin");
 
-            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item Name: " + item_name + " GPIO provider: " + gpio_provider +
-                        " Pin:" + std::to_string(gpio_pin));
+            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item Name: " + item_name + " GPIO provider: " + gpio_provider + " Pin:" + std::to_string(gpio_pin));
 
             const auto provider = get_provider(gpio_provider);
             if(provider->get_ptype() != provider::PROVIDER_TYPE::PROV_GPIO){
@@ -309,7 +319,11 @@ bool PiRobot::configure(const std::string& cfile){
                     */
                         if(itype==item::ItemTypes::LED){
                             items_add(item_name, std::make_shared<pirobot::item::Led>(get_gpio(gpio_name), item_name, item_comment));
+
+                            //Link GPIO with item
+                            link_gpio_item(gpio_name, std::make_pair(item_name, itype));
                         }//LED
+
                     /*
                     * BUTTON parameters: Name, Comment, [GPIO provider, PIN]
                     */
@@ -317,8 +331,7 @@ bool PiRobot::configure(const std::string& cfile){
                             auto btn_state = jsonhelper::get_attr<std::string>(json_item, "state", "NOT_PUSHED");
                             auto btn_pull_mode = jsonhelper::get_attr<std::string>(json_item, "pull_mode", "PULL_UP");
 
-                            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Button Name: " + item_name + " State: " + btn_state +
-                                " Pull mode:" + btn_pull_mode);
+                            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Button Name: " + item_name + " State: " + btn_state + " Pull mode:" + btn_pull_mode);
 
                             if((btn_state != "NOT_PUSHED") && (btn_state != "PUSHED")){
                                 logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid Button state value.");
@@ -336,7 +349,12 @@ bool PiRobot::configure(const std::string& cfile){
                                         item_name, item_comment,
                                         (btn_state == "NOT_PUSHED" ? item::BUTTON_STATE::BTN_NOT_PUSHED : item::BUTTON_STATE::BTN_PUSHED),
                                         (btn_pull_mode == "PULL_UP" ? gpio::PULL_MODE::PULL_UP : gpio::PULL_MODE::PULL_DOWN)));
+
+                            //Link GPIO with item
+                            link_gpio_item(gpio_name, std::make_pair(item_name, itype));
+
                         }//BUTTON
+
                     /*
                     * DRV8835 parameters: Name, Comment, [GPIO provider, PIN]
                     */
@@ -349,7 +367,11 @@ bool PiRobot::configure(const std::string& cfile){
                             }
 
                             items_add(item_name, std::make_shared<pirobot::item::Drv8835>(get_gpio(gpio_name), item_name, item_comment));
+
+                            //Link GPIO with item
+                            link_gpio_item(gpio_name, std::make_pair(item_name, itype));
                         }//DRV8835
+
                     /*
                     * DCMotor parameters: Name, Comment, two GPIOs, DRV8835, Direction
                     */
@@ -372,12 +394,15 @@ bool PiRobot::configure(const std::string& cfile){
                                         direction)
                                 );
 
+                            //Link GPIO with item
+                            link_gpio_item(gpio_name, std::make_pair(item_name, itype));
+                            link_gpio_item(pwm_gpio_name, std::make_pair(item_name, itype));
+
                         }//DC Motor
                     /*
                     // Analog-Digital converter
                     */
                         else  if(itype== item::ItemTypes::AnlgDgtConvertor){
-                            std::string gpio_name = f_get_gpio_name(json_item, "gpio", item_name);
                             auto analog_inputs =  jsonhelper::get_attr<int>(json_item, "analog_inputs", 8);
                             auto spi_channel  =  jsonhelper::get_attr<int>(json_item, "spi_channel", 0);
                             auto loop_delay  =  jsonhelper::get_attr<unsigned int>(json_item, "delay", 5);
@@ -390,6 +415,9 @@ bool PiRobot::configure(const std::string& cfile){
                                 (analog_inputs == 8 ? mcp320x::MCP320X_INPUTS::MCP3208 : mcp320x::MCP320X_INPUTS::MCP3204),
                                 (spi_channel == 0 ? spi::SPI_CHANNELS::SPI_0 : spi::SPI_CHANNELS::SPI_1),
                                 loop_delay));
+
+                            //Link GPIO with item
+                            link_gpio_item(gpio_name, std::make_pair(item_name, itype));
                         }
                     }//Single GPIO based Items
                     break;
@@ -413,6 +441,12 @@ bool PiRobot::configure(const std::string& cfile){
                                     get_gpio(gpio_phase_2_name),
                                     get_gpio(gpio_phase_3_name),
                                     item_name, item_comment, direction));
+
+                            //Link GPIO with item
+                            link_gpio_item(gpio_phase_0_name, std::make_pair(item_name, itype));
+                            link_gpio_item(gpio_phase_1_name, std::make_pair(item_name, itype));
+                            link_gpio_item(gpio_phase_2_name, std::make_pair(item_name, itype));
+                            link_gpio_item(gpio_phase_3_name, std::make_pair(item_name, itype));
                     }
                     break;
 
@@ -446,6 +480,15 @@ bool PiRobot::configure(const std::string& cfile){
                                         get_gpio(gpio_backlite_name),
                                         item_name, item_comment,
                                         lines, bitmode, dots));
+
+                                //Link GPIO with item
+                                link_gpio_item(gpio_rs_name, std::make_pair(item_name, itype));
+                                link_gpio_item(gpio_enable_name, std::make_pair(item_name, itype));
+                                link_gpio_item(gpio_data_4_name, std::make_pair(item_name, itype));
+                                link_gpio_item(gpio_data_5_name, std::make_pair(item_name, itype));
+                                link_gpio_item(gpio_data_6_name, std::make_pair(item_name, itype));
+                                link_gpio_item(gpio_data_7_name, std::make_pair(item_name, itype));
+                                link_gpio_item(gpio_backlite_name, std::make_pair(item_name, itype));
                             }
                     }
                     break;
@@ -628,6 +671,9 @@ bool PiRobot::configure(const std::string& cfile){
                                         item_comment
                                     ));
 
+                        //Link GPIO with item
+                        link_gpio_item(pwm_gpio, std::make_pair(item_name, itype));
+
                         auto sledctrl = std::static_pointer_cast<pirobot::item::sledctrl::SLedCtrlSpi>(get_item(item_name));
 
                         auto json_sled  =  json_item["stripe"];
@@ -663,6 +709,37 @@ bool PiRobot::configure(const std::string& cfile){
     printConfig();
 
     return true;
+}
+
+/*
+    Low level notification function (provider callback etc)
+    Parameters:
+        ptype - provider type
+        pname - provider name
+        pdata - provider data used for notification
+*/
+void PiRobot::notify_low(const pirobot::provider::PROVIDER_TYPE ptype, const std::string& pname, std::shared_ptr<pirobot::provider::ProviderData> pdata) {
+    if(ptype == pirobot::provider::PROVIDER_TYPE::PROV_GPIO){
+        const std::string gpio_name = gpio::Gpio::get_gpio_name(pname, pdata->pin());
+        auto gpio_item = gpio_items.find(gpio_name);
+        if(gpio_item == gpio_items.end()){
+            //It is strange
+            return;
+        }
+        
+        //check all Items used this GPIO
+        const std::shared_ptr<std::vector<item_name_type>> v_items = gpio_item->second;
+        for(auto item_info : *(v_items)){
+            /*
+            * If this GPIO used by buttom notify system about state change
+            */
+            if(item_info.second == item::ItemTypes::BUTTON){
+                const std::shared_ptr<pirobot::item::Button> btn = std::static_pointer_cast<pirobot::item::Button>(get_item(item_info.first));
+                btn->process_level(gpio::Gpio::value_to_level(pdata->value()));
+            }
+        }
+    }
+
 }
 
 }//namespace

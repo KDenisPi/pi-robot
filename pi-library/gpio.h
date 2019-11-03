@@ -94,6 +94,13 @@ class Gpio
         return gpio_;
     }
 
+    const std::string get_name() const {
+        return _name;
+    }
+
+    static const gpio::SGN_LEVEL value_to_level(const int value){
+        return (value == 0 ? gpio::SGN_LEVEL::SGN_LOW : gpio::SGN_LEVEL::SGN_HIGH);
+    }
 
   private:
     int m_pin;
@@ -102,6 +109,8 @@ class Gpio
     GPIO_EDGE_LEVEL _edge_level; //control change GPIO level using interrupt processing (if provided supported it)
 
     std::shared_ptr<gpio::GpioProvider> m_prov; //provider
+
+    std::string _name;
 };
 
 }

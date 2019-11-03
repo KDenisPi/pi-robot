@@ -84,7 +84,8 @@ void PiRobot::add_gpio(const std::string& name,
     const std::string& provider_name,
     const pirobot::gpio::GPIO_MODE gpio_mode,
     const int pin,
-    const pirobot::gpio::PULL_MODE pull_mode) noexcept(false){
+    const pirobot::gpio::PULL_MODE pull_mode,
+    const pirobot::gpio::GPIO_EDGE_LEVEL edge_level) noexcept(false){
 
     const auto provider = get_provider(provider_name);
     if(provider->get_ptype() != provider::PROVIDER_TYPE::PROV_GPIO){
@@ -113,7 +114,7 @@ void PiRobot::add_gpio(const std::string& name,
         throw std::runtime_error(std::string(" GPIO with such name is present already: ") + gpio_name_low);
     }
 
-    const std::shared_ptr<gpio::Gpio> p_gpio = std::make_shared<pirobot::gpio::Gpio>(pin, gpio_mode, gpio_provider, pull_mode);
+    const std::shared_ptr<gpio::Gpio> p_gpio = std::make_shared<pirobot::gpio::Gpio>(pin, gpio_mode, gpio_provider, pull_mode, edge_level);
     gpios[gpio_name] = p_gpio;
     gpios_low[gpio_name_low] = p_gpio;
 
@@ -176,13 +177,30 @@ void PiRobot::stop(){
 }
 
 void PiRobot::printConfig(){
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " -------------- configuration --------------------------- ");
+
+    /*
+    * Print configuration for each Item
+    */
     std::map<const std::string, std::shared_ptr<item::Item>>::iterator it;
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) +
-        " -------------- configuration --------------------------- ");
     for(it = this->items.begin(); it != this->items.end(); ++it){
-        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " " +
-            it->first + " " + it->second->printConfig());
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " " + it->first + " " + it->second->printConfig());
     }
+
+    /*
+    * Print link between GPIO and Items
+    */
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " -------------- GPIO -> [Items]-------------------------- ");
+
+    std::map <std::string, std::shared_ptr<std::vector<item_name_type>>>::iterator it_gpio;
+    for(it_gpio = gpio_items.begin(); it_gpio != gpio_items.end(); ++it_gpio){
+        std::string items_name;
+        std::shared_ptr<std::vector<item_name_type>> v_items = it_gpio->second;
+        for(auto item_info : *(v_items)){
+            items_name += item_info.first + "; ";
+        }
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " " + it_gpio->first + " " + items_name);
+    } 
 }
 
 /*

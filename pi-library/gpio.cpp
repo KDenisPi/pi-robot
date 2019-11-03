@@ -23,6 +23,9 @@ Gpio::Gpio(const int pin, const GPIO_MODE mode, const std::shared_ptr<gpio::Gpio
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" pin: ") + std::to_string(pin) + " mode: " + std::to_string((int)mode) +
 			" pull mode: " + std::to_string((int)pull_mode));
 
+	//set low level name
+	_name = get_gpio_name(m_prov->get_name(), m_pin);
+
 	//set GPIO mode
 	m_prov->setmode(pin, mode);
 

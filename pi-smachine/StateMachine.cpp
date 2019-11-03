@@ -372,7 +372,7 @@ void StateMachine::process_change_state(const std::shared_ptr<Event>& event){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + cname);
 
         auto newstate = (cname == "StateInit" ?
-                std::shared_ptr<smachine::state::State>(new smachine::state::StateInit(dynamic_cast<StateMachineItf*>(this))):
+                std::make_shared<smachine::state::State>(dynamic_cast<StateMachineItf*>(this), cname):
                 m_factory->get_state(cname, dynamic_cast<StateMachineItf*>(this)));
         bool new_state = true;
 
@@ -446,12 +446,10 @@ void StateMachine::process_robot_notification(int itype, std::string& name, void
         if(itype == pirobot::item::ItemTypes::BUTTON || itype == pirobot::item::ItemTypes::TILT_SWITCH){
             auto  state = *(static_cast<int*>(data));
             if(state == pirobot::item::BUTTON_STATE::BTN_NOT_PUSHED){
-                std::shared_ptr<Event> btn_up(new Event(EVENT_TYPE::EVT_BTN_UP, name));
-                put_event(btn_up);
+                put_event(std::make_shared<Event>(EVENT_TYPE::EVT_BTN_UP, name));
             }
             else if(state == pirobot::item::BUTTON_STATE::BTN_PUSHED){
-                std::shared_ptr<Event> btn_down(new Event(EVENT_TYPE::EVT_BTN_DOWN, name));
-                put_event(btn_down);
+                put_event(std::make_shared<Event>(EVENT_TYPE::EVT_BTN_DOWN, name));
             }
             else
                 logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Unknown state for Item::Button");
@@ -463,13 +461,11 @@ void StateMachine::process_robot_notification(int itype, std::string& name, void
             auto values = static_cast<unsigned short*>(data);
             if(values[0] != values[1]){
               bool is_bright = (values[0] < values[1]);
-              std::shared_ptr<Event> lmeter(new Event( (is_bright ? EVENT_TYPE::EVT_LM_HIGH : EVENT_TYPE::EVT_LM_LOW), name));
-              put_event(lmeter);
+              put_event(std::make_shared<Event>( (is_bright ? EVENT_TYPE::EVT_LM_HIGH : EVENT_TYPE::EVT_LM_LOW), name));
             }
         }
         else {
-           std::shared_ptr<Event> item_evt(new Event(EVENT_TYPE::EVT_ITEM_ACTIVITY, name));
-           put_event(item_evt);
+           put_event(std::make_shared<Event>(EVENT_TYPE::EVT_ITEM_ACTIVITY, name));
         }
     }
     catch(...){

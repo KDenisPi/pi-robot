@@ -14,7 +14,7 @@
 #include <vector>
 #include <mutex>
 
-#include <wiringPi.h>
+//#include <wiringPi.h>
 
 #ifdef REAL_HARDWARE
 #include <bcm_host.h>
@@ -26,6 +26,8 @@
 #include "item.h"
 
 namespace pirobot {
+
+using item_name_type = std::pair<std::string, item::ItemTypes>;
 
 class PiRobot {
 public:
@@ -53,6 +55,20 @@ public:
      * Get Item by name
      */
     std::shared_ptr<item::Item> get_item(const std::string& name) const noexcept(false);
+
+    /*
+    * Link Gpio and Item
+    */
+   void link_gpio_item(const std::string gpio_name, item_name_type item_info){
+       auto gpio_item = gpio_items.find(gpio_name);
+       if(gpio_item == gpio_items.end()){
+           gpio_items[gpio_name] = std::make_shared<std::vector<item_name_type>>();
+           gpio_items[gpio_name]->push_back(item_info);
+       }
+       else{
+           gpio_item->second->push_back(item_info);
+       }
+   }
 
 private:
     /*
@@ -90,7 +106,10 @@ private:
     * Create GPIO for the provider. Provider should created before using add_provider function
     */
     void add_gpio(const std::string& name, const std::string& provider_name,
-        const pirobot::gpio::GPIO_MODE gpio_mode, const int pin, const pirobot::gpio::PULL_MODE pull_mode) noexcept(false);
+        const pirobot::gpio::GPIO_MODE gpio_mode, 
+        const int pin, 
+        const pirobot::gpio::PULL_MODE pull_mode = pirobot::gpio::PULL_MODE::PULL_OFF,
+        const pirobot::gpio::GPIO_EDGE_LEVEL edge_level = pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_NONE) noexcept(false);
 
     /*
     *
@@ -113,10 +132,8 @@ public:
             pname - provider name
             pdata - provider data used for notification
     */
-    void notify_low(const pirobot::provider::PROVIDER_TYPE ptype, const std::string& pname, std::shared_ptr<pirobot::provider::ProviderData> pdata) {
-
-    }
-
+    void notify_low(const pirobot::provider::PROVIDER_TYPE ptype, const std::string& pname, std::shared_ptr<pirobot::provider::ProviderData> pdata);
+    
     //pring configuration
     void printConfig();
 
@@ -156,11 +173,15 @@ private:
         std::allocator<std::pair<const std::string, std::shared_ptr<gpio::Gpio>> >
     > gpios;
 
+    //Map for detection GPIO by low level name (Provider + Pin) 
     std::map <std::string,
         std::shared_ptr<gpio::Gpio>,
         std::less<std::string>,
         std::allocator<std::pair<const std::string, std::shared_ptr<gpio::Gpio>> >
     > gpios_low;
+
+    //relation betwen GPIO and ITENS used this GPIO
+    std::map <std::string, std::shared_ptr<std::vector<item_name_type>>> gpio_items;
 
     std::map <std::string,
         std::shared_ptr<item::Item>,
