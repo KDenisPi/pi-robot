@@ -172,12 +172,5 @@ void Si7021::get_results(float& humidity, float& temperature, float& abs_humidit
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Temperature : " + std::to_string(temperature) + " Humidity: " + std::to_string(humidity) + "%");
 }
 
-//calculate absolute humidity (grams/m3)
-float Si7021::get_absolute_humidity(const float temperature, const float humidity){
-    float abs_humidity = (6.112 * std::exp((17.67*temperature)/(temperature+243.5)) * humidity * 2.1674)/(273.15 + temperature);
-    return abs_humidity;
-}
-
-
 }// item
 }//pirobot

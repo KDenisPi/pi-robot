@@ -84,8 +84,12 @@ private:
     void set_heater(const bool enable);
     //print firmware version
     void firmware();
+    
     //calculate absolute humidity
-    float get_absolute_humidity(const float temperature, const float humidity);
+    static float get_absolute_humidity(const float temperature, const float humidity){
+        float abs_humidity = 216.74 * (humidity *  6.112 * std::exp((17.62 * temperature)/(243.12 + temperature)) / (273.15 + temperature));
+        return abs_humidity;
+    }
 
     pirobot::stat::Statistics _stat_info;
 
