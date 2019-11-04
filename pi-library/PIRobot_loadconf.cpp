@@ -74,6 +74,7 @@ bool PiRobot::configure(const std::string& cfile){
             providers["SIMPLE"] = std::make_shared<pirobot::gpio::GpioProviderFake>("SIMPLE", 12);
         }
 
+        //Provide function for processing low level events - for GPIO for now
         providers["SIMPLE"]->notify = std::bind(&PiRobot::notify_low, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
         //

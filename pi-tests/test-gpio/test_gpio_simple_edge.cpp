@@ -6,8 +6,6 @@
 #include "GpioProviderSimple.h"
 #include "gpio.h"
 
-
-
 using pprovider = std::shared_ptr<pirobot::gpio::GpioProviderSimple>;
 using pgpio = std::shared_ptr<pirobot::gpio::Gpio>;
 
@@ -21,8 +19,8 @@ using pgpio = std::shared_ptr<pirobot::gpio::Gpio>;
 * 3. Callback function should detect changed value for GPIO 1
 */
 
-
 void print_info(const int gpios, const pirobot::gpio::GPIO_MODE* p_modes, pirobot::gpio::GPIO_MODE* g_modes, const int* g_levels);
+void notify_low(const pirobot::provider::PROVIDER_TYPE ptype, const std::string& pname, std::shared_ptr<pirobot::provider::ProviderData> pdata);
 
 void print_info(const int gpios, const pgpio* p_gpio, const pirobot::gpio::GPIO_MODE* p_modes, pirobot::gpio::GPIO_MODE* g_modes, const int* g_levels){
     for(int i = 0; i < gpios; i++){
@@ -30,6 +28,9 @@ void print_info(const int gpios, const pgpio* p_gpio, const pirobot::gpio::GPIO_
     }
 }
 
+void notify_low(const pirobot::provider::PROVIDER_TYPE ptype, const std::string& pname, std::shared_ptr<pirobot::provider::ProviderData> pdata) {
+    std::cout << " provider type: " << ptype << " Provider name: " << pname << " PIN: " << pdata->pin() << " Value: " << pdata->value() << std::endl;
+}
 
 using namespace std;
 
@@ -44,21 +45,14 @@ int main (int argc, char* argv[])
     std::cout << "Create provider" << std::endl;
     std::shared_ptr<pirobot::gpio::GpioProviderSimple> p_smp = std::make_shared<pirobot::gpio::GpioProviderSimple>();
 
-    std::cout << "Create GPIO" << std::endl;
-    p_gpio[0] = std::make_shared<pirobot::gpio::Gpio>(0, pirobot::gpio::GPIO_MODE::OUT, p_smp);
-    p_gpio[1] = std::make_shared<pirobot::gpio::Gpio>(1, pirobot::gpio::GPIO_MODE::IN, p_smp);
+    p_smp->notify = std::bind(&notify_low, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
-    std::cout << "GPIO Pull Mode" << std::endl;
-    p_gpio[0]->pullUpDnControl(pirobot::gpio::PULL_MODE::PULL_OFF);
-    p_gpio[1]->pullUpDnControl(pirobot::gpio::PULL_MODE::PULL_DOWN);
+    std::cout << "Create GPIO" << std::endl;
+    p_gpio[0] = std::make_shared<pirobot::gpio::Gpio>(0, pirobot::gpio::GPIO_MODE::OUT, p_smp, pirobot::gpio::PULL_MODE::PULL_OFF, pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_RAISING);
+    p_gpio[1] = std::make_shared<pirobot::gpio::Gpio>(1, pirobot::gpio::GPIO_MODE::IN, p_smp, pirobot::gpio::PULL_MODE::PULL_DOWN, pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_BOTH);
 
     std::cout << std::endl <<" Change GPIO OUT 0 (17) to High (1)" << std::endl;
     p_gpio[0]->Low(); //High();
-
-    std::cout << "GPIO Edge" << std::endl;
-    p_gpio[0]->set_egde_level(pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_RAISING);
-    p_gpio[1]->set_egde_level(pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_BOTH);
-    sleep(1);
 
     std::cout << std::endl <<" Start gpio edge" << std::endl;
     //p_smp->start();
