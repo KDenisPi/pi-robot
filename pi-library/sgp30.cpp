@@ -37,8 +37,6 @@ Sgp30::Sgp30(const std::string& name, const std::shared_ptr<pirobot::i2c::I2C> i
 
     get_feature_set_version();
 
-    //measure_test();
-
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Descr: " + std::to_string(m_fd));
 }
 

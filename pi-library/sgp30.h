@@ -92,7 +92,7 @@ public:
 
     // Initialize
     virtual bool initialize() override{
-        return true; //piutils::Threaded::start<pirobot::item::Sgp30>(this);
+        return true;
     }
 
     void start(){
