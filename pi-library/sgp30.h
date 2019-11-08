@@ -30,10 +30,53 @@ namespace item {
 
 #define SGP30_MEASURE_TEST_PATTERN          0xD400
 
-struct Sdp30_measure {
+#define SGP30_DEBUG 1
+
+class Sgp30_measure {
+public:
+    Sgp30_measure() {
+        uiCO2 = 0;
+        uiTVOC = 0;
+    }
+
+    Sgp30_measure(const uint16_t co2, const uint16_t tvoc) {
+        uiCO2 = co2;
+        uiTVOC = tvoc;
+    }
+
+    inline const uint16_t CO2() const {
+        return uiCO2;
+    }
+
+    inline const uint16_t TVOC() const {
+        return uiTVOC;
+    }
+
+    Sgp30_measure& operator=(const Sgp30_measure& sdp30){
+        uiCO2 = sdp30.CO2();
+        uiTVOC = sdp30.TVOC();
+
+        return *this;
+    }
+
+    inline void set(const uint16_t co2, const uint16_t tvoc) {
+        uiCO2 = co2;
+        uiTVOC = tvoc;
+    }
+
     uint16_t uiCO2;
     uint16_t uiTVOC;
 };
+
+#ifdef SGP30_DEBUG
+using sdp30_data = struct Sgp30_data {
+    long tm;
+    uint16_t uiCO2;
+    uint16_t uiTVOC;
+    uint16_t uiHmd;
+};
+#endif
+
 
 class Sgp30 : public item::Item, public piutils::Threaded {
 
@@ -82,8 +125,8 @@ private:
     std::condition_variable cv_data;
 
     //lest measured values
-    struct Sdp30_measure values;
-    struct Sdp30_measure baseline;
+    Sgp30_measure values;
+    Sgp30_measure baseline;
     uint16_t _humidity;
 
     // Get feature set version
@@ -113,6 +156,36 @@ public:
     void get_results(uint16_t& co2, uint16_t& tvoc);
     //Get measure results
     void get_baseline(uint16_t& bs_co2, uint16_t& bs_tvoc);
+
+#ifdef SGP30_DEBUG
+public:
+    sdp30_data _ddata[24*60*60];
+    int _ddata_cntr = 0;
+    const int _ddata_cntr_max = 24*60*60;
+
+    void ddata_put(const long d_time) {
+        if(_ddata_cntr < 24*60*60){
+            std::lock_guard<std::mutex> lk(cv_m_data);
+            _ddata[_ddata_cntr].uiCO2 = values.CO2();
+            _ddata[_ddata_cntr].uiTVOC = values.TVOC();
+            _ddata[_ddata_cntr].uiHmd = _humidity;
+            _ddata[_ddata_cntr++].tm = d_time;
+        }
+    }
+
+    void unload_debug_data(const std::string& destination){
+        std::fstream s(destination, s.binary | s.trunc | s.out);
+        s << "Counter, Interval, CO2, TVOC, Humidity" << std::endl;
+        if (s.is_open()) {
+          for(int i = 0; i < _ddata_cntr; i++){
+            s << i << "," << (i = 0 ? 0 : _ddata[i].tm - _ddata[i-1].tm) << "," << _ddata[i].uiCO2 << "," << _ddata[i].uiTVOC << "," << _ddata[i].uiHmd << std::endl;
+          }
+          s.close();
+        }
+        else
+            logger::log(logger::LLOG::ERROR, "SGP30", std::string(__func__) + " Could not unload data to file " + destination);
+    }
+#endif
 };
 
 }//item

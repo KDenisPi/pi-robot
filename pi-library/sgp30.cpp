@@ -11,6 +11,7 @@
 #include "logger.h"
 #include "sgp30.h"
 #include "crc.h"
+#include "timers.h"
 
 namespace pirobot {
 namespace item {
@@ -156,7 +157,7 @@ void Sgp30::measure_air_quality(){
             values.uiTVOC = uiTVOC;
         }
     }
-    
+
     if(!co2_success || !tvoc_success){
         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " CRC invalid TVOC: " + std::to_string(tvoc_success) + " CO2: " + std::to_string(co2_success));
     }
@@ -211,14 +212,16 @@ int Sgp30::write_data(uint8_t* data, const int len, const uint16_t cmd, const in
 
 //Set humidity
 void Sgp30::set_humidity(const uint16_t humidity){
+    std::lock_guard<std::mutex> lk(cv_m_data);
     _humidity = humidity;
 }
 
 //Set humidity
 void Sgp30::_set_humidity(){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Humidity: " + std::to_string(_humidity));
+    uint16_t hmd = _humidity;
 
-    if(_humidity == 0){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Humidity: " + std::to_string(hmd));
+    if(hmd == 0){
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Humidity does not set. Do nothing.");
         return;
     }
@@ -229,8 +232,8 @@ void Sgp30::_set_humidity(){
     int lsb = (SGP30_SET_HUMIDITY & 0x00FF);
 
     data[0] = lsb;
-    data[1] = (_humidity >> 8);
-    data[2] = (_humidity & 0x00FF);
+    data[1] = (hmd >> 8);
+    data[2] = (hmd & 0x00FF);
     data[3] = pirobot::crc::crc(&data[1], 2, 0xFF, 0x31);
 
     write_data(data, 4, SGP30_SET_HUMIDITY, 10);
@@ -240,14 +243,20 @@ void Sgp30::_set_humidity(){
 void Sgp30::set_baseline(const uint16_t base_co2, const uint16_t base_tvoc){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Baseline CO2: " + std::to_string(base_co2) + " TVOC: " + std::to_string(base_tvoc));
 
-    baseline.uiCO2 = base_co2;
-    baseline.uiTVOC = base_tvoc;
+    std::lock_guard<std::mutex> lk(cv_m_data);
+    baseline.set(base_co2, base_tvoc);
 }
 
 //Set baseline
 // NOTE: Set baseline use parameter TVOC, CO2 (other functions CO2, TVOC)
 void Sgp30::_set_baseline(){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Baseline CO2: " + std::to_string(baseline.uiCO2) + " TVOC: " + std::to_string(baseline.uiTVOC));
+    Sgp30_measure bln;
+
+    {
+        std::lock_guard<std::mutex> lk(cv_m_data);
+        bln = baseline;
+    }
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Baseline CO2: " + std::to_string(bln.uiCO2) + " TVOC: " + std::to_string(bln.uiTVOC));
 
     uint8_t data[7] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
@@ -256,12 +265,12 @@ void Sgp30::_set_baseline(){
 
     data[0] = lsb;
 
-    data[4] = (baseline.uiCO2 >> 8);
-    data[5] = (baseline.uiCO2 & 0x00FF);
+    data[4] = (bln.uiCO2 >> 8);
+    data[5] = (bln.uiCO2 & 0x00FF);
     data[6] = pirobot::crc::crc(&data[4], 2, 0xFF, 0x31);
 
-    data[1] = (baseline.uiTVOC >> 8);
-    data[2] = (baseline.uiTVOC & 0x00FF);
+    data[1] = (bln.uiTVOC >> 8);
+    data[2] = (bln.uiTVOC & 0x00FF);
     data[3] = pirobot::crc::crc(&data[1], 2, 0xFF, 0x31);
 
     write_data(data, 7, SGP30_SET_BASELINE, 10);
@@ -285,10 +294,14 @@ void Sgp30::stop(){
     owner->init_air_quality();
 
     while(!owner->is_stop_signal()){
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); //1sec - 1Hz
-
+        long ms_start = piutils::timers::Timers::milliseconds();
         owner->measure_air_quality();
+
+#ifdef SGP30_DEBUG
+        owner->ddata_put(ms_start);
+#endif
+        long slp_time = (1000 - (piutils::timers::Timers::milliseconds() - ms_start));
+        std::this_thread::sleep_for(std::chrono::milliseconds(slp_time)); //1sec - 1Hz
     }
 
     //save baseline values at the end of measure cycle
