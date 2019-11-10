@@ -175,10 +175,14 @@ public:
 
     void unload_debug_data(const std::string& destination){
         std::fstream s(destination, s.binary | s.trunc | s.out);
-        s << "Counter, Interval, CO2, TVOC, Humidity" << std::endl;
         if (s.is_open()) {
+          logger::log(logger::LLOG::DEBUG, "SGP30", std::string(__func__) + " Measurements : " + std::to_string(_ddata_cntr));
+          s << "Counter, Interval, CO2, TVOC, Humidity " << std::endl;
+
           for(int i = 0; i < _ddata_cntr; i++){
-            s << i << "," << (i = 0 ? 0 : _ddata[i].tm - _ddata[i-1].tm) << "," << _ddata[i].uiCO2 << "," << _ddata[i].uiTVOC << "," << _ddata[i].uiHmd << std::endl;
+            long tm_diff = (i == 0 ? 0 : _ddata[i].tm - _ddata[i-1].tm);
+            s << i << "," << tm_diff << "," << _ddata[i].uiCO2 << "," << _ddata[i].uiTVOC << "," << _ddata[i].uiHmd << std::endl;
+
           }
           s.close();
         }
