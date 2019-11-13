@@ -7,6 +7,7 @@
  *  Created on: Feb 21, 2018
  *      Author: Denis Kudia
  */
+#include <cmath>
 
 #include "logger.h"
 #include "sgp30.h"
@@ -199,7 +200,11 @@ int Sgp30::write_data(uint8_t* data, const int len, const uint16_t cmd, const in
     int lsb = (cmd & 0x00FF);
     //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MSB: " + std::to_string(msb) + " LSB:" + std::to_string(lsb));
 
-    int status = _i2c->I2CWriteData(m_fd, msb, data, len);
+    int status = 0;
+    {
+        std::lock_guard<std::mutex> lk(cv_m_data);
+        status = _i2c->I2CWriteData(m_fd, msb, data, len);
+    }
     _stat_info.write(status);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
@@ -208,19 +213,53 @@ int Sgp30::write_data(uint8_t* data, const int len, const uint16_t cmd, const in
     return status;
 }
 
-//Set humidity
-void Sgp30::set_humidity(const uint16_t humidity){
+/*
+Set humidity
+
+The 2 data bytes represent humidity values as a fixed-point
+8.8bit number with a minimum value of 0x0001 (=1/256 g/m3 ) and a maximum value of 0xFFFF (255 g/m3 + 255/256 g/m3 ).
+For instance, sending a value of 0x0F80 corresponds to a humidity value of 15.50 g/m3 (15 g/m3 + 128/256 g/m3 ).
+*/
+void Sgp30::set_humidity(const float humidity){
+
+    uint16_t h_high = (uint16_t)std::trunc(humidity);
+    uint16_t h_low =  (uint16_t)(256 * (humidity - std::trunc(humidity)));
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Humidity: " + std::to_string(humidity) + " High:" + std::to_string(h_high) + " Low:" + std::to_string(h_low));
+
+    uint16_t h_high_now = (_humidity >> 8);
+    uint16_t h_low_now =  (_humidity & 0x00FF);
+
+    /*
+    * Check humidity changes
+    * Low range between [1-256]
+    */
+    if(h_high_now == h_high){
+        uint16_t diff = (h_low_now > h_low ? (h_low_now-h_low) : (h_low - h_low_now));
+
+        //do not update if difference less than 5% on low part
+        if( diff < 12){ //5%
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Changes are too small. Current low: " + std::to_string(h_low_now));
+            return;
+        }
+    }
+
     std::lock_guard<std::mutex> lk(cv_m_data);
-    _humidity = humidity;
+    _humidity = (h_high << 8) | h_low;
 }
 
 //Set humidity
 void Sgp30::_set_humidity(){
-    uint16_t hmd = _humidity;
+    uint16_t hmd;
+
+    {
+        std::lock_guard<std::mutex> lk(cv_m_data);
+        hmd = _humidity;
+    }
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Humidity: " + std::to_string(hmd));
     if(hmd == 0){
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Humidity does not set. Do nothing.");
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Humidity have not set. Do nothing.");
         return;
     }
 
@@ -291,6 +330,8 @@ void Sgp30::stop(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " init_air_quality. Name: " + name);
     owner->init_air_quality();
 
+    uint16_t hmdt = owner->_get_humidity();
+
     while(!owner->is_stop_signal()){
         long ms_start = piutils::timers::Timers::milliseconds();
         owner->measure_air_quality();
@@ -300,6 +341,13 @@ void Sgp30::stop(){
 #endif
         long slp_time = (1000 - (piutils::timers::Timers::milliseconds() - ms_start));
         std::this_thread::sleep_for(std::chrono::milliseconds(slp_time)); //1sec - 1Hz
+
+        uint16_t hmdt_now = owner->_get_humidity();
+        if(hmdt_now != hmdt){
+            owner->_set_humidity();
+            hmdt = hmdt_now;
+        }
+
     }
 
     //save baseline values at the end of measure cycle

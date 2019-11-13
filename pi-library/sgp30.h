@@ -112,7 +112,8 @@ public:
     // Set baseline
     void set_baseline(const uint16_t base_CO2, const uint16_t base_TVOC);
     //Set humidity
-    void set_humidity(const uint16_t humidity);
+    void set_humidity(const float humidity);
+
     //Execute measure test, true - chip is OK
     bool measure_test();
 
@@ -148,8 +149,11 @@ private:
 
     // Set baseline
     void _set_baseline();
+
+protected:
     //Set humidity
     void _set_humidity();
+    uint16_t _get_humidity() const {return _humidity;};
 
 public:
     //Get measure results
