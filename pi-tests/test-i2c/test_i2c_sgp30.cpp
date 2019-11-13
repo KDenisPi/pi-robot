@@ -26,11 +26,14 @@ int main (int argc, char* argv[])
     uint32_t lux = 0;
     int interval = 10;
     std::cout << "Started. Parameters: tempearture humidity test_seconds result_file." << std::endl
-        << "Otherwise will be used 20.5 50.0 60 /var/log/pi-robot/sgp30.csv" << std::endl;
+        << "Otherwise will be used 20.5 0.50 60 /var/log/pi-robot/sgp30.csv" << std::endl;
 
     float temp = (argc < 3 ? 20.5 : std::atof(argv[1]));
     float humd = (argc < 3 ? 50.0 : std::atof(argv[2]));
     float abs_humd = pirobot::item::Si7021::get_absolute_humidity(temp, humd);
+    int seconds = (argc >= 4 ? std::atoi(argv[3]) : 60);
+
+    std::cout << "Incoming parameters T:" << temp << " Humidity: " << humd << " Abs. Humidity: " << abs_humd << " Measurement time (sec): " << seconds << std::endl;
 
     std::cout << "Create provider" << std::endl;
     pi2c p_pi2c = std::make_shared<pirobot::i2c::I2C>();
@@ -39,7 +42,6 @@ int main (int argc, char* argv[])
     p_psgp30->set_humidity(abs_humd);
     p_psgp30->start();
 
-    int seconds = (argc >= 4 ? std::atoi(argv[3]) : 60);
     std::cout << "Sleep for " << seconds << " seconds" << std::endl;
     sleep(seconds);
 
