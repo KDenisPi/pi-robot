@@ -3,7 +3,7 @@
  * I2C Sensurion Gas Platform
  *
  *  Note: This device always uses 0x58 address
- * 
+ *
  *  Created on: Feb 21, 2018
  *      Author: Denis Kudia
  */
@@ -30,7 +30,40 @@ namespace item {
 
 #define SGP30_MEASURE_TEST_PATTERN          0xD400
 
-struct Sdp30_measure {
+//#define SGP30_DEBUG 1
+
+class Sgp30_measure {
+public:
+    Sgp30_measure() {
+        uiCO2 = 0;
+        uiTVOC = 0;
+    }
+
+    Sgp30_measure(const uint16_t co2, const uint16_t tvoc) {
+        uiCO2 = co2;
+        uiTVOC = tvoc;
+    }
+
+    inline const uint16_t CO2() const {
+        return uiCO2;
+    }
+
+    inline const uint16_t TVOC() const {
+        return uiTVOC;
+    }
+
+    Sgp30_measure& operator=(const Sgp30_measure& sdp30){
+        uiCO2 = sdp30.CO2();
+        uiTVOC = sdp30.TVOC();
+
+        return *this;
+    }
+
+    inline void set(const uint16_t co2, const uint16_t tvoc) {
+        uiCO2 = co2;
+        uiTVOC = tvoc;
+    }
+
     uint16_t uiCO2;
     uint16_t uiTVOC;
 };
@@ -49,7 +82,7 @@ public:
 
     // Initialize
     virtual bool initialize() override{
-        return true; //piutils::Threaded::start<pirobot::item::Sgp30>(this);
+        return true;
     }
 
     void start(){
@@ -69,7 +102,8 @@ public:
     // Set baseline
     void set_baseline(const uint16_t base_CO2, const uint16_t base_TVOC);
     //Set humidity
-    void set_humidity(const uint16_t humidity);
+    void set_humidity(const float humidity);
+
     //Execute measure test, true - chip is OK
     bool measure_test();
 
@@ -81,8 +115,8 @@ private:
     std::condition_variable cv_data;
 
     //lest measured values
-    struct Sdp30_measure values;
-    struct Sdp30_measure baseline;
+    Sgp30_measure values;
+    Sgp30_measure baseline;
     uint16_t _humidity;
 
     // Get feature set version
@@ -91,7 +125,7 @@ private:
     //statistics
     pirobot::stat::Statistics _stat_info;
 
-    // Read data 
+    // Read data
     int read_data(uint8_t* data, const int len, const uint16_t cmd, const int delay);
     int write_data(uint8_t* data, const int len, const uint16_t cmd, const int delay);
 
@@ -104,8 +138,11 @@ private:
 
     // Set baseline
     void _set_baseline();
+
+protected:
     //Set humidity
     void _set_humidity();
+    uint16_t _get_humidity() const {return _humidity;};
 
 public:
     //Get measure results

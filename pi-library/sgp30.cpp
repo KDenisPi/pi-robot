@@ -7,12 +7,14 @@
  *  Created on: Feb 21, 2018
  *      Author: Denis Kudia
  */
+#include <cmath>
 
 #include "wiringPi.h"
 #include "logger.h"
 #include "I2CWrapper.h"
 #include "sgp30.h"
 #include "crc.h"
+#include "timers.h"
 
 namespace pirobot {
 namespace item {
@@ -66,7 +68,7 @@ bool Sgp30::measure_test(){
 }
 
 //
-// Read data 
+// Read data
 int Sgp30::read_data(uint8_t* data, const int len, const uint16_t cmd, const int delay_ms){
     int msb = (cmd >> 8);
     int lsb = (cmd & 0x00FF);
@@ -89,7 +91,7 @@ int Sgp30::read_data(uint8_t* data, const int len, const uint16_t cmd, const int
 }
 
 //
-// Get feature set version. Data return 3 bytes. Delay max 2ms 
+// Get feature set version. Data return 3 bytes. Delay max 2ms
 //
 void Sgp30::get_feature_set_version(){
     uint8_t data[3] = {0x00, 0x00, 0x00};
@@ -223,17 +225,53 @@ int Sgp30::write_data(uint8_t* data, const int len, const uint16_t cmd, const in
     return status;
 }
 
-//Set humidity
-void Sgp30::set_humidity(const uint16_t humidity){
-    _humidity = humidity;
+/*
+Set humidity
+
+The 2 data bytes represent humidity values as a fixed-point
+8.8bit number with a minimum value of 0x0001 (=1/256 g/m3 ) and a maximum value of 0xFFFF (255 g/m3 + 255/256 g/m3 ).
+For instance, sending a value of 0x0F80 corresponds to a humidity value of 15.50 g/m3 (15 g/m3 + 128/256 g/m3 ).
+*/
+void Sgp30::set_humidity(const float humidity){
+
+    uint16_t h_high = (uint16_t)std::trunc(humidity);
+    uint16_t h_low =  (uint16_t)(256 * (humidity - std::trunc(humidity)));
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Humidity: " + std::to_string(humidity) + " High:" + std::to_string(h_high) + " Low:" + std::to_string(h_low));
+
+    uint16_t h_high_now = (_humidity >> 8);
+    uint16_t h_low_now =  (_humidity & 0x00FF);
+
+    /*
+    * Check humidity changes
+    * Low range between [1-256]
+    */
+    if(h_high_now == h_high){
+        uint16_t diff = (h_low_now > h_low ? (h_low_now-h_low) : (h_low - h_low_now));
+
+        //do not update if difference less than 5% on low part
+        if( diff < 12){ //5%
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Changes are too small. Current low: " + std::to_string(h_low_now));
+            return;
+        }
+    }
+
+    std::lock_guard<std::mutex> lk(cv_m_data);
+    _humidity = (h_high << 8) | h_low;
 }
 
 //Set humidity
 void Sgp30::_set_humidity(){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Humidity: " + std::to_string(_humidity));
+    uint16_t hmd;
 
-    if(_humidity == 0){
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Humidity does not set. Do nothing.");
+    {
+        std::lock_guard<std::mutex> lk(cv_m_data);
+        hmd = _humidity;
+    }
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Humidity: " + std::to_string(hmd));
+    if(hmd == 0){
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Humidity have not set. Do nothing.");
         return;
     }
 
@@ -243,8 +281,8 @@ void Sgp30::_set_humidity(){
     int lsb = (SGP30_SET_HUMIDITY & 0x00FF);
 
     data[0] = lsb;
-    data[1] = (_humidity >> 8);
-    data[2] = (_humidity & 0x00FF);
+    data[1] = (hmd >> 8);
+    data[2] = (hmd & 0x00FF);
     data[3] = pirobot::crc::crc(&data[1], 2, 0xFF, 0x31);
 
     write_data(data, 4, SGP30_SET_HUMIDITY, 10);
@@ -254,14 +292,20 @@ void Sgp30::_set_humidity(){
 void Sgp30::set_baseline(const uint16_t base_co2, const uint16_t base_tvoc){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Baseline CO2: " + std::to_string(base_co2) + " TVOC: " + std::to_string(base_tvoc));
 
-    baseline.uiCO2 = base_co2;
-    baseline.uiTVOC = base_tvoc;
+    std::lock_guard<std::mutex> lk(cv_m_data);
+    baseline.set(base_co2, base_tvoc);
 }
 
 //Set baseline
 // NOTE: Set baseline use parameter TVOC, CO2 (other functions CO2, TVOC)
 void Sgp30::_set_baseline(){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Baseline CO2: " + std::to_string(baseline.uiCO2) + " TVOC: " + std::to_string(baseline.uiTVOC));
+    Sgp30_measure bln;
+
+    {
+        std::lock_guard<std::mutex> lk(cv_m_data);
+        bln = baseline;
+    }
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Set Baseline CO2: " + std::to_string(bln.uiCO2) + " TVOC: " + std::to_string(bln.uiTVOC));
 
     uint8_t data[7] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
@@ -270,12 +314,12 @@ void Sgp30::_set_baseline(){
 
     data[0] = lsb;
 
-    data[4] = (baseline.uiCO2 >> 8);
-    data[5] = (baseline.uiCO2 & 0x00FF);
+    data[4] = (bln.uiCO2 >> 8);
+    data[5] = (bln.uiCO2 & 0x00FF);
     data[6] = pirobot::crc::crc(&data[4], 2, 0xFF, 0x31);
 
-    data[1] = (baseline.uiTVOC >> 8);
-    data[2] = (baseline.uiTVOC & 0x00FF);
+    data[1] = (bln.uiTVOC >> 8);
+    data[2] = (bln.uiTVOC & 0x00FF);
     data[3] = pirobot::crc::crc(&data[1], 2, 0xFF, 0x31);
 
     write_data(data, 7, SGP30_SET_BASELINE, 10);
@@ -298,11 +342,23 @@ void Sgp30::stop(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " init_air_quality. Name: " + name);
     owner->init_air_quality();
 
+    uint16_t hmdt = owner->_get_humidity();
+
     while(!owner->is_stop_signal()){
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); //1sec - 1Hz
-
+        long ms_start = piutils::timers::Timers::milliseconds();
         owner->measure_air_quality();
+
+#ifdef SGP30_DEBUG
+        owner->ddata_put(ms_start);
+#endif
+        uint16_t hmdt_now = owner->_get_humidity();
+        if(hmdt_now != hmdt){
+            owner->_set_humidity();
+            hmdt = hmdt_now;
+        }
+
+        long slp_time = (1000 - (piutils::timers::Timers::milliseconds() - ms_start));
+        std::this_thread::sleep_for(std::chrono::milliseconds(slp_time)); //1sec - 1Hz
     }
 
     //save baseline values at the end of measure cycle
@@ -315,9 +371,12 @@ void Sgp30::stop(){
 void Sgp30::get_results(uint16_t& co2, uint16_t& tvoc){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
 
-    std::lock_guard<std::mutex> lk(cv_m_data);
-    co2 = values.uiCO2;
-    tvoc = values.uiTVOC;
+    {
+        std::lock_guard<std::mutex> lk(cv_m_data);
+        co2 = values.uiCO2;
+        tvoc = values.uiTVOC;
+    }
+
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " CO2: " + std::to_string(co2) + " TVOC: " + std::to_string(tvoc));
 }
 
@@ -325,9 +384,12 @@ void Sgp30::get_results(uint16_t& co2, uint16_t& tvoc){
 void Sgp30::get_baseline(uint16_t& bs_co2, uint16_t& bs_tvoc){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
 
-    std::lock_guard<std::mutex> lk(cv_m_data);
-    bs_co2 = baseline.uiCO2;
-    bs_tvoc = baseline.uiTVOC;
+    {
+        std::lock_guard<std::mutex> lk(cv_m_data);
+        bs_co2 = baseline.uiCO2;
+        bs_tvoc = baseline.uiTVOC;
+    }
+
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Base: CO2: " + std::to_string(bs_co2) + " TVOC: " + std::to_string(bs_tvoc));
 }
 
