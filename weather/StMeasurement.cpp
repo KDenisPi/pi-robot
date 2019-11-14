@@ -66,6 +66,9 @@ void StMeasurement::measure(){
         auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
         sgp30->get_results(data.spg30_co2, data.spg30_tvoc);
 
+        //update absolute humidity value
+        sgp30->set_humidity(data.si7021_abs_humidity);
+
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- BMP280");
         auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
         bmp280->get_results(data.bmp280_pressure, data.bmp280_temperature, data.bmp280_altitude);
