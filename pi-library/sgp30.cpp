@@ -244,6 +244,10 @@ void Sgp30::set_humidity(const float humidity){
         }
     }
 
+    logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Set Humidity: " + std::to_string(humidity) + " New High:" + std::to_string(h_high) + " Low:" + std::to_string(h_low) +
+            +  " Current High:" + std::to_string(h_high_now) + " Low:" + std::to_string(h_low_now));
+
+
     std::lock_guard<std::mutex> lk(cv_m_data);
     _humidity = (h_high << 8) | h_low;
 }
@@ -339,15 +343,15 @@ void Sgp30::stop(){
 #ifdef SGP30_DEBUG
         owner->ddata_put(ms_start);
 #endif
-        long slp_time = (1000 - (piutils::timers::Timers::milliseconds() - ms_start));
-        std::this_thread::sleep_for(std::chrono::milliseconds(slp_time)); //1sec - 1Hz
-
         uint16_t hmdt_now = owner->_get_humidity();
         if(hmdt_now != hmdt){
+            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Update absolute humidity");
             owner->_set_humidity();
             hmdt = hmdt_now;
         }
 
+        long slp_time = (1000 - (piutils::timers::Timers::milliseconds() - ms_start));
+        std::this_thread::sleep_for(std::chrono::milliseconds(slp_time)); //1sec - 1Hz
     }
 
     //save baseline values at the end of measure cycle

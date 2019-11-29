@@ -30,7 +30,7 @@ namespace item {
 
 #define SGP30_MEASURE_TEST_PATTERN          0xD400
 
-#define SGP30_DEBUG 1
+//#define SGP30_DEBUG 1
 
 class Sgp30_measure {
 public:
