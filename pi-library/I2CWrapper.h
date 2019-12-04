@@ -114,7 +114,7 @@ public:
     int I2CReadReg16(const int fd, const int reg) ;
     int I2CWriteData(const int fd, const int reg, const uint8_t* buffer, const int size);
     int I2CReadData(const int fd, const int reg, uint8_t* buffer, const int size);
-    int I2CWrite(const int fd, const int data) ;
+    int I2CWrite(const int fd, const int data);
     int I2CWriteReg8(const int fd, const int reg, const int data) ;
     int I2CWriteReg16(const int fd, const int reg, const int data) ;
 
