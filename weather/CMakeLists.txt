@@ -34,17 +34,33 @@ target_link_libraries(${DAEMON} ${EXTRA_LIBS} crypt)
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)
 
 #
+# DEB folder structure
+#
+set(DEB_FOLDER ${DAEMON}_${VER_MJR}.${VER_MIN})
+set(DEB_FOLDER_BIN ${DEB_FOLDER}/usr/local/bin)
+set(DEB_FOLDER_LIB ${DEB_FOLDER}/usr/local/lib)
+set(DEB_FOLDER_ETC ${DEB_FOLDER}/etc)
+
+#
 # Installation
 #
 
+
+install(DIRECTORY DESTINATION ${DEB_FOLDER_BIN})
+install(DIRECTORY DESTINATION ${DEB_FOLDER_LIB})
+install(DIRECTORY DESTINATION ${DEB_FOLDER_ETC}/weather)
+install(DIRECTORY DESTINATION ${DEB_FOLDER_ETC}/init.d)
+
+
 #main executable
-install(TARGETS ${DAEMON} RUNTIME DESTINATION bin)
+install(TARGETS ${DAEMON} RUNTIME DESTINATION ${DEB_FOLDER}/usr/local/bin)
+
 
 #
 # Mosquitto library
 #
 install(DIRECTORY ${MOSQUITTO_LIB}/
-        DESTINATION lib
+        DESTINATION ${DEB_FOLDER_LIB}
         FILES_MATCHING
         PATTERN "libmosquitto.*"
         PATTERN "CMakeFiles" EXCLUDE
@@ -56,9 +72,9 @@ install(DIRECTORY ${MOSQUITTO_LIB}/
     )
 
 install(DIRECTORY ${MOSQT_LIB_CPP}/
-        DESTINATION lib
+        DESTINATION ${DEB_FOLDER_LIB}
         FILES_MATCHING
-        PATTERN "libmosquittopp.*"
+        PATTERN "libmosquittopp.so.1.5"
         PATTERN "CMakeFiles" EXCLUDE
         PERMISSIONS
             OWNER_EXECUTE OWNER_WRITE OWNER_READ
@@ -66,9 +82,31 @@ install(DIRECTORY ${MOSQT_LIB_CPP}/
             WORLD_EXECUTE WORLD_READ
     )
 
+#install(DIRECTORY ${MOSQT_LIB_CPP}/
+#        DESTINATION ${DEB_FOLDER_LIB}
+#        FILES_MATCHING
+#        PATTERN "libmosquittopp.so.1"
+#        PATTERN "CMakeFiles" EXCLUDE
+#        PERMISSIONS
+#            OWNER_EXECUTE OWNER_WRITE OWNER_READ
+#            GROUP_EXECUTE GROUP_READ
+#            WORLD_EXECUTE WORLD_READ
+#    )
+
+#install(DIRECTORY ${MOSQT_LIB_CPP}/
+#        DESTINATION ${DEB_FOLDER_LIB}
+#        FILES_MATCHING
+#        PATTERN "libmosquittopp.so"
+#        PATTERN "CMakeFiles" EXCLUDE
+#        PERMISSIONS
+#            OWNER_EXECUTE OWNER_WRITE OWNER_READ
+#            GROUP_EXECUTE GROUP_READ
+#            WORLD_EXECUTE WORLD_READ
+#    )
+
 #configuration file
 install(FILES ${PROJECT_SOURCE_DIR}/../conf/Weather.json
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/etc/weather
+    DESTINATION ${DEB_FOLDER_ETC}/weather
     RENAME Weather.json
     PERMISSIONS
         OWNER_EXECUTE OWNER_WRITE OWNER_READ
@@ -77,26 +115,26 @@ install(FILES ${PROJECT_SOURCE_DIR}/../conf/Weather.json
     )
 
 #daemon configuration file
-install(FILES ${PROJECT_SOURCE_DIR}/daemon/weather
-    DESTINATION /etc/init.d/
-    PERMISSIONS
-        OWNER_EXECUTE OWNER_WRITE OWNER_READ
-        GROUP_EXECUTE GROUP_READ
-        WORLD_EXECUTE WORLD_READ
-    )
+#install(FILES ${PROJECT_SOURCE_DIR}/daemon/weather
+#    DESTINATION ${DEB_FOLDER_ETC}/init.d/
+#    PERMISSIONS
+#        OWNER_EXECUTE OWNER_WRITE OWNER_READ
+#        GROUP_EXECUTE GROUP_READ
+#        WORLD_EXECUTE WORLD_READ
+#    )
 
 #create log folder
-install(DIRECTORY DESTINATION /var/log/pi-robot
-    DIRECTORY_PERMISSIONS
-        OWNER_EXECUTE OWNER_WRITE OWNER_READ
-        GROUP_EXECUTE GROUP_WRITE GROUP_READ
-        WORLD_EXECUTE WORLD_WRITE WORLD_READ
-    )
+#install(DIRECTORY DESTINATION ${DEB_FOLDER}/var/log/pi-robot
+#    DIRECTORY_PERMISSIONS
+#        OWNER_EXECUTE OWNER_WRITE OWNER_READ
+#        GROUP_EXECUTE GROUP_WRITE GROUP_READ
+#        WORLD_EXECUTE WORLD_WRITE WORLD_READ
+#    )
 
 #create data folder
-install(DIRECTORY DESTINATION /var/data/pi-robot/data
-    DIRECTORY_PERMISSIONS
-        OWNER_EXECUTE OWNER_WRITE OWNER_READ
-        GROUP_EXECUTE GROUP_WRITE GROUP_READ
-        WORLD_EXECUTE WORLD_WRITE WORLD_READ
-    )
+#install(DIRECTORY DESTINATION ${DEB_FOLDER}/var/data/pi-robot/data
+#    DIRECTORY_PERMISSIONS
+#        OWNER_EXECUTE OWNER_WRITE OWNER_READ
+#        GROUP_EXECUTE GROUP_WRITE GROUP_READ
+#        WORLD_EXECUTE WORLD_WRITE WORLD_READ
+#    )
