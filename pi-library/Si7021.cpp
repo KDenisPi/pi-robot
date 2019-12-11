@@ -124,11 +124,15 @@ void Si7021::set_heater(const bool enable){
 //Do measument Measure Relative Humidity and Temperature
 //
 void Si7021::get_results(float& humidity, float& temperature, float& abs_humidity){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
+
     uint8_t mrh[2] = {0,0}, temp[2] = {0,0};
     uint16_t last_MRH = 0, last_Temp = 0;
 
     // Measure Relative Humidity - send command
     int status = _i2c->I2CWrite(m_fd, SI7021_MRH_NHMM);
+    if(status < 0)
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "SI7021_MRH_NHMM error");
 
     _stat_info.write(status);
     //accordingly specification it takes us 12ms for MRH and 11ms for Temp = 30ms
