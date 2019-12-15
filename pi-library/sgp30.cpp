@@ -230,6 +230,11 @@ void Sgp30::set_humidity(const float humidity){
     uint16_t h_high_now = (_humidity >> 8);
     uint16_t h_low_now =  (_humidity & 0x00FF);
 
+    if(h_high > 0xFF){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid abs humidity value: " + std::to_string(h_high));
+        return;
+    }
+
     /*
     * Check humidity changes
     * Low range between [1-256]
