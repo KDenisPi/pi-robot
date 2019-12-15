@@ -117,7 +117,7 @@ public:
             humidity - as float value not percentes
     */
     static float get_absolute_humidity(const float temperature, const float humidity){
-        float abs_humidity = 216.74 * (humidity *  6.112 * std::exp((17.62 * temperature)/(243.12 + temperature)) / (273.15 + temperature));
+        float abs_humidity = (2.1674 * humidity *  6.112 * std::exp((17.62 * temperature)/(243.12 + temperature))) / (273.15 + temperature);
         return abs_humidity;
     }
 };
