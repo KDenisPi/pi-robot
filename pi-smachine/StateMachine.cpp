@@ -372,7 +372,7 @@ void StateMachine::process_change_state(const std::shared_ptr<Event>& event){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + cname);
 
         auto newstate = (cname == "StateInit" ?
-                std::make_shared<smachine::state::State>(dynamic_cast<StateMachineItf*>(this), cname):
+                std::make_shared<smachine::state::StateInit>(dynamic_cast<StateMachineItf*>(this), cname):
                 m_factory->get_state(cname, dynamic_cast<StateMachineItf*>(this)));
         bool new_state = true;
 
