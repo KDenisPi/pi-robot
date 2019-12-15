@@ -272,25 +272,25 @@ int main (int argc, char* argv[])
         * Create PI Robot instance
         */
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create hardware support");
-        std::shared_ptr<pirobot::PiRobot> pirobot(new pirobot::PiRobot());
+        std::shared_ptr<pirobot::PiRobot> pirobot = std::make_shared<pirobot::PiRobot>();
         pirobot->set_configuration(robot_conf);
 
         //Create State factory for State Machine
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create State Factory support");
-        std::shared_ptr<weather::WeatherStFactory> factory(new weather::WeatherStFactory(firstState));
+        std::shared_ptr<weather::WeatherStFactory> factory = std::make_shared<weather::WeatherStFactory>(firstState);
         factory->set_configuration(robot_conf);
 
         /*
         * Create State machine
         */
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create state machine.");
-        stm = std::shared_ptr<smachine::StateMachine>(new smachine::StateMachine(factory, pirobot));
+        stm = std::make_shared<smachine::StateMachine>(factory, pirobot);
 
         /*
         * Web interface for settings and status
         */
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Created Web interface");
-        std::shared_ptr<weather::web::WebWeather> web(new weather::web::WebWeather(8080, stm));
+        std::shared_ptr<weather::web::WebWeather> web = std::make_shared<weather::web::WebWeather>(8080, stm);
         web->http::web::WebSettings::start();
 
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");

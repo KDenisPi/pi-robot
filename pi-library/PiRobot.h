@@ -147,10 +147,12 @@ public:
    */
    void set_configuration(const std::string& conf_file){
         m_configuration = conf_file;
+    	logger::log(logger::LLOG::DEBUG, "PiRbt", std::string(__func__) + " Config: " + conf_file);
    }
 
    const std::string& get_configuration() const{
-       return m_configuration;
+        logger::log(logger::LLOG::DEBUG, "PiRbt", std::string(__func__) + " Config: " + m_configuration);
+        return m_configuration;
    }
 
 private:

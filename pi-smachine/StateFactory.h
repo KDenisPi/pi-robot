@@ -18,7 +18,7 @@ namespace smachine {
 class StateFactory {
 public:
 	StateFactory(const std::string& firstState) : _firstState(firstState) {
-
+		logger::log(logger::LLOG::DEBUG, "StFact", std::string(__func__) + " State:" + firstState);
 	}
 
 	virtual ~StateFactory() {
