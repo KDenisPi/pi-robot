@@ -397,8 +397,8 @@ void StateMachine::process_change_state(const std::shared_ptr<Event>& event){
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " no such state, add : " + newstate->get_name());
             get_states()->push_front(newstate);
 
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " call OnEntry for : " + newstate->get_name());
             auto front_state = get_states()->front();
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Front state. call OnEntry for : " + front_state->get_name());
             front_state->OnEntry();
         }
 
