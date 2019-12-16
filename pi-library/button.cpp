@@ -85,7 +85,7 @@ void Button::stop(){
  */
 bool Button::initialize(void)
 {
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + name() + " PullMode: " + std::to_string(m_pullmode));
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " " + name() + " PullMode: " + std::to_string(m_pullmode));
 
     /*
      * Set PULL MODE
@@ -99,11 +99,12 @@ bool Button::initialize(void)
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + this->to_string() + " Current level:" + std::to_string(level));
 
-    if(gpio->get_edge_level() != gpio::GPIO_EDGE_LEVEL::EDGE_NONE){
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " " + this->to_string() + " GPIO supported EGDE. Do not start thread");
+    if(gpio->get_edge_level() == gpio::GPIO_EDGE_LEVEL::EDGE_NONE){
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " " + this->to_string() + " GPIO does not support EGDE.");
         return piutils::Threaded::start<Button>(this);
     }
 
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " " + this->to_string() + " GPIO supported EGDE. Do not start checking thread");
     return true;
 }
 
@@ -134,7 +135,7 @@ void Button::set_state(const BUTTON_STATE state){
  *
  */
 void Button::worker(Button* owner){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "Worker started Item:" + owner->name() + " Initial State :" + std::to_string(owner->state()));
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + "Worker started Item:" + owner->name() + " Initial State :" + std::to_string(owner->state()));
 
     gpio::SGN_LEVEL curr_level = owner->get_gpio()->get_level();
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Current level:" + std::to_string(curr_level));
@@ -148,7 +149,7 @@ void Button::worker(Button* owner){
         std::this_thread::sleep_for(std::chrono::milliseconds(owner->get_loop_delay()));
     }
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished.");
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker finished.");
 }
 
 } /* namespace item */
