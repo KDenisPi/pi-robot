@@ -110,6 +110,11 @@ private:
 
         auto ctxt = get_env<weather::Context>();
 
+        if(ctxt->_email_password.empty()){
+            logger::log(logger::LLOG::DEBUG, "StInit", std::string(__func__) + " No email password. Do not try to send email");
+            return;
+        }
+
         piutils::email::SendEmail email(ctxt->_email_server, ctxt->_email_cert);
 
         email._user = ctxt->_email_user;
