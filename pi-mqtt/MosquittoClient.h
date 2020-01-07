@@ -4,24 +4,24 @@
  *  Created on: Apr 14, 2017
  *      Author: Denis Kudia
  */
-#ifndef PI_MQQT_MOSQUITTO_CL_H_
-#define PI_MQQT_MOSQUITTO_CL_H_
+#ifndef PI_MQTT_MOSQUITTO_CL_H_
+#define PI_MQTT_MOSQUITTO_CL_H_
 
 #include <functional>
 #include <mosquittopp.h>
 
-#include "MqqtDefines.h"
-#include "MqqtClientItf.h"
+#include "MqttDefines.h"
+#include "MqttClientItf.h"
 
-namespace mqqt {
+namespace mqtt {
 
-class MosquittoClient : public mosqpp::mosquittopp, public MqqtClientItf
+class MosquittoClient : public mosqpp::mosquittopp, public MqttClientItf
 {
 public:       
     MosquittoClient(const char* clientID);
     virtual ~MosquittoClient();
 
-    virtual const int cl_connect(const MqqtServerInfo& conf);
+    virtual const int cl_connect(const MqttServerInfo& conf);
     virtual const int cl_disconnect();
     virtual const std::string cl_get_version() const;
     virtual const int cl_publish(int* mid, const std::string& topic, const std::string& payload) override;
@@ -76,6 +76,6 @@ private:
     bool m_connected;
 };
 
-} /*end namespace mqqt*/
+} /*end namespace mqtt*/
 
 #endif

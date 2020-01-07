@@ -1,31 +1,31 @@
 /*
- * MqqtServerInfo.h
+ * MqttServerInfo.h
  *
  *  Created on: Jan 17, 2018
  *      Author: Denis Kudia
  */
-#ifndef PI_MQQT_SERVER_INFO_H_
-#define PI_MQQT_SERVER_INFO_H_
+#ifndef PI_MQTT_SERVER_INFO_H_
+#define PI_MQTT_SERVER_INFO_H_
 
-#include "MqqtDefines.h"
+#include "MqttDefines.h"
 
-namespace mqqt {
+namespace mqtt {
 
 /*
-* MQQT server configuration information
+* MQTT server configuration information
 */
-class MqqtServerInfo {
+class MqttServerInfo {
 public:
     /*
     *
     */
-    MqqtServerInfo(const std::string& host = "", const std::string& clientid = "") :
-        _mqqt_enable(false), m_host(host), m_clientid(clientid), m_port(1883), m_keepalive(10), m_qos(0),
+    MqttServerInfo(const std::string& host = "", const std::string& clientid = "") :
+        _mqtt_enable(false), m_host(host), m_clientid(clientid), m_port(1883), m_keepalive(10), m_qos(0),
         m_tls(false), m_tls_insecure(false), m_tls_version("tlsv1.2") {
 
     }
 
-    virtual ~MqqtServerInfo() {}
+    virtual ~MqttServerInfo() {}
 
     const char* host() const {return m_host.c_str();}
     void set_host(const std::string& host){
@@ -51,11 +51,11 @@ public:
     }
 
     const bool is_enable() const {
-        return _mqqt_enable;
+        return _mqtt_enable;
     }
 
-    void set_enable(const bool mqqt_enable){
-        _mqqt_enable = mqqt_enable;
+    void set_enable(const bool mqtt_enable){
+        _mqtt_enable = mqtt_enable;
     }
 
     /*
@@ -95,9 +95,9 @@ public:
     /*
     *
     */
-    MqqtServerInfo& operator=(const MqqtServerInfo& info){
+    MqttServerInfo& operator=(const MqttServerInfo& info){
         if(this != &info){
-            this->_mqqt_enable = info._mqqt_enable;
+            this->_mqtt_enable = info._mqtt_enable;
             this->m_host = info.m_host;
             this->m_clientid = info.m_clientid;
             this->m_port = info.m_port;
@@ -120,7 +120,7 @@ public:
     }
 
 private:
-    bool _mqqt_enable;          //MQQT enabled
+    bool _mqtt_enable;          //MQTT enabled
     std::string m_clientid;     //Client machine name
     std::string m_host;         //Host name. Note: For TLS we should use the same host name as on server certificate (ignored if m_tls_insecure=true)
     int m_port;                 //Port value 1883 (8883 for TLS On)

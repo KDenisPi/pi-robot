@@ -8,7 +8,7 @@
 #include <logger.h>
 #include "MosquittoClient.h"
 
-namespace mqqt {
+namespace mqtt {
 
 const char TAG[] = "mosqt";
 
@@ -31,7 +31,7 @@ MosquittoClient::~MosquittoClient(){
 /*
 *
 */
-const int MosquittoClient::cl_connect(const MqqtServerInfo& conf){
+const int MosquittoClient::cl_connect(const MqttServerInfo& conf){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Host: " + conf.host() + " Port: " + std::to_string(conf.port()) + " TLS: " + std::to_string(conf.is_tls()));
 
     m_qos = conf.qos();
@@ -100,10 +100,10 @@ void MosquittoClient::on_connect(int rc){
     if(rc == MOSQ_ERR_SUCCESS){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_connect Code: " + cl_get_errname(rc) + " Set connected: true");        
         set_connected(true);
-        cl_notify(MQQT_CONNECT, MQQT_ERROR_SUCCESS);
+        cl_notify(MQTT_CONNECT, MQTT_ERROR_SUCCESS);
     }
     else{
-        cl_notify(MQQT_CONNECT, (rc == MOSQ_ERR_INVAL ? MQQT_ERROR_INVAL : MQQT_ERROR_FAILED));
+        cl_notify(MQTT_CONNECT, (rc == MOSQ_ERR_INVAL ? MQTT_ERROR_INVAL : MQTT_ERROR_FAILED));
         set_connected(false);
 
         err_conn_inc();
@@ -122,7 +122,7 @@ void MosquittoClient::on_disconnect(int rc){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_disconnect Code: " + cl_get_errname(rc));
 
     set_connected(false);
-    cl_notify(MQQT_DISCONNECT, (rc == MOSQ_ERR_SUCCESS ? MQQT_ERROR_SUCCESS : MQQT_ERROR_FAILED));
+    cl_notify(MQTT_DISCONNECT, (rc == MOSQ_ERR_SUCCESS ? MQTT_ERROR_SUCCESS : MQTT_ERROR_FAILED));
     return;
 }
 
@@ -167,5 +167,5 @@ void MosquittoClient::on_error(){
     return;
 }    
 
-} // end namespace mqqt
+} // end namespace mqtt
 

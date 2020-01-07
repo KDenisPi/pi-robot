@@ -1,27 +1,27 @@
 /*
- * MqqtDefines.h
+ * MqttDefines.h
  *
  *  Created on: Apr 25, 2017
  *      Author: Denis Kudia
  */
-#ifndef PI_MQQT_DEFINES_H_
-#define PI_MQQT_DEFINES_H_
+#ifndef PI_MQTT_DEFINES_H_
+#define PI_MQTT_DEFINES_H_
 
-namespace mqqt {
+namespace mqtt {
 
-enum MQQT_CLIENT_STATE {
-    MQQT_CONNECT = 0,
-    MQQT_DISCONNECT = 1,
-    MQQT_PUBLISH = 2,
-    MQQT_SUBSCRIBE = 3
+enum MQTT_CLIENT_STATE {
+    MQTT_CONNECT = 0,
+    MQTT_DISCONNECT = 1,
+    MQTT_PUBLISH = 2,
+    MQTT_SUBSCRIBE = 3
 };
 
-enum MQQT_CLIENT_ERROR {
-    MQQT_ERROR_SUCCESS = 0,
-    MQQT_ERROR_INVAL = 1,
-    MQQT_ERROR_FAILED = 2
+enum MQTT_CLIENT_ERROR {
+    MQTT_ERROR_SUCCESS = 0,
+    MQTT_ERROR_INVAL = 1,
+    MQTT_ERROR_FAILED = 2
 };
 
 
-} //end namespace mqqt
+} //end namespace mqtt
 #endif

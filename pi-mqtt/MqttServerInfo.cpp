@@ -1,5 +1,5 @@
 /*
- * MqqtServerInfo.cpp
+ * MqttServerInfo.cpp
  *
  *  Created on: Jan 17, 2018
  *      Author: Denis Kudia
@@ -10,10 +10,10 @@
 #include "logger.h"
 #include "JsonHelper.h"
 
-#include "MqqtServerInfo.h"
+#include "MqttServerInfo.h"
 
-namespace mqqt {
+namespace mqtt {
 
-const char TAG[] = "mqqtInfo";
+const char TAG[] = "mqttInfo";
 
 }//end namespace

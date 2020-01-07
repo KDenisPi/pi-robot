@@ -87,7 +87,7 @@ static void sigHandlerParent(int sign){
 }
 
 const char* err_message = "Error. No configuration file.";
-const char* help_message = "weather --conf cfg_file [--mqqt-conf mqqt_cfg] [--nodaemon] [--llevel INFO|DEBUG|NECECCARY|ERROR] [--fstate FirstStateName]";
+const char* help_message = "weather --conf cfg_file [--mqtt-conf mqtt_cfg] [--nodaemon] [--llevel INFO|DEBUG|NECECCARY|ERROR] [--fstate FirstStateName]";
 
 /*
 *
@@ -112,13 +112,13 @@ std::string validate_file_parameter(const int idx, const int argc, char* argv[])
 }
 
 /*
-* program --conf path_to_configuration [--mqqt-conf mqqt_configuration_file]
-*    --mqqt - optional if MQQT client should be used
+* program --conf path_to_configuration [--mqtt-conf mqtt_configuration_file]
+*    --mqtt - optional if MQTT client should be used
 */
 int main (int argc, char* argv[])
 {
   bool mqtt = false;
-  std::string robot_conf, mqqt_conf;
+  std::string robot_conf, mqtt_conf;
   stmPid  = 0;
   sigset_t new_set;
 
@@ -131,8 +131,8 @@ int main (int argc, char* argv[])
     if(strcmp(argv[i], "--conf") == 0){
       robot_conf = validate_file_parameter(++i, argc, argv);
     }
-    else if(strcmp(argv[i], "--mqqt-conf") == 0){
-      mqqt_conf = validate_file_parameter(++i, argc, argv);
+    else if(strcmp(argv[i], "--mqtt-conf") == 0){
+      mqtt_conf = validate_file_parameter(++i, argc, argv);
       mqtt = true;
     }
     else if(strcmp(argv[i], "--nodaemon") == 0){

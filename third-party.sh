@@ -23,9 +23,9 @@ then
 fi
 
 #
-#Mosquitto MQQT server
+#Mosquitto MQTT server
 #
-echo Moaquitto MQQT server
+echo Moaquitto MQTT server
 if [ ! -d ./mosquitto ]
 then
   git clone http://github.com/eclipse/mosquitto mosquitto

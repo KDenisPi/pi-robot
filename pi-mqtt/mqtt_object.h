@@ -1,29 +1,29 @@
 /*
- * mqqt_object.h
+ * mqtt_object.h
  *
  *  Created on: Jan 26, 2018
  *      Author: Denis Kudia
  */
 
 
-#ifndef MQQT_OBJECT_H
-#define MQQT_OBJECT_H
+#ifndef MQTT_OBJECT_H
+#define MQTT_OBJECT_H
 
 #include <string>
 #include <memory>
 
 #include "logger.h"
 
-namespace mqqt {
+namespace mqtt {
 
-const char TAG_MQ[] = "mqqtobj";
+const char TAG_MQ[] = "mqttobj";
 
 //
 //
 //
-class MqqtObject {
+class MqttObject {
 public:
-    MqqtObject(const std::string& topic, const std::string& payload) : m_payload(nullptr) {
+    MqttObject(const std::string& topic, const std::string& payload) : m_payload(nullptr) {
 
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " [1] started");
 
@@ -37,7 +37,7 @@ public:
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " [1] finished");
     }
 
-    MqqtObject(const std::string& topic, const int payloadsize, const void* payload) : m_payload(nullptr){
+    MqttObject(const std::string& topic, const int payloadsize, const void* payload) : m_payload(nullptr){
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " [2] " + topic);
 
         m_payloadsize = payloadsize;
@@ -45,16 +45,16 @@ public:
         //m_payload = std::move(payload);
     }
 
-    MqqtObject() : m_payloadsize(0), m_payload(nullptr) {
+    MqttObject() : m_payloadsize(0), m_payload(nullptr) {
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " [3] ");
     }
 
-    virtual ~MqqtObject(){
+    virtual ~MqttObject(){
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " Destructor ");
         clear();
     }
 
-    MqqtObject& operator=(const MqqtObject& node){
+    MqttObject& operator=(const MqttObject& node){
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " Copy 1");
 
         clear();
@@ -68,7 +68,7 @@ public:
         return *this;
     }
 
-    MqqtObject& operator=(MqqtObject&& node){
+    MqttObject& operator=(MqttObject&& node){
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " Copy 2");
 
         m_topic = std::move(node.topic());
@@ -123,5 +123,5 @@ private:
     }
 };
 
-} //namespace mqqt
+} //namespace mqtt
 #endif

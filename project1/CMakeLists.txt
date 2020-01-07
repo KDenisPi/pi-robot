@@ -6,7 +6,7 @@ project(project1)
 set(VER_MJR 0)
 set(VER_MIN 1)
 
-set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-library pi-smachine pi-mqqt pthread)
+set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-library pi-smachine pi-mqtt pthread)
 
 include_directories(BEFORE ${WIRINGPI_INC}
     ${MOSQUITTO_HOME}/lib/cpp
@@ -14,7 +14,7 @@ include_directories(BEFORE ${WIRINGPI_INC}
     ${PROJECT_SOURCE_DIR}/../pi-utils
     ${PROJECT_SOURCE_DIR}/../pi-library
     ${PROJECT_SOURCE_DIR}/../pi-smachine
-    ${PROJECT_SOURCE_DIR}/../pi-mqqt
+    ${PROJECT_SOURCE_DIR}/../pi-mqtt
     ${JSONCONS}
 )
 

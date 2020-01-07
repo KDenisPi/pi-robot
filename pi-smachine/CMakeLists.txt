@@ -8,7 +8,7 @@ project(pi-smachine)
 include_directories(BEFORE ${WIRINGPI_INC}
    ${PROJECT_SOURCE_DIR}/../pi-library
    ${PROJECT_SOURCE_DIR}/../pi-utils
-   ${PROJECT_SOURCE_DIR}/../pi-mqqt
+   ${PROJECT_SOURCE_DIR}/../pi-mqtt
    ${JSONCONS}
 )
 
@@ -19,6 +19,6 @@ aux_source_directory(${PROJECT_SOURCE_DIR} PI_SMASHINE_SOURCES)
 #add_library(pi-smachine SHARED ${PI_SMASHINE_SOURCES})
 add_library(pi-smachine STATIC ${PI_SMASHINE_SOURCES})
 
-target_link_libraries(pi-smachine pi-utils pi-mqqt rt)
+target_link_libraries(pi-smachine pi-utils pi-mqtt rt)
 
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)

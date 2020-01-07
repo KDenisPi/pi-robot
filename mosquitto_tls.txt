@@ -23,7 +23,7 @@ openssl rsa -in m2mqtt_ca.key -text -check -passin pass:mosquittopi
 # /emailAddress - email address
 
 SUBJINFOCA="/C=US/ST=CA/L=FosterCity/O=DenisKudia/CN=DK CA/emailAddress=dkudja@gmail.com/"
-SUBJINFOSRV="/C=US/ST=CA/L=FosterCity/O=DenisKudia/CN=dk-centos7-mqqt.localdomain/emailAddress=dkudja@gmail.com/"
+SUBJINFOSRV="/C=US/ST=CA/L=FosterCity/O=DenisKudia/CN=dk-centos7-mqtt.localdomain/emailAddress=dkudja@gmail.com/"
 
 # -x509 this option outputs a self signed certificate instead of a certificate request. 
 #       This is typically used to generate a test certificate or a self signed root CA.

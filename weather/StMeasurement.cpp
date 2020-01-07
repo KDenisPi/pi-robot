@@ -268,7 +268,7 @@ bool StMeasurement::OnTimer(const int id){
             //Save result to file
 
             //
-            //TODO: Add MQQT here
+            //TODO: Add MQTT here
             //
             auto ctxt = get_env<weather::Context>();
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Write measurement");
