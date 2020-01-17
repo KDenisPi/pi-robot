@@ -37,8 +37,8 @@ const std::shared_ptr<smachine::state::State> MyStateFactory::get_state(const st
 	}
 	*/
 
-	logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Generate exception no such State");
-	throw std::runtime_error("No such state");
+	//return empty object
+	return smachine::StateFactory::get_state(state_name, itf);
 }
 
 

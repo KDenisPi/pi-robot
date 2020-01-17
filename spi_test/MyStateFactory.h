@@ -20,7 +20,7 @@ public:
 	MyStateFactory(const std::string& firstState = "StateEnvAnalize") : smachine::StateFactory(firstState) {}
 	virtual ~MyStateFactory() {}
 
-	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, smachine::StateMachineItf* itf) noexcept(false) override;
+	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, smachine::StateMachineItf* itf) override;
 
 	/*
 	 * Create Environment object

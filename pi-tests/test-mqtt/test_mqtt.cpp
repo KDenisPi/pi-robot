@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <memory>
 
-#include "logger.h"
+#include "pi-main.h"
 
 using namespace std;
 
@@ -17,6 +17,12 @@ int main (int argc, char* argv[])
 {
     bool success = true;
     std::cout << "Starting..." << std::endl;
+
+    std::unique_ptr<pimain::PiMain> pm = std::unique_ptr<pimain::PiMain>(new pimain::PiMain());
+
+    pm->set_conf_main("./test-mqtt.json");
+    pm->set_debug_mode(true);
+    pm->run();
 
     std::cout << "Finished " << success << std::endl;
     exit( (success ? EXIT_SUCCESS : EXIT_FAILURE));

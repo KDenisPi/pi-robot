@@ -17,12 +17,8 @@
 #include <signal.h>
 #include <sys/wait.h>
 
-#include "version.h"
-#include "defines.h"
-
+#include "WebSettings.h"
 #include "StateMachine.h"
-#include "context.h"
-
 #include "logger.h"
 
 #define BD_MAX_CLOSE  8192
@@ -38,6 +34,7 @@ public:
     * Singnal handler for State Machine
     */
     static void sigHandlerStateMachine(int sign){
+        std::cout <<  "Detected signal " << sign  << std::endl;
         //
         // Stop state machine
         //
@@ -56,15 +53,16 @@ public:
     * Singnal handler for parent
     */
     static void sigHandlerParent(int sign){
-        cout <<  "Parent: Detected signal " << sign  << endl;
-        if(stmPid){
-            cout <<  "Parent: Send signal to child  " << sign  << endl;
-            kill(stmPid, sign);
+        std::cout <<  "Parent: Detected signal " << sign  << std::endl;
+
+        if(_stmPid){
+            std::cout <<  "Parent: Send signal to child  " << sign  << std::endl;
+            kill(_stmPid, sign);
         }
     }
 
     const char* err_message = "Error. No configuration file.";
-    const char* help_message = "weather --conf cfg_file [--mqtt-conf mqtt_cfg] [--nodaemon] [--llevel INFO|DEBUG|NECECCARY|ERROR] [--fstate FirstStateName]";
+    const char* help_message = "app --conf cfg_file [--mqtt-conf mqtt_cfg] [--nodaemon] [--llevel INFO|DEBUG|NECECCARY|ERROR] [--fstate FirstStateName]";
 
     /*
     *
@@ -91,7 +89,7 @@ public:
     /*
     *
     */
-    const std:string conf_main() const {
+    const std::string conf_main() const {
         return _robot_conf;
     }
 
@@ -111,19 +109,30 @@ public:
     }
 
     /*
+    * Debug mode
+    */
+    void set_debug_mode(const bool debug_mode) {
+       _debug_mode = debug_mode;
+    }
+
+    const bool debug_mode() const {
+       return _debug_mode;
+    }
+
+    /*
     * Load configuration parameters
     */
     void load_configuration(const int argc, char* argv[]){
         for(int i = 0; i < argc; i++){
             std::string arg = argv[i];
-            cout <<  "Arg: " << i << " [" << arg << "]" << endl;
+            std::cout <<  "Arg: " << i << " [" << arg << "]" << std::endl;
 
             if(strcmp(argv[i], "--conf") == 0){
                 _robot_conf = _validate_file_parameter(++i, argc, argv);
             }
             else if(strcmp(argv[i], "--mqtt-conf") == 0){
                 _mqtt_conf = _validate_file_parameter(++i, argc, argv);
-                _mqtt = true;
+                _use_mqtt = true;
             }
             else if(strcmp(argv[i], "--nodaemon") == 0){
                 _daemon_mode = false;
@@ -141,11 +150,44 @@ public:
     * Validate configuration
     */
     void validate_configuration() {
-        if(robot_conf.empty()){
-            cout <<  err_message << endl <<  help_message << endl;
+        if(_robot_conf.empty()){
+            std::cout <<  err_message << std::endl <<  help_message << std::endl;
             _exit(EXIT_FAILURE);
         }
     }
+
+    /*
+    * Run application
+    */
+    void run(){
+        if(debug_mode()){
+            run_single();
+        }
+        else if(daemon_mode()){
+            run_daemon();
+        }
+        else
+        {
+            run_child();
+        }
+
+    }
+
+    virtual std::shared_ptr<smachine::StateFactory> factory(const std::string& firstState) {
+        if(_factory){
+            return _factory;
+        }
+
+        return std::make_shared<smachine::StateFactory>();
+    }
+
+    /*
+    *
+    */
+   virtual std::shared_ptr<http::web::WebSettings> web(const uint16_t port, std::shared_ptr<smachine::StateMachineItf> itf){
+
+       return std::shared_ptr<http::web::WebSettings>();
+   }
 
 private:
 
@@ -161,16 +203,23 @@ private:
 
         switch(_stmPid = fork()){
         case -1:
-            std::cerr <<  "Could not create state machine application" << endl;
+            std::cerr <<  "Could not create state machine application" << std::endl;
             _exit(EXIT_FAILURE);
 
         case 0: //child
             //initialize daemon configuration
             daemon_initialization();
-            //Initilize signal handlers            
-            initialize_signal_handlers();
+
             //Initialize and run
             initilize_and_run();
+
+            //Initilize signal handlers
+            initialize_signal_handlers();
+
+            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
+            _stm->wait();
+
+            finish();
 
             _exit(EXIT_SUCCESS);
              break;
@@ -180,6 +229,57 @@ private:
             //send command to start
             kill(_stmPid, SIGUSR1);
         }
+    }
+
+    /*
+    * Run child process not in daemon mode
+    */
+   void run_child(){
+        switch(_stmPid = fork()){
+        case -1:
+            std::cerr <<  "Could not create state machine application" << std::endl;
+            _exit(EXIT_FAILURE);
+
+        case 0: //child
+            //Initialize and run
+            initilize_and_run();
+
+            //Initilize signal handlers
+            initialize_signal_handlers();
+
+            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
+            _stm->wait();
+
+            finish();
+
+            _exit(EXIT_SUCCESS);
+             break;
+
+        default: //parent
+            sleep(2);
+            //send command to start
+            kill(_stmPid, SIGUSR1);
+        }
+   }
+
+    void run_single() {
+        //Initialize and run
+        initilize_and_run();
+
+        //Initilize signal handlers
+        initialize_signal_handlers();
+
+        _stmPid = getpid();
+
+        sleep(2); //start State Machine
+        //_stm->run();
+        //send command to start
+        kill(_stmPid, SIGUSR1);
+
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
+        _stm->wait();
+
+        finish();
     }
 
     /*
@@ -197,7 +297,7 @@ private:
 
         //Create State factory for State Machine
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create State Factory support");
-        _factory = std::make_shared<weather::WeatherStFactory>(_firstState);
+        _factory = factory(_firstState);
         _factory->set_configuration(_robot_conf);
 
         /*
@@ -210,22 +310,10 @@ private:
         * Web interface for settings and status
         */
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Created Web interface");
-        _web = std::make_shared<weather::web::WebWeather>(web_port, _stm);
-        _web->http::web::WebSettings::start();
-
-        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
-        _stm->wait();
-
-        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "State machine finished");
-        _web->http::web::WebSettings::stop();
-
-        sleep(2);
-        _stm.reset();
-        _factory.reset();
-        _pirobot.reset();
-
-        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Child finished");
-        logger::release();
+        _web = web(web_port, _stm);
+        if(_web){
+            _web->http::web::WebSettings::start();
+        }
    }
 
     /*
@@ -287,6 +375,8 @@ private:
         */
         ADD_SIGNAL(SIGALRM)
 
+
+        //std::function<void(int)> hnd = std::bind(&PiMain::sigHandlerStateMachine, this, std::placeholders::_1);
         /*
         * Add handler  for SIGUSR2 signal - Used for State Machine finishing
         */
@@ -311,17 +401,35 @@ private:
         /*
         * Add handler for SIGQUIT signal - Used for State Machine finishing
         */
-        if (signal(SIGQUIT, sigHandlerStateMachine) == SIG_ERR ){
+        if (signal(SIGQUIT, PiMain::sigHandlerStateMachine) == SIG_ERR ){
           _exit(EXIT_FAILURE);
         }
 
         /*
         * Add handler  for SIGUSR1 signal. This signal will be used for State Machine start.
         */
-        if( signal(SIGUSR1, sigHandlerStateMachine) == SIG_ERR){
+        if( signal(SIGUSR1, PiMain::sigHandlerStateMachine) == SIG_ERR){
           _exit(EXIT_FAILURE);
         }
-   }
+    }
+
+    /*
+    * Finish processing and release objects
+    */
+    void finish(){
+
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "State machine finished");
+        if(_web)
+            _web->http::web::WebSettings::stop();
+
+        sleep(2);
+        _stm.reset();
+        _factory.reset();
+        _pirobot.reset();
+
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Child finished");
+        logger::release();
+    }
 
     /*
     *
@@ -329,14 +437,14 @@ private:
     std::string _validate_file_parameter(const int idx, const int argc, char* argv[]){
         std::string filename;
         if(idx == argc){
-            cout <<  err_message << endl <<  help_message << endl;
+            std::cout <<  err_message << std::endl <<  help_message << std::endl;
             _exit(EXIT_FAILURE);
         }
 
         filename = argv[idx];
         std::ifstream file_stream(filename);
         if(!file_stream){
-            cout <<  "Configuration file " << filename << " does not exist or not available." << endl;
+            std::cout <<  "Configuration file " << filename << " does not exist or not available." << std::endl;
             _exit(EXIT_FAILURE);
         }
 
@@ -344,25 +452,31 @@ private:
         return filename;
     }
 
+    public:
     /*
     * State Machine instance
     */
-    std::shared_ptr<smachine::StateMachine> _stm;
+    static std::shared_ptr<smachine::StateMachine> _stm;
 
     /*
     * State Machine process ID
     */
-    pid_t _stmPid;
+    static pid_t _stmPid;
 
+    private:
     /*
     * Daemon flag
     */
-    bool _daemon_mode = true;
+    bool _daemon_mode = false;
+    /*
+    * Debug flag
+    */
+    bool _debug_mode = false;
 
     /*
     * Default debug level
     */
-    logger::LLOG _llevel = logger::LLOG::INFO;
+    logger::LLOG _llevel = logger::LLOG::DEBUG;
 
     /*
     * First state
@@ -373,6 +487,7 @@ private:
     *
     */
     std::string _robot_conf;    //main configuration file
+
     bool _use_mqtt = false;     //use MQTT flag
     std::string _mqtt_conf;     //MQTT configuration file
 
@@ -381,9 +496,12 @@ private:
     int _fd_err;
 
     std::shared_ptr<pirobot::PiRobot> _pirobot;
-    std::shared_ptr<weather::WeatherStFactory> _factory;
-    std::shared_ptr<weather::web::WebWeather> _web
+    std::shared_ptr<smachine::StateFactory> _factory;
+    std::shared_ptr<http::web::WebSettings> _web;
 };
+
+pid_t pimain::PiMain::_stmPid;
+std::shared_ptr<smachine::StateMachine> pimain::PiMain::_stm;
 
 } //namespace pimain
 #endif

@@ -27,13 +27,13 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
 {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    m_timers = std::shared_ptr<Timers>(new Timers(this));
-    m_states = std::shared_ptr<std::list<std::shared_ptr<state::State>>>(new std::list<std::shared_ptr<state::State>>);
+    m_timers = std::make_shared<Timers>(this);
+    m_states = std::make_shared<std::list<std::shared_ptr<state::State>>>();
 
     /*
     * Create project environment and load value for parameters
     */
-    m_env = std::shared_ptr<Environment>(m_factory->get_environment());
+    m_env = m_factory->get_environment();
     bool ctxt_init = m_env->configure(m_factory->get_configuration());
     //TODO: throw exception here?
 
@@ -60,7 +60,7 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
 void StateMachine::run(){
     //Add first event
      logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-     put_event(std::shared_ptr<Event>(new Event(EVT_CHANGE_STATE, "StateInit")));
+     put_event(std::make_shared<Event>(EVT_CHANGE_STATE, "StateInit"));
 }
 
 const std::string StateMachine::get_first_state(){
@@ -368,11 +368,16 @@ void StateMachine::process_pop_state(const std::shared_ptr<Event>& event){
 void StateMachine::process_change_state(const std::shared_ptr<Event>& event){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
     try{
-        std::string cname = event->name();
+        const std::string cname = event->name();
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + cname);
 
-        auto newstate = (cname == "StateInit" ? std::make_shared<smachine::state::StateInit>(dynamic_cast<StateMachineItf*>(this)): m_factory->get_state(cname, dynamic_cast<StateMachineItf*>(this)));
         bool new_state = true;
+        auto newstate = (cname == "StateInit" ? std::make_shared<smachine::state::StateInit>(dynamic_cast<StateMachineItf*>(this)): m_factory->get_state(cname, dynamic_cast<StateMachineItf*>(this)));
+        if( !newstate ){
+            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Not supported state: " + cname);
+            return;
+        }
+
 
         for (const auto& state : *(get_states())) {
             if(state == newstate){

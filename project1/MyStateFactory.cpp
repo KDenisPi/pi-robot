@@ -52,9 +52,8 @@ const std::shared_ptr<smachine::state::State> MyStateFactory::get_state(const st
 		return std::shared_ptr<smachine::state::State>(new project1::state::StateWeather(itf));
 	}
 
-
-	logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Generate exception no such State");
-	throw std::runtime_error("No such state");
+	//return empty object
+	return this->StateFactory::get_state(state_name, itf);
 }
 
 

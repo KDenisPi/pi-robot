@@ -21,16 +21,21 @@ public:
 		logger::log(logger::LLOG::DEBUG, "StFact", std::string(__func__) + " State:" + firstState);
 	}
 
-	virtual ~StateFactory() {
+	StateFactory(){}
 
+	virtual ~StateFactory() {}
+
+	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, smachine::StateMachineItf*){
+		logger::log(logger::LLOG::DEBUG, "StFact", std::string(__func__) + " State:" + state_name);
+		return std::shared_ptr<smachine::state::State>();
 	}
-
-	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, smachine::StateMachineItf* itf) noexcept(false) = 0;
 
 	/*
 	 * Create Environment object
 	 */
-	virtual Environment* get_environment() = 0;
+	virtual std::shared_ptr<smachine::Environment> get_environment(){
+		return std::make_shared<smachine::Environment>();
+	}
 
 	/*
 	* Return the first state of State Machine

@@ -42,8 +42,8 @@ const std::shared_ptr<smachine::state::State> WeatherStFactory::get_state(const 
 		return std::shared_ptr<smachine::state::State>(new weather::StNoHardware(itf));
 	}
 
-	logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Generate exception no such State");
-	throw std::runtime_error("No such state");
+	//return empty object
+	return smachine::StateFactory::get_state(state_name, itf);
 }
 
 
