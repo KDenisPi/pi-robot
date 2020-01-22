@@ -17,7 +17,7 @@ namespace mqtt {
 
 class MosquittoClient : public mosqpp::mosquittopp, public MqttClientItf
 {
-public:       
+public:
     MosquittoClient(const char* clientID);
     virtual ~MosquittoClient();
 
@@ -25,8 +25,6 @@ public:
     virtual const int cl_disconnect();
     virtual const std::string cl_get_version() const;
     virtual const int cl_publish(int* mid, const std::string& topic, const std::string& payload) override;
-    virtual const int cl_publish(int* mid, const std::string& topic, const int payloadsize, const void* payload) override;
-    
 
     virtual void on_connect(int rc) override;;
     virtual void on_disconnect(int rc) override;;
@@ -35,7 +33,7 @@ public:
     virtual void on_subscribe(int mid, int qos_count, const int * granted_qos) override;;
     virtual void on_unsubscribe(int mid) override;;
     virtual void on_log(int level, const char * str) override;;
-    virtual void on_error() override;;    
+    virtual void on_error() override;;
 
     unsigned int reconnect_delay = 2;
     unsigned int reconnect_delay_max = 6;
@@ -64,7 +62,7 @@ public:
         }
     }
 
-virtual bool const is_connected() const override { return m_connected; }	
+virtual bool const is_connected() const override { return m_connected; }
 
 private:
 

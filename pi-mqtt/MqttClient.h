@@ -25,7 +25,7 @@ namespace mqtt {
 
 const char TAG_CL[] = "mqttcl";
 
-using pub_info = std::pair<std::string,std::pair<int, std::string>>;    
+using pub_info = std::pair<std::string,std::pair<int, std::string>>;
 
 class MqttItf {
 public:
@@ -36,7 +36,6 @@ public:
     virtual void stop() = 0;
 
     virtual const MQTT_CLIENT_ERROR publish(const std::string& topic, const std::string& payload) = 0;
-    virtual const MQTT_CLIENT_ERROR publish(const std::string& topic, const int payloadsize, const void* payload) = 0;
 };
 
 /*
@@ -48,30 +47,28 @@ public:
     /*
     *
     */
-    MqttClient<T>(const MqttServerInfo& conf) : 
-        m_conf(conf),
-        m_max_size(100)
+    MqttClient<T>(const MqttServerInfo& conf) :
+        m_conf(conf), m_max_size(100)
     {
         logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + m_conf.to_string() );
-        
-        m_mqttCl = std::shared_ptr<T>(new T(m_conf.clientid()));
+
+        m_mqttCl = std::make_shared<T>(m_conf.clientid());
         m_mqttCl->owner_notification = std::bind(&MqttClient::on_client, this, std::placeholders::_1, std::placeholders::_2);
-        
-        m_messages = std::shared_ptr<piutils::circbuff::CircularBuffer<std::shared_ptr<MqttObject>>>(new piutils::circbuff::CircularBuffer<std::shared_ptr<MqttObject>>(m_max_size));
-        
-        logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Version: " + get_version());   
+        m_messages = std::make_shared<piutils::circbuff::CircularBuffer<std::shared_ptr<MqttObject>>>(m_max_size);
+
+        logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Version: " + get_version());
     }
-    
+
     /*
     *
     */
     virtual ~MqttClient(){
         logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Started");
-        disconnect();
 
+        disconnect();
         m_mqttCl.reset();
     }
-    
+
     /*
     *
     */
@@ -96,36 +93,19 @@ public:
     */
     const MQTT_CLIENT_ERROR publish(const std::string& topic, const std::string& payload) override {
         logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Topic: [" + topic + "]");
-        
-        //do nothing if client stopped already 
+
+        //do nothing if client stopped already
         if(is_stop_signal()){
             logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Ignored");
             return MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS;
         }
 
-        std::shared_ptr<MqttObject> item = std::shared_ptr<MqttObject>(new MqttObject(topic, payload));
+        std::shared_ptr<MqttObject> item = std::make_shared<MqttObject>(topic, payload);
         m_messages->put(std::move(item));
         cv.notify_one();
 
         return MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS;
     }
-
-    virtual const MQTT_CLIENT_ERROR publish(const std::string& topic, const int payloadsize, const void* payload) override {
-        logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Topic(2):" + topic);
-
-        //do nothing if client stopped already 
-        if(is_stop_signal()){
-            logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Ignored");
-            return MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS;
-        }
-
-        std::shared_ptr<MqttObject> item = std::shared_ptr<MqttObject>(new MqttObject(topic, payloadsize, payload));
-        m_messages->put(std::move(item));
-        cv.notify_one();
-
-        return MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS;
-    }
-
 
     /*
     *
@@ -139,7 +119,7 @@ public:
     */
     const int put(const std::shared_ptr<MqttObject>& item){
         int mid = 0;
-        return m_mqttCl->cl_publish(&mid, item->topic(), item->payloadsize(), item->payload().get());
+        return m_mqttCl->cl_publish(&mid, item->topic(), item->payload());
     }
 
     /*
@@ -152,7 +132,7 @@ public:
             logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " MQTT client connected. Disconecting" );
             return m_mqttCl->cl_disconnect();
         }
-        
+
         return MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS;
     }
 
@@ -160,7 +140,7 @@ public:
     *
     */
     void on_client(mqtt::MQTT_CLIENT_STATE state, mqtt::MQTT_CLIENT_ERROR code){
-        
+
     }
 
     /*
@@ -177,16 +157,16 @@ public:
         logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Started");
         return piutils::Threaded::start<mqtt::MqttClient<T>>(this);
     }
-    
+
     /*
-    * For Threaded 
+    * For Threaded
     */
     static void worker(MqttClient<T>* owner){
         logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Worker started.");
-        
+
         owner->connect();
 
-        auto fn = [owner]{return (owner->is_stop_signal() || (!owner->is_empty() && owner->is_connected()));};        
+        auto fn = [owner]{return (owner->is_stop_signal() || (!owner->is_empty() && owner->is_connected()));};
         while(!owner->is_stop_signal()){
 
             {
@@ -194,20 +174,20 @@ public:
                 owner->cv.wait(lk, fn);
             }
 
-            logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Message detected");
+            logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Message detected");
 
             while(owner->is_connected() && !owner->is_empty() && !owner->is_stop_signal()){
+
                 //Publish message here
                 const std::shared_ptr<MqttObject>& item = owner->get();
                 owner->put(item);
 
-                logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Message sent ");// + item->to_string() );
-                //delete item;
+                logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Message sent ");
             }
         }
 
         owner->disconnect();
-            
+
         logger::log(logger::LLOG::NECECCARY, TAG_CL, std::string(__func__) + " Worker finished.");
     }
 
@@ -236,7 +216,7 @@ private:
     std::shared_ptr<T> m_mqttCl; //client implementation
 
     std::shared_ptr<piutils::circbuff::CircularBuffer<std::shared_ptr<MqttObject>>> m_messages;
-    int m_max_size;  
+    int m_max_size;
 };
 
 } //end namespace mqtt

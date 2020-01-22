@@ -109,10 +109,12 @@ public:
 private:
     T* buffer;
     int m_size;
-    T m_last_value;
+
+    //T m_last_value;
     int tail_ = 0;
     int head_ = 0;
     int max_size_;
+
     std::mutex cv_m;
 };
 

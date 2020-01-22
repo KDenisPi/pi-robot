@@ -60,8 +60,8 @@ public:
         MData data;
         meas.get_data(data);
 
-        const char* sdata = data.to_string();
-        int res = write_data(sdata, strlen(sdata));
+        const std::string sdata = data.to_string();
+        int res = write_data(sdata.c_str(), sdata.length());
 
         return (res == 0);
     }
@@ -117,8 +117,8 @@ public:
         MData data;
         meas.get_data(data);
 
-        const char* sdata = data.to_string();
-        mqtt::MQTT_CLIENT_ERROR res = mqtt_publish(_topic, strlen(sdata), sdata);
+        const std::string sdata = data.to_json();
+        mqtt::MQTT_CLIENT_ERROR res = mqtt_publish(_topic, sdata);
 
         return (res == mqtt::MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS);
     }
@@ -137,14 +137,6 @@ private:
 
         return mqtt::MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS;
     }
-
-    virtual const mqtt::MQTT_CLIENT_ERROR mqtt_publish(const std::string& topic, const int payloadsize, const void* payload) {
-        if(is_mqtt())
-            return m_mqtt->publish(topic, payloadsize, payload);
-
-        return mqtt::MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS;
-    }
-
 
     //MQTT support flag
     bool m_mqtt_active = false;

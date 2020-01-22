@@ -24,6 +24,9 @@ int main (int argc, char* argv[])
     pm->set_debug_mode(true);
     pm->run();
 
+    std::allocator<char> alloc;
+    std::shared_ptr<char> mem = std::allocate_shared<char>(alloc,50);
+
     std::cout << "Finished " << success << std::endl;
     exit( (success ? EXIT_SUCCESS : EXIT_FAILURE));
 }
