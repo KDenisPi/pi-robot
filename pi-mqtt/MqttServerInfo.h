@@ -19,8 +19,8 @@ public:
     /*
     *
     */
-    MqttServerInfo(const std::string& host = "", const std::string& clientid = "") :
-        _mqtt_enable(false), m_host(host), m_clientid(clientid), m_port(1883), m_keepalive(10), m_qos(0),
+    MqttServerInfo(const std::string& host = "", const std::string& clientid = "", bool mqtt_enable = true) :
+        _mqtt_enable(mqtt_enable), m_host(host), m_clientid(clientid), m_port(1883), m_keepalive(10), m_qos(0),
         m_tls(false), m_tls_insecure(false), m_tls_version("tlsv1.2") {
 
     }

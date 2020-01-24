@@ -22,7 +22,7 @@ message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
 add_executable(testMqtt test_mqtt.cpp ${MONGOOSE_SRC})
 
-set(TEST_MQTT_LIBS pi-utils  pi-smachine pi-mqtt pi-library pi-core pthread crypt rt)
+set(TEST_MQTT_LIBS pi-utils  pi-smachine pi-mqtt pi-library pi-core MOSQT_LIB pthread crypt rt)
 
 message( STATUS "MQTT Libs: ${TEST_MQTT_LIBS}")
 

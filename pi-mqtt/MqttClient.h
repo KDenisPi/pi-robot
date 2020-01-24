@@ -118,8 +118,7 @@ public:
     *
     */
     const int put(const std::shared_ptr<MqttObject>& item){
-        int mid = 0;
-        return m_mqttCl->cl_publish(&mid, item->topic(), item->payload());
+        return m_mqttCl->cl_publish(item->topic(), item->payload());
     }
 
     /*

@@ -76,15 +76,12 @@ public:
     *
     */
     MqttStorage() {
-            int res = mosqpp::lib_init();
-            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQTT library intialized Res: " + std::to_string(res));
     }
 
     /*
     *
     */
     virtual ~MqttStorage() {
-          mosqpp::lib_cleanup();
     }
 
     /*
@@ -96,8 +93,9 @@ public:
             return false;
         }
 
-        m_mqtt = std::shared_ptr<mqtt::MqttItf>(new mqtt::MqttClient<mqtt::MosquittoClient>(mqtt_conf));
+        m_mqtt = std::make_shared<mqtt::MqttClient<mqtt::MosquittoClient>>(mqtt_conf);
         m_mqtt_active = m_mqtt->start();
+
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQTT configuration loaded Active: " + std::to_string(m_mqtt_active));
 
         return m_mqtt_active;
