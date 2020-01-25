@@ -106,9 +106,14 @@ const std::string MosquittoClient::cl_get_version() const {
     return std::to_string(_major) + "." + std::to_string(_minor) + "." + std::to_string(_revision);
 }
 
-const int MosquittoClient::cl_publish(const std::string& topic, const std::string& payload, int* mid){
-    return publish(topic, payload, mid, m_qos);
+const int MosquittoClient::cl_publish(const std::string& topic, const std::string& payload){
+    return publish(topic, payload, m_qos);
 }
+
+const int MosquittoClient::cl_subscribe(const std::string& topic){
+    return subscribe(topic, m_qos);
+}
+
 
 /*
 * Callback for on connect
@@ -186,16 +191,56 @@ void MosquittoClient::on_publish(int mid){
 * Callback for on subscribe
 */
 void MosquittoClient::on_subscribe(int mid, int qos_count, const int * granted_qos){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " on_subscribe MID: " + std::to_string(mid) +
-        " QOS Requested: " + std::to_string(qos_count) + " Granted: " + std::to_string(granted_qos[0]));
+    auto subi = _subscriptions.find(mid);
+    if(subi != _subscriptions.end()){
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " MID: " + std::to_string(mid) +
+            " Topic: " + subi->second->first + " QOS Requested: " + std::to_string(qos_count) + " Granted: " + std::to_string(granted_qos[0]));
+    }
+    else{
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " MID: " + std::to_string(mid) +
+            " QOS Requested: " + std::to_string(qos_count) + " Granted: " + std::to_string(granted_qos[0]));
+    }
+
 }
 
 /*
 * Callback for on unsubscribe
 */
-void MosquittoClient::on_unsubscribe(int /*mid*/){
+void MosquittoClient::on_unsubscribe(int mid){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MID: " + std::to_string(mid));
+
+    auto subi = _subscriptions.find(mid);
+    if(subi != _subscriptions.end()){
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " MID: " + std::to_string(mid) + " Topic: " + subi->second->first);
+    }
 
 }
+
+/*
+*
+*/
+void MosquittoClient::on_message(const struct mosquitto_message * message) {
+    const std::string topic = message->topic;
+    int topic_mid = 0;
+    for (auto it = _subscriptions.begin(); it != _subscriptions.end(); ++it){
+        if(it->second->first == topic){
+            topic_mid = it->first;
+            break;
+        }
+    }
+
+    std::string msg = (char*)message->payload;
+    if(topic_mid > 0){
+        //wait for string information only here
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Topic: " + topic +
+            " MID: " + std::to_string(message->mid) + " TMID:" + std::to_string(topic_mid) + " Msg [" + msg + "]");
+    }
+    else{
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Topic: " + topic + " MID: " + std::to_string(message->mid) + " Msg [" + msg + "]");
+    }
+    return;
+}
+
 
 /*
 * Callback for on logging from mosquitto library

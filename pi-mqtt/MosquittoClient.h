@@ -9,12 +9,15 @@
 
 #include <functional>
 #include <memory>
+#include <map>
 #include <mosquitto.h>
 
 #include "MqttDefines.h"
 #include "MqttClientItf.h"
 
 namespace mqtt {
+
+using sub_info = std::pair<std::string, int>;
 
 #define MOSQ_CODE(code){\
     if(code == MOSQ_ERR_SUCCESS){\
@@ -39,7 +42,8 @@ public:
     virtual const int cl_connect(const MqttServerInfo& conf);
     virtual const int cl_disconnect();
     virtual const std::string cl_get_version() const;
-    virtual const int cl_publish(const std::string& topic, const std::string& payload, int* mid = NULL) override;
+    virtual const int cl_publish(const std::string& topic, const std::string& payload) override;
+    virtual const int cl_subscribe(const std::string& topic) override;
 
     virtual void on_connect(int rc);
     /*
@@ -58,7 +62,7 @@ public:
     virtual void on_connect_flags(int rc, int flags);
     virtual void on_disconnect(int rc);
     virtual void on_publish(int mid);
-    virtual void on_message(const struct mosquitto_message * message) {return;}
+    virtual void on_message(const struct mosquitto_message * message);
     virtual void on_subscribe(int mid, int qos_count, const int * granted_qos);
     virtual void on_unsubscribe(int mid);
     virtual void on_log(int level, const char * str);
@@ -201,11 +205,40 @@ private:
         return res;
     }
 
-    int publish(const std::string& topic, const std::string& payload, int* mid = NULL, int qos = 0, bool retain = false){
-        int res = mosquitto_publish(_mosq, mid, topic.c_str(), payload.length(), payload.c_str(), qos, retain);
+    int publish(const std::string& topic, const std::string& payload, int qos = 0, bool retain = false){
+        int mid = 0;
+        int res = mosquitto_publish(_mosq, &mid, topic.c_str(), payload.length(), payload.c_str(), qos, retain);
         MOSQ_CODE(res)
+
+        //save information about published message (base on mid)
+        if(res == mqtt::MQTT_ERROR_SUCCESS){
+
+        }
+
         return res;
     }
+
+    int subscribe(const std::string& sub, int qos = 0){
+        int mid = 0;
+        int res = mosquitto_subscribe(_mosq, &mid, sub.c_str(), qos);
+        MOSQ_CODE(res)
+
+        //save information about subscription (base on mid)
+        if(res == mqtt::MQTT_ERROR_SUCCESS){
+
+            auto subi = this->_subscriptions.find(mid);
+            if(subi != _subscriptions.end()){
+                //TODO: we have such subscription already
+            }
+            else{
+                _subscriptions.insert({mid, std::make_shared<std::pair<std::string, int>>(sub, mid)});
+            }
+
+        }
+
+        return res;
+    }
+
 
     /*
     *
@@ -249,6 +282,8 @@ private:
     int _major, _minor, _revision;
     struct mosquitto* _mosq = nullptr;
 
+    //Map of subscriptions
+    std::map<int, const std::shared_ptr<sub_info>> _subscriptions;
 };
 
 } /*end namespace mqtt*/

@@ -27,7 +27,8 @@ public:
     virtual const int cl_connect(const MqttServerInfo& conf) = 0;
     virtual const int cl_disconnect() = 0;
     virtual const std::string cl_get_version() const = 0;
-    virtual const int cl_publish(const std::string& topic, const std::string& payload, int* mid = NULL) = 0;
+    virtual const int cl_publish(const std::string& topic, const std::string& payload) = 0;
+    virtual const int cl_subscribe(const std::string& topic) {return mqtt::MQTT_ERROR_SUCCESS;}
 
     virtual void cl_notify(mqtt::MQTT_CLIENT_STATE state, mqtt::MQTT_CLIENT_ERROR code) const {
         if(owner_notification != nullptr){
