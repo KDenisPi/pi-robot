@@ -27,12 +27,22 @@ int main (int argc, char* argv[])
     pm->set_debug_mode(true);
     pm->run();
 */
-    mqtt::MqttServerInfo mqtt_conf("10.0.1.11", "sensor", true);
+    mqtt::MqttServerInfo mqtt_conf("127.0.0.1", "sensor", true);
     std::shared_ptr<mqtt::MqttItf> mqtt = std::make_shared<mqtt::MqttClient<mqtt::MosquittoClient>>(mqtt_conf);
     bool mqtt_active = mqtt->start();
 
+    sleep(1);
+    mqtt->subscribe("sensor");
+    mqtt->subscribe("sensor1");
+    mqtt->publish("sensor", "Message1");
+    mqtt->publish("sensor1", "Message11");
+    mqtt->publish("sensor", "Message111");
 
+    sleep(5);
+    mqtt->unsubscribe("sensor");
+    mqtt->unsubscribe("sensor1");
 
+    sleep(1);
     mqtt->stop();
     mqtt.reset();
 

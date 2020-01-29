@@ -36,6 +36,9 @@ public:
     virtual void stop() = 0;
 
     virtual const MQTT_CLIENT_ERROR publish(const std::string& topic, const std::string& payload) = 0;
+    virtual const MQTT_CLIENT_ERROR subscribe(const std::string& topic, int qos = 0) = 0;
+    virtual const MQTT_CLIENT_ERROR unsubscribe(const std::string& topic) = 0;
+    virtual const MQTT_CLIENT_ERROR unsubscribe_all() = 0;
 };
 
 /*
@@ -91,7 +94,7 @@ public:
     /*
     *
     */
-    const MQTT_CLIENT_ERROR publish(const std::string& topic, const std::string& payload) override {
+    virtual const MQTT_CLIENT_ERROR publish(const std::string& topic, const std::string& payload) override {
         logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Topic: [" + topic + "]");
 
         //do nothing if client stopped already
@@ -105,6 +108,30 @@ public:
         cv.notify_one();
 
         return MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS;
+    }
+
+    virtual const MQTT_CLIENT_ERROR subscribe(const std::string& topic, int qos = 0) override {
+        logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Topic: [" + topic + "]");
+
+        //do nothing if client stopped already
+        if(is_stop_signal()){
+            logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Ignored");
+            return MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS;
+        }
+
+        int res = m_mqttCl->cl_subscribe(topic);
+        return (res == 0 ? MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS : MQTT_CLIENT_ERROR::MQTT_ERROR_FAILED);
+    }
+
+    virtual const MQTT_CLIENT_ERROR unsubscribe(const std::string& topic){
+        logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Topic: [" + topic + "]");
+        int res = m_mqttCl->cl_unsubscribe(topic);
+        return (res == 0 ? MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS : MQTT_CLIENT_ERROR::MQTT_ERROR_FAILED);
+    }
+
+    virtual const MQTT_CLIENT_ERROR unsubscribe_all(){
+        logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__));
+
     }
 
     /*

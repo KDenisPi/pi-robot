@@ -114,6 +114,14 @@ const int MosquittoClient::cl_subscribe(const std::string& topic){
     return subscribe(topic, m_qos);
 }
 
+const int MosquittoClient::cl_unsubscribe(const std::string& topic){
+    return unsubscribe(topic);
+}
+const int MosquittoClient::cl_unsubscribe_all(){
+    return 0;
+}
+
+
 
 /*
 * Callback for on connect
@@ -212,8 +220,8 @@ void MosquittoClient::on_unsubscribe(int mid){
     auto subi = _subscriptions.find(mid);
     if(subi != _subscriptions.end()){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " MID: " + std::to_string(mid) + " Topic: " + subi->second->first);
+        _subscriptions.erase(subi);
     }
-
 }
 
 /*

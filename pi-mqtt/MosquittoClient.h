@@ -44,6 +44,8 @@ public:
     virtual const std::string cl_get_version() const;
     virtual const int cl_publish(const std::string& topic, const std::string& payload) override;
     virtual const int cl_subscribe(const std::string& topic) override;
+    virtual const int cl_unsubscribe(const std::string& topic) override;
+    virtual const int cl_unsubscribe_all() override;
 
     virtual void on_connect(int rc);
     /*
@@ -239,6 +241,13 @@ private:
         return res;
     }
 
+    int unsubscribe(const std::string& sub){
+        int mid = 0;
+        int res = mosquitto_unsubscribe(_mosq, &mid, sub.c_str());
+        MOSQ_CODE(res)
+
+        return res;
+    }
 
     /*
     *
