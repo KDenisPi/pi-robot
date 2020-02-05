@@ -116,6 +116,7 @@ public:
         meas.copy_data(data);
 
         const std::string sdata = data.to_json();
+        logger::log(logger::LLOG::DEBUG, "main", std::string(__func__) + "MQTT data: " + sdata);
         mqtt::MQTT_CLIENT_ERROR res = mqtt_publish(_topic, sdata);
 
         return (res == mqtt::MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS);
