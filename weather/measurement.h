@@ -202,7 +202,7 @@ public:
         return (celcius ? tempr : temp_C_to_F(tempr));
     }
 
-    void get_data(MData& data){
+    void copy_data(MData& data) const{
         data = _mdata;
     }
 

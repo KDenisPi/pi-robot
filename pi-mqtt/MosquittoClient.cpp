@@ -199,29 +199,20 @@ void MosquittoClient::on_publish(int mid){
 * Callback for on subscribe
 */
 void MosquittoClient::on_subscribe(int mid, int qos_count, const int * granted_qos){
-    auto subi = _subscriptions.find(mid);
-    if(subi != _subscriptions.end()){
+    //possible race condition here
+    std::string topic = subscription_by_mid(mid, false);
+    if(topic.length() > 0){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " MID: " + std::to_string(mid) +
-            " Topic: " + subi->second->first + " QOS Requested: " + std::to_string(qos_count) + " Granted: " + std::to_string(granted_qos[0]));
+            " Topic: " + topic + " QOS Requested: " + std::to_string(qos_count) + " Granted: " + std::to_string(granted_qos[0]));
     }
-    else{
-        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " MID: " + std::to_string(mid) +
-            " QOS Requested: " + std::to_string(qos_count) + " Granted: " + std::to_string(granted_qos[0]));
-    }
-
 }
 
 /*
 * Callback for on unsubscribe
 */
 void MosquittoClient::on_unsubscribe(int mid){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " MID: " + std::to_string(mid));
-
-    auto subi = _subscriptions.find(mid);
-    if(subi != _subscriptions.end()){
-        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " MID: " + std::to_string(mid) + " Topic: " + subi->second->first);
-        _subscriptions.erase(subi);
-    }
+    std::string topic = subscription_by_mid(mid, true);
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " MID: " + std::to_string(mid) + " Topic: " + topic);
 }
 
 /*
@@ -229,24 +220,8 @@ void MosquittoClient::on_unsubscribe(int mid){
 */
 void MosquittoClient::on_message(const struct mosquitto_message * message) {
     const std::string topic = message->topic;
-    int topic_mid = 0;
-    for (auto it = _subscriptions.begin(); it != _subscriptions.end(); ++it){
-        if(it->second->first == topic){
-            topic_mid = it->first;
-            break;
-        }
-    }
-
     std::string msg = (char*)message->payload;
-    if(topic_mid > 0){
-        //wait for string information only here
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Topic: " + topic +
-            " MID: " + std::to_string(message->mid) + " TMID:" + std::to_string(topic_mid) + " Msg [" + msg + "]");
-    }
-    else{
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Topic: " + topic + " MID: " + std::to_string(message->mid) + " Msg [" + msg + "]");
-    }
-    return;
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Topic: " + topic + " MID: " + std::to_string(message->mid) + " Msg [" + msg + "]");
 }
 
 

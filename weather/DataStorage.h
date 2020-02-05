@@ -28,12 +28,12 @@ namespace data {
 * Data storage interface
 */
 class DataStorage {
-    public:
+public:
     DataStorage() {}
     virtual ~DataStorage() {}
 
     virtual void stop() = 0;
-    virtual bool write(Measurement& data) = 0;
+    virtual bool write(const Measurement& data) = 0;
 };
 
 /*
@@ -56,9 +56,9 @@ public:
         FStorage::stop();
     }
 
-    virtual bool write(Measurement& meas) override {
+    virtual bool write(const Measurement& meas) override {
         MData data;
-        meas.get_data(data);
+        meas.copy_data(data);
 
         const std::string sdata = data.to_string();
         int res = write_data(sdata.c_str(), sdata.length());
@@ -111,9 +111,9 @@ public:
     /*
     *
     */
-    virtual bool write(Measurement& meas) override {
+    virtual bool write(const Measurement& meas) override {
         MData data;
-        meas.get_data(data);
+        meas.copy_data(data);
 
         const std::string sdata = data.to_json();
         mqtt::MQTT_CLIENT_ERROR res = mqtt_publish(_topic, sdata);

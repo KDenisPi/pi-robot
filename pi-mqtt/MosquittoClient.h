@@ -17,7 +17,7 @@
 
 namespace mqtt {
 
-using sub_info = std::pair<std::string, int>;
+using sub_info = std::pair<bool, int>;
 
 #define MOSQ_CODE(code){\
     if(code == MOSQ_ERR_SUCCESS){\
@@ -228,12 +228,12 @@ private:
         //save information about subscription (base on mid)
         if(res == mqtt::MQTT_ERROR_SUCCESS){
 
-            auto subi = this->_subscriptions.find(mid);
+            auto subi = this->_subscriptions.find(sub);
             if(subi != _subscriptions.end()){
                 //TODO: we have such subscription already
             }
             else{
-                _subscriptions.insert({mid, std::make_shared<std::pair<std::string, int>>(sub, mid)});
+                _subscriptions.insert({sub, std::make_shared<std::pair<bool, int>>(false, mid)});
             }
 
         }
@@ -244,9 +244,29 @@ private:
     int unsubscribe(const std::string& sub){
         int mid = 0;
         int res = mosquitto_unsubscribe(_mosq, &mid, sub.c_str());
+        auto subi = this->_subscriptions.find(sub);
+        if(subi != _subscriptions.end()){
+            subi->second->second = mid;
+        }
         MOSQ_CODE(res)
 
         return res;
+    }
+
+    /*
+    *
+    */
+    const std::string subscription_by_mid(const int mid, const bool remove = false){
+        std::string result;
+        for (auto it = _subscriptions.begin(); it != _subscriptions.end(); ++it){
+            if(it->second->second == mid){
+                result = it->first;
+                if(remove)
+                    _subscriptions.erase(it);
+                break;
+            }
+        }
+        return result;
     }
 
     /*
@@ -292,7 +312,7 @@ private:
     struct mosquitto* _mosq = nullptr;
 
     //Map of subscriptions
-    std::map<int, const std::shared_ptr<sub_info>> _subscriptions;
+    std::map<std::string, const std::shared_ptr<sub_info>> _subscriptions;
 };
 
 } /*end namespace mqtt*/
