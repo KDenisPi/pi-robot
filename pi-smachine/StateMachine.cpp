@@ -194,6 +194,11 @@ void StateMachine::timer_cancel(const int timer_id){
     this->m_timers->cancel_timer(timer_id);
 }
 
+//check if timer is running
+bool StateMachine::timer_check(const int timer_id){
+    return m_timers->is_timer(timer_id);
+}
+
 
 /*
  *

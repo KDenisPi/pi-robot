@@ -39,6 +39,7 @@ public:
     virtual const MQTT_CLIENT_ERROR subscribe(const std::string& topic, int qos = 0) = 0;
     virtual const MQTT_CLIENT_ERROR unsubscribe(const std::string& topic) = 0;
     virtual const MQTT_CLIENT_ERROR unsubscribe_all() = 0;
+    virtual const bool is_connected() = 0;
 };
 
 /*
@@ -80,7 +81,7 @@ public:
         return m_mqttCl->cl_connect(m_conf);
     }
 
-    const bool is_connected() const {
+    virtual const bool is_connected() override {
         return m_mqttCl->is_connected();
     }
 

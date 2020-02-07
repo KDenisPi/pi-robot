@@ -32,8 +32,23 @@ public:
     DataStorage() {}
     virtual ~DataStorage() {}
 
+    static constexpr uint32_t s_DOWN        = 0;
+    static constexpr uint32_t s_UP          = 1;
+    static constexpr uint32_t s_CONNECTED   = 2;
+    static constexpr uint32_t s_CONNCTING   = 4;
+
     virtual void stop() = 0;
     virtual bool write(const Measurement& data) = 0;
+    virtual const uint32_t get_status() = 0;
+
+    virtual const bool is_run() { return _run;};
+
+    /*
+    * TODO: add notification function to UP level
+    */
+
+protected:
+    bool _run = false;
 };
 
 /*
@@ -49,11 +64,16 @@ public:
 
     bool start(const std::string fstor_path, const bool local_time) {
         int res = initilize(fstor_path, local_time);
-        return (res == 0);
+        _run = (res == 0);
+        return _run;
     }
 
     virtual void stop() override {
         FStorage::stop();
+    }
+
+    virtual const uint32_t get_status() override {
+        return (is_run() && is_fd() ? s_UP : s_DOWN);
     }
 
     virtual bool write(const Measurement& meas) override {
@@ -89,16 +109,16 @@ public:
     */
     bool start(const mqtt::MqttServerInfo mqtt_conf) {
 
-        if(mqtt_conf.is_enable()){
+        if(!mqtt_conf.is_enable()){
+            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQTT Disabled");
             return false;
         }
 
         m_mqtt = std::make_shared<mqtt::MqttClient<mqtt::MosquittoClient>>(mqtt_conf);
-        m_mqtt_active = m_mqtt->start();
+        _run = m_mqtt->start();
 
-        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQTT configuration loaded Active: " + std::to_string(m_mqtt_active));
-
-        return m_mqtt_active;
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQTT configuration loaded Active: " + std::to_string( _run));
+        return  _run;
     }
 
     /*
@@ -107,6 +127,16 @@ public:
     virtual void stop() override{
         m_mqtt->stop();
     }
+
+    virtual const uint32_t get_status() override {
+        uint32_t status = s_DOWN;
+
+        if(is_run()) status |= s_UP;
+        if(m_mqtt->is_connected()) status |= s_CONNECTED;
+
+        return status;
+    }
+
 
     /*
     *
@@ -122,25 +152,15 @@ public:
         return (res == mqtt::MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS);
     }
 
-    /*
-    *
-    */
-    const bool is_mqtt() const {
-        return m_mqtt_active;
-    }
-
 private:
     virtual const mqtt::MQTT_CLIENT_ERROR mqtt_publish(const std::string& topic, const std::string& payload) {
-        if(is_mqtt())
+        if(is_run())
             return m_mqtt->publish(topic, payload);
 
         return mqtt::MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS;
     }
 
-    //MQTT support flag
-    bool m_mqtt_active = false;
     std::shared_ptr<mqtt::MqttItf> m_mqtt;
-
     std::string _topic = "weather";
 
 };

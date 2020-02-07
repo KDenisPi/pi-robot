@@ -227,7 +227,6 @@ private:
 
         //save information about subscription (base on mid)
         if(res == mqtt::MQTT_ERROR_SUCCESS){
-
             auto subi = this->_subscriptions.find(sub);
             if(subi != _subscriptions.end()){
                 //TODO: we have such subscription already

@@ -172,7 +172,6 @@ void MosquittoClient::on_connect_flags(int rc, int flags){
            reconnect_async();
         }
     }
-
 }
 
 
@@ -184,7 +183,6 @@ void MosquittoClient::on_disconnect(int rc){
 
     set_connected(false);
     cl_notify(MQTT_DISCONNECT, (rc == MOSQ_ERR_SUCCESS ? MQTT_ERROR_SUCCESS : MQTT_ERROR_FAILED));
-
 }
 
 /*
@@ -192,7 +190,6 @@ void MosquittoClient::on_disconnect(int rc){
 */
 void MosquittoClient::on_publish(int mid){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_publish MID: " + std::to_string(mid));
-
 }
 
 /*

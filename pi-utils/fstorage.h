@@ -248,6 +248,10 @@ public:
 
     static std::list<std::string> dfiles;
 
+    const bool is_fd() const {
+        return (_fd > 0);
+    }
+
 private:
     std::string _names;
 
