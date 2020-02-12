@@ -21,26 +21,25 @@ int main (int argc, char* argv[])
     bool success = true;
     std::cout << "Starting..." << std::endl;
 
-/*
-    std::unique_ptr<pimain::PiMain> pm = std::unique_ptr<pimain::PiMain>(new pimain::PiMain());
-    pm->set_conf_main("./test-mqtt.json");
-    pm->set_debug_mode(true);
-    pm->run();
-*/
-    mqtt::MqttServerInfo mqtt_conf("127.0.0.1", "sensor", true);
+    std::string msg_def = "{ \"Temperature\": 23.5, \"Humidity\": 65.5, \"Luximity\": 13, \"TVOC\": 24, \"CO2\": 440, \"Pressure\": 672 }";
+    std::string host = (argc > 1 ? argv[1] : "127.0.0.1");
+    std::string topic = (argc > 2 ? argv[2] : "pirobot/sensors");
+    std::string msg = (argc > 3 ? argv[3] : msg_def);
+
+    std::cout << "Host: " << host << " Topic: " << topic << "Message [" << msg << "]" << std::endl;
+
+    mqtt::MqttServerInfo mqtt_conf(host, topic, true);
     std::shared_ptr<mqtt::MqttItf> mqtt = std::make_shared<mqtt::MqttClient<mqtt::MosquittoClient>>(mqtt_conf);
     bool mqtt_active = mqtt->start();
 
     sleep(1);
-    mqtt->subscribe("sensor");
-    mqtt->subscribe("sensor1");
-    mqtt->publish("sensor", "Message1");
-    mqtt->publish("sensor1", "Message11");
-    mqtt->publish("sensor", "Message111");
+    mqtt->subscribe(topic);
+    mqtt->publish(topic, msg);
+    mqtt->publish(topic, msg + " 001");
+    mqtt->publish(topic, msg + " 002");
 
     sleep(5);
-    mqtt->unsubscribe("sensor");
-    mqtt->unsubscribe("sensor1");
+    mqtt->unsubscribe(topic);
 
     sleep(1);
     mqtt->stop();
