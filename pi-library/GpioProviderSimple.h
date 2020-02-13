@@ -222,7 +222,7 @@ public:
                 //std::cout << "signal detected FD count: " << fd_cnt << " is stop : " << is_stop << std::endl;
 
                 if(fd_cnt == 0 || is_stop){
-                    logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + std::string(" Stop signel or no more FD: ") + std::to_string(owner->fd_count()));
+                    logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + std::string(" Stop signal or no more FD: ") + std::to_string(owner->fd_count()));
                     break;
                 }
                 else {
@@ -267,7 +267,7 @@ public:
                                 * Value has view 0\n or 1\n
                                 */
                                 int value = (rbuff[0]==0x30 ? 0 : (rbuff[0]==0x31 ? 1 : (int)rbuff[0]));
-                                logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + " FD: " + std::to_string(pfd[i].fd) + " Value:" + std::to_string(value));
+                                //logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + " FD: " + std::to_string(pfd[i].fd) + " Value:" + std::to_string(value));
                                 //std::cout << "descriptor counter " << res << " read: " << rres << " value:" << value << std::endl;
 
                                 //notify about changes
