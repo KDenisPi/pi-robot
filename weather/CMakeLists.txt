@@ -14,6 +14,7 @@ include_directories(BEFORE
     ${MOSQUITTO_HOME}/lib/cpp
     ${MOSQUITTO_HOME}/lib
     ${PROJECT_SOURCE_DIR}/../pi-utils
+    ${PROJECT_SOURCE_DIR}/../pi-data
     ${PROJECT_SOURCE_DIR}/../pi-sql
     ${PROJECT_SOURCE_DIR}/../pi-library
     ${PROJECT_SOURCE_DIR}/../pi-smachine
