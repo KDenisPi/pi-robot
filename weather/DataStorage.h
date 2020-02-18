@@ -51,8 +51,8 @@ public:
 class MqttStorage : public pidata::mqttstorage::MqttStorage<weather::Measurement> {
 public:
 
-    MqttStorage() {
-        set_topic("weather");
+    MqttStorage(const std::string& topic) {
+        set_topic(topic);
     }
 
     virtual ~MqttStorage() {

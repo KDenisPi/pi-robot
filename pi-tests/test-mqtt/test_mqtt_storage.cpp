@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <memory>
 
-#include "MqttClient.h"
-#include "MosquittoClient.h"
+#include "MqttStorage.h"
 #include "MqttServerInfo.h"
 
 using namespace std;
@@ -14,6 +13,27 @@ using namespace std;
 * Create MQTT client, connect to the server, publish information
 *
 */
+
+class MqttStorage : public pidata::mqttstorage::MqttStorage<std::string> {
+public:
+
+    MqttStorage(const std::string& topic) {
+        set_topic(topic);
+    }
+
+    virtual ~MqttStorage() {
+    }
+
+    /*
+    *
+    */
+    virtual bool write(const std::string& message) override {
+        logger::log(logger::LLOG::DEBUG, "main", std::string(__func__) + "MQTT data: " + message);
+
+        mqtt::MQTT_CLIENT_ERROR res = mqtt_publish(topic(), message);
+        return (res == mqtt::MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS);
+    }
+};
 
 int main (int argc, char* argv[])
 {
@@ -28,21 +48,16 @@ int main (int argc, char* argv[])
     std::cout << "Host: " << host << " Topic: " << topic << "Message [" << msg << "]" << std::endl;
 
     mqtt::MqttServerInfo mqtt_conf(host, topic, true);
-    std::shared_ptr<mqtt::MqttItf> mqtt = std::make_shared<mqtt::MqttClient<mqtt::MosquittoClient>>(mqtt_conf);
-    bool mqtt_active = mqtt->start();
+    std::shared_ptr<MqttStorage> mqttstorage = std::make_shared<MqttStorage>(topic);
+    bool mqtt_active = mqttstorage->start(mqtt_conf);
 
-    sleep(1);
-    mqtt->subscribe(topic);
-    mqtt->publish(topic, msg);
-    mqtt->publish(topic, msg + " 001");
-    mqtt->publish(topic, msg + " 002");
+    mqttstorage->write(msg);
+    mqttstorage->write(msg + " 001");
+    mqttstorage->write(msg + " 002");
 
     sleep(5);
-    mqtt->unsubscribe(topic);
-
-    sleep(1);
-    mqtt->stop();
-    mqtt.reset();
+    mqttstorage->stop();
+    mqttstorage.reset();
 
     std::cout << "Finished " << success << std::endl;
     exit( (success ? EXIT_SUCCESS : EXIT_FAILURE));
