@@ -223,7 +223,7 @@ public:
     */
    void init_mqtt_storage() {
        if(use_mqtt_storage()){
-           _mqttstorage = std::make_shared<weather::data::MqttStorage>("weather");
+           _mqttstorage = std::make_shared<weather::data::MqttStorage>("pirobot/sensors");
        }
    }
 
