@@ -27,7 +27,7 @@ public:
 
     bool start(const std::string fstor_path, const bool local_time) {
         int res = initilize(fstor_path, local_time);
-        return set_run<T>((res == 0));
+        return datastorage::DataStorage<T>::set_run((res == 0));
     }
 
     virtual void stop() override {
@@ -35,7 +35,7 @@ public:
     }
 
     virtual const uint32_t get_status() override {
-        return (is_run() && is_fd() ? pidata::datastorage::s_UP : pidata::datastorage::s_DOWN);
+        return (datastorage::DataStorage<T>::is_run() && is_fd() ? pidata::datastorage::s_UP : pidata::datastorage::s_DOWN);
     }
 };
 

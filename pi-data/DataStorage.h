@@ -13,6 +13,11 @@
 namespace pidata{
 namespace datastorage {
 
+static constexpr uint32_t s_DOWN        = 0;
+static constexpr uint32_t s_UP          = 1;
+static constexpr uint32_t s_CONNECTED   = 2;
+static constexpr uint32_t s_CONNCTING   = 4;
+
 /*
 * Data storage interface
 */
@@ -21,11 +26,6 @@ class DataStorage {
 public:
     DataStorage() {}
     virtual ~DataStorage() {}
-
-    static constexpr uint32_t s_DOWN        = 0;
-    static constexpr uint32_t s_UP          = 1;
-    static constexpr uint32_t s_CONNECTED   = 2;
-    static constexpr uint32_t s_CONNCTING   = 4;
 
     virtual void stop() = 0;
     virtual bool write(const T& data) = 0;

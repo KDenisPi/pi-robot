@@ -47,10 +47,10 @@ public:
         }
 
         m_mqtt = std::make_shared<mqtt::MqttClient<mqtt::MosquittoClient>>(mqtt_conf);
-        _run = m_mqtt->start();
+        datastorage::DataStorage<T>::set_run(m_mqtt->start());
 
-        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQTT configuration loaded Active: " + std::to_string( _run));
-        return  _run;
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQTT configuration loaded Active: " + std::to_string(datastorage::DataStorage<T>::is_run()));
+        return  datastorage::DataStorage<T>::is_run();
     }
 
     /*
@@ -63,7 +63,7 @@ public:
     virtual const uint32_t get_status() override {
         uint32_t status = pidata::datastorage::s_DOWN;
 
-        if(is_run()) status |= pidata::datastorage::s_UP;
+        if(datastorage::DataStorage<T>::is_run()) status |= pidata::datastorage::s_UP;
         if(m_mqtt->is_connected()) status |= pidata::datastorage::s_CONNECTED;
 
         return status;
@@ -79,7 +79,7 @@ public:
 
 protected:
     virtual const mqtt::MQTT_CLIENT_ERROR mqtt_publish(const std::string& topic, const std::string& payload) {
-        if(is_run())
+        if(datastorage::DataStorage<T>::is_run())
             return m_mqtt->publish(topic, payload);
 
         return mqtt::MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS;
