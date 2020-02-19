@@ -20,8 +20,8 @@ namespace weather {
 
 class Context : public smachine::Environment {
 public:
-    Context() : version("0.9"), ip4_address(""),
-        ip6_address(""), _CO2_level(0), _TVOC_level(0) {
+    Context() : version("0.9"), ip4_address(""), ip6_address(""), _CO2_level(0), _TVOC_level(0) {
+
     }
 
     virtual ~Context() noexcept {}
@@ -234,23 +234,14 @@ public:
     }
 
     const bool  start_mqtt_storage(){
+        logger::log(logger::LLOG::ERROR, "Ctxt", std::string(__func__) + " use MQTT storage: " + std::to_string(use_mqtt_storage()));
+
         if(use_mqtt_storage() && _mqttstorage){
             return _mqttstorage->start(_mqtt_conf);
         }
 
+        logger::log(logger::LLOG::ERROR, "Ctxt", std::string(__func__) + " No objects");
         return false;
-    }
-
-    const bool use_file_storage() const {
-        return _use_file_storage;
-    }
-
-    const bool use_mqtt_storage() const {
-        return _use_mqtt_storage;
-    }
-
-    const bool use_sql_storage() const {
-        return _use_sql_storage;
     }
 
     /*
@@ -267,10 +258,6 @@ public:
 
         return result;
     }
-
-    bool _use_file_storage = true;
-    bool _use_mqtt_storage = false;
-    bool _use_sql_storage = false;
 
     // File based data storage
     std::shared_ptr<weather::data::FileStorage> _fstorage;

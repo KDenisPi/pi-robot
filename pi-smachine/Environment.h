@@ -24,7 +24,7 @@ namespace smachine {
  */
 class Environment{
 public:
-    Environment() {
+    Environment() : _use_file_storage(false), _use_sql_storage(false) {
         _start_time = std::chrono::system_clock::now();
     }
     virtual ~Environment() {}
@@ -80,6 +80,8 @@ public:
             logger::log(logger::LLOG::NECECCARY, "Env", std::string(__func__) + " Parse JSON from: " + conf);
 
             jsoncons::json conf = jsoncons::json::parse(ijson);
+
+
 
             /*
             * Load general application parameters
@@ -141,6 +143,41 @@ public:
                     _mqtt_conf.set_tls_version(tls_version);
                 }
             }
+            else
+            {
+                 _mqtt_conf.set_enable(false);
+            }
+
+            /*
+            * SQL data storage. for future use
+            */
+            if(conf.contains("sql"))
+            {
+            }
+            else {
+                set_use_sql_storage(false);
+            }
+
+            /*
+            * File based data storage
+            */
+            if(conf.contains("file"))
+            {
+                const jsoncons::json& json_file  =  conf["file"];
+                auto file_enable = jsonhelper::get_attr<bool>(json_file, "enable", true);
+                auto data_path = jsonhelper::get_attr<std::string>(json_file, "data_path", "/var/data/pi-robot/data");
+                auto local_time = jsonhelper::get_attr<bool>(json_file, "local_time", true);
+
+                set_use_file_storage(file_enable);
+                _fstor_path = data_path;
+                _fstor_local_time = local_time;
+            }
+            else {
+                //Use file storage by default
+                set_use_file_storage(true);
+            }
+
+
         }
         catch(jsoncons::ser_error& perr){
             logger::log(logger::LLOG::ERROR, "Env", std::string(__func__) + " Invalid configuration " +
@@ -200,8 +237,38 @@ public:
         return _data_path;
     }
 
+
+    const bool use_file_storage() const {
+        return _use_file_storage;
+    }
+
+    const bool use_mqtt_storage() const {
+        return _mqtt_conf.is_enable();
+    }
+
+    const bool use_sql_storage() const {
+        return _use_sql_storage;
+    }
+
+    void set_use_file_storage(const bool use_file_storage){
+        _use_file_storage = use_file_storage;
+    }
+
+    void set_use_mqtt_storage(const bool use_mqtt_storage){
+        _mqtt_conf.set_enable(use_mqtt_storage);
+    }
+
+    void set_use_sql_storage(const bool use_sql_storage){
+        _use_sql_storage = use_sql_storage;
+    }
+
+
     //MQTT client configuration file
     mqtt::MqttServerInfo _mqtt_conf;
+
+    bool _use_file_storage = false;
+    bool _use_sql_storage = false;
+
  };
 
 }
