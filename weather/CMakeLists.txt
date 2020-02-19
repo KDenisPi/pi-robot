@@ -11,7 +11,6 @@ set(VER_MIN 9)
 set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http ${MOSQT_LIB} pthread dl curl)
 
 include_directories(BEFORE
-    ${MOSQUITTO_HOME}/lib/cpp
     ${MOSQUITTO_HOME}/lib
     ${PROJECT_SOURCE_DIR}/../pi-utils
     ${PROJECT_SOURCE_DIR}/../pi-data
