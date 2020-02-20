@@ -24,7 +24,7 @@ namespace piutils {
 /*
 * Get current time on UTC or local
 */
-void get_time(std::tm& result, const bool local_time = false);
+void get_time(std::tm& result, std::time_t& time_now,const bool local_time = false);
 
 /*
 * Check if file exist and available

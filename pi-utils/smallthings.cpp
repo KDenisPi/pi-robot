@@ -23,10 +23,10 @@ bool chkfile(const std::string& fname){
 //
 // Get current time on UTC or local
 //
-void get_time(std::tm& result, const bool local_time){
+void get_time(std::tm& result, std::time_t& time_now, const bool local_time){
     std::chrono::time_point<std::chrono::system_clock> tp;
     tp = std::chrono::system_clock::now();
-    std::time_t time_now = std::chrono::system_clock::to_time_t(tp);
+    time_now = std::chrono::system_clock::to_time_t(tp);
 
     //TODO Add semaphore
     std::tm* tm = (local_time ? std::localtime(&time_now) : std::gmtime(&time_now));

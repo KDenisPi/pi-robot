@@ -20,10 +20,12 @@ public:
     MData() { clear();}
     virtual ~MData() {}
 
+    time_t _now;
     char dtime[64];
     float data[7];
 
     MData& operator=(const MData& m){
+        _now = m._now;
         strcpy(this->dtime, m.dtime);
         for(int i = 0; i < 7; i++){
             this->data[i] = m.data[i];
@@ -33,6 +35,7 @@ public:
     }
 
     void clear(){
+        _now = 0;
         memset(dtime, sizeof(dtime), 0x00);
         for(int i = 0; i < 7; i++){
             data[i] = 0;
@@ -78,13 +81,14 @@ public:
         // 7. TVOC (0 – 60'000 ppb, 5-digits)
         // 8. Altitude (0-5000, 4-digits)
 
-        sprintf(_buff, "{\"humidity\":%.2f,\
+        sprintf(_buff, "{\"time\":%ld, \"humidity\":%.2f,\
             \"temperature\":%.2f,\
             \"pressure\":%.2f,\
             \"luximity\":%.0f,\
             \"co2\":%.0f,\
             \"tvoc\":%.0f,\
             \"altitude\":%.0f,}",
+            _now,
             data[0],
             data[1],
             data[2],
@@ -171,7 +175,7 @@ public:
         this->tsl2651_lux = m.tsl2651_lux;
 
         std::tm tm;
-        piutils::get_time(tm, true);
+        piutils::get_time(tm, _mdata._now, true);
 
         sprintf(_mdata.dtime, "%d/%d/%dT%02d:%02d:%02dZ", 1900+tm.tm_year, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 

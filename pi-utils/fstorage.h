@@ -65,7 +65,8 @@ public:
         }
 
         //initilize time structure
-        piutils::get_time(_time, _local_time);
+        std::time_t time_now;
+        piutils::get_time(_time, time_now, _local_time);
 
         //check if root data folder exist
         int res = check_path(_dpath);
@@ -95,8 +96,9 @@ public:
         }
 
         //check if date changed
+        std::time_t time_now;
         std::tm curr_time;
-        piutils::get_time(curr_time, _local_time);
+        piutils::get_time(curr_time, time_now, _local_time);
 
         //if need to create a new folder
         if((curr_time.tm_year != _time.tm_year) || (curr_time.tm_mon  != _time.tm_mon)){
