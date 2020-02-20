@@ -5,8 +5,8 @@ project(weather)
 
 set(DAEMON ${PROJECT_NAME}d)
 
-set(VER_MJR 0)
-set(VER_MIN 9)
+set(VER_MJR 1)
+set(VER_MIN 0)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http ${MOSQT_LIB} pthread dl curl)
 
