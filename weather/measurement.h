@@ -81,13 +81,7 @@ public:
         // 7. TVOC (0 – 60'000 ppb, 5-digits)
         // 8. Altitude (0-5000, 4-digits)
 
-        sprintf(_buff, "{\"time\":%ld, \"humidity\":%.2f,\
-            \"temperature\":%.2f,\
-            \"pressure\":%.2f,\
-            \"luximity\":%.0f,\
-            \"co2\":%.0f,\
-            \"tvoc\":%.0f,\
-            \"altitude\":%.0f,}",
+        sprintf(_buff, "{\"time\":%ld, \"Humidity\":%.2f,\"Temperature\":%.2f,\"Pressure\":%.2f,\"Luximity\":%.0f,\"CO2\":%.0f,\"TVOC\":%.0f,\"Altitude\":%.0f}",
             _now,
             data[0],
             data[1],
