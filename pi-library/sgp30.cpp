@@ -339,15 +339,14 @@ void Sgp30::stop(){
 #ifdef SGP30_DEBUG
         owner->ddata_put(ms_start);
 #endif
-        long slp_time = (1000 - (piutils::timers::Timers::milliseconds() - ms_start));
-        std::this_thread::sleep_for(std::chrono::milliseconds(slp_time)); //1sec - 1Hz
-
         uint16_t hmdt_now = owner->_get_humidity();
         if(hmdt_now != hmdt){
             owner->_set_humidity();
             hmdt = hmdt_now;
         }
 
+        long slp_time = (1000 - (piutils::timers::Timers::milliseconds() - ms_start));
+        std::this_thread::sleep_for(std::chrono::milliseconds(slp_time)); //1sec - 1Hz
     }
 
     //save baseline values at the end of measure cycle
