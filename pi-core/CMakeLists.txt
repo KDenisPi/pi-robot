@@ -11,4 +11,4 @@ include_directories(
 )
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_CORE_SOURCES)
-add_library(pi-core SHARED ${PI_CORE_SOURCES})
+add_library(pi-core STATIC ${PI_CORE_SOURCES})
