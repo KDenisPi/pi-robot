@@ -7,4 +7,4 @@ set(VER_MJR 0)
 set(VER_MIN 9)
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_UTILS_SOURCES)
-add_library(pi-utils STATIC ${PI_UTILS_SOURCES})
+add_library(pi-utils SHARED ${PI_UTILS_SOURCES})
