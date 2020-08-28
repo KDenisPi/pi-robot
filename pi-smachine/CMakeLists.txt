@@ -8,17 +8,20 @@ set(VER_MIN 9)
 
 #find_library(RT_LIB rt PATH)
 
-include_directories(BEFORE 
+include_directories(BEFORE
    ${PROJECT_SOURCE_DIR}/../pi-library
    ${PROJECT_SOURCE_DIR}/../pi-utils
    ${PROJECT_SOURCE_DIR}/../pi-mqtt
    ${JSONCONS}
 )
 
-#add_library(librt STATIC IMPORTED)
-
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_SMASHINE_SOURCES)
-add_library(pi-smachine SHARED ${PI_SMASHINE_SOURCES})
+IF(REAL_HARDWARE)
+   add_library(pi-smachine SHARED ${PI_SMASHINE_SOURCES})
+ELSE(REAL_HARDWARE)
+   add_library(pi-smachine STATIC ${PI_SMASHINE_SOURCES})
+ENDIF(REAL_HARDWARE)
+
 
 target_link_libraries(pi-smachine pi-utils pi-mqtt rt)
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)

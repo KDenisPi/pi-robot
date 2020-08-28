@@ -5,7 +5,6 @@ project(pi-robot)
 enable_testing()
 
 message( STATUS "REAL_HARDWARE:  ${REAL_HARDWARE}" )
-#set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../third-party")
 
 IF(REAL_HARDWARE)
     set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../third-party")
@@ -30,7 +29,6 @@ message( STATUS "MOSQUITTO_LIB ${MOSQUITTO_LIB}")
 message( STATUS "SPDLOG_HOME ${SPDLOG_HOME}")
 message( STATUS "JSONCONS ${JSONCONS}")
 message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
-message( STATUS "MONGOOSE_SRC ${MONGOOSE_SRC}")
 
 find_library(MOSQT_LIB mosquitto PATH ${MOSQUITTO_LIB})
 
@@ -79,8 +77,5 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smachine)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-tests)
 
-#add_subdirectory(${PROJECT_SOURCE_DIR}/version1)
-#add_subdirectory(${PROJECT_SOURCE_DIR}/project1)
-#add_subdirectory(${PROJECT_SOURCE_DIR}/spi_test)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/storage)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/weather)
