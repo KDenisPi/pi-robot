@@ -7,7 +7,7 @@
  "qos": 0,
 
  "tls": true,
- "tls_ca_file" : "/home/denis/pi-robot/mqqt_tls/m2mqtt_ca.crt",
+ "tls_ca_file" : "/home/denis/pi-robot/mqtt_tls/m2mqtt_ca.crt",
  "tls_insecure": true,
  "tls_version": "tlsv1"
 }

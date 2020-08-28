@@ -11,7 +11,7 @@ set(VER_MIN 9)
 include_directories(BEFORE 
    ${PROJECT_SOURCE_DIR}/../pi-library
    ${PROJECT_SOURCE_DIR}/../pi-utils
-   ${PROJECT_SOURCE_DIR}/../pi-mqqt
+   ${PROJECT_SOURCE_DIR}/../pi-mqtt
    ${JSONCONS}
 )
 

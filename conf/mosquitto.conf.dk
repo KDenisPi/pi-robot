@@ -188,14 +188,14 @@ port 8883
 # containing the CA certificates. For capath to work correctly, the
 # certificate files must have ".crt" as the file ending and you must run
 # "c_rehash <path to capath>" each time you add/remove a certificate.
-cafile /home/denis/pi-robot/mqqt_tls/m2mqtt_ca.crt
+cafile /home/denis/pi-robot/mqtt_tls/m2mqtt_ca.crt
 #capath
 
 # Path to the PEM encoded server certificate.
-certfile /home/denis/pi-robot/mqqt_tls/m2mqtt_srv.crt
+certfile /home/denis/pi-robot/mqtt_tls/m2mqtt_srv.crt
 
 # Path to the PEM encoded keyfile.
-keyfile /home/denis/pi-robot/mqqt_tls/m2mqtt_srv.key
+keyfile /home/denis/pi-robot/mqtt_tls/m2mqtt_srv.key
 
 # This option defines the version of the TLS protocol to use for this listener.
 # The default value allows v1.2, v1.1 and v1.0, if they are all supported by

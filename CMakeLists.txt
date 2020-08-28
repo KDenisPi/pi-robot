@@ -33,7 +33,6 @@ message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
 message( STATUS "MONGOOSE_SRC ${MONGOOSE_SRC}")
 
 find_library(MOSQT_LIB mosquitto PATH ${MOSQUITTO_LIB})
-find_library(MOSQT_LIB_CPP mosquittopp PATH ${MOSQUITTO_LIB}/cpp)
 
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 
@@ -67,14 +66,13 @@ message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 add_library(libmosquitto STATIC IMPORTED)
 add_library(libmosquittopp STATIC IMPORTED)
 
-#set(EXTRA_LIBS ${EXTRA_LIBS} ${MOSQT_LIB} ${MOSQT_LIB_CPP})
-set(EXTRA_LIBS ${EXTRA_LIBS} ${MOSQT_LIB} ${MOSQT_LIB_CPP})
+set(EXTRA_LIBS ${EXTRA_LIBS} ${MOSQT_LIB})
 message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-core)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-sql)
-add_subdirectory(${PROJECT_SOURCE_DIR}/pi-mqqt)
+add_subdirectory(${PROJECT_SOURCE_DIR}/pi-mqtt)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-http)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smachine)
