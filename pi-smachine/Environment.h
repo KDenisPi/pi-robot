@@ -15,7 +15,7 @@
 
 #include "logger.h"
 #include "JsonHelper.h"
-#include "MqqtServerInfo.h"
+#include "MqttServerInfo.h"
 
 namespace smachine {
 
@@ -108,37 +108,37 @@ public:
             }
 
             /*
-            * Load MQQT configuration
+            * Load MQTT configuration
             */
-            if(conf.contains("mqqt"))
+            if(conf.contains("mqtt"))
             {
-                const jsoncons::json& json_mqqt  =  conf["mqqt"];
+                const jsoncons::json& json_mqtt  =  conf["mqtt"];
                 //host name is mandatory
-                auto mqqt_enable = jsonhelper::get_attr<bool>(json_mqqt, "enable", false);
-                auto host = jsonhelper::get_attr_mandatory<std::string>(json_mqqt, "host");
-                auto clientid = jsonhelper::get_attr<std::string>(json_mqqt, "client_id", "");
+                auto mqtt_enable = jsonhelper::get_attr<bool>(json_mqtt, "enable", false);
+                auto host = jsonhelper::get_attr_mandatory<std::string>(json_mqtt, "host");
+                auto clientid = jsonhelper::get_attr<std::string>(json_mqtt, "client_id", "");
 
-                auto keep_alive = jsonhelper::get_attr<int>(json_mqqt, "keep_alive", 10);
-                auto qos = jsonhelper::get_attr<int>(json_mqqt, "qos", 0);
+                auto keep_alive = jsonhelper::get_attr<int>(json_mqtt, "keep_alive", 10);
+                auto qos = jsonhelper::get_attr<int>(json_mqtt, "qos", 0);
 
-                auto tls = jsonhelper::get_attr<bool>(json_mqqt, "tls", false);
+                auto tls = jsonhelper::get_attr<bool>(json_mqtt, "tls", false);
                 //default port for TLS is 8883 otherwise 1883
-                auto port = jsonhelper::get_attr<int>(json_mqqt, "port", (tls ? 8883 : 1883));
+                auto port = jsonhelper::get_attr<int>(json_mqtt, "port", (tls ? 8883 : 1883));
 
-                _mqqt_conf.set_host(host);
-                _mqqt_conf.set_port(port);
-                _mqqt_conf.set_clientid(clientid);
-                _mqqt_conf.set_tls(tls);
-                _mqqt_conf.set_enable( host.empty() ? false : mqqt_enable);
+                _mqtt_conf.set_host(host);
+                _mqtt_conf.set_port(port);
+                _mqtt_conf.set_clientid(clientid);
+                _mqtt_conf.set_tls(tls);
+                _mqtt_conf.set_enable( host.empty() ? false : mqtt_enable);
 
                 if(tls){
-                    auto tls_ca_file = jsonhelper::get_attr_mandatory<std::string>(json_mqqt, "tls_ca_file");
-                    auto tls_insecure = jsonhelper::get_attr<bool>(json_mqqt, "tls_insecure", false);
-                    auto tls_version = jsonhelper::get_attr<std::string>(json_mqqt, "tls_version", "tlsv1.2");
+                    auto tls_ca_file = jsonhelper::get_attr_mandatory<std::string>(json_mqtt, "tls_ca_file");
+                    auto tls_insecure = jsonhelper::get_attr<bool>(json_mqtt, "tls_insecure", false);
+                    auto tls_version = jsonhelper::get_attr<std::string>(json_mqtt, "tls_version", "tlsv1.2");
 
-                    _mqqt_conf.set_cafile(tls_ca_file);
-                    _mqqt_conf.set_tls_insecure(tls_insecure);
-                    _mqqt_conf.set_tls_version(tls_version);
+                    _mqtt_conf.set_cafile(tls_ca_file);
+                    _mqtt_conf.set_tls_insecure(tls_insecure);
+                    _mqtt_conf.set_tls_version(tls_version);
                 }
             }
         }
@@ -200,8 +200,8 @@ public:
         return _data_path;
     }
 
-    //MQQT client configuration file
-    mqqt::MqqtServerInfo _mqqt_conf;
+    //MQTT client configuration file
+    mqtt::MqttServerInfo _mqtt_conf;
  };
 
 }

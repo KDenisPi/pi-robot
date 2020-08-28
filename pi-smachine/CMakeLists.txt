@@ -20,5 +20,5 @@ include_directories(BEFORE
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_SMASHINE_SOURCES)
 add_library(pi-smachine SHARED ${PI_SMASHINE_SOURCES})
 
-target_link_libraries(pi-smachine pi-utils pi-mqqt rt)
+target_link_libraries(pi-smachine pi-utils pi-mqtt rt)
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)
