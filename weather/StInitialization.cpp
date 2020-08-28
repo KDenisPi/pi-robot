@@ -15,11 +15,14 @@ namespace weather {
 void StInitialization::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-#ifdef USE_FILE_STORAGE
     auto ctxt = get_env<weather::Context>();
-    std::string fline = "file,fpath\n";
-    ctxt->_fstorage.prepare_data_files_list(ctxt->_fstor_path, ctxt->_data_path, ctxt->_data_list_file, fline);
-#endif
+
+    /*
+    * Initialize available storages (file, mqtt, sql)
+    */
+
+    ctxt->init_file_storage();
+    ctxt->init_mqtt_storage();
 
     CHANGE_STATE("StInitializeLcd");
 }
@@ -97,10 +100,7 @@ bool StInitialization::OnEvent(const std::shared_ptr<smachine::Event> event){
 
             return true;
         }
-
-
     }
-
 
     return false;
 }

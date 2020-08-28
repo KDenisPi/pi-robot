@@ -27,13 +27,13 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
 {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    m_timers = std::shared_ptr<Timers>(new Timers(this));
-    m_states = std::shared_ptr<std::list<std::shared_ptr<state::State>>>(new std::list<std::shared_ptr<state::State>>);
+    m_timers = std::make_shared<Timers>(this);
+    m_states = std::make_shared<std::list<std::shared_ptr<state::State>>>();
 
     /*
     * Create project environment and load value for parameters
     */
-    m_env = std::shared_ptr<Environment>(m_factory->get_environment());
+    m_env = m_factory->get_environment();
     bool ctxt_init = m_env->configure(m_factory->get_configuration());
     //TODO: throw exception here?
 
@@ -60,7 +60,7 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
 void StateMachine::run(){
     //Add first event
      logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-     put_event(std::shared_ptr<Event>(new Event(EVT_CHANGE_STATE, "StateInit")));
+     put_event(std::make_shared<Event>(EVT_CHANGE_STATE, "StateInit"));
 }
 
 const std::string StateMachine::get_first_state(){
@@ -192,6 +192,11 @@ void StateMachine::timer_start(const int timer_id, const time_t interval, const 
 void StateMachine::timer_cancel(const int timer_id){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
     this->m_timers->cancel_timer(timer_id);
+}
+
+//check if timer is running
+bool StateMachine::timer_check(const int timer_id){
+    return m_timers->is_timer(timer_id);
 }
 
 
@@ -368,13 +373,16 @@ void StateMachine::process_pop_state(const std::shared_ptr<Event>& event){
 void StateMachine::process_change_state(const std::shared_ptr<Event>& event){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
     try{
-        std::string cname = event->name();
+        const std::string cname = event->name();
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + cname);
 
-        auto newstate = (cname == "StateInit" ?
-                std::make_shared<smachine::state::State>(dynamic_cast<StateMachineItf*>(this), cname):
-                m_factory->get_state(cname, dynamic_cast<StateMachineItf*>(this)));
         bool new_state = true;
+        auto newstate = (cname == "StateInit" ? std::make_shared<smachine::state::StateInit>(dynamic_cast<StateMachineItf*>(this)): m_factory->get_state(cname, dynamic_cast<StateMachineItf*>(this)));
+        if( !newstate ){
+            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Not supported state: " + cname);
+            return;
+        }
+
 
         for (const auto& state : *(get_states())) {
             if(state == newstate){
@@ -397,8 +405,8 @@ void StateMachine::process_change_state(const std::shared_ptr<Event>& event){
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " no such state, add : " + newstate->get_name());
             get_states()->push_front(newstate);
 
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " call OnEntry for : " + newstate->get_name());
             auto front_state = get_states()->front();
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Front state. call OnEntry for : " + front_state->get_name());
             front_state->OnEntry();
         }
 

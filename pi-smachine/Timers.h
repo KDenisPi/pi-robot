@@ -33,13 +33,23 @@ public:
     virtual void cancel_timer(const int id) override;
     virtual void reset_timer(const int id) override;
 
+    /*
+    *
+    */
+	virtual bool is_timer(const int id) override {
+        std::lock_guard<std::mutex> lock(mutex_tm);
+        auto timer = m_id_to_tm.find(id);
+        return (timer != m_id_to_tm.end());
+    }
+
 
     bool start();
     void stop();
+
     inline StateMachine* get_owner() const { return m_owner;}
     static void worker(Timers* p);
 private:
-    std::recursive_mutex mutex_tm;
+    std::mutex mutex_tm;
 
     std::map<int, std::shared_ptr<Timer>> m_id_to_tm;
     StateMachine* m_owner;

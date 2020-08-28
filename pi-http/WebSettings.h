@@ -109,8 +109,11 @@ public:
     /*
     *   Should be overloaded
     */
-    virtual const std::pair<std::string, std::string> get_page(const struct mg_connection *conn) = 0;
-    virtual int data_files(struct mg_connection *conn) = 0;
+    virtual const std::pair<std::string, std::string> get_page(const struct mg_connection *conn) {
+        return std::make_pair("", "");
+    }
+
+    virtual int data_files(struct mg_connection *conn) { return 0;}
 
     //Prepare list of IP addresses
     const std::string prepare_ip_list(){

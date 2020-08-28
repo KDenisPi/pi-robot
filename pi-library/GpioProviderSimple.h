@@ -108,10 +108,11 @@ public:
     virtual bool set_egde_level(const int pin, GPIO_EDGE_LEVEL edgs_level) override {
         logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + std::string(" pin: ") + std::to_string(pin) + " Edge&Level: " + std::to_string(edgs_level));
 
-        std::cout << "set_egde_level " << std::endl;
+        //std::cout << "set_egde_level " << std::endl;
 
         if( !is_support_group()){
-            std::cout << "set_egde_level not supported" << std::endl;
+            logger::log(logger::LLOG::INFO, "PrvSmpl", std::string(__func__) + " set_egde_level not supported");
+            //std::cout << "set_egde_level not supported" << std::endl;
             return false;
         }
 
@@ -120,7 +121,8 @@ public:
         * We will not export GPIO each time
         */
         if(edgs_level == GPIO_EDGE_LEVEL::EDGE_NONE){
-            std::cout << "set_egde_level edge OFF" << std::endl;
+            //std::cout << "set_egde_level edge OFF" << std::endl;
+            logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + " set_egde_level edge OFF");
 
             //check if GPIO was exported - if TRUE - change value in /edge folder
             if(is_gpio_exported(pin)){
@@ -136,7 +138,8 @@ public:
             close_gpio_folder(pin);
         }
         else if(!export_gpio(pin)){
-            std::cout << "open_gpio_folder EXPORT GPIO failed " << std::endl;
+            //std::cout << "open_gpio_folder EXPORT GPIO failed " << std::endl;
+            logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " open_gpio_folder EXPORT GPIO failed");
             return false;
         }
 
@@ -145,7 +148,8 @@ public:
         }
 
         if(!open_gpio_folder(pin)){
-            std::cout << "set_egde_level Open folder failed" << std::endl;
+            //std::cout << "set_egde_level Open folder failed" << std::endl;
+            logger::log(logger::LLOG::ERROR, "PrvSmpl", std::string(__func__) + " set_egde_level Open folder failed");
             return false;
         }
 
@@ -218,7 +222,7 @@ public:
                 //std::cout << "signal detected FD count: " << fd_cnt << " is stop : " << is_stop << std::endl;
 
                 if(fd_cnt == 0 || is_stop){
-                    logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + std::string(" Stop signel or no more FD: ") + std::to_string(owner->fd_count()));
+                    logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + std::string(" Stop signal or no more FD: ") + std::to_string(owner->fd_count()));
                     break;
                 }
                 else {
@@ -263,7 +267,7 @@ public:
                                 * Value has view 0\n or 1\n
                                 */
                                 int value = (rbuff[0]==0x30 ? 0 : (rbuff[0]==0x31 ? 1 : (int)rbuff[0]));
-                                logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + " FD: " + std::to_string(pfd[i].fd) + " Value:" + std::to_string(value));
+                                //logger::log(logger::LLOG::DEBUG, "PrvSmpl", std::string(__func__) + " FD: " + std::to_string(pfd[i].fd) + " Value:" + std::to_string(value));
                                 //std::cout << "descriptor counter " << res << " read: " << rres << " value:" << value << std::endl;
 
                                 //notify about changes

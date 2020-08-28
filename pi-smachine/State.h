@@ -19,6 +19,8 @@ namespace state {
 
 #define TIMER_CREATE(id, interval)  get_itf()->timer_start(id, interval);
 #define TIMER_CANCEL(id)  get_itf()->timer_cancel(id);
+#define TIMER_CHECK(id) get_itf()->timer_check(jd)
+
 #define CHANGE_STATE(state) get_itf()->state_change(state);
 #define POP_STATE() get_itf()->state_pop();
 #define EVENT(evt) get_itf()->add_event(evt);
