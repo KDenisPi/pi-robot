@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 
 #include "WebSettings.h"
 #include "StateMachine.h"
