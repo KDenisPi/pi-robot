@@ -16,11 +16,11 @@ include_directories(BEFORE
 )
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_SMASHINE_SOURCES)
-IF(REAL_HARDWARE)
-   add_library(pi-smachine SHARED ${PI_SMASHINE_SOURCES})
-ELSE(REAL_HARDWARE)
+#IF(REAL_HARDWARE)
+#   add_library(pi-smachine SHARED ${PI_SMASHINE_SOURCES})
+#ELSE(REAL_HARDWARE)
    add_library(pi-smachine STATIC ${PI_SMASHINE_SOURCES})
-ENDIF(REAL_HARDWARE)
+#ENDIF(REAL_HARDWARE)
 
 
 target_link_libraries(pi-smachine pi-utils pi-mqtt rt)

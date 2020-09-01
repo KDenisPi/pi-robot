@@ -14,11 +14,11 @@ include_directories(BEFORE
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_LIBRARY_SOURCES)
 
-IF(REAL_HARDWARE)
-   add_library(pi-library SHARED ${PI_LIBRARY_SOURCES})
-ELSE(REAL_HARDWARE)
+#IF(REAL_HARDWARE)
+#   add_library(pi-library SHARED ${PI_LIBRARY_SOURCES})
+#ELSE(REAL_HARDWARE)
    add_library(pi-library STATIC ${PI_LIBRARY_SOURCES})
-ENDIF(REAL_HARDWARE)
+#ENDIF(REAL_HARDWARE)
 
 
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)
