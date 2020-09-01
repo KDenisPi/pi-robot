@@ -460,7 +460,7 @@ private:
         return filename;
     }
 
-    public:
+public:
     /*
     * State Machine instance
     */
@@ -471,7 +471,7 @@ private:
     */
     static pid_t _stmPid;
 
-    private:
+private:
     /*
     * Daemon flag
     */
@@ -503,6 +503,7 @@ private:
     int _fd_null;
     int _fd_err;
 
+protected:
     std::shared_ptr<pirobot::PiRobot> _pirobot;
     std::shared_ptr<smachine::StateFactory> _factory;
     std::shared_ptr<http::web::WebSettings> _web;
