@@ -29,8 +29,8 @@ namespace pimain {
 class PiMain {
 public:
     PiMain(const std::string& project_name, const std::string& logs_dir = "/var/log") : _proj_name(project_name), _log_folder(logs_dir) {
-        _project_log =  _logs_dir + "/" + _proj_name + ".log";
-        _project_err =  _logs_dir + "/" + _proj_name + ".err";
+        _project_log =  _log_folder + "/" + _proj_name + ".log";
+        _project_err =  _log_folder + "/" + _proj_name + ".err";
     }
 
     virtual ~PiMain() {}
@@ -365,11 +365,11 @@ private:
         if (_fd_null != STDIN_FILENO) /* 'fd' should be 0 */
           _exit(EXIT_FAILURE);
 
-        _fd_log = open(_project_log, O_RDWR|O_CREAT|O_APPEND, 0666);
+        _fd_log = open(_project_log.c_str(), O_RDWR|O_CREAT|O_APPEND, 0666);
         if (_fd_log != STDOUT_FILENO) /* 'fd' should be 1 */
           _exit(EXIT_FAILURE);
 
-        _fd_err = open(_project_err, O_RDWR|O_CREAT|O_APPEND, 0666);
+        _fd_err = open(_project_err.c_str(), O_RDWR|O_CREAT|O_APPEND, 0666);
         if (_fd_err != STDERR_FILENO) /* 'fd' should be 2 */
           _exit(EXIT_FAILURE);
    }
