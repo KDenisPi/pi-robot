@@ -125,6 +125,18 @@ public:
     }
 
     /*
+    * Use HTTP module
+    */
+    void set_use_http(const bool use_http) {
+       _use_http = use_http;
+    }
+
+    const bool use_http() const {
+       return _use_http;
+    }
+
+
+    /*
     * Load configuration parameters
     */
     void load_configuration(const int argc, char* argv[]){
@@ -147,6 +159,9 @@ public:
             }
             else if( (strcmp(argv[i], "--fstate") == 0) && (++i < argc)){
                     _firstState = argv[i];
+            }
+            else if(strcmp(argv[i], "--nohttp") == 0){
+                _use_http = false;
             }
         }
     }
@@ -321,9 +336,11 @@ private:
         * Web interface for settings and status
         */
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Created Web interface");
-        _web = web(web_port, _stm);
-        if(_web){
-            _web->http::web::WebSettings::start();
+        if(_use_http){
+            _web = web(web_port, _stm);
+            if(_web){
+                _web->http::web::WebSettings::start();
+            }
         }
    }
 
@@ -335,7 +352,7 @@ private:
         * Become leader of new session
         */
         if (setsid() == -1)
-        _exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE);
 
         /*
         * Clear the process umask (Section 15.4.6), to ensure that, when the daemon creates
@@ -430,10 +447,12 @@ private:
     void finish(){
 
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "State machine finished");
-        if(_web)
+        if(_use_http && _web){
             _web->http::web::WebSettings::stop();
+        }
 
         sleep(2);
+
         _stm.reset();
         _factory.reset();
         _pirobot.reset();
@@ -488,6 +507,11 @@ private:
     * Default debug level
     */
     logger::LLOG _llevel = logger::LLOG::DEBUG;
+
+    /**
+     * Use HTTP module or not
+     */
+    bool _use_http = true;
 
     /*
     * First state
