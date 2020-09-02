@@ -377,7 +377,10 @@ void StateMachine::process_change_state(const std::shared_ptr<Event>& event){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + cname);
 
         bool new_state = true;
-        auto newstate = (cname == "StateInit" ? std::make_shared<smachine::state::StateInit>(dynamic_cast<StateMachineItf*>(this)): m_factory->get_state(cname, dynamic_cast<StateMachineItf*>(this)));
+        auto newstate = (cname == "StateInit" ?
+            std::make_shared<smachine::state::StateInit>(std::shared_ptr<StateMachineItf>(dynamic_cast<StateMachineItf*>(this))) :
+            m_factory->get_state(cname, std::shared_ptr<StateMachineItf>(dynamic_cast<StateMachineItf*>(this))));
+
         if( !newstate ){
             logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Not supported state: " + cname);
             return;

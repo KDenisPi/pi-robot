@@ -25,9 +25,9 @@ public:
 
 	virtual ~StateFactory() {}
 
-	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, smachine::StateMachineItf*){
+	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, std::shared_ptr<smachine::StateMachineItf> itf){
 		logger::log(logger::LLOG::DEBUG, "StFact", std::string(__func__) + " State:" + state_name);
-		return std::shared_ptr<smachine::state::State>();
+		return std::make_shared<smachine::state::State>(itf, state_name);
 	}
 
 	/*
