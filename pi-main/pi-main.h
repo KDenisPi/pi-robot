@@ -497,7 +497,7 @@ private:
     /*
     * Daemon flag
     */
-    bool _daemon_mode = false;
+    bool _daemon_mode = true;
     /*
     * Debug flag
     */
