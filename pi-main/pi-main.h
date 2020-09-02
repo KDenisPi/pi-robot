@@ -163,6 +163,9 @@ public:
             else if(strcmp(argv[i], "--nohttp") == 0){
                 _use_http = false;
             }
+            else if(strcmp(argv[i], "--debug") == 0){
+                _debug_mode = true;
+            }
         }
     }
 
@@ -190,7 +193,6 @@ public:
         {
             run_child();
         }
-
     }
 
     virtual std::shared_ptr<smachine::StateFactory> factory(const std::string& firstState) {
