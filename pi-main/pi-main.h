@@ -198,7 +198,7 @@ public:
             return _factory;
         }
 
-        return std::make_shared<smachine::StateFactory>();
+        return std::make_shared<smachine::StateFactory>(firstState);
     }
 
     /*
