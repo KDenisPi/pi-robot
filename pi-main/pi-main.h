@@ -218,6 +218,9 @@ private:
             //initialize daemon configuration
             daemon_initialization();
 
+            //Initilize signal handlers
+            initialize_signal_handlers();
+
             //Initialize and run
             initilize_and_run();
 
