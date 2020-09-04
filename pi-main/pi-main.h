@@ -193,7 +193,12 @@ public:
 
     }
 
+    /**
+    *
+    */
     virtual std::shared_ptr<smachine::StateFactory> factory(const std::string& firstState) {
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__));
+
         if(_factory){
             return _factory;
         }
@@ -201,11 +206,11 @@ public:
         return std::make_shared<smachine::StateFactory>(firstState);
     }
 
-    /*
+    /**
     *
     */
    virtual std::shared_ptr<http::web::WebSettings> web(const uint16_t port, std::shared_ptr<smachine::StateMachineItf> itf){
-
+       logger::log(logger::LLOG::INFO, "main", std::string(__func__));
        return std::shared_ptr<http::web::WebSettings>();
    }
 
