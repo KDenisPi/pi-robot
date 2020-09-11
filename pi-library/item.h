@@ -39,6 +39,7 @@ enum ItemTypes{
     SLED,
     SLEDCRTLSPI,
     SLEDCRTLPWM,
+    AnalogMeterSimple,
     LAST_ITEM
 };
 

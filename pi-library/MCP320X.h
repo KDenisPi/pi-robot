@@ -1,8 +1,9 @@
 /*
  * MCP320X.h
- * Support for MCP 3204/3208 A/D Converters with SPI Serial Interface
+ * Support for MCP 3204/3208 (12-bit) and 3004/3008 (10-bit)  A/D Converters with SPI Serial Interface
  *
  *  Created on: Sep 06, 2017
+ *  Updated for MCP300X Sep 10, 2020
  *      Author: Denis Kudia
  */
 
@@ -17,16 +18,21 @@
 namespace pirobot {
 namespace mcp320x {
 
-#define MAX_NUMBER_ANALOG_INPUTS 8
-
-enum MCP320X_INPUTS {
+enum MCP320X_INPUTS : uint8_t {
     MCP3204 = 4,
-    MCP3208 = 8
+    MCP3004 = 4,
+    MCP3208 = 8,
+    MCP3008 = 8
 };
 
-#define Control_Start_Bit 0x04
-#define Control_SinDiff_Single 0x02
-#define Control_SinDiff_Diff 0x00
+enum MCP3XXX_Bits : uint8_t {
+    MCP32XX_Control_Start_Bit       = 0x04,
+    MCP32XX_Control_SinDiff_Single  = 0x02,
+    MCP32XX_Control_Null_Bit        = 0x10,
+    MCP30XX_Control_Start_Bit       = 0x01,
+    MCP30XX_Control_SinDiff_Single  = 0x80,
+    MCP30XX_Control_Null_Bit        = 0x04
+};
 
 class MCP320X : public item::Item, public piutils::Threaded, public analogdata::AnalogDataProviderItf {
 
@@ -74,6 +80,8 @@ public:
         return result;
     }
 
+    static const int Max_Analog_Inputs = 8;
+
     /*
     *
     */
@@ -84,8 +92,7 @@ public:
     /*
     * Register data receiver
     */
-    virtual bool register_data_receiver(const int input_idx,
-        const std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> receiver) noexcept(false) override;
+    virtual bool register_data_receiver(const int input_idx, const std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> receiver) noexcept(false) override;
 
     /*
     *
@@ -141,7 +148,7 @@ private:
     pirobot::spi::SPI_CHANNELS m_channel;
 
 public:
-    std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> m_receivers[MAX_NUMBER_ANALOG_INPUTS];
+    std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> m_receivers[Max_Analog_Inputs];
 };
 
 } //namespace mcp320x

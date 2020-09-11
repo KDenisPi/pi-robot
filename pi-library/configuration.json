@@ -185,6 +185,17 @@
         },
 
         //
+        // Universal simple Analog Meter
+        //
+        {
+            "type": "AnalogMeterSimple",
+            "name": "item_name",
+            "comment": "", //optional
+            "ad_convertor": "AnlgDgtConvertor_name",
+            "pins": [0,1,2] //Pin indexes
+        },
+
+        //
         // MPU 6050
         //
         {

@@ -36,6 +36,7 @@
 #include "sled.h"
 #include "sledctrl_spi.h"
 #include "sledctrl_pwm.h"
+#include "AnalogMeterSimple.h"
 
 namespace pirobot {
 const char TAG[] = "PiRobot";
@@ -520,6 +521,29 @@ bool PiRobot::configure(const std::string& cfile){
                     }
                     break;
 
+                    case item::ItemTypes::AnalogMeterSimple:
+                /*
+                * Universal simple Analod meter.
+                */
+                    {
+                        auto ad_convertor = jsonhelper::get_attr_mandatory<std::string>(json_item, "ad_convertor");
+                        std::vector<int> pins;
+                        auto json_pins  =  json_item["pins"];
+                        for(const auto& pin : json_pins.array_range()){
+                            pins.push_back(pin.as_integer());
+                        }
+
+                        auto analog_input_index = jsonhelper::get_attr_mandatory<int>(json_item, "analog_input_index");
+
+                        items_add(item_name, std::make_shared<pirobot::analogmeter::AnalogMeterSimple>(
+                                std::static_pointer_cast<pirobot::analogdata::AnalogDataProviderItf>(std::static_pointer_cast<pirobot::mcp320x::MCP320X>(get_item(ad_convertor))),
+                                item_name,
+                                pins,
+                                item_comment
+                            ));
+                    }
+                    break;
+
                     case item::ItemTypes::BLINKER:
                 /*
                 * BLINKER parameters: Name, SUB.ITEM=LED
@@ -727,7 +751,7 @@ void PiRobot::notify_low(const pirobot::provider::PROVIDER_TYPE ptype, const std
             //It is strange
             return;
         }
-        
+
         //check all Items used this GPIO
         const std::shared_ptr<std::vector<item_name_type>> v_items = gpio_item->second;
         for(auto item_info : *(v_items)){

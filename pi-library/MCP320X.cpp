@@ -59,8 +59,8 @@ void MCP320X::stop(){
         }
 
         /*
-        * Should I switch MCP320X after EACH reading or not?
-          I do not think so.
+        * Should I switch MCP320X after EACH reading or not? - Yes
+
 
         3.7 Chip Select/Shutdown (CS/SHDN)
             The CS/SHDN pin is used to initiate communication
@@ -70,19 +70,47 @@ void MCP320X::stop(){
             high between conversions.
         */
 
-        //switch device On
-        owner->On();
 
-
-        auto fn_read_data = [owner](unsigned char* buff, const unsigned char in_pin) -> unsigned short {
-            buff[0] = (Control_Start_Bit | Control_SinDiff_Single | (in_pin >> 2));
+        /**
+         * Read function for MCP32XX (12-bit)
+         */
+        auto fn_read_data_mcp32xx = [owner](unsigned char* buff, const unsigned char in_pin) -> unsigned short {
+            buff[0] = (MCP32XX_Control_Start_Bit | MCP32XX_Control_SinDiff_Single | (in_pin >> 2));
             buff[1] = (in_pin << 6);
             buff[2] = 0x00;
 
             //request data from device
             int res = owner->data_rw(buff, 3);
+
+            // Valide Null-bit Just in case
+            if((buff[1] & MCP32XX_Control_Null_Bit) != 0){
+                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Null bit is not NULL");
+                return 0;
+            }
+
             //conver result to 12-bit  unsigned value
             return (unsigned short)((((buff[1] & 0x0F) << 8) | buff[2]));
+        };
+
+        /**
+         * Read function for MCP30XX (10-bit)
+         */
+        auto fn_read_data_mcp30xx = [owner](unsigned char* buff, const unsigned char in_pin) -> unsigned short {
+            buff[0] = MCP30XX_Control_Start_Bit;
+            buff[1] = (MCP30XX_Control_SinDiff_Single | (in_pin << 4));
+            buff[2] = 0x00;
+
+            //request data from device
+            int res = owner->data_rw(buff, 3);
+
+            // Valide Null-bit Just in case
+            if((buff[1] & MCP30XX_Control_Null_Bit) != 0){
+                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Null bit is not NULL");
+                return 0;
+            }
+
+            //conver result to 10-bit  unsigned value
+            return (unsigned short)((((buff[1] & 0x03) << 8) | buff[2]));
         };
 
         auto fn_is_active_agent = [owner](const int idx) -> bool {
@@ -93,23 +121,28 @@ void MCP320X::stop(){
         unsigned char buff[3];
         while(fn_read()){
 
+            //switch device On
+            owner->On();
+
             /*
             * Main loop - read analog inputs through SPI
             */
             unsigned char input_num = 0;
             for(int i = 0; i < owner->inputs(); i++){
                 if(fn_is_active_agent(i)){
-                    value = fn_read_data(buff, (unsigned char)i);
+                    value = fn_read_data_mcp32xx(buff, (unsigned char)i);
                     owner->m_receivers[i]->data(value);
                 }
             }
 
+            //switch device Off
+            owner->Off();
+
             std::this_thread::sleep_for(std::chrono::milliseconds(owner->get_loop_delay()));
         }
-
-        //switch device Off
-        owner->Off();
     }
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished. Name: " + name);
 }
 
 void MCP320X::activate_data_receiver(const int input_idx){
@@ -120,18 +153,17 @@ void MCP320X::activate_data_receiver(const int input_idx){
 /*
 * Register data receiver
 */
-bool MCP320X::register_data_receiver(const int input_idx,
-    const std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> receiver){
+bool MCP320X::register_data_receiver(const int input_idx, const std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> receiver){
 
     if(input_idx >= m_anlg_inputs){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) +
-                " Invalid channel number Idx: " + std::to_string(input_idx));
-        throw std::runtime_error(std::string("Invalid channel number"));
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid channel number Idx: " + std::to_string(input_idx));
+        return false;
     }
 
     if(!receiver){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid receiver object");
-        throw std::runtime_error(std::string("Invalid receiver object"));
+        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Release receiver object");
+        m_receivers[input_idx].reset();
+        return true;
     }
 
     m_receivers[input_idx] = receiver;
