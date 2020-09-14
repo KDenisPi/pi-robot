@@ -185,14 +185,14 @@
         },
 
         //
-        // Universal simple Analog Meter
+        // Universal simple Analog Meter. Supported pin type "simple" - AnalogMeterSimple, "DustSensor"
         //
         {
             "type": "AnalogMeterSimple",
             "name": "item_name",
             "comment": "", //optional
             "ad_convertor": "AnlgDgtConvertor_name",
-            "pins": [0,1,2] //Pin indexes
+            "pins": [{"pin" : 0, "type" : "simple"},{"pin" : 1, "type" : "dustsensor", "gpio": {"provider": "provider_name", "pin": 0}}] //Pin indexes
         },
 
         //

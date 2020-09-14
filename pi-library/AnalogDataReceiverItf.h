@@ -57,6 +57,25 @@ public:
         m_idx = idx;
     }
 
+    /**
+     * Functiona called before and after measurement. Implement special functionality.
+     */
+    virtual bool before(){
+        return true;
+    }
+
+    virtual bool after(){
+        return true;
+    }
+
+    /*
+    *
+    */
+    const std::string printConfig(){
+        std::string result = pname() + " Pin: " + std::to_string(m_idx) + " Active: " + std::to_string(m_active);
+        return result;
+    }
+
 private:
     bool m_active;  //If we should send data to this meter
     int m_idx;      //Analog Input assigned for this device

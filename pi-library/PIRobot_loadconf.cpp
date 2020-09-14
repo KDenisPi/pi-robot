@@ -37,6 +37,7 @@
 #include "sledctrl_spi.h"
 #include "sledctrl_pwm.h"
 #include "AnalogMeterSimple.h"
+#include "dustSensor.h"
 
 namespace pirobot {
 const char TAG[] = "PiRobot";
@@ -527,20 +528,30 @@ bool PiRobot::configure(const std::string& cfile){
                 */
                     {
                         auto ad_convertor = jsonhelper::get_attr_mandatory<std::string>(json_item, "ad_convertor");
-                        std::vector<int> pins;
-                        auto json_pins  =  json_item["pins"];
-                        for(const auto& pin : json_pins.array_range()){
-                            pins.push_back(pin.as_integer());
-                        }
-
-                        auto analog_input_index = jsonhelper::get_attr_mandatory<int>(json_item, "analog_input_index");
 
                         items_add(item_name, std::make_shared<pirobot::analogmeter::AnalogMeterSimple>(
                                 std::static_pointer_cast<pirobot::analogdata::AnalogDataProviderItf>(std::static_pointer_cast<pirobot::mcp320x::MCP320X>(get_item(ad_convertor))),
                                 item_name,
-                                pins,
                                 item_comment
                             ));
+
+                        auto ameter = std::static_pointer_cast<pirobot::analogmeter::AnalogMeterSimple>(get_item(item_name));
+
+                        auto json_pins  =  json_item["pins"];
+                        for(const auto& meter : json_pins.array_range()){
+                            auto pin  =  jsonhelper::get_attr_mandatory<int>(meter, "pin");
+                            auto ameter_type  =  jsonhelper::get_attr<std::string>(meter, "type", "simple");
+                            std::string ameter_name = ameter_type + std::to_string(pin);
+
+                            if(ameter_type == "simple"){
+                                ameter->add_receiver(pin, std::make_shared<analogdata::AnalogDataReceiverItf>(ameter_name, pin));
+
+                            }
+                            else if(ameter_type == "dustsensor"){
+                                std::string gpio_name = f_get_gpio_name(meter, "gpio", item_name);
+                                ameter->add_receiver(pin, std::make_shared<dustsensor::DustSensor>(get_gpio(gpio_name), pin, ameter_name));
+                            }
+                        }
                     }
                     break;
 

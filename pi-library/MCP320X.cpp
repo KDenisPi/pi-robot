@@ -22,7 +22,6 @@ MCP320X::~MCP320X() {
 
     //switch device off
     get_gpio()->High();
-
     stop();
 }
 
@@ -58,6 +57,48 @@ void MCP320X::stop(){
             continue;
         }
 
+
+        auto fn_is_active_agent = [owner](const int idx) -> bool {
+            return (owner->m_receivers[idx] && owner->m_receivers[idx]->is_active());
+        };
+
+        unsigned short value;
+        while(fn_read()){
+
+            //switch device On
+            owner->On();
+
+            /*
+            * Main loop - read analog inputs through SPI
+            */
+            unsigned char input_num = 0;
+            for(int i = 0; i < owner->inputs(); i++){
+                if(fn_is_active_agent(i)){
+                    value = owner->get_value(i);
+                    if(value != 0xFFFF){
+                        owner->m_receivers[i]->data(value);
+                    }
+                }
+            }
+
+            //switch device Off
+            owner->Off();
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(owner->get_loop_delay()));
+        }
+    }
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished. Name: " + name);
+}
+
+
+/**
+ *
+ */
+const uint16_t MCP320X::get_value(const int pin){
+
+    unsigned char buff[3];
+
         /*
         * Should I switch MCP320X after EACH reading or not? - Yes
 
@@ -74,13 +115,13 @@ void MCP320X::stop(){
         /**
          * Read function for MCP32XX (12-bit)
          */
-        auto fn_read_data_mcp32xx = [owner](unsigned char* buff, const unsigned char in_pin) -> unsigned short {
+        auto fn_read_data_mcp32xx = [this](unsigned char* buff, const unsigned char in_pin) -> unsigned short {
             buff[0] = (MCP32XX_Control_Start_Bit | MCP32XX_Control_SinDiff_Single | (in_pin >> 2));
             buff[1] = (in_pin << 6);
             buff[2] = 0x00;
 
             //request data from device
-            int res = owner->data_rw(buff, 3);
+            int res = data_rw(buff, 3);
 
             // Valide Null-bit Just in case
             if((buff[1] & MCP32XX_Control_Null_Bit) != 0){
@@ -95,13 +136,13 @@ void MCP320X::stop(){
         /**
          * Read function for MCP30XX (10-bit)
          */
-        auto fn_read_data_mcp30xx = [owner](unsigned char* buff, const unsigned char in_pin) -> unsigned short {
+        auto fn_read_data_mcp30xx = [this](unsigned char* buff, const unsigned char in_pin) -> unsigned short {
             buff[0] = MCP30XX_Control_Start_Bit;
             buff[1] = (MCP30XX_Control_SinDiff_Single | (in_pin << 4));
             buff[2] = 0x00;
 
             //request data from device
-            int res = owner->data_rw(buff, 3);
+            int res = data_rw(buff, 3);
 
             // Valide Null-bit Just in case
             if((buff[1] & MCP30XX_Control_Null_Bit) != 0){
@@ -113,36 +154,13 @@ void MCP320X::stop(){
             return (unsigned short)((((buff[1] & 0x03) << 8) | buff[2]));
         };
 
-        auto fn_is_active_agent = [owner](const int idx) -> bool {
-            return (owner->m_receivers[idx] && owner->m_receivers[idx]->is_active());
-        };
-
-        unsigned short value;
-        unsigned char buff[3];
-        while(fn_read()){
-
-            //switch device On
-            owner->On();
-
-            /*
-            * Main loop - read analog inputs through SPI
-            */
-            unsigned char input_num = 0;
-            for(int i = 0; i < owner->inputs(); i++){
-                if(fn_is_active_agent(i)){
-                    value = fn_read_data_mcp32xx(buff, (unsigned char)i);
-                    owner->m_receivers[i]->data(value);
-                }
-            }
-
-            //switch device Off
-            owner->Off();
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(owner->get_loop_delay()));
+        uint16_t value = 0xFFFF;
+        if(m_receivers[pin]->before()){
+            value = fn_read_data_mcp32xx(buff, (unsigned char)pin);
+            m_receivers[pin]->after();
         }
-    }
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Worker finished. Name: " + name);
+        return value;
 }
 
 void MCP320X::activate_data_receiver(const int input_idx){

@@ -23,43 +23,45 @@ public:
     AnalogMeterSimple(
         const std::shared_ptr<pirobot::analogdata::AnalogDataProviderItf> provider,
         const std::string& name,
-        const std::vector<int>& pins,
         const std::string& comment = std::string("Analog Meter")
         ):
         item::Item(name, comment, item::ItemTypes::AnalogMeterSimple),
-        m_provider(provider),
-        _pin_count(0)
+        m_provider(provider)
     {
         assert(provider);
-        assert(pins.size()>0);
-
-
-        if(m_provider){
-            _pin_count = pins.size();
-            for(int i = 0; i < _pin_count; i++){
-                int pin = pins[i];
-                if(_pins[i]){
-                    continue; //duplicate pins
-                }
-
-                _pins[i] = std::make_shared<pirobot::analogdata::AnalogDataReceiverItf>("pin"+std::to_string(pin), pin);
-                bool added = m_provider->register_data_receiver(pin, _pins[i]);
-                if(added){
-                    _pins[i]->activate();
-                }
-            }
-        }
     }
 
     static const int Max_Analog_Inputs = 8;
     static const uint16_t Error_Value = 0xFFFF;
-
 
     /**
      *
      */
     virtual ~AnalogMeterSimple() {
 
+    }
+
+    /**
+     * Add receivers
+     */
+    bool add_receiver(const int pin, const std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf>& receiver){
+
+        bool result = false;
+        if(m_provider){
+            if(_pins[pin]){
+                return false; //duplicate pin
+            }
+
+            _pins[pin] = receiver;
+            //std::make_shared<pirobot::analogdata::AnalogDataReceiverItf>("pin"+std::to_string(pin), pin);
+            bool added = m_provider->register_data_receiver(pin, _pins[pin]);
+            if(added){
+                _pins[pin]->activate();
+                result = true;
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -70,7 +72,14 @@ public:
             return Error_Value;
         }
 
-        return _pins[pin]->get_data();
+
+        uint16_t result = Error_Value;
+        if(_pins[pin]->before()){
+            result = _pins[pin]->get_data();
+            _pins[pin]->after();
+        }
+
+        return result;
     }
 
     /*
@@ -93,8 +102,6 @@ public:
 
 private:
     std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> _pins[Max_Analog_Inputs];
-    int _pin_count;
-
     std::shared_ptr<pirobot::analogdata::AnalogDataProviderItf> m_provider;
 };
 

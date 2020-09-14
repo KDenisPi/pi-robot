@@ -126,6 +126,11 @@ public:
         return false;
     }
 
+    /**
+     *
+     */
+    const uint16_t get_value(const int pin);
+
     /*
     * Worker function
     */
