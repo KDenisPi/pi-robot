@@ -409,13 +409,22 @@ bool PiRobot::configure(const std::string& cfile){
                             auto analog_inputs =  jsonhelper::get_attr<int>(json_item, "analog_inputs", 8);
                             auto spi_channel  =  jsonhelper::get_attr<int>(json_item, "spi_channel", 0);
                             auto loop_delay  =  jsonhelper::get_attr<unsigned int>(json_item, "delay", 5);
+                            auto dev_type = jsonhelper::get_attr<std::string>(json_item, "dtype", "MCP3208");
+
+                            pirobot::mcp320x::MCP320X_INPUTS anlg_device = mcp320x::MCP320X_INPUTS::MCP3208;
+                            if(analog_inputs == 8){
+                                anlg_device = (dev_type=="MCP3008" ? mcp320x::MCP320X_INPUTS::MCP3008 : mcp320x::MCP320X_INPUTS::MCP3208);
+                            }
+                            else if(analog_inputs == 4){
+                                anlg_device = (dev_type=="MCP3004" ? mcp320x::MCP320X_INPUTS::MCP3004 : mcp320x::MCP320X_INPUTS::MCP3204);
+                            }
 
                             items_add(item_name, std::make_shared<pirobot::mcp320x::MCP320X>(
                                 std::static_pointer_cast<pirobot::spi::SPI>(get_provider("SPI")),
                                 get_gpio(gpio_name),
                                 item_name,
                                 item_comment,
-                                (analog_inputs == 8 ? mcp320x::MCP320X_INPUTS::MCP3208 : mcp320x::MCP320X_INPUTS::MCP3204),
+                                anlg_device,
                                 (spi_channel == 0 ? spi::SPI_CHANNELS::SPI_0 : spi::SPI_CHANNELS::SPI_1),
                                 loop_delay));
 
