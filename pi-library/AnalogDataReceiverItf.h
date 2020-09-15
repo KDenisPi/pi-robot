@@ -28,7 +28,7 @@ public:
         _data = data;
     }
 
-    const uint16_t get_data(){
+    virtual const uint16_t get_data(){
         std::lock_guard<std::mutex> lock(_mt_data);
         return _data;
     }
