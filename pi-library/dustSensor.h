@@ -16,6 +16,8 @@
 #include "AnalogDataReceiverItf.h"
 
 namespace pirobot {
+
+namespace item {
 namespace dustsensor {
 
 /**
@@ -134,6 +136,7 @@ int filter(int m)
 };
 
 } //dustsensor
+} //item
 } //pirobot
 
 
