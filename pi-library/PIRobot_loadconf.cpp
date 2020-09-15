@@ -558,7 +558,7 @@ bool PiRobot::configure(const std::string& cfile){
                             }
                             else if(ameter_type == "dustsensor"){
                                 std::string gpio_name = f_get_gpio_name(meter, "gpio", item_name);
-                                ameter->add_receiver(pin, std::make_shared<dustsensor::DustSensor>(get_gpio(gpio_name), pin, ameter_name));
+                                ameter->add_receiver(pin, std::make_shared<item::dustsensor::DustSensor>(get_gpio(gpio_name), pin, ameter_name));
                             }
                         }
                     }
