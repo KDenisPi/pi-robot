@@ -71,17 +71,13 @@ public:
      *
      */
     const uint16_t get_data(const int pin){
-        if(pin >= Max_Analog_Inputs || !_pins[pin]){
-            return Error_Value;
-        }
-
-
         uint16_t result = Error_Value;
-        if(_pins[pin]->before()){
-            result = _pins[pin]->get_data();
-            _pins[pin]->after();
+        if(pin >= Max_Analog_Inputs || !_pins[pin]){
+            logger::log(logger::LLOG::ERROR, "AnalgMSm", std::string(__func__) + " Invalid pin: " + std::to_string(pin) );
+            return result;
         }
 
+        result = _pins[pin]->get_data();
         return result;
     }
 

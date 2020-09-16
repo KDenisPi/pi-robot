@@ -49,18 +49,22 @@ public:
      * Functiona called before and after measurement. Implement special functionality.
      */
     virtual bool before() override{
+        logger::log(logger::LLOG::DEBUG, "DustS", std::string(__func__) + " Before");
         get_gpio()->High();
         std::this_thread::sleep_for(std::chrono::milliseconds(280));
         return true;
     }
 
     virtual bool after() override{
+        logger::log(logger::LLOG::DEBUG, "DustS", std::string(__func__) + " After");
         get_gpio()->Low();
         return true;
     }
 
 
     virtual const uint16_t get_data() override{
+        logger::log(logger::LLOG::DEBUG, "DustS", std::string(__func__));
+
         int raw_data = analogdata::AnalogDataReceiverItf::get_data();
         int f_raw_data = filter(raw_data);
 

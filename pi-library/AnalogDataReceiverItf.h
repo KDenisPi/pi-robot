@@ -29,6 +29,7 @@ public:
     }
 
     virtual const uint16_t get_data(){
+        logger::log(logger::LLOG::DEBUG, "ARecvItf", std::string(__func__));
         std::lock_guard<std::mutex> lock(_mt_data);
         return _data;
     }
