@@ -126,6 +126,7 @@ StateMachine::~StateMachine() {
  */
 const std::shared_ptr<Event> StateMachine::get_event(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+
     std::lock_guard<std::mutex> lock(mutex_sm);
     std::shared_ptr<Event> event = m_events.front();
     m_events.pop();
@@ -136,15 +137,13 @@ const std::shared_ptr<Event> StateMachine::get_event(){
  *
  */
 void StateMachine::put_event(const std::shared_ptr<Event>& event, bool force){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started:" + event->name());
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Event:" + event->name() + " ID: " + std::to_string(event->id()));
 
     {
         std::lock_guard<std::mutex> lock(mutex_sm);
         if(force){
             std::queue<std::shared_ptr<Event>> events_empty;
             m_events.swap(events_empty);
-            //while(!m_events.empty())
-            //    m_events.pop();
         }
         m_events.push(std::move(event));
     }
@@ -156,8 +155,7 @@ void StateMachine::put_event(const std::shared_ptr<Event>& event, bool force){
  *
  */
 void StateMachine::finish(){
-    std::shared_ptr<Event> event(new Event(EVENT_TYPE::EVT_FINISH));
-    put_event(event);
+    put_event(std::make_shared<Event>(EVENT_TYPE::EVT_FINISH, "Finish"));
 }
 
 /*
@@ -173,8 +171,7 @@ void StateMachine::state_change(const std::string& new_state){
  */
 void StateMachine::state_pop(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pop State");
-    std::shared_ptr<Event> event(new Event(EVENT_TYPE::EVT_POP_STATE));
-    put_event(event);
+    put_event(std::make_shared<Event>(EVENT_TYPE::EVT_POP_STATE, "PopState"));
 }
 
 /*
