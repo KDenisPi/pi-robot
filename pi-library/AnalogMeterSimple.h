@@ -29,6 +29,7 @@ public:
         m_provider(provider)
     {
         assert(provider);
+        logger::log(logger::LLOG::DEBUG, "AnalgMSm", std::string(__func__) + " " +  item::Item::name() + " Provider: " + m_provider->pname());
     }
 
     static const int Max_Analog_Inputs = 8;
@@ -38,13 +39,14 @@ public:
      *
      */
     virtual ~AnalogMeterSimple() {
-
+        logger::log(logger::LLOG::DEBUG, "AnalgMSm", std::string(__func__) + " " +  name());
     }
 
     /**
      * Add receivers
      */
     bool add_receiver(const int pin, const std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf>& receiver){
+        logger::log(logger::LLOG::DEBUG, "AnalgMSm", std::string(__func__) + " Pin: " +  std::to_string(pin));
 
         bool result = false;
         if(m_provider){
@@ -61,6 +63,7 @@ public:
             }
         }
 
+        logger::log(logger::LLOG::DEBUG, "AnalgMSm", std::string(__func__) + " Pin: " +  std::to_string(pin) + " Result: " + std::to_string(result));
         return result;
     }
 

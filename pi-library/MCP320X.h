@@ -18,11 +18,11 @@
 namespace pirobot {
 namespace mcp320x {
 
-enum MCP320X_INPUTS : uint8_t {
-    MCP3204 = 4,
-    MCP3004 = 4,
-    MCP3208 = 8,
-    MCP3008 = 8
+enum MCP3XXX_DEVICE_TYPE : uint8_t {
+    MCP3204 = 1,
+    MCP3004 = 2,
+    MCP3208 = 3,
+    MCP3008 = 4
 };
 
 enum MCP3XXX_Bits : uint8_t {
@@ -46,12 +46,11 @@ public:
         const std::shared_ptr<pirobot::gpio::Gpio> gpio,
         const std::string& name,
         const std::string& comment = "",
-        MCP320X_INPUTS anlg_inputs = MCP320X_INPUTS::MCP3208,
+        MCP3XXX_DEVICE_TYPE _dev_type = MCP3XXX_DEVICE_TYPE::MCP3208,
         spi::SPI_CHANNELS channel = spi::SPI_CHANNELS::SPI_0,
         const unsigned int loop_delay = 5) :
             item::Item(gpio, name, comment, item::ItemTypes::AnlgDgtConvertor),
             m_spi(spi),
-            m_anlg_inputs((int)anlg_inputs),
             m_channel(channel)
     {
         assert(get_gpio() != NULL);
@@ -59,10 +58,16 @@ public:
         assert(spi);
         assert(!name.empty());
 
+        if((_dev_type == MCP3XXX_DEVICE_TYPE::MCP3208) || (_dev_type == MCP3XXX_DEVICE_TYPE::MCP3008))
+            m_anlg_inputs = 8;
+        else
+            m_anlg_inputs = 4;
+
+        logger::log(logger::LLOG::DEBUG, "MCP320X", std::string(__func__) + " _dev_type: " + std::to_string(_dev_type) + " Inputs: " + std::to_string(m_anlg_inputs) + " Delay: " + std::to_string(loop_delay));
+
         set_loop_delay(loop_delay);
 
-        //switch device off
-        get_gpio()->High();
+        Off(); ////switch device off
     }
 
     /*
@@ -72,9 +77,9 @@ public:
 
 	virtual const std::string printConfig() override {
         std::string result =  name() + " SPI Channel: " + std::to_string(m_channel) + " Analog Inputs: " +
-            std::to_string(m_anlg_inputs) + "\n";
-        for(int i = 0; i < m_anlg_inputs; i++){
-                result += (" channel: " + std::to_string(i) + (m_receivers[i]? " ON" : " OFF") + "\n");
+            std::to_string(inputs()) + "\n";
+        for(int i = 0; i < inputs(); i++){
+                result += (" channel: " + std::to_string(i) + (m_receivers[i] ? " ON" : " OFF") + "\n");
         }
 
         return result;
@@ -150,6 +155,7 @@ public:
 private:
     std::shared_ptr<pirobot::spi::SPI> m_spi;
     int m_anlg_inputs;
+    MCP3XXX_DEVICE_TYPE _dev_type;
     pirobot::spi::SPI_CHANNELS m_channel;
 
 public:
