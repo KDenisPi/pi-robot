@@ -84,7 +84,7 @@ public:
         }
 
         logger::log(logger::LLOG::DEBUG, "DustS", std::string(__func__) + " Raw: " + std::to_string(raw_data) + " Filtered: " + std::to_string(f_raw_data) +
-                " Votlage: " + std::to_string(voltage) + " Density: " + std::to_string(density));
+                " Voltage: " + std::to_string(voltage) + " Density: " + std::to_string(density));
 
         return (uint16_t)(round(density));
     }
