@@ -33,8 +33,7 @@ void StateInit::OnEntry(){
 	 */
 	if( !get_itf()->get_robot()->configure("")){
 		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Hardware configuration failed. Stop.");
-		//Generate FINISH Event
-		get_itf()->finish();
+		get_itf()->finish(); //Generate FINISH Event
 	}
 
 	/*

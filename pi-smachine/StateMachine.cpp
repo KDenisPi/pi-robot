@@ -35,7 +35,10 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
     */
     m_env = m_factory->get_environment();
     bool ctxt_init = m_env->configure(m_factory->get_configuration());
-    //TODO: throw exception here?
+    if(!ctxt_init){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not load environment configuration");
+		finish();
+    }
 
     //Start timers
     m_timers->start();

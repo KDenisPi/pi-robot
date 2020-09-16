@@ -47,6 +47,8 @@ const char TAG[] = "PiRobot";
  */
 bool PiRobot::configure(const std::string& cfile){
     std::string conf = (cfile.empty() ? get_configuration() : cfile);
+    bool result = true;
+
     if(conf.empty()){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " No Robot configuration");
         return false;
@@ -178,8 +180,8 @@ bool PiRobot::configure(const std::string& cfile){
                         " Speed[1]: " + std::to_string(spi_config.speed[1]) + " Mode[1]: " + std::to_string(spi_config.mode[1]));
                     }
 
-                    add_gpio("SPI_CE0_N", "SIMPLE", gpio::GPIO_MODE::OUT, 10, pirobot::gpio::PULL_MODE::PULL_OFF); //SPI_CE0_N
-                    add_gpio("SPI_CE1_N", "SIMPLE", gpio::GPIO_MODE::OUT, 11, pirobot::gpio::PULL_MODE::PULL_OFF); //SPI_CE1_N
+                    add_gpio("SPI_CE0_N", "SIMPLE", gpio::GPIO_MODE::OUT, 19, pirobot::gpio::PULL_MODE::PULL_OFF); //SPI_CE0_N
+                    add_gpio("SPI_CE1_N", "SIMPLE", gpio::GPIO_MODE::OUT, 18, pirobot::gpio::PULL_MODE::PULL_OFF); //SPI_CE1_N
 
                     //Ignore name
                     providers["SPI"] = std::make_shared<pirobot::spi::SPI>("SPI", spi_config, get_gpio("SPI_CE0_N"), get_gpio("SPI_CE1_N"));
@@ -746,14 +748,19 @@ bool PiRobot::configure(const std::string& cfile){
     catch(jsoncons::ser_error& perr){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid configuration " +
             perr.what() + " Line: " + std::to_string(perr.line()) + " Column: " + std::to_string(perr.column()));
+        result = false;
+    }
+    catch(std::runtime_error& exc){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + exc.what());
+        result = false;
     }
 
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot configuration is finished");
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot configuration is finished Result: " + std::to_string(result));
 
     //print loaded configuration
     printConfig();
 
-    return true;
+    return result;
 }
 
 /*
