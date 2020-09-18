@@ -102,7 +102,7 @@ bool _first_value = true;
 int _buff[10];
 int _sum = 0;
 
-const float SysVoltage       = 5000; //5V
+const float SysVoltage       = 3500; //3,5V
 const float NoDustVoltage    = 400;  //0,4V
 const float ConversionRatio  = 0.2;  //ug/mmm / mv
 
