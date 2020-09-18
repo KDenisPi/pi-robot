@@ -49,14 +49,14 @@ public:
      * Functiona called before and after measurement. Implement special functionality.
      */
     virtual bool before() override{
-        logger::log(logger::LLOG::DEBUG, "DustS", std::string(__func__) + " Before");
+        logger::log(logger::LLOG::DEBUG, "DustS", std::string(__func__));
         get_gpio()->High();
         std::this_thread::sleep_for(std::chrono::milliseconds(280));
         return true;
     }
 
     virtual bool after() override{
-        logger::log(logger::LLOG::DEBUG, "DustS", std::string(__func__) + " After");
+        logger::log(logger::LLOG::DEBUG, "DustS", std::string(__func__));
         get_gpio()->Low();
         return true;
     }
@@ -111,15 +111,21 @@ const float ConversionRatio  = 0.2;  //ug/mmm / mv
  */
 int filter(int m)
 {
+  int result;
+
   if(_first_value)
   {
+    // Do not fill array using zero value
+    if(m == 0)
+      return m;
+
     _first_value = false;
     for(int i = 0; i < 10; i++)
     {
       _buff[i] = m;
       _sum += _buff[i];
     }
-    return m;
+    result = m;
   }
   else
   {
@@ -131,9 +137,16 @@ int filter(int m)
     _buff[9] = m;
     _sum += _buff[9];
 
-    int result = _sum / 10.0;
-    return result;
+    result = _sum / 10.0;
   }
+
+  {
+    char sbuff[128];
+    std::sprintf(sbuff, "Filter [%d] %d %d %d %d %d %d %d %d %d %d", result, _buff[0], _buff[1], _buff[2], _buff[3], _buff[4], _buff[5], _buff[6], _buff[7],  _buff[8], _buff[9]);
+    logger::log(logger::LLOG::DEBUG, "DustS", std::string(__func__) + std::string(sbuff));
+  }
+
+  return result;
 }
 
 
