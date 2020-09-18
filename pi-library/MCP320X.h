@@ -79,7 +79,7 @@ public:
         std::string result =  name() + " SPI Channel: " + std::to_string(m_channel) + " Analog Inputs: " +
             std::to_string(inputs()) + "\n";
         for(int i = 0; i < inputs(); i++){
-                result += (" channel: " + std::to_string(i) + (m_receivers[i] ? " ON" : " OFF") + "\n");
+                result += (" channel: " + std::to_string(i) + (m_receivers[i] ? " ON " + m_receivers[i]->pname() : " OFF") + "\n");
         }
 
         return result;
