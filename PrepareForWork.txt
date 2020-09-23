@@ -1,0 +1,13 @@
+How to prepare image for KDenisPi. On example Dust project
+
+1. Copy to root directory wpa_supplicant.conf with Wi-Fi parameters
+2. Create file called "ssh" on root directory
+3. Install card and boot device - It should be detected in netwotk and ssh is enabled
+4. Change host name in file /etc/hostname
+5. Change default password
+
+6. Copy libraries (.so) to /usr/local/lib
+6.1. Run ldconfig to update ld configuration
+7. Copy binary to /usr/local/bin
+8. Copy config file dust-detector.json to /usr/local/etc/dusts/
+9. Copy demon configuration file dusts to /usr/local/etc/dusts/

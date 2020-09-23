@@ -34,6 +34,10 @@ public:
         return _data;
     }
 
+    virtual const float get_value() {
+        return 0.0;
+    }
+
     virtual const std::string pname() const {
         return _name;
     }

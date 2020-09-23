@@ -81,6 +81,20 @@ public:
         return result;
     }
 
+    /**
+     *
+     */
+    const float get_value(const int pin){
+        float result = 9999.99;
+        if(pin >= Max_Analog_Inputs || !_pins[pin]){
+            logger::log(logger::LLOG::ERROR, "AnalgMSm", std::string(__func__) + " Invalid pin: " + std::to_string(pin) );
+            return result;
+        }
+
+        result = _pins[pin]->get_value();
+        return result;
+    }
+
     /*
     *
     */

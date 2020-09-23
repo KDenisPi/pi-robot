@@ -38,6 +38,7 @@
 #include "sledctrl_pwm.h"
 #include "AnalogMeterSimple.h"
 #include "dustSensor.h"
+#include "tmp36Sensor.h"
 
 namespace pirobot {
 const char TAG[] = "PiRobot";
@@ -558,11 +559,13 @@ bool PiRobot::configure(const std::string& cfile){
 
                             if(ameter_type == "simple"){
                                 ameter->add_receiver(pin, std::make_shared<analogdata::AnalogDataReceiverItf>(ameter_name, pin));
-
                             }
                             else if(ameter_type == "dustsensor"){
                                 std::string gpio_name = f_get_gpio_name(meter, "gpio", item_name);
                                 ameter->add_receiver(pin, std::make_shared<item::dustsensor::DustSensor>(get_gpio(gpio_name), pin, ameter_name));
+                            }
+                            else if(ameter_type == "tmp36"){
+                                ameter->add_receiver(pin, std::make_shared<item::tmp36sensor::Tmp36Sensor>(pin, ameter_name));
                             }
                         }
                     }

@@ -186,14 +186,19 @@
         },
 
         //
-        // Universal simple Analog Meter. Supported pin type "simple" - AnalogMeterSimple, "DustSensor"
+        // Universal simple Analog Meter.
+        //
+        //Supported pin types
+        //  "simple"        - AnalogMeterSimple,
+        //  "dustsensor"    - DustSensor
+        //  "tmp36"         - Tmp 36 Temperature sensor
         //
         {
             "type": "AnalogMeterSimple",
             "name": "item_name",
             "comment": "", //optional
             "ad_convertor": "AnlgDgtConvertor_name",
-            "pins": [{"pin" : 0, "type" : "simple"},{"pin" : 1, "type" : "dustsensor", "gpio": {"provider": "provider_name", "pin": 0}}] //Pin indexes
+            "pins": [{"pin" : 0, "type" : "simple"},{"pin" : 2, "type" : "tmp36"},{"pin" : 1, "type" : "dustsensor", "gpio": {"provider": "provider_name", "pin": 0}}] //Pin indexes
         },
 
         //
