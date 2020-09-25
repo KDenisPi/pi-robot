@@ -86,7 +86,7 @@ public:
         }
 
         mg_send_header(conn, "Content-Type", page_info.first.c_str());
-        mg_send_header(conn, "Content-Length", std::to_string(page_info.second.length()).c_str());
+        //mg_send_header(conn, "Content-Length", std::to_string(page_info.second.length()).c_str());
         mg_send_data(conn, page_info.second.c_str(), page_info.second.size());
         return 0;
     }
