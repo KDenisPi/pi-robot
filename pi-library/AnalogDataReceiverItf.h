@@ -24,12 +24,12 @@ public:
     * Free this call as quick as you can otherwise you will block next data reading
     */
     virtual void data(const uint16_t data){
+        logger::log(logger::LLOG::DEBUG, "ARecvItf", std::string(__func__) + " Name: " + pname() + " Data: " + std::to_string(data));
         std::lock_guard<std::mutex> lock(_mt_data);
         _data = data;
     }
 
     virtual const uint16_t get_data(){
-        logger::log(logger::LLOG::DEBUG, "ARecvItf", std::string(__func__));
         std::lock_guard<std::mutex> lock(_mt_data);
         return _data;
     }

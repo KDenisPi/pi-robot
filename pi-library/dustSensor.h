@@ -64,7 +64,7 @@ public:
     virtual bool before() override{
         logger::log(logger::LLOG::DEBUG, "DustS", std::string(__func__));
         get_gpio()->High();
-        std::this_thread::sleep_for(std::chrono::milliseconds(280));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); //280 by documentation
         return true;
     }
 
@@ -140,6 +140,10 @@ int filter(int m)
   }
   else
   {
+    if(m == 0)
+      return _sum / 10.0;
+
+
     _sum -= _buff[0];
     for(int i = 0; i < 9; i++)
     {

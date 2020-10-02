@@ -11,4 +11,5 @@ How to prepare image for KDenisPi. On example Dust project
 6.1. Run ldconfig to update ld configuration
 7. Copy binary to /usr/local/bin
 8. Copy config file dust-detector.json to /usr/local/etc/dusts/
-9. Copy demon configuration file dusts to /usr/local/etc/dusts/
+9. Copy demon configuration file dusts to /etc/init.d and set 755
+-rwxr-xr-x  1 root root 1265 Sep 25 20:54 dusts

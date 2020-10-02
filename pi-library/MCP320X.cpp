@@ -21,7 +21,7 @@ MCP320X::~MCP320X() {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
 
     //switch device off
-    get_gpio()->High();
+    Off();
     stop();
 }
 
@@ -68,6 +68,7 @@ void MCP320X::stop(){
             //switch device On
             owner->On();
 
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
             /*
             * Main loop - read analog inputs through SPI
             */
@@ -125,7 +126,7 @@ const uint16_t MCP320X::get_value(const int pin){
 
             // Valide Null-bit Just in case
             if((buff[1] & MCP32XX_Control_Null_Bit) != 0){
-                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Null bit is not NULL");
+                logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Null bit is not NULL");
                 return 0;
             }
 
@@ -146,7 +147,7 @@ const uint16_t MCP320X::get_value(const int pin){
 
             // Valide Null-bit Just in case
             if((buff[1] & MCP30XX_Control_Null_Bit) != 0){
-                logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Null bit is not NULL");
+                logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Null bit is not NULL");
                 return 0;
             }
 
