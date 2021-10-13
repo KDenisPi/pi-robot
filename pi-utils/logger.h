@@ -123,7 +123,7 @@ public:
         _update_conf = true;
     }
 private:
-    std::shared_ptr<spdlog::logger> async_file;
+    std::shared_ptr<spdlog::logger> log;
     std::mutex cv_m;
 
     std::shared_ptr<log_type> m_buff;

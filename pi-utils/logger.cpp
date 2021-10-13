@@ -17,6 +17,7 @@
 #include "CircularBuffer.h"
 
 #include "logger.h"
+#include "spdlog/sinks/daily_file_sink.h"
 
 namespace logger {
 
@@ -40,9 +41,9 @@ char mtime[30];
 *
 */
 Logger::Logger(const std::string& filename, const LLOG level) : m_flush(false), _level(level){
-    async_file = spdlog::daily_logger_st("async_file_logger", filename);
-    async_file->set_level(spdlog::level::debug);
-    async_file->set_pattern("%H:%M:%S.%e %z|%t|%L|%v");
+    log = spdlog::daily_logger_mt("pi-robot", filename, 11, 59);
+    log->set_level(spdlog::level::debug);
+    log->set_pattern("%H:%M:%S.%e %z|%t|%L|%v");
 
     m_buff = std::shared_ptr<log_type>(new log_type(_q_size));
     piutils::Threaded::start<Logger>(this);
@@ -51,7 +52,7 @@ Logger::Logger(const std::string& filename, const LLOG level) : m_flush(false), 
 Logger::~Logger() {
     set_flush();
     piutils::Threaded::stop();
-    async_file->flush();
+    log->flush();
 }
 
 /*
@@ -81,13 +82,13 @@ void Logger::write_log(const log_message_type& logm) const{
     auto logm_ = logm.second;
 
     if(logm.first == LLOG::INFO)
-        async_file->info("{0} {1}", logm_.first, logm_.second);
+        log->info("{0} {1}", logm_.first, logm_.second);
     else if(logm.first == LLOG::DEBUG)
-        async_file->debug("{0} {1}", logm_.first, logm_.second);
+        log->debug("{0} {1}", logm_.first, logm_.second);
     else if(logm.first == LLOG::NECECCARY)
-        async_file->warn("{0} {1}", logm_.first, logm_.second);
+        log->warn("{0} {1}", logm_.first, logm_.second);
     else if(logm.first == LLOG::ERROR)
-        async_file->error("{0} {1}", logm_.first, logm_.second);
+        log->error("{0} {1}", logm_.first, logm_.second);
 }
 
 /*
