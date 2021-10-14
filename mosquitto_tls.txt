@@ -23,9 +23,9 @@ openssl rsa -in m2mqtt_ca.key -text -check -passin pass:mosquittopi
 # /emailAddress - email address
 
 SUBJINFOCA="/C=US/ST=CA/L=FosterCity/O=DenisKudia/CN=DK CA/emailAddress=dkudja@gmail.com/"
-SUBJINFOSRV="/C=US/ST=CA/L=FosterCity/O=DenisKudia/CN=dk-centos7-mqqt.localdomain/emailAddress=dkudja@gmail.com/"
+SUBJINFOSRV="/C=US/ST=CA/L=FosterCity/O=DenisKudia/CN=dk-centos7-mqtt.localdomain/emailAddress=dkudja@gmail.com/"
 
-# -x509 this option outputs a self signed certificate instead of a certificate request. 
+# -x509 this option outputs a self signed certificate instead of a certificate request.
 #       This is typically used to generate a test certificate or a self signed root CA.
 
 openssl req -new -x509 -days 3650 -key m2mqtt_ca.key -out m2mqtt_ca.crt -subj "${SUBJINFOCA}" -passin pass:mosquittopi -config openssl.cnf
@@ -50,8 +50,8 @@ openssl req -noout -text -in m2mqtt_srv.csr
 # -CAkey: CA private key to sign the certificate with
 # -Cacreateserial: the serial number file gets created if it does not exist
 # -out: output file name
-# -days: how long the certificate shall be valid 
-  
+# -days: how long the certificate shall be valid
+
 openssl x509 -req -in m2mqtt_srv.csr -CA m2mqtt_ca.crt -CAkey m2mqtt_ca.key -CAcreateserial -passin pass:mosquittopi -out m2mqtt_srv.crt -days 3650
 
 # 5.1 Check connection to mosquitto server

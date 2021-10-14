@@ -27,7 +27,6 @@ set(SQLITE3_HOME "${THIRD_PARTY_HOME}/sqlite-amalgamation-3240000")
 
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
 message( STATUS "MOSQUITTO_LIB ${MOSQUITTO_LIB}")
-message( STATUS "SPDLOG_HOME ${SPDLOG_HOME}")
 message( STATUS "JSONCONS ${JSONCONS}")
 message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
 message( STATUS "MONGOOSE_SRC ${MONGOOSE_SRC}")
@@ -35,7 +34,7 @@ message( STATUS "MONGOOSE_SRC ${MONGOOSE_SRC}")
 find_library(MOSQT_LIB mosquitto PATH ${MOSQUITTO_LIB})
 find_library(MOSQT_LIB_CPP mosquittopp PATH ${MOSQUITTO_LIB}/cpp)
 
-set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR})
 
 #set(CMAKE_BIULD_TYPE Debug)
 #set(CMAKE_BIULD_TYPE RelWithDebInfo)
@@ -74,18 +73,12 @@ message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-core)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-sql)
-add_subdirectory(${PROJECT_SOURCE_DIR}/pi-mqqt)
+add_subdirectory(${PROJECT_SOURCE_DIR}/pi-mqtt)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-http)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smachine)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-tests)
-
-#add_subdirectory(${PROJECT_SOURCE_DIR}/version1)
-#add_subdirectory(${PROJECT_SOURCE_DIR}/project1)
-#add_subdirectory(${PROJECT_SOURCE_DIR}/spi_test)
-#add_subdirectory(${PROJECT_SOURCE_DIR}/storage)
-#add_subdirectory(${PROJECT_SOURCE_DIR}/weather)
 
 include(CPack)
 

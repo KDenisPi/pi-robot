@@ -8,7 +8,7 @@
 #include <logger.h>
 #include "MosquittoClient.h"
 
-namespace mqqt {
+namespace mqtt {
 
 const char TAG[] = "mosqt";
 
@@ -31,7 +31,7 @@ MosquittoClient::~MosquittoClient(){
 /*
 *
 */
-const int MosquittoClient::cl_connect(const MqqtServerInfo& conf){
+const int MosquittoClient::cl_connect(const MqttServerInfo& conf){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Host: " + conf.host() + " Port: " + std::to_string(conf.port()) + " TLS: " + std::to_string(conf.is_tls()));
 
     m_qos = conf.qos();
@@ -40,16 +40,16 @@ const int MosquittoClient::cl_connect(const MqqtServerInfo& conf){
     int res;
     //TLS sapport
     if(conf.is_tls()){
-        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " TLS: " + std::to_string(conf.is_tls()) + 
-            " CA file: " + conf.get_cafile() + " Insecure: " + std::to_string(conf.is_tls_insecure()) + 
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " TLS: " + std::to_string(conf.is_tls()) +
+            " CA file: " + conf.get_cafile() + " Insecure: " + std::to_string(conf.is_tls_insecure()) +
             " Version: " + conf.get_tls_version());
-        
+
         res = tls_set(conf.get_cafile().c_str());
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " TLS set: " + cl_get_errname(res) + " CA file: " + conf.get_cafile());
 
         res = tls_insecure_set((conf.is_tls_insecure() ? true : false));
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " TLS Insecure set: " + cl_get_errname(res) + " TLS insecure: " + std::to_string(conf.is_tls_insecure()));
-        
+
         res = tls_opts_set(0, conf.get_tls_version().c_str());
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " TLS option set: " + cl_get_errname(res) + " TLS version: " + conf.get_tls_version());
     }
@@ -98,12 +98,12 @@ void MosquittoClient::on_connect(int rc){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_connect Code: " + cl_get_errname(rc));
 
     if(rc == MOSQ_ERR_SUCCESS){
-        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_connect Code: " + cl_get_errname(rc) + " Set connected: true");        
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_connect Code: " + cl_get_errname(rc) + " Set connected: true");
         set_connected(true);
-        cl_notify(MQQT_CONNECT, MQQT_ERROR_SUCCESS);
+        cl_notify(mqtt_CONNECT, mqtt_ERROR_SUCCESS);
     }
     else{
-        cl_notify(MQQT_CONNECT, (rc == MOSQ_ERR_INVAL ? MQQT_ERROR_INVAL : MQQT_ERROR_FAILED));
+        cl_notify(mqtt_CONNECT, (rc == MOSQ_ERR_INVAL ? mqtt_ERROR_INVAL : mqtt_ERROR_FAILED));
         set_connected(false);
 
         err_conn_inc();
@@ -122,7 +122,7 @@ void MosquittoClient::on_disconnect(int rc){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_disconnect Code: " + cl_get_errname(rc));
 
     set_connected(false);
-    cl_notify(MQQT_DISCONNECT, (rc == MOSQ_ERR_SUCCESS ? MQQT_ERROR_SUCCESS : MQQT_ERROR_FAILED));
+    cl_notify(mqtt_DISCONNECT, (rc == MOSQ_ERR_SUCCESS ? mqtt_ERROR_SUCCESS : mqtt_ERROR_FAILED));
     return;
 }
 
@@ -165,7 +165,7 @@ void MosquittoClient::on_error(){
     //TBD: Add error processing there
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
     return;
-}    
+}
 
-} // end namespace mqqt
+} // end namespace mqtt
 

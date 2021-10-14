@@ -1,13 +1,13 @@
 {
- "version": "1.0",   
- "host" : "dk-centos7-mqqt.localdomain",
+ "version": "1.0",
+ "host" : "dk-centos7-mqtt.localdomain",
  "client_id": "NoHardware",
  "port": 8883,
  "keep_alive": 10,
  "qos": 0,
 
  "tls": true,
- "tls_ca_file" : "/home/denis/pi-robot/mqqt_tls/m2mqtt_ca.crt",
+ "tls_ca_file" : "/home/denis/pi-robot/mqtt_tls/m2mqtt_ca.crt",
  "tls_insecure": true,
  "tls_version": "tlsv1.2"
 }

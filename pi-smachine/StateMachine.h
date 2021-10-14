@@ -21,7 +21,7 @@
 #include "EventChangeState.h"
 #include "Event.h"
 #include "Threaded.h"
-#include "MqqtClient.h"
+#include "MqttClient.h"
 
 #define ADD_SIGNAL(signal)   sigset_t new_set;\
   sigemptyset (&new_set);\

@@ -14,7 +14,7 @@
 #include "TimersItf.h"
 #include "PiRobot.h"
 #include "Environment.h"
-#include "MqqtDefines.h"
+#include "MqttDefines.h"
 #include "Event.h"
 
 namespace smachine {

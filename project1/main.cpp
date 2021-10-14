@@ -11,7 +11,7 @@
 #include "StateMachine.h"
 #include "MyStateFactory.h"
 #include "MosquittoClient.h"
-#include "MqqtClient.h"
+#include "mqttClient.h"
 
 #include "CircularBuffer.h"
 
@@ -59,7 +59,7 @@ static void sigHandlerParent(int sign){
   }
 }
 
-const char* err_message = "Error. No configuration file.\nUsage project1 --conf coniguration_file [--mqqt-conf mqqt_configuration_file ]";
+const char* err_message = "Error. No configuration file.\nUsage project1 --conf coniguration_file [--mqtt-conf mqtt_configuration_file ]";
 
 std::string validate_file_parameter(const int idx, const int argc, char* argv[]){
   std::string filename;
@@ -79,13 +79,13 @@ std::string validate_file_parameter(const int idx, const int argc, char* argv[])
 }
 
 /*
-* program --conf path_to_configuration [--mqqt mqqt_server_ip_addres]
-*    --mqqt - optional if MQQT client should be used
+* program --conf path_to_configuration [--mqtt mqtt_server_ip_addres]
+*    --mqtt - optional if mqtt client should be used
 */
 int main (int argc, char* argv[])
 {
   bool mqtt = false;
-  std::string robot_conf, mqqt_conf;
+  std::string robot_conf, mqtt_conf;
   stmPid  = 0;
   sigset_t new_set;
   cout <<  "Project1 started" << endl;
@@ -97,8 +97,8 @@ int main (int argc, char* argv[])
     if(strcmp(argv[i], "--conf") == 0){
       robot_conf = validate_file_parameter(++i, argc, argv);
     }
-    else if(strcmp(argv[i], "--mqqt-conf") == 0){
-      mqqt_conf = validate_file_parameter(++i, argc, argv);
+    else if(strcmp(argv[i], "--mqtt-conf") == 0){
+      mqtt_conf = validate_file_parameter(++i, argc, argv);
       mqtt = true;
     }
   }
@@ -106,7 +106,7 @@ int main (int argc, char* argv[])
 /*
   robot_conf = "/home/denis/pi-robot/project1/nohardware.json";
 
-  mqqt_conf =  "/home/denis/pi-robot/project1/pi-mqqt-conf.json";
+  mqtt_conf =  "/home/denis/pi-robot/project1/pi-mqtt-conf.json";
   mqtt = true;
 */
 
@@ -156,28 +156,28 @@ int main (int argc, char* argv[])
         cout <<  "Create State Factory support" << endl;
         std::shared_ptr<project1::MyStateFactory> factory(new project1::MyStateFactory());
 
-        std::shared_ptr<mqqt::MqqtItf> clMqqt;
+        std::shared_ptr<mqtt::mqttItf> clmqtt;
         if(mqtt){
-              cout <<  "MQQT detected" << endl;
+              cout <<  "mqtt detected" << endl;
               try{
                 int res = mosqpp::lib_init();
-                cout <<  "MQQT library intialized Res: " << std::to_string(res) << endl;
+                cout <<  "mqtt library intialized Res: " << std::to_string(res) << endl;
 
-                // Load MQQT server configuration
-                mqqt::MqqtServerInfo info = mqqt::MqqtServerInfo::load(mqqt_conf);
-                clMqqt = std::shared_ptr<mqqt::MqqtItf>(new mqqt::MqqtClient<mqqt::MosquittoClient>(info));
-                cout <<  "MQQT configuration loaded" << endl;
+                // Load mqtt server configuration
+                mqtt::MqttServerInfo info = mqtt::MqttServerInfo::load(mqtt_conf);
+                clmqtt = std::shared_ptr<mqtt::mqttItf>(new mqtt::mqttClient<mqtt::MosquittoClient>(info));
+                cout <<  "mqtt configuration loaded" << endl;
               }
               catch(std::runtime_error& rterr){
-                cout <<  "Could not load MQQT configuration configuration " << robot_conf << "\nError: " << rterr.what() << endl;
+                cout <<  "Could not load mqtt configuration configuration " << robot_conf << "\nError: " << rterr.what() << endl;
                 _exit(EXIT_FAILURE);
               }
-          
+
         }
         /*
         * Create State machine
         */
-        stm = new smachine::StateMachine(factory, pirobot, clMqqt);
+        stm = new smachine::StateMachine(factory, pirobot, clmqtt);
         cout <<  "Created state machine. Waiting for finishing" << endl;
         stm->wait();
 

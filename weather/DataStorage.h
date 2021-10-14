@@ -11,7 +11,7 @@
 #define WEATHER_DATA_STORAGE_H_
 
 #include "MosquittoClient.h"
-#include "MqqtClient.h"
+#include "mqttClient.h"
 #include "CircularBuffer.h"
 
 #include "fstorage.h"
@@ -68,46 +68,46 @@ public:
 };
 
 /*
-* Implementation of MQQT protocol based data storage
+* Implementation of mqtt protocol based data storage
 */
-class MqqtStorage : public DataStorage {
+class mqttStorage : public DataStorage {
 public:
     /*
     *
     */
-    MqqtStorage() {
+    mqttStorage() {
             int res = mosqpp::lib_init();
-            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQQT library intialized Res: " + std::to_string(res));
+            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "mqtt library intialized Res: " + std::to_string(res));
     }
 
     /*
     *
     */
-    virtual ~MqqtStorage() {
+    virtual ~mqttStorage() {
           mosqpp::lib_cleanup();
     }
 
     /*
     *
     */
-    bool start(const mqqt::MqqtServerInfo mqqt_conf) {
+    bool start(const mqtt::MqttServerInfo mqtt_conf) {
 
-        if(mqqt_conf.is_enable()){
+        if(mqtt_conf.is_enable()){
             return false;
         }
 
-        m_mqqt = std::shared_ptr<mqqt::MqqtItf>(new mqqt::MqqtClient<mqqt::MosquittoClient>(mqqt_conf));
-        m_mqqt_active = m_mqqt->start();
-        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "MQQT configuration loaded Active: " + std::to_string(m_mqqt_active));
+        m_mqtt = std::shared_ptr<mqtt::mqttItf>(new mqtt::mqttClient<mqtt::MosquittoClient>(mqtt_conf));
+        m_mqtt_active = m_mqtt->start();
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "mqtt configuration loaded Active: " + std::to_string(m_mqtt_active));
 
-        return m_mqqt_active;
+        return m_mqtt_active;
     }
 
     /*
     *
     */
     virtual void stop() override{
-        m_mqqt->stop();
+        m_mqtt->stop();
     }
 
     /*
@@ -118,37 +118,37 @@ public:
         meas.get_data(data);
 
         const char* sdata = data.to_string();
-        mqqt::MQQT_CLIENT_ERROR res = mqqt_publish(_topic, strlen(sdata), sdata);
+        mqtt::mqtt_CLIENT_ERROR res = mqtt_publish(_topic, strlen(sdata), sdata);
 
-        return (res == mqqt::MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS);
+        return (res == mqtt::mqtt_CLIENT_ERROR::mqtt_ERROR_SUCCESS);
     }
 
     /*
     *
     */
-    const bool is_mqqt() const {
-        return m_mqqt_active;
+    const bool is_mqtt() const {
+        return m_mqtt_active;
     }
 
 private:
-    virtual const mqqt::MQQT_CLIENT_ERROR mqqt_publish(const std::string& topic, const std::string& payload) {
-        if(is_mqqt())
-            return m_mqqt->publish(topic, payload);
+    virtual const mqtt::mqtt_CLIENT_ERROR mqtt_publish(const std::string& topic, const std::string& payload) {
+        if(is_mqtt())
+            return m_mqtt->publish(topic, payload);
 
-        return mqqt::MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
+        return mqtt::mqtt_CLIENT_ERROR::mqtt_ERROR_SUCCESS;
     }
 
-    virtual const mqqt::MQQT_CLIENT_ERROR mqqt_publish(const std::string& topic, const int payloadsize, const void* payload) {
-        if(is_mqqt())
-            return m_mqqt->publish(topic, payloadsize, payload);
+    virtual const mqtt::mqtt_CLIENT_ERROR mqtt_publish(const std::string& topic, const int payloadsize, const void* payload) {
+        if(is_mqtt())
+            return m_mqtt->publish(topic, payloadsize, payload);
 
-        return mqqt::MQQT_CLIENT_ERROR::MQQT_ERROR_SUCCESS;
+        return mqtt::mqtt_CLIENT_ERROR::mqtt_ERROR_SUCCESS;
     }
 
 
-    //MQQT support flag
-    bool m_mqqt_active = false;
-    std::shared_ptr<mqqt::MqqtItf> m_mqqt;
+    //mqtt support flag
+    bool m_mqtt_active = false;
+    std::shared_ptr<mqtt::mqttItf> m_mqtt;
 
     std::string _topic = "weather";
 

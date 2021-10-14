@@ -8,7 +8,7 @@ set(DAEMON ${PROJECT_NAME}d)
 set(VER_MJR 0)
 set(VER_MIN 9)
 
-set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqqt pi-http pthread dl curl)
+set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http pthread dl curl)
 
 include_directories(BEFORE
     ${MOSQUITTO_HOME}/lib/cpp
@@ -17,7 +17,7 @@ include_directories(BEFORE
     ${PROJECT_SOURCE_DIR}/../pi-sql
     ${PROJECT_SOURCE_DIR}/../pi-library
     ${PROJECT_SOURCE_DIR}/../pi-smachine
-    ${PROJECT_SOURCE_DIR}/../pi-mqqt
+    ${PROJECT_SOURCE_DIR}/../pi-mqtt
     ${PROJECT_SOURCE_DIR}/../pi-http
     ${MONGOOSE_HOME}
     ${JSONCONS}
