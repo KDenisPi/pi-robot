@@ -102,6 +102,10 @@ public:
 
     static void worker(StateMachine* p);
 
+    const std::shared_ptr<smachine::StateMachineItf> itf(){
+        return std::shared_ptr<smachine::StateMachineItf>(dynamic_cast<StateMachineItf*>(this));
+    }
+
 private:
     //
     bool start();

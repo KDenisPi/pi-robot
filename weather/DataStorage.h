@@ -11,7 +11,7 @@
 #define WEATHER_DATA_STORAGE_H_
 
 #include "MosquittoClient.h"
-#include "mqttClient.h"
+#include "MqttClient.h"
 #include "CircularBuffer.h"
 
 #include "fstorage.h"
@@ -70,12 +70,12 @@ public:
 /*
 * Implementation of mqtt protocol based data storage
 */
-class mqttStorage : public DataStorage {
+class MqttStorage : public DataStorage {
 public:
     /*
     *
     */
-    mqttStorage() {
+    MqttStorage() {
             int res = mosqpp::lib_init();
             logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "mqtt library intialized Res: " + std::to_string(res));
     }
@@ -83,7 +83,7 @@ public:
     /*
     *
     */
-    virtual ~mqttStorage() {
+    virtual ~MqttStorage() {
           mosqpp::lib_cleanup();
     }
 
@@ -96,7 +96,7 @@ public:
             return false;
         }
 
-        m_mqtt = std::shared_ptr<mqtt::mqttItf>(new mqtt::mqttClient<mqtt::MosquittoClient>(mqtt_conf));
+        m_mqtt = std::shared_ptr<mqtt::MqttItf>(new mqtt::MqttClient<mqtt::MosquittoClient>(mqtt_conf));
         m_mqtt_active = m_mqtt->start();
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "mqtt configuration loaded Active: " + std::to_string(m_mqtt_active));
 
@@ -148,7 +148,7 @@ private:
 
     //mqtt support flag
     bool m_mqtt_active = false;
-    std::shared_ptr<mqtt::mqttItf> m_mqtt;
+    std::shared_ptr<mqtt::MqttItf> m_mqtt;
 
     std::string _topic = "weather";
 

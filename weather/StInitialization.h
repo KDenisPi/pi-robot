@@ -20,7 +20,7 @@ namespace weather {
 
 class StInitialization : public smachine::state::State {
 public:
-    StInitialization(smachine::StateMachineItf* itf) : smachine::state::State(itf, "StInitialization") {
+    StInitialization(const std::shared_ptr<smachine::StateMachineItf>& itf) : smachine::state::State(itf, "StInitialization") {
     }
 
     virtual ~StInitialization(){}

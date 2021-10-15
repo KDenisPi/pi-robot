@@ -18,7 +18,7 @@ namespace weather {
 
 class StMeasurement : public smachine::state::State {
 public:
-    StMeasurement(smachine::StateMachineItf* itf) : smachine::state::State(itf, "StMeasurement") {}
+    StMeasurement(const std::shared_ptr<smachine::StateMachineItf>& itf) : smachine::state::State(itf, "StMeasurement") {}
     virtual ~StMeasurement(){}
 
     virtual void OnEntry() override;

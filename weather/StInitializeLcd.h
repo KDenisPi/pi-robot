@@ -1,6 +1,6 @@
 /*
  * StInitializeLcd.h
- * 
+ *
  *  Created on: June 01, 2018
  *      Author: Denis Kudia
  */
@@ -14,7 +14,7 @@ namespace weather {
 
 class StInitializeLcd : public smachine::state::State {
 public:
-    StInitializeLcd(smachine::StateMachineItf* itf) : smachine::state::State(itf, "StInitializeLcd") {}
+    StInitializeLcd(const std::shared_ptr<smachine::StateMachineItf>& itf) : smachine::state::State(itf, "StInitializeLcd") {}
     virtual ~StInitializeLcd(){}
 
     virtual void OnEntry() override;

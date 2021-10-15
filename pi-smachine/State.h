@@ -29,7 +29,7 @@ namespace state {
 
 class State {
 public:
-	State(StateMachineItf* itf, const std::string name);
+	State(const std::shared_ptr<smachine::StateMachineItf>& itf, const std::string& name);
 	virtual ~State();
 
 	virtual void OnEntry() {}
@@ -39,7 +39,7 @@ public:
 	//called when child state call POP
 	virtual void OnSubstateExit(const std::string substate_name) {}
 
-	StateMachineItf* get_itf() const { return m_itf;}
+	const std::shared_ptr<smachine::StateMachineItf> get_itf() const { return m_itf;}
 	std::shared_ptr<pirobot::PiRobot> get_robot() const { return m_itf->get_robot();}
 
 	inline const std::string get_name() { return m_name;}
@@ -60,7 +60,7 @@ public:
 	}
 
 private:
-	StateMachineItf* m_itf;
+	std::shared_ptr<smachine::StateMachineItf> m_itf;
 	std::string m_name;
 };
 

@@ -1,6 +1,6 @@
 /*
  * StInitializeSensors.h
- * 
+ *
  *  Created on: June 01, 2018
  *      Author: Denis Kudia
  */
@@ -14,7 +14,7 @@ namespace weather {
 
 class StInitializeSensors : public smachine::state::State {
 public:
-    StInitializeSensors(smachine::StateMachineItf* itf) : smachine::state::State(itf, "StInitializeSensors") {}
+    StInitializeSensors(const std::shared_ptr<smachine::StateMachineItf>& itf) : smachine::state::State(itf, "StInitializeSensors") {}
     virtual ~StInitializeSensors(){}
 
     virtual void OnEntry() override;

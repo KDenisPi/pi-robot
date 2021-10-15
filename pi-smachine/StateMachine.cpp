@@ -33,7 +33,7 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
     /*
     * Create project environment and load value for parameters
     */
-    m_env = std::shared_ptr<Environment>(m_factory->get_environment());
+    m_env = m_factory->get_environment();
     bool ctxt_init = m_env->configure(m_factory->get_configuration());
     //TODO: throw exception here?
 
@@ -372,8 +372,7 @@ void StateMachine::process_change_state(const std::shared_ptr<Event>& event){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + cname);
 
         auto newstate = (cname == "StateInit" ?
-                std::make_shared<smachine::state::State>(dynamic_cast<StateMachineItf*>(this), cname):
-                m_factory->get_state(cname, dynamic_cast<StateMachineItf*>(this)));
+                std::make_shared<smachine::state::State>(this->itf(), cname): m_factory->get_state(cname, this->itf()));
         bool new_state = true;
 
         for (const auto& state : *(get_states())) {

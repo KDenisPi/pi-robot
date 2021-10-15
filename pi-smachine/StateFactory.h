@@ -25,12 +25,15 @@ public:
 
 	}
 
-	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string state_name, smachine::StateMachineItf* itf) noexcept(false) = 0;
+	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& name, const std::shared_ptr<smachine::StateMachineItf>& itf) noexcept(false){
+		logger::log(logger::LLOG::ERROR, "StFactory", std::string(__func__) + " Generate exception no such State");
+		throw std::runtime_error("No such state");
+	}
 
 	/*
 	 * Create Environment object
 	 */
-	virtual Environment* get_environment() = 0;
+	virtual const std::shared_ptr<smachine::Environment> get_environment() = 0;
 
 	/*
 	* Return the first state of State Machine
