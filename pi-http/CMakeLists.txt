@@ -11,5 +11,19 @@ aux_source_directory(${PROJECT_SOURCE_DIR} PI_HTTP_SOURCES_MAIN)
 
 set(PI_HTTP_SOURCES ${PI_HTTP_SOURCES_MAIN} ${MONGOOSE_SRC})
 
-#add_library(pi-http SHARED ${PI_HTTP_SOURCES})
-add_library(pi-http STATIC ${PI_HTTP_SOURCES})
+add_library(pi-http SHARED ${PI_HTTP_SOURCES})
+add_library(pi-http-dev STATIC ${PI_HTTP_SOURCES})
+
+add_library(PiRobot::pi-http ALIAS pi-http)
+add_library(PiRobotStatic::pi-http-dev ALIAS pi-http-dev)
+
+install(TARGETS ${PROJECT_NAME}
+    EXPORT ${PROJECT_NAME}-t
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    )
+set_property(TARGET ${PROJECT_NAME} PROPERTY IMPORTED_LOCATION "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${PROJECT_NAME}.so")
+set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PI_VER})
+set_property(TARGET ${PROJECT_NAME} PROPERTY SVERSION ${PI_VER})
+
+

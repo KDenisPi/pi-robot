@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
 
 #project name
-project(pi-robot)
+project(pi-robot VERSION 1.1.0)
 enable_testing()
 
-message( STATUS "REAL_HARDWARE:  ${REAL_HARDWARE}" )
-#set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../third-party")
+set(PI_VER ${PROJECT_VERSION})
 
+message( STATUS "REAL_HARDWARE:  ${REAL_HARDWARE}" )
 IF(REAL_HARDWARE)
     set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../third-party")
 ELSE(REAL_HARDWARE)
@@ -15,14 +15,9 @@ ENDIF(REAL_HARDWARE)
 
 message( STATUS "THIRD_PARTY_HOME: ${THIRD_PARTY_HOME}")
 
-set(MOSQUITTO_HOME "${THIRD_PARTY_HOME}/mosquitto")
-set(MOSQUITTO_LIB "${MOSQUITTO_HOME}/build/lib")
-
 set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
-
 set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
 set(MONGOOSE_SRC "${MONGOOSE_HOME}/mongoose.c")
-
 set(SQLITE3_HOME "${THIRD_PARTY_HOME}/sqlite-amalgamation-3240000")
 
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
@@ -30,14 +25,6 @@ message( STATUS "MOSQUITTO_LIB ${MOSQUITTO_LIB}")
 message( STATUS "JSONCONS ${JSONCONS}")
 message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
 message( STATUS "MONGOOSE_SRC ${MONGOOSE_SRC}")
-
-find_library(MOSQT_LIB mosquitto PATH ${MOSQUITTO_LIB})
-find_library(MOSQT_LIB_CPP mosquittopp PATH ${MOSQUITTO_LIB}/cpp)
-
-set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR})
-
-#set(CMAKE_BIULD_TYPE Debug)
-#set(CMAKE_BIULD_TYPE RelWithDebInfo)
 message( STATUS "CMAKE_BIULD_TYPE is ${CMAKE_BIULD_TYPE}")
 
 #cmake version 3.0 and above
@@ -63,11 +50,10 @@ message( STATUS "CMAKE_C_FLAGS_DEBUG is ${CMAKE_C_FLAGS_DEBUG}")
 message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
-add_library(libmosquitto STATIC IMPORTED)
-add_library(libmosquittopp STATIC IMPORTED)
+add_library(libmosquitto SHARED IMPORTED)
+add_library(libmosquittopp SHARED IMPORTED)
 
-#set(EXTRA_LIBS ${EXTRA_LIBS} ${MOSQT_LIB} ${MOSQT_LIB_CPP})
-set(EXTRA_LIBS ${EXTRA_LIBS} ${MOSQT_LIB} ${MOSQT_LIB_CPP})
+set(EXTRA_LIBS ${EXTRA_LIBS} mosquitto  mosquittopp)
 message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
@@ -79,7 +65,48 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smachine)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-tests)
-add_subdirectory(${PROJECT_SOURCE_DIR}/weather)
+#add_subdirectory(${PROJECT_SOURCE_DIR}/weather)
+
+
+#
+# Install section
+#
+set(PROJECT_VENDOR "Denis Kudia")
+
+set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+
+# Generator name - Debian packages
+set(CPACK_GENERATOR "DEB")
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto1 (>= 1.6.8), libmosquittopp1 (>= 1.6.8)")
+
+# package information
+set(CPACK_PACKAGE_VENDOR ${PROJECT_VENDOR})
+set(CPACK_PACKAGE_CONTACT ${PROJECT_VENDOR})
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Pi-Robot Debian package")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER ${CPACK_PACKAGE_CONTACT})
+
+# package version
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64") #${CMAKE_SYSTEM_PROCESSOR})
+set(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
+set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}-${CPACK_DEBIAN_PACKAGE_ARCHITECTURE})
+
+install(EXPORT pi-utils-t NAMESPACE PiRobot DESTINATION lib)
+install(EXPORT pi-core-t NAMESPACE PiRobot DESTINATION lib)
+install(EXPORT pi-sql-t NAMESPACE PiRobot DESTINATION lib)
+install(EXPORT pi-mqtt-t NAMESPACE PiRobot DESTINATION lib)
+install(EXPORT pi-http-t NAMESPACE PiRobot DESTINATION lib)
+install(EXPORT pi-library-t NAMESPACE PiRobot DESTINATION lib)
+install(EXPORT pi-smachine-t NAMESPACE PiRobot DESTINATION lib)
 
 include(CPack)
+
+
 

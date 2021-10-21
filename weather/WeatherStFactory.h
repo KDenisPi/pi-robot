@@ -8,6 +8,12 @@
 #ifndef WEATHER_STATEFACTORY_H_
 #define WEATHER_STATEFACTORY_H_
 
+#include <exception>
+#include <stdexcept>
+
+#include "logger.h"
+#include "defines.h"
+
 #include "StateFactory.h"
 #include "context.h"
 #include "StInitialization.h"

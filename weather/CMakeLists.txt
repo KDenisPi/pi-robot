@@ -1,18 +1,35 @@
 cmake_minimum_required(VERSION 3.0)
 
 #project name
-project(weather)
+project(weather VERSION 0.9.0)
 
 set(DAEMON ${PROJECT_NAME}d)
 
-set(VER_MJR 0)
-set(VER_MIN 9)
+message( STATUS "REAL_HARDWARE:  ${REAL_HARDWARE}" )
+IF(REAL_HARDWARE)
+    set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../../third-party")
+ELSE(REAL_HARDWARE)
+    set(THIRD_PARTY_HOME "$ENV{HOME}/third-party")
+ENDIF(REAL_HARDWARE)
 
-set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http pthread dl curl)
+message( STATUS "THIRD_PARTY_HOME: ${THIRD_PARTY_HOME}")
+
+set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
+set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
+set(MONGOOSE_SRC "${MONGOOSE_HOME}/mongoose.c")
+set(SQLITE3_HOME "${THIRD_PARTY_HOME}/sqlite-amalgamation-3240000")
+
+message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
+message( STATUS "MOSQUITTO_LIB ${MOSQUITTO_LIB}")
+message( STATUS "JSONCONS ${JSONCONS}")
+message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
+message( STATUS "MONGOOSE_SRC ${MONGOOSE_SRC}")
+message( STATUS "CMAKE_BIULD_TYPE is ${CMAKE_BIULD_TYPE}")
+
+
+set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http pthread dl curl rt)
 
 include_directories(BEFORE
-    ${MOSQUITTO_HOME}/lib/cpp
-    ${MOSQUITTO_HOME}/lib
     ${PROJECT_SOURCE_DIR}/../pi-utils
     ${PROJECT_SOURCE_DIR}/../pi-sql
     ${PROJECT_SOURCE_DIR}/../pi-library
@@ -25,46 +42,67 @@ include_directories(BEFORE
 )
 
 message( STATUS "EXTRA_LIBS (proj):  ${EXTRA_LIBS}" )
+message( STATUS "[${PROJECT_VERSION}]" )
 
 aux_source_directory(${PROJECT_SOURCE_DIR} WEATHER_SOURCES)
 
 add_executable(${DAEMON} ${WEATHER_SOURCES})
 target_link_libraries(${DAEMON} ${EXTRA_LIBS} crypt)
+set_property(TARGET ${DAEMON} PROPERTY VERSION ${PROJECT_VERSION})
+set_property(TARGET ${DAEMON} PROPERTY SVERSION ${PROJECT_VERSION})
 
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)
 
 #
 # Installation
 #
+#
+# package section
+#
+set(PROJECT_VENDOR "Denis Kudia")
 
-#main executable
-install(TARGETS ${DAEMON} RUNTIME DESTINATION bin)
+set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+
+# Generator name - Debian packages
+set(CPACK_GENERATOR "DEB")
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto1 (>= 1.6.8), libmosquittopp1 (>= 1.6.8), libpi-robot (>=1.1.0)")
+
+# package information
+set(CPACK_PACKAGE_VENDOR ${PROJECT_VENDOR})
+set(CPACK_PACKAGE_CONTACT ${PROJECT_VENDOR})
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Weather. Pi-Robot library based project")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER ${CPACK_PACKAGE_CONTACT})
+
+# package version
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64") #${CMAKE_SYSTEM_PROCESSOR})
+set(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
+set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}-${CPACK_DEBIAN_PACKAGE_ARCHITECTURE})
+
+#
+# Daemon file
+#
+install(TARGETS ${DAEMON} DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 #
 # Mosquitto library
 #
-install(DIRECTORY ${MOSQUITTO_LIB}/
-        DESTINATION lib
-        FILES_MATCHING
-        PATTERN "libmosquitto.*"
-        PATTERN "CMakeFiles" EXCLUDE
-        PATTERN "cpp" EXCLUDE
-        PERMISSIONS
-            OWNER_EXECUTE OWNER_WRITE OWNER_READ
-            GROUP_EXECUTE GROUP_READ
-            WORLD_EXECUTE WORLD_READ
-    )
+#snap install mosquitto
+#libmosquitto-dev/focal 1.6.9-1 amd64
+#libmosquitto1/focal 1.6.9-1 amd64
+#libmosquittopp-dev/focal 1.6.9-1 amd64
+#libmosquittopp1/focal 1.6.9-1 amd64
+#mosquitto-clients/focal 1.6.9-1 amd64
+#mosquitto-dev/focal,focal 1.6.9-1 all
+#mosquitto/focal 1.6.9-1 amd64
 
-install(DIRECTORY ${MOSQT_LIB_CPP}/
-        DESTINATION lib
-        FILES_MATCHING
-        PATTERN "libmosquittopp.*"
-        PATTERN "CMakeFiles" EXCLUDE
-        PERMISSIONS
-            OWNER_EXECUTE OWNER_WRITE OWNER_READ
-            GROUP_EXECUTE GROUP_READ
-            WORLD_EXECUTE WORLD_READ
-    )
 
 #configuration file
 install(FILES ${PROJECT_SOURCE_DIR}/../conf/Weather.json
@@ -100,3 +138,5 @@ install(DIRECTORY DESTINATION /var/data/pi-robot/data
         GROUP_EXECUTE GROUP_WRITE GROUP_READ
         WORLD_EXECUTE WORLD_WRITE WORLD_READ
     )
+
+include(CPack)
