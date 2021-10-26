@@ -17,7 +17,7 @@
         "to": "dkudja@gmail.com"
     },
 
-    "mqtt" : {
+    "mqqt" : {
         "enable": "false",
         "host" : "",
         "client_id": "NoHardware",
@@ -26,7 +26,7 @@
         "qos": 0,
 
         "tls": true,
-        "tls_ca_file" : "/home/denis/pi-robot/mqtt_tls/m2mqtt_ca.crt",
+        "tls_ca_file" : "/home/denis/pi-robot/mqqt_tls/m2mqtt_ca.crt",
         "tls_insecure": true,
         "tls_version": "tlsv1"
     },
@@ -153,6 +153,7 @@
             "comment":"",
             "gpio":{"provider": "provider_name", "pin": 0}, //GPIO is used for switch ON/OFF (CS/SHDN) Low - On, High - Off
             "analog_inputs":8, // number of analog inputs usually 8/4 depends on chip
+            "dtype": "MCP3208", //type of device 12-bits: [MCP3208, MCP3204] or 10-bits: [MCP3008, MCP3004]
             "spi_channel":0, // possible values 0/1
             "delay": 5
         },
@@ -182,6 +183,22 @@
             "debug": false, //Debug mode true/false, false by default, optional
             "debug_buffer_size": 2048, //size of debug buffer, optional
             "value_diff_for_event" : 20 // Difference in measures that generate event, optional
+        },
+
+        //
+        // Universal simple Analog Meter.
+        //
+        //Supported pin types
+        //  "simple"        - AnalogMeterSimple,
+        //  "dustsensor"    - DustSensor
+        //  "tmp36"         - Tmp 36 Temperature sensor
+        //
+        {
+            "type": "AnalogMeterSimple",
+            "name": "item_name",
+            "comment": "", //optional
+            "ad_convertor": "AnlgDgtConvertor_name",
+            "pins": [{"pin" : 0, "type" : "simple"},{"pin" : 2, "type" : "tmp36"},{"pin" : 1, "type" : "dustsensor", "gpio": {"provider": "provider_name", "pin": 0}}] //Pin indexes
         },
 
         //

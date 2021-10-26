@@ -55,12 +55,13 @@ int I2CWrapper::I2CReadReg16(const int fd, const int reg){
 }
 
 /*
-* General write to I2C
+* General write to I2C (BYTE)
 */
 int I2CWrapper::I2CWrite(const int fd, const int wdata){
-    int err = i2c_smbus_access(fd, I2C_SMBUS_WRITE, wdata, I2C_SMBUS_WORD_DATA, NULL);
+    int err = i2c_smbus_access(fd, I2C_SMBUS_WRITE, wdata, I2C_SMBUS_BYTE, NULL);
     if(err < 0){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + std::string(" Errno: ") + std::to_string(errno));
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" fd: ") + std::to_string(fd) + " Data: " + std::to_string(wdata));
     }
     return err;
 }

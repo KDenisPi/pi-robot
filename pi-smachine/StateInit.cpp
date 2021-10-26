@@ -13,7 +13,7 @@ namespace state {
 
 const char TAG[] = "sinit";
 
-StateInit::StateInit(const std::shared_ptr<smachine::StateMachineItf>& itf):
+StateInit::StateInit(const std::shared_ptr<StateMachineItf> itf):
 		state::State(itf, "StateInit")
 {
 	// TODO Auto-generated constructor stub
@@ -33,8 +33,7 @@ void StateInit::OnEntry(){
 	 */
 	if( !get_itf()->get_robot()->configure("")){
 		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Hardware configuration failed. Stop.");
-		//Generate FINISH Event
-		get_itf()->finish();
+		get_itf()->finish(); //Generate FINISH Event
 	}
 
 	/*

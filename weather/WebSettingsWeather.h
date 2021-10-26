@@ -16,7 +16,7 @@ namespace web {
 
 class WebWeather : public http::web::WebSettings {
 public:
-    WebWeather(const uint16_t port, std::shared_ptr<smachine::StateMachineItf> itf) : http::web::WebSettings(port, itf){
+    WebWeather(const uint16_t port, std::shared_ptr<smachine::StateMachineItf>& itf) : http::web::WebSettings(port, itf){
         logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__));
 
         initialize();

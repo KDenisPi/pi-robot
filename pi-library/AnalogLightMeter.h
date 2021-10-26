@@ -34,6 +34,7 @@ public:
         const int debug_buffer_size = 2048
         ):
         item::Item(name, comment, item::ItemTypes::AnalogLightMeter),
+        analogdata::AnalogDataReceiverItf(name, analog_input_index),
         m_provider(provider),
         m_value_diff_for_event(value_diff_for_event),
         m_debug_size(debug_buffer_size),

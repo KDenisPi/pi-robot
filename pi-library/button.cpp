@@ -38,7 +38,10 @@ const char* Item::ItemNames[] = {
     "LCD",
     "SLED",
     "SLEDCTRLSPI",
-    "SLEDCTRLPWM"
+    "SLEDCTRLPWM",
+    "AnalogMeterSimple",
+    "DustSensor",
+    "Tmp36"
 };
 
 /*

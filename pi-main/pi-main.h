@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 
 #include "WebSettings.h"
 #include "StateMachine.h"
@@ -28,7 +29,11 @@ namespace pimain {
 template<class F, class W>
 class PiMain {
 public:
-    PiMain() {}
+    PiMain(const std::string& project_name, const std::string& logs_dir = "/var/log") : _proj_name(project_name), _log_folder(logs_dir) {
+        _project_log =  _log_folder + "/" + _proj_name + ".log";
+        _project_err =  _log_folder + "/" + _proj_name + ".err";
+    }
+
     virtual ~PiMain() {}
 
     /*
@@ -121,6 +126,18 @@ public:
     }
 
     /*
+    * Use HTTP module
+    */
+    void set_use_http(const bool use_http) {
+       _use_http = use_http;
+    }
+
+    const bool use_http() const {
+       return _use_http;
+    }
+
+
+    /*
     * Load configuration parameters
     */
     void load_configuration(const int argc, char* argv[]){
@@ -143,6 +160,12 @@ public:
             }
             else if( (strcmp(argv[i], "--fstate") == 0) && (++i < argc)){
                     _firstState = argv[i];
+            }
+            else if(strcmp(argv[i], "--nohttp") == 0){
+                _use_http = false;
+            }
+            else if(strcmp(argv[i], "--debug") == 0){
+                _debug_mode = true;
             }
         }
     }
@@ -198,8 +221,11 @@ public:
 private:
 
     const char* str_null = "/dev/null";
-    const char* str_weather_log = "/var/log/weather.log";
-    const char* str_weather_err = "/var/log/weather.err";
+
+    std::string _proj_name;
+    std::string _log_folder;
+    std::string _project_log;
+    std::string _project_err;
 
     const int web_port = 8080;
     /*
@@ -215,6 +241,9 @@ private:
         case 0: //child
             //initialize daemon configuration
             daemon_initialization();
+
+            //Initilize signal handlers
+            initialize_signal_handlers();
 
             //Initialize and run
             initilize_and_run();
@@ -317,7 +346,7 @@ private:
         */
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Created Web interface");
         create_web(web_port, _stm);
-        if(web()){
+        if(use_http() && web()){
             web()->http::web::WebSettings::start();
         }
    }
@@ -330,7 +359,7 @@ private:
         * Become leader of new session
         */
         if (setsid() == -1)
-        _exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE);
 
         /*
         * Clear the process umask (Section 15.4.6), to ensure that, when the daemon creates
@@ -363,11 +392,11 @@ private:
         if (_fd_null != STDIN_FILENO) /* 'fd' should be 0 */
           _exit(EXIT_FAILURE);
 
-        _fd_log = open(str_weather_log, O_RDWR|O_CREAT|O_APPEND, 0666);
+        _fd_log = open(_project_log.c_str(), O_RDWR|O_CREAT|O_APPEND, 0666);
         if (_fd_log != STDOUT_FILENO) /* 'fd' should be 1 */
           _exit(EXIT_FAILURE);
 
-        _fd_err = open(str_weather_err, O_RDWR|O_CREAT|O_APPEND, 0666);
+        _fd_err = open(_project_err.c_str(), O_RDWR|O_CREAT|O_APPEND, 0666);
         if (_fd_err != STDERR_FILENO) /* 'fd' should be 2 */
           _exit(EXIT_FAILURE);
    }
@@ -473,7 +502,7 @@ private:
     /*
     * Daemon flag
     */
-    bool _daemon_mode = false;
+    bool _daemon_mode = true;
     /*
     * Debug flag
     */
@@ -483,6 +512,11 @@ private:
     * Default debug level
     */
     logger::LLOG _llevel = logger::LLOG::DEBUG;
+
+    /**
+     * Use HTTP module or not
+     */
+    bool _use_http = true;
 
     /*
     * First state
@@ -501,6 +535,7 @@ private:
     int _fd_null;
     int _fd_err;
 
+protected:
     std::shared_ptr<pirobot::PiRobot> _pirobot;
     std::shared_ptr<smachine::StateFactory> _factory;
     std::shared_ptr<http::web::WebSettings> _web;

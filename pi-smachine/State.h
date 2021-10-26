@@ -19,6 +19,8 @@ namespace state {
 
 #define TIMER_CREATE(id, interval)  get_itf()->timer_start(id, interval);
 #define TIMER_CANCEL(id)  get_itf()->timer_cancel(id);
+#define TIMER_CHECK(id) get_itf()->timer_check(jd)
+
 #define CHANGE_STATE(state) get_itf()->state_change(state);
 #define POP_STATE() get_itf()->state_pop();
 #define EVENT(evt) get_itf()->add_event(evt);
@@ -29,7 +31,7 @@ namespace state {
 
 class State {
 public:
-	State(const std::shared_ptr<smachine::StateMachineItf>& itf, const std::string& name);
+	State(const std::shared_ptr<StateMachineItf>& itf, const std::string& name);
 	virtual ~State();
 
 	virtual void OnEntry() {}
@@ -39,7 +41,7 @@ public:
 	//called when child state call POP
 	virtual void OnSubstateExit(const std::string substate_name) {}
 
-	const std::shared_ptr<smachine::StateMachineItf> get_itf() const { return m_itf;}
+	const std::shared_ptr<StateMachineItf> get_itf() const { return m_itf;}
 	std::shared_ptr<pirobot::PiRobot> get_robot() const { return m_itf->get_robot();}
 
 	inline const std::string get_name() { return m_name;}
@@ -60,7 +62,7 @@ public:
 	}
 
 private:
-	std::shared_ptr<smachine::StateMachineItf> m_itf;
+	std::shared_ptr<StateMachineItf> m_itf;
 	std::string m_name;
 };
 

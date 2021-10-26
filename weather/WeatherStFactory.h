@@ -8,52 +8,26 @@
 #ifndef WEATHER_STATEFACTORY_H_
 #define WEATHER_STATEFACTORY_H_
 
-#include <exception>
-#include <stdexcept>
-
-#include "logger.h"
-#include "defines.h"
-
 #include "StateFactory.h"
 #include "context.h"
-#include "StInitialization.h"
-#include "StMeasurement.h"
-#include "StInitializeSensors.h"
-#include "StInitializeLcd.h"
-#include "StNoHardware.h"
 
 namespace weather {
 
 class WeatherStFactory: public smachine::StateFactory {
 public:
-	WeatherStFactory(const std::string& firstState = "StInitialization") : smachine::StateFactory(firstState) {}
+	WeatherStFactory(const std::string& firstState = "StInitialization") : smachine::StateFactory(firstState) {
+		logger::log(logger::LLOG::DEBUG, "WtFact", std::string(__func__) + " Set first state:" + firstState);
+	}
+
 	virtual ~WeatherStFactory() {}
 
-	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& name, const std::shared_ptr<smachine::StateMachineItf>& itf) override {
-		if(name.compare("StInitialization") == 0){
-			return std::make_shared<weather::StInitialization>(itf);
-		}
-		else if(name.compare("StMeasurement") == 0){
-			return std::make_shared<weather::StMeasurement>(itf);
-		}
-		else if(name.compare("StInitializeSensors") == 0){
-			return std::make_shared<weather::StInitializeSensors>(itf);
-		}
-		else if(name.compare("StInitializeLcd") == 0){
-			return std::make_shared<weather::StInitializeLcd>(itf);
-		}
-		else if(name.compare("StNoHardware") == 0){
-			return std::make_shared<weather::StNoHardware>(itf);
-		}
-
-		return smachine::StateFactory::get_state(name, itf);
-	}
+	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& state_name, const std::shared_ptr<smachine::StateMachineItf>& itf) override;
 
 	/*
 	 * Create Environment object
 	 */
-	virtual const std::shared_ptr<smachine::Environment> get_environment() override {
-		return std::make_shared<weather::Context>();
+	virtual std::shared_ptr<smachine::Environment> get_environment() override {
+		return std::make_shared<Context>();
 	}
 };
 

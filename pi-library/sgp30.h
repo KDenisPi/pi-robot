@@ -30,7 +30,29 @@ namespace item {
 
 #define SGP30_MEASURE_TEST_PATTERN          0xD400
 
-#define SGP30_DEBUG 1
+#define SGP30_DEBUG 0
+
+// Measurement interval for SPG30
+//  TVOC:  0 – 60'000 ppb
+//  CO2eq: 0 – 60'000 ppm
+//
+// ----- TVOC ----
+// Level        Hygienic                    TVOC [ppb]
+// 5  Unhealty  Situation not acceptable    2200 – 5500
+// 4  Poor      Major objections            660 – 2200
+// 3  Moderate  Some objections             220 – 660
+// 2  Good      No relevant objections      65 – 220
+// 1  Excellent No objections               0 – 65
+
+// ----- CO2 ----
+// Level
+// 1  250-350ppm	    Normal background concentration in outdoor ambient air
+// 2  350-1,000ppm	    Concentrations typical of occupied indoor spaces with good air exchange
+// 3  1,000-2,000ppm	Complaints of drowsiness and poor air.
+// 4  2,000-5,000 ppm	Headaches, sleepiness and stagnant, stale, stuffy air.
+//                      Poor concentration, loss of attention, increased heart rate and slight nausea may also be present.
+//    5,000	            Workplace exposure limit (as 8-hour TWA) in most jurisdictions.
+// 5  >40,000 ppm	    Exposure may lead to serious oxygen deprivation resulting in permanent brain damage, coma, even death.
 
 class Sgp30_measure {
 public:

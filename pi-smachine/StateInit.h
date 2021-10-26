@@ -15,7 +15,7 @@ namespace state {
 
 class StateInit: public State {
 public:
-	StateInit(const std::shared_ptr<smachine::StateMachineItf>& itf);
+	StateInit(const std::shared_ptr<StateMachineItf> itf);
 	virtual ~StateInit();
 
 	virtual void OnEntry() override;

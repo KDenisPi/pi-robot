@@ -76,7 +76,7 @@ public:
 
         //check loaded size
         if(page_info.second.size()==0){
-            mg_send_header(conn, "Content-Type:", "text/html; charset=utf-8");
+            mg_send_header(conn, "Content-Type", "text/html; charset=utf-8");
             mg_send_status(conn, 404);
             mg_printf_data(conn, "Page not found!<br> Requested URI is [%s], query string is [%s]",
                  conn->uri,
@@ -85,8 +85,8 @@ public:
             return 0;
         }
 
-        mg_send_header(conn, "Content-Type:", page_info.first.c_str());
-        mg_send_header(conn, "Content-Length:", std::to_string(page_info.second.length()).c_str());
+        mg_send_header(conn, "Content-Type", page_info.first.c_str());
+        //mg_send_header(conn, "Content-Length", std::to_string(page_info.second.length()).c_str());
         mg_send_data(conn, page_info.second.c_str(), page_info.second.size());
         return 0;
     }
@@ -109,8 +109,11 @@ public:
     /*
     *   Should be overloaded
     */
-    virtual const std::pair<std::string, std::string> get_page(const struct mg_connection *conn) = 0;
-    virtual int data_files(struct mg_connection *conn) = 0;
+    virtual const std::pair<std::string, std::string> get_page(const struct mg_connection *conn) {
+        return std::make_pair("", "");
+    }
+
+    virtual int data_files(struct mg_connection *conn) { return 0;}
 
     //Prepare list of IP addresses
     const std::string prepare_ip_list(){

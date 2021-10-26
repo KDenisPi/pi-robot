@@ -20,10 +20,12 @@ public:
     MData() { clear();}
     virtual ~MData() {}
 
+    std::time_t _now;
     char dtime[64];
-    unsigned int data[7];
+    float data[7];
 
     MData& operator=(const MData& m){
+        _now = m._now;
         strcpy(this->dtime, m.dtime);
         for(int i = 0; i < 7; i++){
             this->data[i] = m.data[i];
@@ -33,13 +35,14 @@ public:
     }
 
     void clear(){
+        _now = 0;
         memset(dtime, sizeof(dtime), 0x00);
         for(int i = 0; i < 7; i++){
             data[i] = 0;
         }
     }
 
-    const char* to_string(){
+    const std::string to_string(){
         //
         // Output format:
         // 1. Date&time YYYY/MM/DD HH:MM:SS
@@ -53,6 +56,33 @@ public:
         //
         sprintf(_buff, "%s,%u,%u,%u,%u,%u,%u,%u\n",
             dtime,
+            (uint32_t)std::round(data[0]),
+            (uint32_t)std::round(data[1]),
+            (uint32_t)std::round(data[2]),
+            (uint32_t)std::round(data[3]),
+            (uint32_t)std::round(data[4]),
+            (uint32_t)std::round(data[5]),
+            (uint32_t)std::round(data[6])
+        );
+
+        const std::string result(_buff);
+        return result;
+    }
+
+    const std::string to_json(){
+        //
+        // Output format:
+        // 1. Date&time YYYY/MM/DD HH:MM:SS
+        // 2. Humidity (0-100%)
+        // 3. Temperature (C or F, 3-digits, signed)
+        // 4. Pressure (mm Hg, 3-digits)
+        // 5. Luximity (Lux, 0-40000, 5-digits)
+        // 6. CO2 (0 – 60'000 ppm, 5-digits)
+        // 7. TVOC (0 – 60'000 ppb, 5-digits)
+        // 8. Altitude (0-5000, 4-digits)
+
+        sprintf(_buff, "{\"time\":%ld, \"Humidity\":%.2f,\"Temperature\":%.2f,\"Pressure\":%.2f,\"Luximity\":%.0f,\"CO2\":%.0f,\"TVOC\":%.0f,\"Altitude\":%.0f}",
+            _now,
             data[0],
             data[1],
             data[2],
@@ -62,10 +92,11 @@ public:
             data[6]
         );
 
-        return _buff;
+        const std::string result(_buff);
+        return result;
     }
 
-    static const int buff_size = 128;
+    static const int buff_size = 1024;
 
 private:
     char _buff[buff_size];
@@ -138,18 +169,17 @@ public:
         this->tsl2651_lux = m.tsl2651_lux;
 
         std::tm tm;
-        piutils::get_time(tm, true);
+        piutils::get_time(tm, _mdata._now, true);
 
-        sprintf(_mdata.dtime, "%d/%d/%dT%02d:%02d:%02dZ",
-            1900+tm.tm_year, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+        sprintf(_mdata.dtime, "%d/%d/%dT%02d:%02d:%02dZ", 1900+tm.tm_year, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
-        _mdata.data[0] = std::round(si7021_humidity);
-        _mdata.data[1] = std::round(temp());
-        _mdata.data[2] = std::round(bmp280_pressure);
+        _mdata.data[0] = si7021_humidity;
+        _mdata.data[1] = temp();
+        _mdata.data[2] = bmp280_pressure;
         _mdata.data[3] = tsl2651_lux;
         _mdata.data[4] = spg30_co2;
         _mdata.data[5] = spg30_tvoc;
-        _mdata.data[6] = std::round(bmp280_altitude);
+        _mdata.data[6] = bmp280_altitude;
 
         return *this;
     }
@@ -170,7 +200,7 @@ public:
         return (celcius ? tempr : temp_C_to_F(tempr));
     }
 
-    void get_data(MData& data){
+    void copy_data(MData& data) const{
         data = _mdata;
     }
 

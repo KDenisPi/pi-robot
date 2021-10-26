@@ -48,8 +48,9 @@ int main (int argc, char* argv[])
     p_psgp30->stop();
     std::cout << "Stop SGP30 objects. Save debug data." << std::endl;
 
+#ifdef SGP30_DEBUG
     p_psgp30->unload_debug_data(argc == 5 ? std::string(argv[4]) : std::string("/var/log/pi-robot/sgp30.csv"));
-
+#endif
     std::cout << "Release SGP30 objects " << std::endl;
     p_psgp30.reset();
     std::cout << "Release Provider objects " << std::endl;

@@ -10,11 +10,10 @@
 #ifndef WEATHER_DATA_STORAGE_H_
 #define WEATHER_DATA_STORAGE_H_
 
-#include "MosquittoClient.h"
-#include "MqttClient.h"
-#include "CircularBuffer.h"
+//#include "CircularBuffer.h"
 
-#include "fstorage.h"
+#include "FileStorage.h"
+#include "MqttStorage.h"
 #include "measurement.h"
 
 #ifdef USE_SQL_STORAGE
@@ -25,21 +24,9 @@ namespace weather{
 namespace data {
 
 /*
-* Data storage interface
-*/
-class DataStorage {
-    public:
-    DataStorage() {}
-    virtual ~DataStorage() {}
-
-    virtual void stop() = 0;
-    virtual bool write(Measurement& data) = 0;
-};
-
-/*
 * Implementation of file based data storage
 */
-class FileStorage : public DataStorage, public piutils::fstor::FStorage {
+class FileStorage : public pidata::filestorage::FileStorage<weather::Measurement> {
 public:
     FileStorage() {
         set_first_line("date,humidity,temperature,pressure,luximity,co,tvoc,altitude\n");
@@ -47,111 +34,43 @@ public:
 
     virtual ~FileStorage() {}
 
-    bool start(const std::string fstor_path, const bool local_time) {
-        int res = initilize(fstor_path, local_time);
-        return (res == 0);
-    }
-
-    virtual void stop() override {
-        FStorage::stop();
-    }
-
-    virtual bool write(Measurement& meas) override {
+    virtual bool write(const Measurement& meas) override {
         MData data;
-        meas.get_data(data);
+        meas.copy_data(data);
 
-        const char* sdata = data.to_string();
-        int res = write_data(sdata, strlen(sdata));
+        const std::string sdata = data.to_string();
+        int res = write_data(sdata.c_str(), sdata.length());
 
         return (res == 0);
     }
 };
 
 /*
-* Implementation of mqtt protocol based data storage
+* Implementation of MQTT protocol based data storage
 */
-class MqttStorage : public DataStorage {
+class MqttStorage : public pidata::mqttstorage::MqttStorage<weather::Measurement> {
 public:
-    /*
-    *
-    */
-    MqttStorage() {
-            int res = mosqpp::lib_init();
-            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "mqtt library intialized Res: " + std::to_string(res));
+
+    MqttStorage(const std::string& topic) {
+        set_topic(topic);
     }
 
-    /*
-    *
-    */
     virtual ~MqttStorage() {
-          mosqpp::lib_cleanup();
     }
 
     /*
     *
     */
-    bool start(const mqtt::MqttServerInfo mqtt_conf) {
-
-        if(mqtt_conf.is_enable()){
-            return false;
-        }
-
-        m_mqtt = std::shared_ptr<mqtt::MqttItf>(new mqtt::MqttClient<mqtt::MosquittoClient>(mqtt_conf));
-        m_mqtt_active = m_mqtt->start();
-        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "mqtt configuration loaded Active: " + std::to_string(m_mqtt_active));
-
-        return m_mqtt_active;
-    }
-
-    /*
-    *
-    */
-    virtual void stop() override{
-        m_mqtt->stop();
-    }
-
-    /*
-    *
-    */
-    virtual bool write(Measurement& meas) override {
+    virtual bool write(const Measurement& meas) override {
         MData data;
-        meas.get_data(data);
+        meas.copy_data(data);
 
-        const char* sdata = data.to_string();
-        mqtt::mqtt_CLIENT_ERROR res = mqtt_publish(_topic, strlen(sdata), sdata);
+        const std::string sdata = data.to_json();
+        logger::log(logger::LLOG::DEBUG, "main", std::string(__func__) + "MQTT data: " + sdata);
+        mqtt::MQTT_CLIENT_ERROR res = mqtt_publish(topic(), sdata);
 
-        return (res == mqtt::mqtt_CLIENT_ERROR::mqtt_ERROR_SUCCESS);
+        return (res == mqtt::MQTT_CLIENT_ERROR::MQTT_ERROR_SUCCESS);
     }
-
-    /*
-    *
-    */
-    const bool is_mqtt() const {
-        return m_mqtt_active;
-    }
-
-private:
-    virtual const mqtt::mqtt_CLIENT_ERROR mqtt_publish(const std::string& topic, const std::string& payload) {
-        if(is_mqtt())
-            return m_mqtt->publish(topic, payload);
-
-        return mqtt::mqtt_CLIENT_ERROR::mqtt_ERROR_SUCCESS;
-    }
-
-    virtual const mqtt::mqtt_CLIENT_ERROR mqtt_publish(const std::string& topic, const int payloadsize, const void* payload) {
-        if(is_mqtt())
-            return m_mqtt->publish(topic, payloadsize, payload);
-
-        return mqtt::mqtt_CLIENT_ERROR::mqtt_ERROR_SUCCESS;
-    }
-
-
-    //mqtt support flag
-    bool m_mqtt_active = false;
-    std::shared_ptr<mqtt::MqttItf> m_mqtt;
-
-    std::string _topic = "weather";
-
 };
 
 #ifdef USE_SQL_STORAGE

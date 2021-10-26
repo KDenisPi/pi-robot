@@ -15,16 +15,39 @@ const char TAG[] = "mosqt";
 /*
 * Constructor
 */
-MosquittoClient::MosquittoClient(const char* clientID) :
-    mosqpp::mosquittopp(clientID, true), m_connected(false) {
-  logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Started ");
+MosquittoClient::MosquittoClient(const std::string& client_id) : _client_id(client_id), m_connected(false) {
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Started ");
 
+    // Initilize library
+    int res = mosquitto_lib_init();
+    MOSQ_CODE(res)
+
+    //Get library version
+    lib_version();
+
+    //Initilize Mosquitto data
+    init_data();
 }
 
 MosquittoClient::~MosquittoClient(){
-  logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Started ");
-  cl_disconnect();
-  loop_stop(true);
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Started ");
+
+    cl_disconnect();
+
+    //release data
+    clear_data();
+
+    int res = mosquitto_lib_cleanup();
+}
+
+/*
+* Get Mosquitto lib version
+*/
+void MosquittoClient::lib_version(){
+    int res = mosquitto_lib_version(&_major, &_minor, &_revision);
+    MOSQ_CODE(res)
+
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Version: [" + std::to_string(_major) + "." + std::to_string(_minor) + "-" + std::to_string(_revision));
 }
 
 
@@ -54,10 +77,12 @@ const int MosquittoClient::cl_connect(const MqttServerInfo& conf){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " TLS option set: " + cl_get_errname(res) + " TLS version: " + conf.get_tls_version());
     }
 
-    res =  connect_async(conf.host(), conf.port(), conf.keepalive());
+    res = connect_async(conf.host(), conf.port(), conf.keepalive());
+
+    //start network connection loop
     loop_start();
 
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Finished: " + cl_get_errname(res));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
     return res;
 }
 
@@ -67,10 +92,10 @@ const int MosquittoClient::cl_connect(const MqttServerInfo& conf){
 const int MosquittoClient::cl_disconnect(){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__));
     int res =  disconnect();
-    if(res == MOSQ_ERR_SUCCESS)
+    if(res == MOSQ_ERR_SUCCESS){
         set_connected(false);
+    }
 
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Result: " + cl_get_errname(res));
     return res;
 }
 
@@ -78,18 +103,28 @@ const int MosquittoClient::cl_disconnect(){
 *
 */
 const std::string MosquittoClient::cl_get_version() const {
-    int mjr=0, mnr=0, rev=0;
-    mosqpp::lib_version(&mjr, &mnr, &rev);
-    return std::to_string(mjr) + "." + std::to_string(mnr) + "." + std::to_string(rev);
+    return std::to_string(_major) + "." + std::to_string(_minor) + "." + std::to_string(_revision);
+}
+
+const int MosquittoClient::cl_publish(const std::string& topic, const std::string& payload){
+    return publish(topic, payload, m_qos);
+}
+
+const int MosquittoClient::cl_subscribe(const std::string& topic){
+    return subscribe(topic, m_qos);
+}
+
+const int MosquittoClient::cl_unsubscribe(const std::string& topic){
+    return unsubscribe(topic);
+}
+
+//
+//TODO: mosquitto_unsubscribe_multiple
+const int MosquittoClient::cl_unsubscribe_all(){
+    return 0;
 }
 
 
-const int MosquittoClient::cl_publish(int* mid, const std::string& topic, const std::string& payload){
-    return publish(mid, topic.c_str(), payload.length(), payload.c_str(), m_qos);
-}
-const int MosquittoClient::cl_publish(int* mid, const std::string& topic, const int payloadsize, const void* payload){
-    return publish(mid, topic.c_str(), payloadsize, payload, m_qos);
-}
 
 /*
 * Callback for on connect
@@ -100,11 +135,13 @@ void MosquittoClient::on_connect(int rc){
     if(rc == MOSQ_ERR_SUCCESS){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_connect Code: " + cl_get_errname(rc) + " Set connected: true");
         set_connected(true);
-        cl_notify(mqtt_CONNECT, mqtt_ERROR_SUCCESS);
+        cl_notify(MQTT_CONNECT, MQTT_ERROR_SUCCESS);
     }
     else{
-        cl_notify(mqtt_CONNECT, (rc == MOSQ_ERR_INVAL ? mqtt_ERROR_INVAL : mqtt_ERROR_FAILED));
+        cl_notify(MQTT_CONNECT, (rc == MOSQ_ERR_INVAL ? MQTT_ERROR_INVAL : MQTT_ERROR_FAILED));
         set_connected(false);
+
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " on_connect Code: " + cl_get_errname(rc));
 
         err_conn_inc();
         if(rc != MOSQ_ERR_INVAL && !is_max_err_conn()){
@@ -112,8 +149,34 @@ void MosquittoClient::on_connect(int rc){
            reconnect_async();
         }
     }
-    return;
+
 }
+
+/*
+* Callback for on connect flags
+*/
+void MosquittoClient::on_connect_flags(int rc, int flags){
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_connect Code: " + cl_get_errname(rc) + " Flags:" + std::to_string(flags));
+
+    if(rc == MOSQ_ERR_SUCCESS){
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_connect_flags Code: " + cl_get_errname(rc) + " Set connected: true");
+        set_connected(true);
+        cl_notify(MQTT_CONNECT, MQTT_ERROR_SUCCESS);
+    }
+    else{
+        cl_notify(MQTT_CONNECT, (rc == MOSQ_ERR_INVAL ? MQTT_ERROR_INVAL : MQTT_ERROR_FAILED));
+        set_connected(false);
+
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " on_connect_flags Code: " + cl_get_errname(rc) + " Flags:" + std::to_string(flags));
+
+        err_conn_inc();
+        if(rc != MOSQ_ERR_INVAL && !is_max_err_conn()){
+           logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Trying to reconnect...");
+           reconnect_async();
+        }
+    }
+}
+
 
 /*
 * Callback for on disconnect
@@ -122,8 +185,7 @@ void MosquittoClient::on_disconnect(int rc){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_disconnect Code: " + cl_get_errname(rc));
 
     set_connected(false);
-    cl_notify(mqtt_DISCONNECT, (rc == MOSQ_ERR_SUCCESS ? mqtt_ERROR_SUCCESS : mqtt_ERROR_FAILED));
-    return;
+    cl_notify(MQTT_DISCONNECT, (rc == MOSQ_ERR_SUCCESS ? MQTT_ERROR_SUCCESS : MQTT_ERROR_FAILED));
 }
 
 /*
@@ -131,40 +193,43 @@ void MosquittoClient::on_disconnect(int rc){
 */
 void MosquittoClient::on_publish(int mid){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " on_publish MID: " + std::to_string(mid));
-    return;
 }
 
 /*
 * Callback for on subscribe
 */
 void MosquittoClient::on_subscribe(int mid, int qos_count, const int * granted_qos){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " on_subscribe MID: " + std::to_string(mid) +
-        " QOS Requested: " + std::to_string(qos_count) + " Granted: " + std::to_string(granted_qos[0]));
-    return;
+    //possible race condition here
+    std::string topic = subscription_by_mid(mid, false);
+    if(topic.length() > 0){
+        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " MID: " + std::to_string(mid) +
+            " Topic: " + topic + " QOS Requested: " + std::to_string(qos_count) + " Granted: " + std::to_string(granted_qos[0]));
+    }
 }
 
 /*
 * Callback for on unsubscribe
 */
-void MosquittoClient::on_unsubscribe(int /*mid*/){
-    return;
+void MosquittoClient::on_unsubscribe(int mid){
+    std::string topic = subscription_by_mid(mid, true);
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " MID: " + std::to_string(mid) + " Topic: " + topic);
 }
+
+/*
+*
+*/
+void MosquittoClient::on_message(const struct mosquitto_message * message) {
+    const std::string topic = message->topic;
+    std::string msg = (char*)message->payload;
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Topic: " + topic + " MID: " + std::to_string(message->mid) + " Msg [" + msg + "]");
+}
+
 
 /*
 * Callback for on logging from mosquitto library
 */
 void MosquittoClient::on_log(int level, const char * str){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Level: " + std::to_string(level) + " Msg: " + str);
-    return;
-}
-
-/*
-* Callback for on error
-*/
-void MosquittoClient::on_error(){
-    //TBD: Add error processing there
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__));
-    return;
 }
 
 } // end namespace mqtt

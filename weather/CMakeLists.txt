@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 #project name
-project(weather VERSION 0.9.0)
+project(weather VERSION 0.9.1)
 
 set(DAEMON ${PROJECT_NAME}d)
 
@@ -26,8 +26,14 @@ message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
 message( STATUS "MONGOOSE_SRC ${MONGOOSE_SRC}")
 message( STATUS "CMAKE_BIULD_TYPE is ${CMAKE_BIULD_TYPE}")
 
+add_library(libmosquitto SHARED IMPORTED)
 
-set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http pthread dl curl rt)
+#find_library(PIUTILS pi-utils)
+#message( STATUS "PIUTILS ${PIUTILS}")
+
+
+set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http mosquitto pthread dl curl rt)
+link_directories("${PROJECT_SOURCE_DIR}/../build")
 
 include_directories(BEFORE
     ${PROJECT_SOURCE_DIR}/../pi-utils
@@ -36,6 +42,7 @@ include_directories(BEFORE
     ${PROJECT_SOURCE_DIR}/../pi-smachine
     ${PROJECT_SOURCE_DIR}/../pi-mqtt
     ${PROJECT_SOURCE_DIR}/../pi-http
+    ${PROJECT_SOURCE_DIR}/../pi-data
     ${MONGOOSE_HOME}
     ${JSONCONS}
     ${SQLITE3_HOME}

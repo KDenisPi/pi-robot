@@ -36,6 +36,9 @@
 #include "sled.h"
 #include "sledctrl_spi.h"
 #include "sledctrl_pwm.h"
+#include "AnalogMeterSimple.h"
+#include "dustSensor.h"
+#include "tmp36Sensor.h"
 
 namespace pirobot {
 const char TAG[] = "PiRobot";
@@ -45,6 +48,8 @@ const char TAG[] = "PiRobot";
  */
 bool PiRobot::configure(const std::string& cfile){
     std::string conf = (cfile.empty() ? get_configuration() : cfile);
+    bool result = true;
+
     if(conf.empty()){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " No Robot configuration");
         return false;
@@ -176,8 +181,8 @@ bool PiRobot::configure(const std::string& cfile){
                         " Speed[1]: " + std::to_string(spi_config.speed[1]) + " Mode[1]: " + std::to_string(spi_config.mode[1]));
                     }
 
-                    add_gpio("SPI_CE0_N", "SIMPLE", gpio::GPIO_MODE::OUT, 10, pirobot::gpio::PULL_MODE::PULL_OFF); //SPI_CE0_N
-                    add_gpio("SPI_CE1_N", "SIMPLE", gpio::GPIO_MODE::OUT, 11, pirobot::gpio::PULL_MODE::PULL_OFF); //SPI_CE1_N
+                    add_gpio("SPI_CE0_N", "SIMPLE", gpio::GPIO_MODE::OUT, 19, pirobot::gpio::PULL_MODE::PULL_OFF); //SPI_CE0_N
+                    add_gpio("SPI_CE1_N", "SIMPLE", gpio::GPIO_MODE::OUT, 18, pirobot::gpio::PULL_MODE::PULL_OFF); //SPI_CE1_N
 
                     //Ignore name
                     providers["SPI"] = std::make_shared<pirobot::spi::SPI>("SPI", spi_config, get_gpio("SPI_CE0_N"), get_gpio("SPI_CE1_N"));
@@ -407,13 +412,22 @@ bool PiRobot::configure(const std::string& cfile){
                             auto analog_inputs =  jsonhelper::get_attr<int>(json_item, "analog_inputs", 8);
                             auto spi_channel  =  jsonhelper::get_attr<int>(json_item, "spi_channel", 0);
                             auto loop_delay  =  jsonhelper::get_attr<unsigned int>(json_item, "delay", 5);
+                            auto dev_type = jsonhelper::get_attr<std::string>(json_item, "dtype", "MCP3208");
+
+                            pirobot::mcp320x::MCP3XXX_DEVICE_TYPE anlg_device = mcp320x::MCP3XXX_DEVICE_TYPE::MCP3208;
+                            if(analog_inputs == 8){
+                                anlg_device = (dev_type=="MCP3008" ? mcp320x::MCP3XXX_DEVICE_TYPE::MCP3008 : mcp320x::MCP3XXX_DEVICE_TYPE::MCP3208);
+                            }
+                            else if(analog_inputs == 4){
+                                anlg_device = (dev_type=="MCP3004" ? mcp320x::MCP3XXX_DEVICE_TYPE::MCP3004 : mcp320x::MCP3XXX_DEVICE_TYPE::MCP3204);
+                            }
 
                             items_add(item_name, std::make_shared<pirobot::mcp320x::MCP320X>(
                                 std::static_pointer_cast<pirobot::spi::SPI>(get_provider("SPI")),
                                 get_gpio(gpio_name),
                                 item_name,
                                 item_comment,
-                                (analog_inputs == 8 ? mcp320x::MCP320X_INPUTS::MCP3208 : mcp320x::MCP320X_INPUTS::MCP3204),
+                                anlg_device,
                                 (spi_channel == 0 ? spi::SPI_CHANNELS::SPI_0 : spi::SPI_CHANNELS::SPI_1),
                                 loop_delay));
 
@@ -517,6 +531,43 @@ bool PiRobot::configure(const std::string& cfile){
                                 debug_mode,
                                 debug_buffer_size
                             ));
+                    }
+                    break;
+
+                    case item::ItemTypes::AnalogMeterSimple:
+                /*
+                * Universal simple Analod meter.
+                */
+                    {
+                        auto ad_convertor = jsonhelper::get_attr_mandatory<std::string>(json_item, "ad_convertor");
+
+                        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Item: " + item_name + " AD conv: " + ad_convertor);
+
+                        items_add(item_name, std::make_shared<pirobot::analogmeter::AnalogMeterSimple>(
+                                std::static_pointer_cast<pirobot::analogdata::AnalogDataProviderItf>(std::static_pointer_cast<pirobot::mcp320x::MCP320X>(get_item(ad_convertor))),
+                                item_name,
+                                item_comment
+                            ));
+
+                        auto ameter = std::static_pointer_cast<pirobot::analogmeter::AnalogMeterSimple>(get_item(item_name));
+
+                        auto json_pins  =  json_item["pins"];
+                        for(const auto& meter : json_pins.array_range()){
+                            auto pin  =  jsonhelper::get_attr_mandatory<int>(meter, "pin");
+                            auto ameter_type  =  jsonhelper::get_attr<std::string>(meter, "type", "simple");
+                            std::string ameter_name = ameter_type + std::to_string(pin);
+
+                            if(ameter_type == "simple"){
+                                ameter->add_receiver(pin, std::make_shared<analogdata::AnalogDataReceiverItf>(ameter_name, pin));
+                            }
+                            else if(ameter_type == "dustsensor"){
+                                std::string gpio_name = f_get_gpio_name(meter, "gpio", item_name);
+                                ameter->add_receiver(pin, std::make_shared<item::dustsensor::DustSensor>(get_gpio(gpio_name), pin, ameter_name));
+                            }
+                            else if(ameter_type == "tmp36"){
+                                ameter->add_receiver(pin, std::make_shared<item::tmp36sensor::Tmp36Sensor>(pin, ameter_name));
+                            }
+                        }
                     }
                     break;
 
@@ -702,14 +753,19 @@ bool PiRobot::configure(const std::string& cfile){
     catch(jsoncons::ser_error& perr){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid configuration " +
             perr.what() + " Line: " + std::to_string(perr.line()) + " Column: " + std::to_string(perr.column()));
+        result = false;
+    }
+    catch(std::runtime_error& exc){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + exc.what());
+        result = false;
     }
 
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot configuration is finished");
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Robot configuration is finished Result: " + std::to_string(result));
 
     //print loaded configuration
     printConfig();
 
-    return true;
+    return result;
 }
 
 /*
@@ -727,7 +783,7 @@ void PiRobot::notify_low(const pirobot::provider::PROVIDER_TYPE ptype, const std
             //It is strange
             return;
         }
-        
+
         //check all Items used this GPIO
         const std::shared_ptr<std::vector<item_name_type>> v_items = gpio_item->second;
         for(auto item_info : *(v_items)){

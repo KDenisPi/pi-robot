@@ -50,7 +50,7 @@ void GpioProviderSimple::start() {
 GpioProviderSimple::~GpioProviderSimple() {
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__));
 
-    std::cout << " GpioProviderSimple::~GpioProviderSimple" << std::endl;
+    //std::cout << " GpioProviderSimple::~GpioProviderSimple" << std::endl;
     stop();
 
     for(int i = 0; i < s_pins; i++){
@@ -80,16 +80,22 @@ const std::string GpioProviderSimple::to_string()
 */
 const int GpioProviderSimple::dgtRead(const int pin)
 {
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" from pin: ") + std::to_string(pin));
+    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" from pin: ") + std::to_string(pin));
 
     int phpin = phys_pin(pin);
     int idx = (phpin/32); // 32 GPIO by register
     const uint32_t mask = (1 << (phpin%32));
+    int result = 0;
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" ph pin: ") + std::to_string(phpin) + " Idx: " + std::to_string(idx) + " Mask: " + std::to_string(mask));
+    {
+        std::lock_guard<std::mutex> lock(_mx_gpio);
+        result = ((_gctrl->_GPLEV[idx] & mask) ? 1 : 0);
+    }
 
-    std::lock_guard<std::mutex> lock(_mx_gpio);
-    return ((_gctrl->_GPLEV[idx] & mask) ? 1 : 0);
+    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" from pin: ") + std::to_string(pin) + std::string(" ph pin: ") + std::to_string(phpin) +
+    //    " Idx: " + std::to_string(idx) + " Mask: " + std::to_string(mask) + " result: " + std::to_string(result));
+
+    return result;
 }
 
 /*
@@ -97,12 +103,12 @@ const int GpioProviderSimple::dgtRead(const int pin)
 */
 void GpioProviderSimple::dgtWrite(const int pin, const int value)
 {
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" to pin: ") + std::to_string(pin) + " value: " + std::to_string(value));
+    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" to pin: ") + std::to_string(pin) + " value: " + std::to_string(value));
     int phpin = phys_pin(pin);
     int idx = (phpin/32); // 32 GPIO by register
     const uint32_t mask = (1 << (phpin%32));
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" ph pin: ") + std::to_string(phpin) + " Idx: " + std::to_string(idx) + " Mask: " + std::to_string(mask));
+    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" ph pin: ") + std::to_string(phpin) + " Idx: " + std::to_string(idx) + " Mask: " + std::to_string(mask));
 
     std::lock_guard<std::mutex> lock(_mx_gpio);
     if(value == 0) //clear value

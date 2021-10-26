@@ -1,8 +1,9 @@
 /*
  * MCP320X.h
- * Support for MCP 3204/3208 A/D Converters with SPI Serial Interface
+ * Support for MCP 3204/3208 (12-bit) and 3004/3008 (10-bit)  A/D Converters with SPI Serial Interface
  *
  *  Created on: Sep 06, 2017
+ *  Updated for MCP300X Sep 10, 2020
  *      Author: Denis Kudia
  */
 
@@ -17,16 +18,21 @@
 namespace pirobot {
 namespace mcp320x {
 
-#define MAX_NUMBER_ANALOG_INPUTS 8
-
-enum MCP320X_INPUTS {
-    MCP3204 = 4,
-    MCP3208 = 8
+enum MCP3XXX_DEVICE_TYPE : uint8_t {
+    MCP3204 = 1,
+    MCP3004 = 2,
+    MCP3208 = 3,
+    MCP3008 = 4
 };
 
-#define Control_Start_Bit 0x04
-#define Control_SinDiff_Single 0x02
-#define Control_SinDiff_Diff 0x00
+enum MCP3XXX_Bits : uint8_t {
+    MCP32XX_Control_Start_Bit       = 0x04,
+    MCP32XX_Control_SinDiff_Single  = 0x02,
+    MCP32XX_Control_Null_Bit        = 0x10,
+    MCP30XX_Control_Start_Bit       = 0x01,
+    MCP30XX_Control_SinDiff_Single  = 0x80,
+    MCP30XX_Control_Null_Bit        = 0x04
+};
 
 class MCP320X : public item::Item, public piutils::Threaded, public analogdata::AnalogDataProviderItf {
 
@@ -40,12 +46,11 @@ public:
         const std::shared_ptr<pirobot::gpio::Gpio> gpio,
         const std::string& name,
         const std::string& comment = "",
-        MCP320X_INPUTS anlg_inputs = MCP320X_INPUTS::MCP3208,
+        MCP3XXX_DEVICE_TYPE _dev_type = MCP3XXX_DEVICE_TYPE::MCP3208,
         spi::SPI_CHANNELS channel = spi::SPI_CHANNELS::SPI_0,
         const unsigned int loop_delay = 5) :
             item::Item(gpio, name, comment, item::ItemTypes::AnlgDgtConvertor),
             m_spi(spi),
-            m_anlg_inputs((int)anlg_inputs),
             m_channel(channel)
     {
         assert(get_gpio() != NULL);
@@ -53,10 +58,16 @@ public:
         assert(spi);
         assert(!name.empty());
 
+        if((_dev_type == MCP3XXX_DEVICE_TYPE::MCP3208) || (_dev_type == MCP3XXX_DEVICE_TYPE::MCP3008))
+            m_anlg_inputs = 8;
+        else
+            m_anlg_inputs = 4;
+
+        logger::log(logger::LLOG::DEBUG, "MCP320X", std::string(__func__) + " _dev_type: " + std::to_string(_dev_type) + " Inputs: " + std::to_string(m_anlg_inputs) + " Delay: " + std::to_string(loop_delay));
+
         set_loop_delay(loop_delay);
 
-        //switch device off
-        get_gpio()->High();
+        Off(); ////switch device off
     }
 
     /*
@@ -66,13 +77,15 @@ public:
 
 	virtual const std::string printConfig() override {
         std::string result =  name() + " SPI Channel: " + std::to_string(m_channel) + " Analog Inputs: " +
-            std::to_string(m_anlg_inputs) + "\n";
-        for(int i = 0; i < m_anlg_inputs; i++){
-                result += (" channel: " + std::to_string(i) + (m_receivers[i]? " ON" : " OFF") + "\n");
+            std::to_string(inputs()) + "\n";
+        for(int i = 0; i < inputs(); i++){
+                result += (" channel: " + std::to_string(i) + (m_receivers[i] ? " ON " + m_receivers[i]->pname() : " OFF") + "\n");
         }
 
         return result;
     }
+
+    static const int Max_Analog_Inputs = 8;
 
     /*
     *
@@ -84,8 +97,7 @@ public:
     /*
     * Register data receiver
     */
-    virtual bool register_data_receiver(const int input_idx,
-        const std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> receiver) noexcept(false) override;
+    virtual bool register_data_receiver(const int input_idx, const std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> receiver) noexcept(false) override;
 
     /*
     *
@@ -119,6 +131,11 @@ public:
         return false;
     }
 
+    /**
+     *
+     */
+    const uint16_t get_value(const int pin);
+
     /*
     * Worker function
     */
@@ -138,10 +155,11 @@ public:
 private:
     std::shared_ptr<pirobot::spi::SPI> m_spi;
     int m_anlg_inputs;
+    MCP3XXX_DEVICE_TYPE _dev_type;
     pirobot::spi::SPI_CHANNELS m_channel;
 
 public:
-    std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> m_receivers[MAX_NUMBER_ANALOG_INPUTS];
+    std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf> m_receivers[Max_Analog_Inputs];
 };
 
 } //namespace mcp320x

@@ -18,22 +18,24 @@ namespace smachine {
 class StateFactory {
 public:
 	StateFactory(const std::string& firstState) : _firstState(firstState) {
-
+		logger::log(logger::LLOG::DEBUG, "StFact", std::string(__func__) + " State:" + firstState);
 	}
 
-	virtual ~StateFactory() {
+	StateFactory(){}
 
-	}
+	virtual ~StateFactory() {}
 
-	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& name, const std::shared_ptr<smachine::StateMachineItf>& itf) noexcept(false){
-		logger::log(logger::LLOG::ERROR, "StFactory", std::string(__func__) + " Generate exception no such State");
-		throw std::runtime_error("No such state");
+	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& state_name, const std::shared_ptr<smachine::StateMachineItf>& itf){
+		logger::log(logger::LLOG::DEBUG, "StFact", std::string(__func__) + " State:" + state_name);
+		return std::make_shared<smachine::state::State>(itf, state_name);
 	}
 
 	/*
 	 * Create Environment object
 	 */
-	virtual const std::shared_ptr<smachine::Environment> get_environment() = 0;
+	virtual std::shared_ptr<smachine::Environment> get_environment(){
+		return std::make_shared<smachine::Environment>();
+	}
 
 	/*
 	* Return the first state of State Machine

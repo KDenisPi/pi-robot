@@ -6,8 +6,8 @@
  */
 
 
-#ifndef mqtt_OBJECT_H
-#define mqtt_OBJECT_H
+#ifndef MQTT_OBJECT_H
+#define MQTT_OBJECT_H
 
 #include <string>
 #include <memory>
@@ -23,30 +23,14 @@ const char TAG_MQ[] = "mqttobj";
 //
 class MqttObject {
 public:
-    MqttObject(const std::string& topic, const std::string& payload) : m_payload(nullptr) {
+    MqttObject(const std::string& topic, const std::string& payload) {
+        logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " started");
 
-        logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " [1] started");
+        _payloadsize = payload.length();
+        _topic = std::move(topic);
+        _payload = std::move(payload);
 
-        m_payloadsize = payload.length();
-        m_topic = std::move(topic);
-
-        char* p = new char[m_payloadsize];
-        std::memcpy(p, payload.c_str(), m_payloadsize);
-        m_payload = std::shared_ptr<char>(p);
-
-        logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " [1] finished");
-    }
-
-    MqttObject(const std::string& topic, const int payloadsize, const void* payload) : m_payload(nullptr){
-        logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " [2] " + topic);
-
-        m_payloadsize = payloadsize;
-        m_topic = std::move(topic);
-        //m_payload = std::move(payload);
-    }
-
-    MqttObject() : m_payloadsize(0), m_payload(nullptr) {
-        logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " [3] ");
+        logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " finished");
     }
 
     virtual ~MqttObject(){
@@ -57,13 +41,9 @@ public:
     MqttObject& operator=(const MqttObject& node){
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " Copy 1");
 
-        clear();
-        m_topic = node.topic();
-        m_payloadsize = node.payloadsize();
-
-        char* p = new char[m_payloadsize];
-        std::memcpy(p, node.payload().get(), m_payloadsize);
-        m_payload = std::shared_ptr<char>(p);
+        _topic = node.topic();
+        _payloadsize = node.payloadsize();
+        _payload = node.payload();
 
         return *this;
     }
@@ -71,55 +51,52 @@ public:
     MqttObject& operator=(MqttObject&& node){
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " Copy 2");
 
-        m_topic = std::move(node.topic());
-        m_payloadsize = node.payloadsize();
-        m_payload = std::move(node.payload());
+        _topic = std::move(node.topic());
+        _payloadsize = node.payloadsize();
+        _payload = std::move(node.payload());
 
         return *this;
     }
 
     //
     const bool empty()  const{
-        return (m_payloadsize == 0);
+        return (_payloadsize==0);
     }
 
     //
     //
     //
     const std::string& topic() const{
-        return m_topic;
+        return _topic;
     }
 
     //
     //
     //
-    const std::shared_ptr<char>& payload() const{
-        return m_payload;
+    const std::string& payload() const{
+        return _payload;
     }
 
     const int payloadsize() const {
-        return m_payloadsize;
+        return _payloadsize;
     }
 
     const std::string to_string() const {
-        std::string msg = " Topic: [" + m_topic + "] Payload: [" + (m_payload ? "Data" : "Empty") + "] Size: " + std::to_string(m_payloadsize);
+        std::string msg = " Topic: [" + _topic + "] Payload: [" + (_payload.length()>0 ? "Data" : "Empty") + "] Size: " + std::to_string(_payloadsize);
         return msg;
     }
 
 private:
-    std::string m_topic;
-    std::shared_ptr<char> m_payload;
-    int m_payloadsize;
+    std::string _topic;
+    std::string _payload;
+    int _payloadsize;
 
     void clear() {
         logger::log(logger::LLOG::DEBUG, TAG_MQ, std::string(__func__) + " Clear ");
 
-        if(m_payload){
-            delete[] (char*)m_payload.get();
-            m_payload.reset();
-        }
-        m_payloadsize = 0;
-        m_topic.clear();
+        _payload.clear();
+        _payloadsize = 0;
+        _topic.clear();
     }
 };
 

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 #project name
-project(pi-robot VERSION 1.1.0)
+project(pi-robot VERSION 1.1.1)
 enable_testing()
 
 set(PI_VER ${PROJECT_VERSION})
@@ -51,9 +51,10 @@ message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
 add_library(libmosquitto SHARED IMPORTED)
-add_library(libmosquittopp SHARED IMPORTED)
+#add_library(libmosquittopp SHARED IMPORTED)
 
-set(EXTRA_LIBS ${EXTRA_LIBS} mosquitto  mosquittopp)
+#set(EXTRA_LIBS ${EXTRA_LIBS} mosquitto  mosquittopp)
+set(EXTRA_LIBS ${EXTRA_LIBS} mosquitto)
 message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)

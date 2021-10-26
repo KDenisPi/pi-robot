@@ -20,8 +20,8 @@ namespace weather {
 
 class Context : public smachine::Environment {
 public:
-    Context() : version("0.9"), ip4_address(""),
-        ip6_address(""), _CO2_level(0), _TVOC_level(0) {
+    Context() : version("0.9"), ip4_address(""), ip6_address(""), _CO2_level(0), _TVOC_level(0) {
+
     }
 
     virtual ~Context() noexcept {}
@@ -193,14 +193,79 @@ public:
         return result;
     }
 
-    // File based data storage
-    #ifdef USE_FILE_STORAGE
-        weather::data::FileStorage _fstorage;
-    #endif
+    /*
+    * Initialize file base storage
+    */
+    void init_file_storage() {
+        if(use_file_storage()){
+            _fstorage = std::make_shared<weather::data::FileStorage>();
+            std::string fline = "file,fpath\n";
+            _fstorage->prepare_data_files_list(_fstor_path, _data_path, _data_list_file, fline);
+        }
+    }
 
-    #ifdef USE_SQL_STORAGE
-        weather::data::SqlStorage _sqlstorage;
-    #endif
+    void stop_file_storage(){
+        if(use_file_storage() && _fstorage){
+            _fstorage->stop();
+        }
+    }
+
+    const bool start_file_storage(){
+        if(use_file_storage() && _fstorage){
+            return _fstorage->start(_fstor_path, _fstor_local_time);
+        }
+
+        return false;
+    }
+
+    /*
+    * Initialize MQTT based storage
+    */
+   void init_mqtt_storage() {
+       if(use_mqtt_storage()){
+           _mqttstorage = std::make_shared<weather::data::MqttStorage>("pirobot/sensors");
+       }
+   }
+
+    void stop_mqtt_storage(){
+        if(use_mqtt_storage() && _mqttstorage){
+            _mqttstorage->stop();
+        }
+    }
+
+    const bool  start_mqtt_storage(){
+        logger::log(logger::LLOG::ERROR, "Ctxt", std::string(__func__) + " use MQTT storage: " + std::to_string(use_mqtt_storage()));
+
+        if(use_mqtt_storage() && _mqttstorage){
+            return _mqttstorage->start(_mqtt_conf);
+        }
+
+        logger::log(logger::LLOG::ERROR, "Ctxt", std::string(__func__) + " No objects");
+        return false;
+    }
+
+    /*
+    * Write measument results
+    */
+    const bool write_measurement(const Measurement& meas){
+        bool result = true;
+        if(use_file_storage() && _fstorage){
+            result = _fstorage->write(meas);
+        }
+        if(use_mqtt_storage() && _mqttstorage){
+            result &= _mqttstorage->write(meas);
+        }
+
+        return result;
+    }
+
+    // File based data storage
+    std::shared_ptr<weather::data::FileStorage> _fstorage;
+    std::shared_ptr<weather::data::MqttStorage> _mqttstorage;
+
+#ifdef USE_SQL_STORAGE
+    std::shared_ptr<weather::data::SqlStorage> _sqlstorage;
+#endif
 
 private:
     LcdStrings _strs;

@@ -66,6 +66,9 @@ void StMeasurement::measure(){
         auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
         sgp30->get_results(data.spg30_co2, data.spg30_tvoc);
 
+        //update absolute humidity value
+        sgp30->set_humidity(data.si7021_abs_humidity);
+
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- BMP280");
         auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
         bmp280->get_results(data.bmp280_pressure, data.bmp280_temperature, data.bmp280_altitude);
@@ -162,13 +165,17 @@ bool StMeasurement::storage_start(){
     auto ctxt = get_env<weather::Context>();
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Local time: " + std::to_string(ctxt->_fstor_local_time));
 
-#ifdef USE_FILE_STORAGE
-    if(!ctxt->_fstorage.start(ctxt->_fstor_path, ctxt->_fstor_local_time)){
+    if(!ctxt->start_file_storage()){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not initialize file storage");
         TIMER_CREATE(TIMER_FINISH_ROBOT, 5);
         return false;
     }
-#endif
+
+    if(!ctxt->start_mqtt_storage()){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not initialize MQTT storage");
+        TIMER_CREATE(TIMER_FINISH_ROBOT, 5);
+        return false;
+    }
 
 #ifdef USE_SQL_STORAGE
     if(!ctxt->_sqlstorage.start(ctxt->_db_name)){
@@ -187,9 +194,8 @@ bool StMeasurement::storage_start(){
 bool StMeasurement::storage_stop(){
     auto ctxt = get_env<weather::Context>();
 
-#ifdef USE_FILE_STORAGE
-    ctxt->_fstorage.stop();
-#endif
+    ctxt->stop_file_storage();
+    ctxt->stop_mqtt_storage();
 
 #ifdef USE_SQL_STORAGE
     ctxt->_sqlstorage.stop();
@@ -198,16 +204,12 @@ bool StMeasurement::storage_stop(){
     return true;
 }
 
+/*
+* Write measurement result to storage(s)
+*/
 void StMeasurement::storage_write(Measurement& meas){
     auto ctxt = get_env<weather::Context>();
-
-#ifdef USE_FILE_STORAGE
-    ctxt->_fstorage.write(meas);
-#endif
-
-#ifdef USE_SQL_STORAGE
-    ctxt->_sqlstorage.write(meas);
-#endif
+    ctxt->write_measurement(meas);
 }
 
 //
@@ -265,7 +267,7 @@ bool StMeasurement::OnTimer(const int id){
             //Save result to file
 
             //
-            //TODO: Add mqtt here
+            //TODO: Add MQTT here
             //
             auto ctxt = get_env<weather::Context>();
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Write measurement");

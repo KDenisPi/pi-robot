@@ -22,7 +22,6 @@
 namespace logger {
 
 std::shared_ptr<Logger> plog;
-Logger* p_plog;
 
 /*
 std::chrono::time_point<std::chrono::system_clock> tp;
@@ -121,8 +120,7 @@ void Logger::worker(Logger* owner){
 */
 void log_init(const std::string& filename){
     if(!plog){
-        p_plog = new Logger(filename);
-        plog = std::shared_ptr<Logger>(p_plog);
+        plog = std::make_shared<Logger>(filename);
     }
 }
 
@@ -131,8 +129,7 @@ void log_init(const std::string& filename){
 */
 void log(const LLOG level, const std::string& pattern, const std::string& message){
     if(!plog){
-        p_plog = new Logger();
-        plog = std::shared_ptr<Logger>(p_plog);
+        plog = std::make_shared<Logger>();
     }
     if(!plog->is_flush()){
         plog->llog(level, pattern, message);
@@ -147,8 +144,7 @@ void release(){
 
 void set_level(const LLOG level){
   if(!plog){
-      p_plog = new Logger();
-      plog = std::shared_ptr<Logger>(p_plog);
+    plog = std::make_shared<Logger>();
   }
 
   plog->set_level(level);
@@ -156,8 +152,7 @@ void set_level(const LLOG level){
 
 void set_update_conf(){
   if(!plog){
-      p_plog = new Logger();
-      plog = std::shared_ptr<Logger>(p_plog);
+    plog = std::make_shared<Logger>();
   }
 
   plog->set_update_conf();

@@ -37,8 +37,7 @@ class Timers;
 
 class StateMachine : public StateMachineItf, public piutils::Threaded {
 public:
-    StateMachine(const std::shared_ptr<StateFactory> factory,
-        const std::shared_ptr<pirobot::PiRobot> pirobot);
+    StateMachine(const std::shared_ptr<StateFactory> factory, const std::shared_ptr<pirobot::PiRobot> pirobot);
 
     virtual ~StateMachine();
 
@@ -65,10 +64,13 @@ public:
     virtual void finish() override;
     virtual void state_change(const std::string& new_state) override;
 	virtual const std::string get_first_state() override;
-
     virtual void state_pop() override;
+
     virtual void timer_start(const int timer_id, const time_t interval, const bool interval_timer) override;
     virtual void timer_cancel(const int timer_id) override;
+
+	//check if timer is running
+	virtual bool timer_check(const int timer_id);
 
     virtual std::shared_ptr<pirobot::PiRobot> get_robot() override {return m_pirobot;}
     virtual std::shared_ptr<Environment> get_env() override {return m_env; }
@@ -101,10 +103,6 @@ public:
     void process_robot_notification(int itype, std::string& name, void* data);
 
     static void worker(StateMachine* p);
-
-    const std::shared_ptr<smachine::StateMachineItf> itf(){
-        return std::shared_ptr<smachine::StateMachineItf>(dynamic_cast<StateMachineItf*>(this));
-    }
 
 private:
     //

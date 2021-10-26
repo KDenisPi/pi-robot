@@ -83,8 +83,9 @@ bool Context::save_initial_data(const std::string& filename){
 
     std::ofstream os_file(filename);
     os_file << conf;
-
     os_file.close();
+
+    return true;
 }
 
 }

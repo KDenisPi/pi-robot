@@ -77,7 +77,7 @@ void Timers::worker(Timers* owner){
         //return (void*) 1L;
     }
 
-    timeout.tv_sec = 5;
+    timeout.tv_sec = 1;
     timeout.tv_nsec = 0;
     while(!owner->is_stop_signal()){
         /*
@@ -86,6 +86,7 @@ void Timers::worker(Timers* owner){
         int res = sigtimedwait(&new_set, &sig_info, &timeout);
         if(res < 0){
             if(errno == EINTR){
+                //std::cout <<  "----------- timer ERROR ----" << std::endl;
                 logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " thread interrupted by unknown signal");
                 break;
             }
@@ -93,12 +94,14 @@ void Timers::worker(Timers* owner){
                 /*
                  * Timeout.
                  */
+                //std::cout <<  "----------- timer TIMEOUT ----" << std::endl;
                 //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer wait timeout ");
                 continue;
             }
             else{
-                break;
+                //std::cout <<  "----------- timer ERROR 1 ---- " << errno << std::endl;
                 logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " sigtimedwait failed. Error: " + std::to_string(errno));
+                break;
             }
         }
         else{
@@ -107,11 +110,13 @@ void Timers::worker(Timers* owner){
              */
             const int id  = sig_info._sifields._timer.si_sigval.sival_int;
 
+            //std::cout <<  "----------- timer SIGNAL ----" << std::endl;
             // Remove timer from map
             owner->cancel_timer(id);
 
+            //std::cout <<  "----------- timer SIGNAL 1 ----" << std::endl;
             logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Detected signal ID: " + std::to_string(id));
-            owner->get_owner()->put_event(std::shared_ptr<Event>(new Event(EVT_TIMER, id)));
+            owner->get_owner()->put_event(std::make_shared<Event>(EVT_TIMER, id));
         }
 
     }
@@ -127,17 +132,16 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
     struct sigevent evt;
     struct itimerspec itime;
 
+    //std::cout <<  "----------- create timer start ----" << std::endl;
+
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " timer ID: " + std::to_string(timer->get_id()) +
         " Sec: " + std::to_string(timer->get_time().tv_sec) + " NSec: "+ std::to_string(timer->get_time().tv_nsec));
 
-    mutex_tm.lock();
+    std::lock_guard<std::mutex> lock(mutex_tm);
 
     auto timer_old = m_id_to_tm.find(timer->get_id());
     if(timer_old != m_id_to_tm.end()){
-        /*
-         * Timer with such ID is present already
-         */
-        mutex_tm.unlock();
+        //Timer with such ID is present already
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer is present already.");
         return true;
     }
@@ -150,8 +154,6 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
 
     if( timer_create(CLOCK_REALTIME, &evt, &tid) < 0){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " could not create timer Error: " + std::to_string(errno));
-
-        mutex_tm.unlock();
         return false;
     }
 
@@ -172,19 +174,15 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
 
     if(timer_settime(tid, 0, &itime, NULL) < 0){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " could not set timer Error: " + std::to_string(errno));
-
         timer_delete(tid);
-
-        mutex_tm.unlock();
         return false;
     }
 
-    timer->set_tid(tid);
+    timer->set_tid(tid); //save system timer ID
     m_id_to_tm.emplace(timer->get_id(), timer);
 
-    mutex_tm.unlock();
+    //std::cout <<  "----------- create timer end ----" << std::endl;
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " finished.");
     return true;
 }
 
@@ -193,30 +191,31 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
  */
 void Timers::cancel_timer(const int id){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " timer ID: " + std::to_string(id));
+    int err = 0;
 
-    mutex_tm.lock();
+    {
+        std::lock_guard<std::mutex> lock(mutex_tm);
+        auto timer = m_id_to_tm.find(id);
+        if(timer == m_id_to_tm.end()){
+            //Timer with such ID is not present
+            return;
+        }
 
-    auto timer = m_id_to_tm.find(id);
-    if(timer == m_id_to_tm.end()){
-        /*
-         * Timer with such ID is not present
-         */
-        mutex_tm.unlock();
-        return;
+        timer_t tid = timer->second->get_tid();
+        if(timer_delete(tid) < 0){
+            err == errno;
+        }
+        m_id_to_tm.erase(id);
     }
 
-    timer_t tid = timer->second->get_tid();
-    if(timer_delete(tid) < 0){
-        if(errno == EINVAL){
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " timer ID: " + std::to_string(id) + " is not present already");
+    if(err != 0){
+        if(err == EINVAL){
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " timer ID: " + std::to_string(id) + " is not present already");
         }
         else
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " could not delete timer Error: " + std::to_string(errno));
+            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " could not delete timer Error: " + std::to_string(err));
     }
 
-    m_id_to_tm.erase(id);
-
-    mutex_tm.unlock();
     return;
 }
 
@@ -226,29 +225,19 @@ void Timers::cancel_timer(const int id){
 void Timers::reset_timer(const int id){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " timer ID: " + std::to_string(id));
 
-    mutex_tm.lock();
-
+    std::lock_guard<std::mutex> lock(mutex_tm);
     auto timer = m_id_to_tm.find(id);
-    if(timer == m_id_to_tm.end()){
-        /*
-         * Timer with such ID is not present
-         */
-        mutex_tm.unlock();
-        return;
+    if(timer != m_id_to_tm.end()){
+        timer_t tid = timer->second->get_tid();
+        struct itimerspec itime;
+        if(timer_gettime(tid, &itime) == 0){
+            if(timer_settime(tid, 0, &itime, NULL) < 0)
+                logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " could not set timer Error: " + std::to_string(errno));
+        }
+        else{
+            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " could not get timer Error: " + std::to_string(errno));
+        }
     }
-
-    timer_t tid = timer->second->get_tid();
-    struct itimerspec itime;
-    if(timer_gettime(tid, &itime) == 0){
-        if(timer_settime(tid, 0, &itime, NULL) < 0)
-            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " could not set timer Error: " + std::to_string(errno));
-    }
-    else{
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " could not get timer Error: " + std::to_string(errno));
-    }
-
-    mutex_tm.unlock();
-    return;
 }
 
 

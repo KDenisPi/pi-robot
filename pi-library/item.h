@@ -39,6 +39,9 @@ enum ItemTypes{
     SLED,
     SLEDCRTLSPI,
     SLEDCRTLPWM,
+    AnalogMeterSimple,
+    DustSensor,
+    Tmp36,
     LAST_ITEM
 };
 

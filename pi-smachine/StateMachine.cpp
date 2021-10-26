@@ -27,15 +27,18 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
 {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    m_timers = std::shared_ptr<Timers>(new Timers(this));
-    m_states = std::shared_ptr<std::list<std::shared_ptr<state::State>>>(new std::list<std::shared_ptr<state::State>>);
+    m_timers = std::make_shared<Timers>(this);
+    m_states = std::make_shared<std::list<std::shared_ptr<state::State>>>();
 
     /*
     * Create project environment and load value for parameters
     */
     m_env = m_factory->get_environment();
     bool ctxt_init = m_env->configure(m_factory->get_configuration());
-    //TODO: throw exception here?
+    if(!ctxt_init){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not load environment configuration");
+		finish();
+    }
 
     //Start timers
     m_timers->start();
@@ -60,7 +63,7 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
 void StateMachine::run(){
     //Add first event
      logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-     put_event(std::shared_ptr<Event>(new Event(EVT_CHANGE_STATE, "StateInit")));
+     put_event(std::make_shared<Event>(EVT_CHANGE_STATE, "StateInit"));
 }
 
 const std::string StateMachine::get_first_state(){
@@ -126,6 +129,7 @@ StateMachine::~StateMachine() {
  */
 const std::shared_ptr<Event> StateMachine::get_event(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+
     std::lock_guard<std::mutex> lock(mutex_sm);
     std::shared_ptr<Event> event = m_events.front();
     m_events.pop();
@@ -136,15 +140,13 @@ const std::shared_ptr<Event> StateMachine::get_event(){
  *
  */
 void StateMachine::put_event(const std::shared_ptr<Event>& event, bool force){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started:" + event->name());
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Event:" + event->name() + " ID: " + std::to_string(event->id()));
 
     {
         std::lock_guard<std::mutex> lock(mutex_sm);
         if(force){
             std::queue<std::shared_ptr<Event>> events_empty;
             m_events.swap(events_empty);
-            //while(!m_events.empty())
-            //    m_events.pop();
         }
         m_events.push(std::move(event));
     }
@@ -156,8 +158,7 @@ void StateMachine::put_event(const std::shared_ptr<Event>& event, bool force){
  *
  */
 void StateMachine::finish(){
-    std::shared_ptr<Event> event(new Event(EVENT_TYPE::EVT_FINISH));
-    put_event(event);
+    put_event(std::make_shared<Event>(EVENT_TYPE::EVT_FINISH, "Finish"));
 }
 
 /*
@@ -165,8 +166,7 @@ void StateMachine::finish(){
  */
 void StateMachine::state_change(const std::string& new_state){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Generate event Change state to: " + new_state);
-    std::shared_ptr<Event> event(new EventChangeState(new_state));
-    put_event(event);
+    put_event(std::make_shared<EventChangeState>(new_state));
 }
 
 /*
@@ -174,8 +174,7 @@ void StateMachine::state_change(const std::string& new_state){
  */
 void StateMachine::state_pop(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pop State");
-    std::shared_ptr<Event> event(new Event(EVENT_TYPE::EVT_POP_STATE));
-    put_event(event);
+    put_event(std::make_shared<Event>(EVENT_TYPE::EVT_POP_STATE, "PopState"));
 }
 
 /*
@@ -183,7 +182,7 @@ void StateMachine::state_pop(){
  */
 void StateMachine::timer_start(const int timer_id, const time_t interval, const bool interval_timer){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-    this->m_timers->create_timer(std::shared_ptr<Timer>(new Timer(timer_id, interval, 0, interval_timer)));
+    this->m_timers->create_timer(std::make_shared<Timer>(timer_id, interval, 0, interval_timer));
 }
 
 /*
@@ -192,6 +191,11 @@ void StateMachine::timer_start(const int timer_id, const time_t interval, const 
 void StateMachine::timer_cancel(const int timer_id){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
     this->m_timers->cancel_timer(timer_id);
+}
+
+//check if timer is running
+bool StateMachine::timer_check(const int timer_id){
+    return m_timers->is_timer(timer_id);
 }
 
 
@@ -368,12 +372,23 @@ void StateMachine::process_pop_state(const std::shared_ptr<Event>& event){
 void StateMachine::process_change_state(const std::shared_ptr<Event>& event){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
     try{
-        std::string cname = event->name();
+        const std::string cname = event->name();
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + cname);
 
-        auto newstate = (cname == "StateInit" ?
-                std::make_shared<smachine::state::State>(this->itf(), cname): m_factory->get_state(cname, this->itf()));
         bool new_state = true;
+        auto newstate = (cname == "StateInit" ?
+            std::make_shared<smachine::state::StateInit>(std::shared_ptr<StateMachineItf>(this)) :
+            m_factory->get_state(cname, std::shared_ptr<StateMachineItf>(this)));
+/*
+        auto newstate = (cname == "StateInit" ?
+            std::make_shared<smachine::state::StateInit>(std::shared_ptr<StateMachineItf>(dynamic_cast<StateMachineItf*>(this))) :
+            m_factory->get_state(cname, std::shared_ptr<StateMachineItf>(dynamic_cast<StateMachineItf*>(this))));
+*/
+        if( !newstate ){
+            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Not supported state: " + cname);
+            return;
+        }
+
 
         for (const auto& state : *(get_states())) {
             if(state == newstate){
@@ -396,8 +411,8 @@ void StateMachine::process_change_state(const std::shared_ptr<Event>& event){
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " no such state, add : " + newstate->get_name());
             get_states()->push_front(newstate);
 
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " call OnEntry for : " + newstate->get_name());
             auto front_state = get_states()->front();
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Front state. call OnEntry for : " + front_state->get_name());
             front_state->OnEntry();
         }
 

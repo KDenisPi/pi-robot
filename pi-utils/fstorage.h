@@ -65,7 +65,8 @@ public:
         }
 
         //initilize time structure
-        piutils::get_time(_time, _local_time);
+        std::time_t time_now;
+        piutils::get_time(_time, time_now, _local_time);
 
         //check if root data folder exist
         int res = check_path(_dpath);
@@ -95,8 +96,9 @@ public:
         }
 
         //check if date changed
+        std::time_t time_now;
         std::tm curr_time;
-        piutils::get_time(curr_time, _local_time);
+        piutils::get_time(curr_time, time_now, _local_time);
 
         //if need to create a new folder
         if((curr_time.tm_year != _time.tm_year) || (curr_time.tm_mon  != _time.tm_mon)){
@@ -248,6 +250,10 @@ public:
 
     static std::list<std::string> dfiles;
 
+    const bool is_fd() const {
+        return (_fd > 0);
+    }
+
 private:
     std::string _names;
 
@@ -269,12 +275,14 @@ private:
     inline int close_file(){
         logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__));
 
-        if(_fd){
+        int res = 0;
+        if(_fd>0){
             //TODO: Add flush
-
-            close(_fd);
+            res = close(_fd);
             _fd = -1;
         }
+
+        return res;
     }
 
     //

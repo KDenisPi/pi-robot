@@ -42,8 +42,8 @@
         {"name": "led_white_r",   "provider": "SIMPLE", "pin": 2, "mode": "OUT"},
         {"name": "led_white_l",     "provider": "SIMPLE", "pin": 3, "mode": "OUT"},
 
-        {"name": "btn_1", "provider": "SIMPLE", "pin": 21, "mode": "IN"},
-        {"name": "btn_2", "provider": "SIMPLE", "pin": 22, "mode": "IN"},
+        {"name": "btn_1", "provider": "SIMPLE", "pin": 7, "mode": "IN"},
+        {"name": "btn_2", "provider": "SIMPLE", "pin": 8, "mode": "IN"},
 
         {"name": "lcd_rs",      "provider": "MCP23008_1", "pin": 1, "mode": "OUT"},
         {"name": "lcd_enable",  "provider": "MCP23008_1", "pin": 2, "mode": "OUT"},
