@@ -53,22 +53,18 @@ private:
 
         if( name == "btn_1"){
             if(duration <= 1){
-                std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
-                EVENT(event);
+                EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
             }
             else if(duration > 1 && duration <= 3){
-                std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_SHOW_IP));
-                EVENT(event);
+                EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_SHOW_IP));
             }
             else if(duration >= 4){ //for test purpose only
-                std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_ON));
-                EVENT(event);
+                EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_ON));
             }
         }
         else if(name == "btn_2"){
             if(duration >= 5){
-                std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_FINISH));
-                EVENT(event);
+                EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_FINISH));
             }
         }
     }
@@ -97,9 +93,7 @@ private:
                 ctxt->ip4_address = ip4_address;
                 ctxt->ip6_address = ip6_address;
 
-                std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_SHOW_IP));
-                EVENT(event);
-
+                EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_SHOW_IP));
                 send_email_ip_changed(ctxt->ip4_address, ctxt->ip6_address);
             }
         }

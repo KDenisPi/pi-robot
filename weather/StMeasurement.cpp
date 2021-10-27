@@ -100,14 +100,12 @@ void StMeasurement::measure(){
             auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
             if( lux_diff>0 ){ //light On - LCD ON
                 if( !lcd->is_on() ){
-                    std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
-                    EVENT(event);
+                    EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
                 }
             }
             else { //light OFF - LCD OFF
                 if( lcd->is_on() ){
-                    std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
-                    EVENT(event);
+                    EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
                 }
             }
         }
@@ -118,8 +116,7 @@ void StMeasurement::measure(){
 
             auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
             if( lcd->is_on() ){
-                std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
-                EVENT(event);
+                EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
             }
         }
 
@@ -134,14 +131,12 @@ void StMeasurement::measure(){
 
         //Level switch from Low to High
         if((co2_lvl<4 && tvoc_lvl<4) && (ctxt->get_CO2_level()==4 || ctxt->get_TVOC_level()==4)){
-            std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_ON));
-            EVENT(event);
+            EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_ON));
         }
 
         //Level switch from High to Low
         if((co2_lvl==4 || tvoc_lvl==4) && (ctxt->get_CO2_level()<4 && ctxt->get_TVOC_level()<4)){
-            std::shared_ptr<smachine::Event> event(new smachine::Event(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_OFF));
-            EVENT(event);
+            EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_OFF));
         }
 
     }

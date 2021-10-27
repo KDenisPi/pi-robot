@@ -44,7 +44,7 @@ Logger::Logger(const std::string& filename, const LLOG level) : m_flush(false), 
     log->set_level(spdlog::level::debug);
     log->set_pattern("%H:%M:%S.%e %z|%t|%L|%v");
 
-    m_buff = std::shared_ptr<log_type>(new log_type(_q_size));
+    m_buff = std::make_shared<log_type>(_q_size);
     piutils::Threaded::start<Logger>(this);
 }
 

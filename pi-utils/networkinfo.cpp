@@ -2,7 +2,7 @@
 * Receiving network interfaces information
 *
 * Created by Denis Kudia
-* 
+*
 */
 #include <cstring>
 #include <unistd.h>
@@ -48,7 +48,7 @@ void NetInfo::get_ip_list(bool is_ip4, NetInfo* net_info) {
       /*
         struct in6_addr {
                unsigned char   s6_addr[16];   // IPv6 address
-        };      
+        };
       */
       struct in6_addr *in6p;
 
@@ -123,7 +123,7 @@ void NetInfo::get_ip_list(bool is_ip4, NetInfo* net_info) {
             rtattrlen = IFA_PAYLOAD(nlmp);
 
             for (; RTA_OK(rtatp, rtattrlen); rtatp = RTA_NEXT(rtatp, rtattrlen)) {
-            
+
               /* Here we hit the fist chunk of the message. Time to validate the    *
                 * the type. For more info on the different types see man(7) rtnetlink*
                 * The table below is taken from man pages.                           *
@@ -137,8 +137,8 @@ void NetInfo::get_ip_list(bool is_ip4, NetInfo* net_info) {
                 * IFA_BROADCAST   raw protocol address   broadcast address.          *
                 * IFA_ANYCAST     raw protocol address   anycast address             *
                 * IFA_CACHEINFO   struct ifa_cacheinfo   Address information.        */
-           
-                  
+
+
               if(rtatp->rta_type == IFA_CACHEINFO){
                       cache_info = (struct ifa_cacheinfo *)RTA_DATA(rtatp);
                       if (cache_info->ifa_valid == INFINITY_LIFE_TIME){
@@ -160,32 +160,32 @@ void NetInfo::get_ip_list(bool is_ip4, NetInfo* net_info) {
               if(rtatp->rta_type == IFA_ADDRESS || rtatp->rta_type == IFA_LOCAL || rtatp->rta_type == IFA_BROADCAST || rtatp->rta_type == IFA_ANYCAST){
                   if(is_ip4)
                     inp = (struct in_addr *)RTA_DATA(rtatp);
-                  else  
+                  else
                     in6p = (struct in6_addr *)RTA_DATA(rtatp);
 
                   if(rtatp->rta_type == IFA_ADDRESS){
                     if(is_ip4)
-                      itf->add_ip_v4(std::shared_ptr<IpAddress_V4>(new IpAddress_V4(inp, "address 0")));
+                      itf->add_ip_v4(std::make_shared<IpAddress_V4>(inp, "address 0"));
                     else
-                      itf->add_ip_v6(std::shared_ptr<IpAddress_V6>(new IpAddress_V6(in6p, "address 0")));
+                      itf->add_ip_v6(std::make_shared<IpAddress_V6>(in6p, "address 0"));
                   }
                   else if(rtatp->rta_type == IFA_LOCAL){
                     if(is_ip4)
-                      itf->add_ip_v4(std::shared_ptr<IpAddress_V4>(new IpAddress_V4(inp, "address 1")));
+                      itf->add_ip_v4(std::make_shared<IpAddress_V4>(inp, "address 1"));
                     else
-                      itf->add_ip_v6(std::shared_ptr<IpAddress_V6>(new IpAddress_V6(in6p, "address 1")));
+                      itf->add_ip_v6(std::make_shared<IpAddress_V6>(in6p, "address 1"));
                   }
                   else if(rtatp->rta_type == IFA_BROADCAST){
                     if(is_ip4)
-                      itf->add_ip_v4(std::shared_ptr<IpAddress_V4>(new IpAddress_V4(inp, "Broadcast address")));
+                      itf->add_ip_v4(std::make_shared<IpAddress_V4>(inp, "Broadcast address"));
                     else
-                      itf->add_ip_v6(std::shared_ptr<IpAddress_V6>(new IpAddress_V6(in6p, "Broadcast address")));
+                      itf->add_ip_v6(std::make_shared<IpAddress_V6>(in6p, "Broadcast address"));
                   }
                   else if(rtatp->rta_type == IFA_ANYCAST){
                     if(is_ip4)
-                      itf->add_ip_v4(std::shared_ptr<IpAddress_V4>(new IpAddress_V4(inp, "Anycast address")));
+                      itf->add_ip_v4(std::make_shared<IpAddress_V4>(inp, "Anycast address"));
                     else
-                      itf->add_ip_v6(std::shared_ptr<IpAddress_V6>(new IpAddress_V6(in6p, "Anycast address")));
+                      itf->add_ip_v6(std::make_shared<IpAddress_V6>(in6p, "Anycast address"));
                   }
               }
 
