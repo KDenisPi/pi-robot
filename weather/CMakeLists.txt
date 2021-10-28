@@ -28,10 +28,6 @@ message( STATUS "CMAKE_BIULD_TYPE is ${CMAKE_BIULD_TYPE}")
 
 add_library(libmosquitto SHARED IMPORTED)
 
-#find_library(PIUTILS pi-utils)
-#message( STATUS "PIUTILS ${PIUTILS}")
-
-
 set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http mosquitto pthread dl curl rt)
 link_directories("${PROJECT_SOURCE_DIR}/../build")
 
@@ -75,7 +71,7 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto1 (>= 1.6.8), libmosquittopp1 (>= 1.6.8), libpi-robot (>=1.1.0)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto1 (>= 1.6.8), libpi-robot (>=1.1.0)")
 
 # package information
 set(CPACK_PACKAGE_VENDOR ${PROJECT_VENDOR})
@@ -104,8 +100,6 @@ install(TARGETS ${DAEMON} DESTINATION ${CMAKE_INSTALL_PREFIX})
 #snap install mosquitto
 #libmosquitto-dev/focal 1.6.9-1 amd64
 #libmosquitto1/focal 1.6.9-1 amd64
-#libmosquittopp-dev/focal 1.6.9-1 amd64
-#libmosquittopp1/focal 1.6.9-1 amd64
 #mosquitto-clients/focal 1.6.9-1 amd64
 #mosquitto-dev/focal,focal 1.6.9-1 all
 #mosquitto/focal 1.6.9-1 amd64

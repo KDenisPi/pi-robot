@@ -40,7 +40,7 @@ char mtime[30];
 *
 */
 Logger::Logger(const std::string& filename, const LLOG level) : m_flush(false), _level(level){
-    log = spdlog::daily_logger_mt("pi-robot", filename, 11, 59);
+    log = spdlog::create<spdlog::sinks::daily_file_sink_mt>("pi-robot", filename, 11, 59);
     log->set_level(spdlog::level::debug);
     log->set_pattern("%H:%M:%S.%e %z|%t|%L|%v");
 

@@ -50,10 +50,14 @@ message( STATUS "CMAKE_C_FLAGS_DEBUG is ${CMAKE_C_FLAGS_DEBUG}")
 message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
-add_library(libmosquitto SHARED IMPORTED)
-#add_library(libmosquittopp SHARED IMPORTED)
+#libspdlog-dev/focal,now 1:1.5.0-1 amd64
+#libspdlog1/focal,now 1:1.5.0-1 amd64 [installed,automatic]
 
-#set(EXTRA_LIBS ${EXTRA_LIBS} mosquitto  mosquittopp)
+#libmosquitto-dev/focal 1.6.9-1 amd64
+#libmosquitto1/focal 1.6.9-1 amd64
+
+add_library(libmosquitto SHARED IMPORTED)
+
 set(EXTRA_LIBS ${EXTRA_LIBS} mosquitto)
 message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
 
@@ -66,6 +70,10 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smachine)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-tests)
+
+#
+#Do not uncomment. Build it separately
+#
 #add_subdirectory(${PROJECT_SOURCE_DIR}/weather)
 
 
@@ -81,7 +89,7 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto1 (>= 1.6.8), libmosquittopp1 (>= 1.6.8)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto1 (>= 1.6.8), libspdlog-dev (>= 1.5.0)")
 
 # package information
 set(CPACK_PACKAGE_VENDOR ${PROJECT_VENDOR})
