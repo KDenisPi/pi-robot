@@ -9,6 +9,7 @@ set(PI_VER ${PROJECT_VERSION})
 message( STATUS "REAL_HARDWARE:  ${REAL_HARDWARE}" )
 IF(REAL_HARDWARE)
     set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../third-party")
+    add_compile_definitions(ARM_PI)
 ELSE(REAL_HARDWARE)
     set(THIRD_PARTY_HOME "$ENV{HOME}/third-party")
 ENDIF(REAL_HARDWARE)
@@ -19,6 +20,7 @@ set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
 set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
 set(MONGOOSE_SRC "${MONGOOSE_HOME}/mongoose.c")
 set(SQLITE3_HOME "${THIRD_PARTY_HOME}/sqlite-amalgamation-3240000")
+
 
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
 message( STATUS "MOSQUITTO_LIB ${MOSQUITTO_LIB}")
@@ -89,7 +91,7 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto1 (>= 1.6.8), libspdlog-dev (>= 1.5.0)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto1 (>= 1.6.8), libspdlog-dev")
 
 # package information
 set(CPACK_PACKAGE_VENDOR ${PROJECT_VENDOR})

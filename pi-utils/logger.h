@@ -13,6 +13,7 @@
 #include <fstream>
 
 #include "spdlog/spdlog.h"
+
 #include "Threaded.h"
 #include "CircularBuffer.h"
 
