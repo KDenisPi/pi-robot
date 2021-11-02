@@ -1,0 +1,22 @@
+deniskudia@DK-UBUNTU:/usr/include$ apt list --installed | grep spdlog
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+libspdlog-dev/focal,now 1:1.5.0-1 amd64 [installed]
+libspdlog1/focal,now 1:1.5.0-1 amd64 [installed,automatic]
+
+
+ git clone -b v1.9.2 https://github.com/gabime/spdlog.git spdlog
+
+modify spdloCPack.cmake
+set(CPACK_GENERATOR "DEB" CACHE STRING "Semicolon separated list of generators")
+
+
+git clone -b 1.6.x https://github.com/eclipse/mosquitto.git mosquitto
+sudo apt-get install libssl-dev
+
+add to CMakeLists.txt for lib
+include (mosquittoCPack.cmake)
+
+Copy mosquittoCPack.cmake to lib folder
+

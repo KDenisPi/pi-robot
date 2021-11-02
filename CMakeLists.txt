@@ -9,7 +9,6 @@ set(PI_VER ${PROJECT_VERSION})
 message( STATUS "REAL_HARDWARE:  ${REAL_HARDWARE}" )
 IF(REAL_HARDWARE)
     set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../third-party")
-    add_compile_definitions(ARM_PI)
 ELSE(REAL_HARDWARE)
     set(THIRD_PARTY_HOME "$ENV{HOME}/third-party")
 ENDIF(REAL_HARDWARE)
@@ -20,6 +19,7 @@ set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
 set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
 set(MONGOOSE_SRC "${MONGOOSE_HOME}/mongoose.c")
 set(SQLITE3_HOME "${THIRD_PARTY_HOME}/sqlite-amalgamation-3240000")
+set(SPDLOG "${THIRD_PARTY_HOME}/spdlog")
 
 
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
@@ -62,6 +62,10 @@ add_library(libmosquitto SHARED IMPORTED)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} mosquitto)
 message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
+
+include_directories(BEFORE
+   ${SPDLOG}/include
+)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-core)
