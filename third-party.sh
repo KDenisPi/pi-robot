@@ -25,6 +25,10 @@ fi
 #
 #Mosquitto mqtt server
 #
+#
+# git clone -b 1.6.x https://github.com/eclipse/mosquitto.git mosquitto
+#
+
 echo Moaquitto mqtt server
 if [ ! -d ./mosquitto ]
 then
@@ -36,27 +40,9 @@ then
 fi
 
 #
-# WiringPi
-#
-
-echo WiringPi
-if [ ! -d ./wiringPi ]
-then
-  #git clone git://git.drogon.net/wiringPi wiringPi
-  wget -S "https://git.drogon.net/?p=wiringPi;a=snapshot;h=8d188fa0e00bb8c6ff6eddd07bf92857e9bd533a;sf=tgz" --output-document=wiringPi-8d188fa.tar.gz
-  if [ $? -eq 0 ]; then
-    tar zxvf ./wiringPi-8d188fa.tar.gz
-    mv ./wiringPi-8d188fa ./wiringPi
-    cd ./wiringPi
-    ./build
-    cd ..
-  else
-    echo Could not get WiringPi
-  fi
-fi
-
-#
 # Logger
+#
+# git clone https://github.com/gabime/spdlog.git -b v1.x
 #
 echo SPDLOG
 apt-get install libspdlog-dev
@@ -70,6 +56,14 @@ then
   git clone https://github.com/danielaparker/jsoncons jsoncons
 fi
 
+
+#
+# Web Server
+#
+
+#
+# Use GitHub git clone -b 7.4 https://github.com/cesanta/mongoose
+#
 if [ ! -d ./mongoose-5.1 ]
 then
   wget -S "https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/mongoose/mongoose-5.1.tgz" --no-check-certificate
@@ -78,6 +72,9 @@ fi
 
 #
 # SQLite
+#
+#
+# Use GitHub git clone -b v3.8.10 https://github.com/azadkuh/sqlite-amalgamation.git sqlite-amalgamation
 #
 
 if [ ! -d ./sqlite-amalgamation-3240000 ]
