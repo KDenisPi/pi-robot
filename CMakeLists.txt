@@ -16,7 +16,7 @@ ENDIF(REAL_HARDWARE)
 message( STATUS "THIRD_PARTY_HOME: ${THIRD_PARTY_HOME}")
 
 set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
-set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose")
+set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
 set(MONGOOSE_SRC "${MONGOOSE_HOME}/mongoose.c")
 set(SQLITE3_HOME "${THIRD_PARTY_HOME}/sqlite-amalgamation")
 set(SPDLOG "${THIRD_PARTY_HOME}/spdlog")
@@ -95,7 +95,8 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto1 (>= 1.6.8), libspdlog-dev")
+#libspdlog
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto1 (>= 1.6.8)")
 
 # package information
 set(CPACK_PACKAGE_VENDOR ${PROJECT_VENDOR})
