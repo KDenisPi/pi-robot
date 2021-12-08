@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 #project name
-project(weather VERSION 0.9.1)
+project(weather VERSION 0.9.2)
 
 set(DAEMON ${PROJECT_NAME}d)
 
@@ -16,24 +16,47 @@ message( STATUS "THIRD_PARTY_HOME: ${THIRD_PARTY_HOME}")
 
 set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
 set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
-set(MONGOOSE_SRC "${MONGOOSE_HOME}/mongoose.c")
-set(SQLITE3_HOME "${THIRD_PARTY_HOME}/sqlite-amalgamation")
-set(SPDLOG "${THIRD_PARTY_HOME}/spdlog")
+#set(MONGOOSE_SRC "${MONGOOSE_HOME}/mongoose.c")
+#set(SQLITE3_HOME "${THIRD_PARTY_HOME}/sqlite-amalgamation")
+set(SPDLOG "${THIRD_PARTY_HOME}/spdlog/include")
 
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
 message( STATUS "MOSQUITTO_LIB ${MOSQUITTO_LIB}")
 message( STATUS "JSONCONS ${JSONCONS}")
 message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
-message( STATUS "MONGOOSE_SRC ${MONGOOSE_SRC}")
+#message( STATUS "MONGOOSE_SRC ${MONGOOSE_SRC}")
+message( STATUS "SPDLOG ${SPDLOG}")
 message( STATUS "CMAKE_BIULD_TYPE is ${CMAKE_BIULD_TYPE}")
 
 add_library(libmosquitto SHARED IMPORTED)
+
+#
+# C++ 11
+#
+IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message("debug mode")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -g -std=c++11 -fexceptions -Wno-psabi -Og")
+ELSE(CMAKE_BUILD_TYPE NOT STREQUAL "Debug")
+    message("release with debug info mode")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_RELWITHDEBINFO} -std=c++11 -fexceptions -Wno-psabi")
+ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+message( STATUS "CMAKE_C_FLAGS_RELWITHDEBINFO is ${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+message( STATUS "CMAKE_C_FLAGS_DEBUG is ${CMAKE_C_FLAGS_DEBUG}")
+
+message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
+message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
+
 
 set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http mosquitto pthread dl curl rt)
 link_directories("${PROJECT_SOURCE_DIR}/../build")
 
 include_directories(BEFORE
+    ${SPDLOG}
     ${PROJECT_SOURCE_DIR}/../pi-utils
+    ${PROJECT_SOURCE_DIR}/../pi-main
     ${PROJECT_SOURCE_DIR}/../pi-sql
     ${PROJECT_SOURCE_DIR}/../pi-library
     ${PROJECT_SOURCE_DIR}/../pi-smachine
@@ -89,7 +112,7 @@ set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
     set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
 ELSE(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
-    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "armhf") 
+    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "armhf")
 ENDIF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
 set(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
 set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}-${CPACK_DEBIAN_PACKAGE_ARCHITECTURE})

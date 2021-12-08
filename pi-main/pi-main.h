@@ -68,7 +68,7 @@ public:
     }
 
     const char* err_message = "Error. No configuration file.";
-    const char* help_message = "app --conf cfg_file [--mqtt-conf mqtt_cfg] [--nodaemon] [--llevel INFO|DEBUG|NECECCARY|ERROR] [--fstate FirstStateName]";
+    const char* help_message = "app --conf cfg_file [--mqtt-conf mqtt_cfg] [--nodaemon] [--llevel INFO|DEBUG|NECECCARY|ERROR] [--debug] [--fstate FirstStateName]";
 
     /*
     *
