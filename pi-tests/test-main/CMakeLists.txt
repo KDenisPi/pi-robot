@@ -12,7 +12,7 @@ enable_testing()
 
 message( STATUS "REAL_HARDWARE:  ${REAL_HARDWARE}" )
 IF(REAL_HARDWARE)
-    set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../../third-party")
+    set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../third-party")
 ELSE(REAL_HARDWARE)
     set(THIRD_PARTY_HOME "$ENV{HOME}/third-party")
 ENDIF(REAL_HARDWARE)
