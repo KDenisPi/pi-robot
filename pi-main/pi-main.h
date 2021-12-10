@@ -68,7 +68,7 @@ public:
     }
 
     const char* err_message = "Error. No configuration file.";
-    const char* help_message = "app --conf cfg_file [--mqtt-conf mqtt_cfg] [--nodaemon] [--llevel INFO|DEBUG|NECECCARY|ERROR] [--fstate FirstStateName]";
+    const char* help_message = "app --conf cfg_file [--mqtt-conf mqtt_cfg] [--nodaemon] [--llevel INFO|DEBUG|NECECCARY|ERROR] [--debug] [--fstate FirstStateName]";
 
     /*
     *
@@ -214,7 +214,7 @@ public:
            _web = std::shared_ptr<W>();
    }
 
-   const std::shared_ptr<http::web::WebSettings> web(){
+   const std::shared_ptr<http::web::WebSettingsItf> web(){
        return _web;
    }
 
@@ -321,7 +321,7 @@ private:
     * Initialize objects and wait
     */
    void initilize_and_run(){
-        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Create child");
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Create child. LLEVEL: " + std::to_string(_llevel));
         logger::set_level(_llevel);
         /*
         * Create PI Robot instance
@@ -344,10 +344,12 @@ private:
         /*
         * Web interface for settings and status
         */
-        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Created Web interface");
-        create_web(web_port, _stm);
-        if(use_http() && web()){
-            web()->http::web::WebSettings::start();
+        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Created Web interface. Use HTTP: " + std::to_string(use_http()));
+        if(use_http()){
+            create_web(web_port, _stm);
+            if(web()){
+                web()->http::web::WebSettingsItf::start();
+            }
         }
    }
 
@@ -455,7 +457,7 @@ private:
 
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "State machine finished");
         if(_web)
-            _web->http::web::WebSettings::stop();
+            _web->http::web::WebSettingsItf::stop();
 
         sleep(2);
         _stm.reset();
@@ -538,7 +540,7 @@ private:
 protected:
     std::shared_ptr<pirobot::PiRobot> _pirobot;
     std::shared_ptr<smachine::StateFactory> _factory;
-    std::shared_ptr<http::web::WebSettings> _web;
+    std::shared_ptr<http::web::WebSettingsItf> _web;
 };
 
 template<class F, class W>
