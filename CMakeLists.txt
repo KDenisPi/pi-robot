@@ -93,10 +93,10 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
 # Generator name - Debian packages
 set(CPACK_GENERATOR "DEB")
-set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_NAME lib${PROJECT_NAME})
 
 #libspdlog
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto1 (>= 1.6.8)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto (>= 1.6.8)")
 
 # package information
 set(CPACK_PACKAGE_VENDOR ${PROJECT_VENDOR})
