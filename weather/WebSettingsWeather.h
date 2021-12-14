@@ -32,8 +32,9 @@ public:
     /*
     *
     */
-   virtual void initialize() override {
+   virtual bool initialize() override {
         logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__));
+        return true;
    }
 
 
