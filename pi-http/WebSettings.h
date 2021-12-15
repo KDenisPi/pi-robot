@@ -19,6 +19,17 @@
 namespace http {
 namespace web {
 
+class WebSettingsItf {
+public:
+    WebSettingsItf() {}
+    virtual ~WebSettingsItf() {}
+
+    virtual bool initialize() {return true;}
+    virtual void start() {}
+    virtual void stop() {}
+};
+
+
 const char* mime_html = "text/html; charset=utf-8";
 const char* mime_js = "application/javascript; charset=utf-8";
 const char* mime_plain = "text/plain; charset=utf-8";
@@ -26,7 +37,7 @@ const char* mime_css = "text/css; charset=utf-8";
 const char* mime_json = "application/json; charset=utf-8";
 const char* mime_csv = "text/csv; charset=utf-8";
 
-class WebSettings : public piutils::Threaded {
+class WebSettings : public piutils::Threaded, public WebSettingsItf {
 
 public:
     WebSettings(const uint16_t port, std::shared_ptr<smachine::StateMachineItf> itf) : _itf(itf) {
@@ -44,7 +55,7 @@ public:
     /*
     *
     */
-   virtual void initialize(){
+   virtual bool initialize() override {
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__));
         _server = mg_create_server(this);
    }
@@ -59,8 +70,12 @@ public:
     /*
     *
     */
-    void start(){
+    virtual void start() override{
         piutils::Threaded::start<http::web::WebSettings>(this);
+    }
+
+    virtual void stop() override {
+        piutils::Threaded::stop();
     }
 
     /*

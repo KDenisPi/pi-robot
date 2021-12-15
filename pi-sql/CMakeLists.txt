@@ -11,8 +11,8 @@ include_directories(BEFORE
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_SQL_SOURCES)
 aux_source_directory(${SQLITE3_HOME} SQLITE_SOURCES)
 
-add_library(pi-sql SHARED ${PI_UTILS_SOURCES} ${SQLITE_SOURCES})
-add_library(pi-sql-dev STATIC ${PI_UTILS_SOURCES} ${SQLITE_SOURCES})
+add_library(pi-sql SHARED ${PI_SQL_SOURCES} ${SQLITE_SOURCES})
+add_library(pi-sql-dev STATIC ${PI_SQL_SOURCES} ${SQLITE_SOURCES})
 
 add_library(PiRobot::pi-sql ALIAS pi-sql)
 add_library(PiRobotStatic::pi-sql-dev ALIAS pi-sql-dev)

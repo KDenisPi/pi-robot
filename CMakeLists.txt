@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 #project name
-project(pi-robot VERSION 1.1.1)
+project(pi-robot VERSION 1.1.2)
 enable_testing()
 
 set(PI_VER ${PROJECT_VERSION})
@@ -19,7 +19,7 @@ set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
 set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
 set(MONGOOSE_SRC "${MONGOOSE_HOME}/mongoose.c")
 set(SQLITE3_HOME "${THIRD_PARTY_HOME}/sqlite-amalgamation")
-set(SPDLOG "${THIRD_PARTY_HOME}/spdlog")
+set(SPDLOG "${THIRD_PARTY_HOME}/spdlog/include")
 
 
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
@@ -64,7 +64,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS} mosquitto)
 message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
 
 include_directories(BEFORE
-   ${SPDLOG}/include
+   ${SPDLOG}
 )
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
@@ -93,10 +93,10 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
 # Generator name - Debian packages
 set(CPACK_GENERATOR "DEB")
-set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_NAME lib${PROJECT_NAME})
 
 #libspdlog
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto1 (>= 1.6.8)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto (>= 1.6.8)")
 
 # package information
 set(CPACK_PACKAGE_VENDOR ${PROJECT_VENDOR})
@@ -115,7 +115,7 @@ message( STATUS "CMAKE_SYSTEM_PROCESSOR:  ${CMAKE_SYSTEM_PROCESSOR}" )
 IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
     set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
 ELSE(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
-    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "armhf") 
+    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "armhf")
 ENDIF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
 
 set(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
