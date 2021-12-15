@@ -276,11 +276,11 @@ private:
             _exit(EXIT_FAILURE);
 
         case 0: //child
-            //Initialize and run
-            initilize_and_run();
-
             //Initilize signal handlers
             initialize_signal_handlers();
+
+            //Initialize and run
+            initilize_and_run();
 
             logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
             _stm->wait();
@@ -298,11 +298,11 @@ private:
    }
 
     void run_single() {
-        //Initialize and run
-        initilize_and_run();
-
         //Initilize signal handlers
         initialize_signal_handlers();
+
+        //Initialize and run
+        initilize_and_run();
 
         _stmPid = getpid();
 
