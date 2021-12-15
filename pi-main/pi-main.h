@@ -51,6 +51,7 @@ public:
             logger::set_update_conf();
         }
         else if (sign == SIGUSR1){// Start state machine
+            std::cout <<  "Detected signal. Run service " << sign  << std::endl;
             _stm->run();
         }
     }
@@ -242,9 +243,6 @@ private:
             //initialize daemon configuration
             daemon_initialization();
 
-            //Initilize signal handlers
-            initialize_signal_handlers();
-
             //Initialize and run
             initilize_and_run();
 
@@ -260,7 +258,7 @@ private:
              break;
 
         default: //parent
-            sleep(2);
+            sleep(5);
             //send command to start
             kill(_stmPid, SIGUSR1);
         }
@@ -276,11 +274,11 @@ private:
             _exit(EXIT_FAILURE);
 
         case 0: //child
-            //Initilize signal handlers
-            initialize_signal_handlers();
-
             //Initialize and run
             initilize_and_run();
+
+            //Initilize signal handlers
+            initialize_signal_handlers();
 
             logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
             _stm->wait();
@@ -291,22 +289,22 @@ private:
              break;
 
         default: //parent
-            sleep(2);
+            sleep(5);
             //send command to start
             kill(_stmPid, SIGUSR1);
         }
    }
 
     void run_single() {
-        //Initilize signal handlers
-        initialize_signal_handlers();
-
         //Initialize and run
         initilize_and_run();
 
+        //Initilize signal handlers
+        initialize_signal_handlers();
+
         _stmPid = getpid();
 
-        sleep(2); //start State Machine
+        sleep(5); //start State Machine
         //_stm->run();
         //send command to start
         kill(_stmPid, SIGUSR1);
