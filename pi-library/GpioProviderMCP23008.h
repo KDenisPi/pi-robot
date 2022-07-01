@@ -14,6 +14,21 @@
 namespace pirobot {
 namespace gpio {
 
+enum MCP2308 : uint8_t {
+    IODIR       = 0x00,
+    IPOL        = 0x01,
+    GPINTEN     = 0x02,
+    DEFVAL      = 0x03,
+    INTCON      = 0x04,
+    IOCON       = 0x05,
+    GPPU        = 0x06,
+    INTF        = 0x07,
+    INTCAP      = 0x08, // (Read-only)
+    GPIO        = 0x09,
+    OLAT        = 0x0A
+};
+
+
 //
 //Class for MCP23008 (I2C GPIO extender with 8 pins)
 //
@@ -25,10 +40,10 @@ public:
         //
         // Confifure device and set initial values
         //
-        _i2c->I2CWriteReg8(m_fd, MCP23x08_IOCON, 0x3A);
-        _i2c->I2CWriteReg8(m_fd, MCP23x08_IODIR, 0x00);
+        _i2c->I2CWriteReg8(m_fd, MCP2308::IOCON, IOCON::INTPOL | IOCON::HAEN | IOCON::DISSLW | IOCON::SEQOP); //0x3A
+        _i2c->I2CWriteReg8(m_fd, MCP2308::IODIR, 0x00);
 
-        m_OLAT = _i2c->I2CReadReg8 (m_fd, MCP23x08_GPIO);
+        m_OLAT = _i2c->I2CReadReg8 (m_fd, MCP2308::GPIO);
 
         logger::log(logger::LLOG::DEBUG, "MCP23008", std::string(__func__) + " Descr: " + std::to_string(m_fd) + " ---> OLAT: " + std::to_string(m_OLAT));
     }
@@ -55,22 +70,22 @@ public:
 private:
     //Get address for GPIO register
     virtual const uint8_t get_GPIO_addr(const int pin = -1){
-        return MCP23x08_GPIO;
+        return MCP2308::GPIO;
     }
 
     //Get address IODIR (IO direction) register
     virtual const uint8_t get_IODIR_addr(const int pin = -1){
-        return MCP23x08_IODIR;
+        return MCP2308::IODIR;
     }
 
     //Get address GPPU (Pull-Up) register
     virtual const uint8_t get_GPPU_addr(const int pin = -1){
-        return MCP23x08_GPPU;
+        return MCP2308::GPPU;
     }
 
     //Get current value for register data
     virtual unsigned int get_OLAT(const int pin){
-        m_OLAT = _i2c->I2CReadReg8 (m_fd, MCP23x08_GPIO);
+        m_OLAT = _i2c->I2CReadReg8 (m_fd, MCP2308::GPIO);
         return m_OLAT;
     }
     //Save current value register data

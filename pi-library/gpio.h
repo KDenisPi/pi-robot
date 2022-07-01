@@ -86,6 +86,8 @@ class Gpio
         }
 
         logger::log(logger::LLOG::DEBUG, "GPIO", std::string(__func__) + " edge/level: " + std::to_string((int)_edge_level) + " result: " +  std::to_string(ret));
+
+        return ret;
     }
 
     //Return low level GPIO name created on base provider name and PIN

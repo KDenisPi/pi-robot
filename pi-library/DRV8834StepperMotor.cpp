@@ -175,6 +175,8 @@ bool DRV8834_StepperMotor::initialize(){
 	set_step_size(m_step_size);
 	set_sleep(m_sleep);
 	set_enable(m_enable);
+
+	return true;
 }
 
 /*

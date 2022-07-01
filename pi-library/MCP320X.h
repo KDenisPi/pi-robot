@@ -144,8 +144,8 @@ public:
     /*
     * Read data from device over SPI bus
     */
-    inline int data_rw(unsigned char* data, int len){
-        m_spi->data_rw(data, len);
+    inline bool data_rw(unsigned char* data, int len){
+        return m_spi->data_rw(data, len);
     }
 
     const int inputs() const {return m_anlg_inputs;}

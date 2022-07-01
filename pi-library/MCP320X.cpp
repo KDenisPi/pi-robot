@@ -122,7 +122,7 @@ const uint16_t MCP320X::get_value(const int pin){
             buff[2] = 0x00;
 
             //request data from device
-            int res = data_rw(buff, 3);
+            bool res = data_rw(buff, 3);
 
             // Valide Null-bit Just in case
             if((buff[1] & MCP32XX_Control_Null_Bit) != 0){
@@ -143,7 +143,7 @@ const uint16_t MCP320X::get_value(const int pin){
             buff[2] = 0x00;
 
             //request data from device
-            int res = data_rw(buff, 3);
+            bool res = data_rw(buff, 3);
 
             // Valide Null-bit Just in case
             if((buff[1] & MCP30XX_Control_Null_Bit) != 0){

@@ -58,6 +58,7 @@ public:
    virtual bool initialize() override {
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__));
         _server = mg_create_server(this);
+        return true;
    }
 
     /*

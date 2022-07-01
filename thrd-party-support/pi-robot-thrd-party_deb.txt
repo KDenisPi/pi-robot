@@ -20,3 +20,4 @@ include (mosquittoCPack.cmake)
 
 Copy mosquittoCPack.cmake to lib folder
 
+cpack -C CPackConfig.cmake

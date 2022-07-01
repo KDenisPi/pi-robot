@@ -296,14 +296,14 @@ public:
     * Read data from device over SPI bus
     */
     bool data_rw(unsigned char* data, int len){
+        int ret = 0;
         if(m_real_world){
-            //int ret = wiringPiSPIDataRW(m_channel, data, len);
-            int ret = data_read_write(m_channel, data, len);
+            ret = data_read_write(m_channel, data, len);
         }
         else{
-            data_rw_emulate(m_channel, data, len);
+            ret = data_rw_emulate(m_channel, data, len);
         }
-        return true;
+        return (ret>=0);
     }
 
     virtual const std::string printConfig() override{
@@ -335,7 +335,7 @@ private:
     *
     */
     unsigned short m_test_value = 0;
-    void data_rw_emulate(const SPI_CHANNELS channel, unsigned char* data, int len){
+    int data_rw_emulate(const SPI_CHANNELS channel, unsigned char* data, int len){
         /*
         *Emulate some data from hardware level
         */
@@ -353,6 +353,7 @@ private:
             if(m_test_value>= 4096)
                 m_test_value = 0;
         }
+        return 0;
     }
 };
 

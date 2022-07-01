@@ -25,11 +25,11 @@ public:
     }
 
     virtual bool OnTimer(const int id) override {
-
+        return true;
     }
 
     virtual bool OnEvent(const std::shared_ptr<smachine::Event> event) override {
-
+        return true;
     }
 
     virtual void OnSubstateExit(const std::string substate_name) override {

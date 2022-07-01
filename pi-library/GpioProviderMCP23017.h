@@ -25,14 +25,14 @@ public:
         //
         // Confifure device and set initial values
         //
-        _i2c->I2CWriteReg8(m_fd, MCP23x17_IOCON, 0x3A);
-        _i2c->I2CWriteReg8(m_fd, MCP23x17_IOCONB, 0x3A);
+        _i2c->I2CWriteReg8(m_fd, MCP23X17_B0::IOCONA, IOCON::INTPOL | IOCON::HAEN | IOCON::DISSLW | IOCON::SEQOP); //0x3A
+        _i2c->I2CWriteReg8(m_fd, MCP23X17_B0::IOCONB, IOCON::INTPOL | IOCON::HAEN | IOCON::DISSLW | IOCON::SEQOP); //0x3A);
 
-        _i2c->I2CWriteReg8(m_fd, MCP23x17_IODIRA, 0x00);
-        _i2c->I2CWriteReg8(m_fd, MCP23x17_IODIRB, 0x00);
+        _i2c->I2CWriteReg8(m_fd, MCP23X17_B0::IODIRA, 0x00);
+        _i2c->I2CWriteReg8(m_fd, MCP23X17_B0::IODIRB, 0x00);
 
-        m_OLATA = _i2c->I2CReadReg8 (m_fd, MCP23x17_GPIOA);
-        m_OLATB = _i2c->I2CReadReg8 (m_fd, MCP23x17_GPIOB);
+        m_OLATA = _i2c->I2CReadReg8 (m_fd, MCP23X17_B0::GPIOA);
+        m_OLATB = _i2c->I2CReadReg8 (m_fd, MCP23X17_B0::GPIOB);
 
         logger::log(logger::LLOG::DEBUG, "MCP23017", std::string(__func__) + " Descr: " + std::to_string(m_fd)+ " ---> OLATA: " + std::to_string(m_OLATA)+ " ---> OLATB: " + std::to_string(m_OLATB));
     }
@@ -60,17 +60,17 @@ public:
 private:
     //Get address for GPIO register
     virtual const uint8_t get_GPIO_addr(const int pin){
-        return (pin < 8 ? MCP23x17_GPIOA : MCP23x17_GPIOB);
+        return (pin < 8 ? MCP23X17_B0::GPIOA : MCP23X17_B0::GPIOB);
     }
 
     //Get address IODIR (IO direction) register
     virtual const uint8_t get_IODIR_addr(const int pin){
-        return (pin < 8 ? MCP23x17_IODIRA : MCP23x17_IODIRB);
+        return (pin < 8 ? MCP23X17_B0::IODIRA : MCP23X17_B0::IODIRB);
     }
 
     //Get address GPPU (Pull-Up) register
     virtual const uint8_t get_GPPU_addr(const int pin){
-        return (pin < 8 ? MCP23x17_GPPUA : MCP23x17_GPPUB);
+        return (pin < 8 ? MCP23X17_B0::GPPUA : MCP23X17_B0::GPPUB);
     }
 
     //Get current value for register data

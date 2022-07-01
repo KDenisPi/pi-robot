@@ -204,6 +204,8 @@ bool DRV8825_StepperMotor::initialize(){
 	set_reset(m_reset);
 	set_sleep(m_sleep);
 	set_enable(m_enable);
+
+	return true;
 }
 
 /*

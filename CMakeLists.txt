@@ -18,12 +18,12 @@ message( STATUS "THIRD_PARTY_HOME: ${THIRD_PARTY_HOME}")
 set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
 set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
 set(MONGOOSE_SRC "${MONGOOSE_HOME}/mongoose.c")
-set(SQLITE3_HOME "${THIRD_PARTY_HOME}/sqlite-amalgamation")
-set(SPDLOG "${THIRD_PARTY_HOME}/spdlog/include")
+set(SQLITE3_HOME "${THIRD_PARTY_HOME}/sqlite-amalgamation-3240000")
+#set(SPDLOG "${THIRD_PARTY_HOME}/spdlog/include")
 
 
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
-message( STATUS "MOSQUITTO_LIB ${MOSQUITTO_LIB}")
+#message( STATUS "MOSQUITTO_LIB ${MOSQUITTO_LIB}")
 message( STATUS "JSONCONS ${JSONCONS}")
 message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
 message( STATUS "MONGOOSE_SRC ${MONGOOSE_SRC}")
@@ -63,9 +63,9 @@ add_library(libmosquitto SHARED IMPORTED)
 set(EXTRA_LIBS ${EXTRA_LIBS} mosquitto)
 message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
 
-include_directories(BEFORE
-   ${SPDLOG}
-)
+#include_directories(BEFORE
+#   ${SPDLOG}
+#)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-core)
