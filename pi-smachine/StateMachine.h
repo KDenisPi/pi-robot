@@ -66,8 +66,8 @@ public:
 	virtual const std::string get_first_state() override;
     virtual void state_pop() override;
 
-    virtual void timer_start(const int timer_id, const time_t interval, const bool interval_timer) override;
-    virtual void timer_cancel(const int timer_id) override;
+    virtual bool timer_start(const int timer_id, const time_t interval, const bool interval_timer) override;
+    virtual bool timer_cancel(const int timer_id) override;
 
 	//check if timer is running
 	virtual bool timer_check(const int timer_id);

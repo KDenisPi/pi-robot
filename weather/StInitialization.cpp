@@ -24,7 +24,7 @@ void StInitialization::OnEntry(){
     ctxt->init_file_storage();
     ctxt->init_mqtt_storage();
 
-    CHANGE_STATE("StInitializeLcd");
+    state_change("StInitializeLcd");
 }
 
 bool StInitialization::OnTimer(const int id){
@@ -33,7 +33,7 @@ bool StInitialization::OnTimer(const int id){
     switch(id){
         case TIMER_FINISH_ROBOT:
         {
-            get_itf()->finish();
+            finish();
             return true;
         }
         break;
@@ -44,7 +44,7 @@ bool StInitialization::OnTimer(const int id){
             detect_ip_address();
 
             auto ctxt = get_env<weather::Context>();
-            TIMER_CREATE(TIMER_IP_CHECK_INTERVAL, ctxt->ip_check_interval);
+            timer_create(TIMER_IP_CHECK_INTERVAL, ctxt->ip_check_interval);
         }
         break;
     }
@@ -112,7 +112,7 @@ void StInitialization::OnSubstateExit(const std::string substate_name) {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started SubState: " + substate_name);
 
     if(substate_name == "StInitializeSensors"){
-        CHANGE_STATE("StMeasurement");
+        state_change("StMeasurement");
     }
     else if(substate_name == "StInitializeLcd"){
 
@@ -120,9 +120,9 @@ void StInitialization::OnSubstateExit(const std::string substate_name) {
         detect_ip_address();
 
         auto ctxt = get_env<weather::Context>();
-        TIMER_CREATE(TIMER_IP_CHECK_INTERVAL, ctxt->ip_check_interval);
+        timer_create(TIMER_IP_CHECK_INTERVAL, ctxt->ip_check_interval);
 
-        CHANGE_STATE("StInitializeSensors");
+        state_change("StInitializeSensors");
     }
 }
 

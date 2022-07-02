@@ -10,14 +10,13 @@
 namespace smachine {
 namespace state {
 
-State::State(const std::shared_ptr<StateMachineItf>& itf, const std::string& name) :
-		m_itf(itf), m_name(name)
+State::State(StateMachineItf* itf, const std::string& name) : m_name(name), m_itf(itf)
 {
-
+	std::cout <<  "State " << " " << m_name  << std::endl;
 }
 
 State::~State(){
-
+	std::cout <<  "~State " << m_name << std::endl;
 }
 
 } /* namespace state */

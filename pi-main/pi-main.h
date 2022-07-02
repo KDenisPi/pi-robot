@@ -169,6 +169,8 @@ public:
                 _debug_mode = true;
             }
         }
+
+        validate_configuration();
     }
 
     /*
@@ -463,7 +465,7 @@ private:
         _pirobot.reset();
 
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Child finished");
-        logger::release();
+        //logger::release();
     }
 
     /*

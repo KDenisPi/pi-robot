@@ -30,8 +30,8 @@ public:
      *
      */
     virtual bool create_timer(const std::shared_ptr<Timer> timer) override;
-    virtual void cancel_timer(const int id) override;
-    virtual void reset_timer(const int id) override;
+    virtual bool cancel_timer(const int id) override;
+    virtual bool reset_timer(const int id) override;
 
     /*
     *

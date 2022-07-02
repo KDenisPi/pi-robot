@@ -48,7 +48,7 @@ void StInitializeSensors::OnEntry(){
     sgp30->set_baseline(ctxt->data.spg30_base_co2, ctxt->data.spg30_base_tvoc);
     sgp30->start();
 
-   TIMER_CREATE(TIMER_WARM_INTERVAL, 15) //wait for 15 seconds before real use
+   timer_create(TIMER_WARM_INTERVAL, 15) //wait for 15 seconds before real use
 }
 
 bool StInitializeSensors::OnTimer(const int id){
@@ -57,8 +57,8 @@ bool StInitializeSensors::OnTimer(const int id){
     switch(id){
         case TIMER_FINISH_ROBOT:
         {
-            TIMER_CANCEL(TIMER_WARM_INTERVAL);
-            get_itf()->finish();
+            timer_cancel(TIMER_WARM_INTERVAL);
+            finish();
             return true;
         }
         //switch to main state
@@ -74,7 +74,7 @@ bool StInitializeSensors::OnTimer(const int id){
             led_white_l->Off();
             led_red->Off();
 
-            POP_STATE();
+            state_pop();
             return true;
         }
     }

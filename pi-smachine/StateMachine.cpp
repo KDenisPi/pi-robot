@@ -146,7 +146,7 @@ void StateMachine::put_event(const std::shared_ptr<Event>& event, bool force){
 
     {
         std::lock_guard<std::mutex> lock(mutex_sm);
-        std::cout <<  "put_event lock" << event->name() << std::endl;
+        std::cout <<  "put_event lock " << event->name() << std::endl;
         if(force){
             std::queue<std::shared_ptr<Event>> events_empty;
             m_events.swap(events_empty);
@@ -154,7 +154,7 @@ void StateMachine::put_event(const std::shared_ptr<Event>& event, bool force){
         m_events.push(std::move(event));
     }
 
-    std::cout <<  "put_event notify" << event->name() << std::endl;
+    std::cout <<  "put_event notify " << event->name() << std::endl;
     cv.notify_one();
 }
 
@@ -184,17 +184,17 @@ void StateMachine::state_pop(){
 /*
  *
  */
-void StateMachine::timer_start(const int timer_id, const time_t interval, const bool interval_timer){
+bool StateMachine::timer_start(const int timer_id, const time_t interval, const bool interval_timer){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-    this->m_timers->create_timer(std::make_shared<Timer>(timer_id, interval, 0, interval_timer));
+    return this->m_timers->create_timer(std::make_shared<Timer>(timer_id, interval, 0, interval_timer));
 }
 
 /*
  *
  */
-void StateMachine::timer_cancel(const int timer_id){
+bool StateMachine::timer_cancel(const int timer_id){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-    this->m_timers->cancel_timer(timer_id);
+    return this->m_timers->cancel_timer(timer_id);
 }
 
 //check if timer is running
@@ -308,8 +308,7 @@ bool StateMachine::process_timer_event(const std::shared_ptr<Event>& event){
     for (const auto& state : *(get_states())) {
         bool processed = state->OnTimer(event->id());
         if(processed){
-            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " timer ID: " + event->id_str() +
-                    " was processed by " + state->get_name());
+            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " timer ID: " + event->id_str() + " was processed by " + state->get_name());
             return processed;
         }
     }
@@ -326,8 +325,7 @@ bool StateMachine::process_event(const std::shared_ptr<Event>& event){
         for (const auto& state : *(get_states())) {
                 bool processed = state->OnEvent(event);
                 if(processed){
-                        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Event: " + event->name() +
-                                        " was processed by " + state->get_name());
+                        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Event: " + event->name() + " was processed by " + state->get_name());
                         return processed;
                 }
         }
@@ -380,9 +378,7 @@ void StateMachine::process_change_state(const std::shared_ptr<Event>& event){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + cname);
 
         bool new_state = true;
-        auto newstate = (cname == "StateInit" ?
-            std::make_shared<smachine::state::StateInit>(std::shared_ptr<StateMachineItf>(this)) :
-            m_factory->get_state(cname, std::shared_ptr<StateMachineItf>(this)));
+        auto newstate = (cname == "StateInit") ? std::make_shared<smachine::state::StateInit>(dynamic_cast<StateMachineItf*>(this)) : m_factory->get_state(cname, dynamic_cast<StateMachineItf*>(this));
 /*
         auto newstate = (cname == "StateInit" ?
             std::make_shared<smachine::state::StateInit>(std::shared_ptr<StateMachineItf>(dynamic_cast<StateMachineItf*>(this))) :

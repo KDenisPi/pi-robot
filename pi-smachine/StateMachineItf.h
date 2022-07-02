@@ -34,9 +34,9 @@ public:
 	//
 	virtual void state_pop() = 0;
 	// create timer
-	virtual void timer_start(const int timer_id, const time_t interval, const bool interval_timer = false) = 0;
+	virtual bool timer_start(const int timer_id, const time_t interval, const bool interval_timer = false) = 0;
 	// delete timer
-	virtual void timer_cancel(const int timer_id) = 0;
+	virtual bool timer_cancel(const int timer_id) = 0;
 	//check if timer is running
 	virtual bool timer_check(const int timer_id) = 0;
 

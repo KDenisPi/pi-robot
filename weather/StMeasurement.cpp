@@ -53,7 +53,7 @@ void StMeasurement::measure(){
 
         headlights(true);
 
-        TIMER_CREATE(TIMER_MEASURE_LIGHT_INTERVAL, ctxt->measure_light_interval) //measurement interval
+        timer_create(TIMER_MEASURE_LIGHT_INTERVAL, ctxt->measure_light_interval) //measurement interval
 
         Measurement data;
 
@@ -100,12 +100,12 @@ void StMeasurement::measure(){
             auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
             if( lux_diff>0 ){ //light On - LCD ON
                 if( !lcd->is_on() ){
-                    EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
+                    event_add(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
                 }
             }
             else { //light OFF - LCD OFF
                 if( lcd->is_on() ){
-                    EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
+                    event_add(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
                 }
             }
         }
@@ -116,7 +116,7 @@ void StMeasurement::measure(){
 
             auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
             if( lcd->is_on() ){
-                EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
+                event_add(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
             }
         }
 
@@ -131,12 +131,12 @@ void StMeasurement::measure(){
 
         //Level switch from Low to High
         if((co2_lvl<4 && tvoc_lvl<4) && (ctxt->get_CO2_level()==4 || ctxt->get_TVOC_level()==4)){
-            EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_ON));
+            event_add(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_ON));
         }
 
         //Level switch from High to Low
         if((co2_lvl==4 || tvoc_lvl==4) && (ctxt->get_CO2_level()<4 && ctxt->get_TVOC_level()<4)){
-            EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_OFF));
+            event_add(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_OFF));
         }
 
     }
@@ -162,20 +162,20 @@ bool StMeasurement::storage_start(){
 
     if(!ctxt->start_file_storage()){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not initialize file storage");
-        TIMER_CREATE(TIMER_FINISH_ROBOT, 5);
+        timer_create(TIMER_FINISH_ROBOT, 5);
         return false;
     }
 
     if(!ctxt->start_mqtt_storage()){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not initialize MQTT storage");
-        TIMER_CREATE(TIMER_FINISH_ROBOT, 5);
+        timer_create(TIMER_FINISH_ROBOT, 5);
         return false;
     }
 
 #ifdef USE_SQL_STORAGE
     if(!ctxt->_sqlstorage.start(ctxt->_db_name)){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not initialize SQL storage");
-        TIMER_CREATE(TIMER_FINISH_ROBOT, 5);
+        timer_create(TIMER_FINISH_ROBOT, 5);
         return false;
     }
 #endif
@@ -227,9 +227,9 @@ void StMeasurement::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Create Timer ID: " + std::to_string(TIMER_UPDATE_INTERVAL));
 
     //Create timers
-    TIMER_CREATE(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval) //measurement interval
-    TIMER_CREATE(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval) //update measurement information on LCD interval
-    TIMER_CREATE(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval) //save information
+    timer_create(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval) //measurement interval
+    timer_create(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval) //update measurement information on LCD interval
+    timer_create(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval) //save information
 }
 
 //
@@ -242,7 +242,6 @@ bool StMeasurement::OnTimer(const int id){
         case TIMER_FINISH_ROBOT:
         {
             finish();
-            get_itf()->finish();
             return true;
         }
 
@@ -252,7 +251,7 @@ bool StMeasurement::OnTimer(const int id){
             measure();
 
             auto ctxt = get_env<weather::Context>();
-            TIMER_CREATE(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval) //measurement interval
+            timer_create(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval) //measurement interval
 
             return true;
         }
@@ -270,7 +269,7 @@ bool StMeasurement::OnTimer(const int id){
             Measurement data = ctxt->data;
             storage_write(data);
 
-            TIMER_CREATE(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval) //save information
+            timer_create(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval) //save information
         }
 
         case TIMER_SHOW_DATA_INTERVAL:
@@ -313,7 +312,7 @@ void StMeasurement::update_lcd(){
     lcd->write_string_at(1,0, str_1, false);
 
     //update measurement information on LCD interval
-    TIMER_CREATE(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval)
+    timer_create(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval)
 }
 
 bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
@@ -365,7 +364,7 @@ bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
             //
             if(event->name() == EVT_LCD_OFF && lcd->is_on()){
                 //Stop update LCD timer
-                TIMER_CANCEL(TIMER_SHOW_DATA_INTERVAL);
+                timer_cancel(TIMER_SHOW_DATA_INTERVAL);
                 lcd->Off();
             }
 
@@ -393,10 +392,10 @@ void StMeasurement::finish(){
     auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
     lcd->write_string_at(0,0, ctxt->get_str(StrID::Finishing), true);
 
-    TIMER_CANCEL(TIMER_UPDATE_INTERVAL);
-    TIMER_CANCEL(TIMER_IP_CHECK_INTERVAL);
-    TIMER_CANCEL(TIMER_SHOW_DATA_INTERVAL);
-    TIMER_CANCEL(TIMER_WRITE_DATA_INTERVAL);
+    timer_cancel(TIMER_UPDATE_INTERVAL);
+    timer_cancel(TIMER_IP_CHECK_INTERVAL);
+    timer_cancel(TIMER_SHOW_DATA_INTERVAL);
+    timer_cancel(TIMER_WRITE_DATA_INTERVAL);
 
     auto context = get_env<weather::Context>();
     //Stop SGP30 and save current values

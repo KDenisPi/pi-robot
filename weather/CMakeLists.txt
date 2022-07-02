@@ -16,13 +16,11 @@ message( STATUS "THIRD_PARTY_HOME: ${THIRD_PARTY_HOME}")
 
 set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
 set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
-#set(SPDLOG "${THIRD_PARTY_HOME}/spdlog/include")
 
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
-message( STATUS "MOSQUITTO_LIB ${MOSQUITTO_LIB}")
+#message( STATUS "MOSQUITTO_LIB ${MOSQUITTO_LIB}")
 message( STATUS "JSONCONS ${JSONCONS}")
 message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
-#message( STATUS "SPDLOG ${SPDLOG}")
 message( STATUS "CMAKE_BIULD_TYPE is ${CMAKE_BIULD_TYPE}")
 
 add_library(libmosquitto SHARED IMPORTED)
@@ -51,7 +49,6 @@ set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-h
 link_directories("${PROJECT_SOURCE_DIR}/../build")
 
 include_directories(BEFORE
-    #${SPDLOG}
     ${PROJECT_SOURCE_DIR}/../pi-utils
     ${PROJECT_SOURCE_DIR}/../pi-main
     ${PROJECT_SOURCE_DIR}/../pi-sql

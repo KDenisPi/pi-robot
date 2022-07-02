@@ -13,17 +13,6 @@ namespace state {
 
 const char TAG[] = "sinit";
 
-StateInit::StateInit(const std::shared_ptr<StateMachineItf> itf):
-		state::State(itf, "StateInit")
-{
-	// TODO Auto-generated constructor stub
-
-}
-
-StateInit::~StateInit() {
-	// TODO Auto-generated destructor stub
-}
-
 void StateInit::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEntry ");
 
@@ -31,22 +20,22 @@ void StateInit::OnEntry(){
 	 * Need to add hardware initialization there.
 	 * Also to check hardware state and configuration
 	 */
-	if( !get_itf()->get_robot()->configure("")){
+	if( !get_robot()->configure("")){
 		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Hardware configuration failed. Stop.");
-		get_itf()->finish(); //Generate FINISH Event
+		finish(); //Generate FINISH Event
 	}
 
 	/*
 	 * Start Hardware components
 	 */
-	if( !get_itf()->get_robot()->start()){
+	if( !get_robot()->start()){
 		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Hardware configuration failed. Stop.");
 		//Generate FINISH Event
-		get_itf()->finish();
+		finish();
 	}
 
 	//temporal solution
-	get_itf()->state_change(get_itf()->get_first_state());
+	state_change(get_first_state());
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEntry finished");
 }

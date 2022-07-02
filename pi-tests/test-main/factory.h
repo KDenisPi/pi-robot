@@ -26,7 +26,7 @@ public:
 
 	virtual ~TMainStFactory() {}
 
-	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& state_name, const std::shared_ptr<smachine::StateMachineItf>& itf) override {
+	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& state_name, smachine::StateMachineItf* itf) override {
         logger::log(logger::LLOG::DEBUG, "tmain", std::string(__func__) + " State:" + state_name);
 
         if(state_name.compare("StInitialization") == 0){
