@@ -20,9 +20,8 @@ public:
 
     virtual void OnEntry() override {
 
-        timer_create(TIMER_1, 5);
-
-        //finish();
+        timer_create(TIMER_1, 7);
+        timer_create(TIMER_2, 3);
     }
 
     virtual bool OnTimer(const int id) override {
@@ -34,6 +33,15 @@ public:
             case TIMER_1:
             {
                 finish();
+                return true;
+            }
+            case TIMER_2:
+            {
+                timer_create(TIMER_3, 3);
+                return true;
+            }
+            case TIMER_3:
+            {
                 return true;
             }
         }

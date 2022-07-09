@@ -21,6 +21,7 @@
 #include "WebSettings.h"
 #include "StateMachine.h"
 #include "logger.h"
+#include "timers.h"
 
 #define BD_MAX_CLOSE  8192
 
@@ -32,6 +33,8 @@ public:
     PiMain(const std::string& project_name, const std::string& logs_dir = "/var/log") : _proj_name(project_name), _log_folder(logs_dir) {
         _project_log =  _log_folder + "/" + _proj_name + ".log";
         _project_err =  _log_folder + "/" + _proj_name + ".err";
+
+        piutils::timers::Timers::add_signal(SIGALRM);
     }
 
     virtual ~PiMain() {}
@@ -410,8 +413,21 @@ private:
         /*
         * Add handler for SIGALARM signal (used for State Machine Timers)
         */
-        ADD_SIGNAL(SIGALRM)
 
+       /*
+        Unhandled stop signals can generate EINTR for some Linux system calls
+        On Linux, certain blocking system calls can return EINTR even in the absence of a
+        signal handler. This can occur if the system call is blocked and the process is
+        stopped by a signal (SIGSTOP, SIGTSTP, SIGTTIN, or SIGTTOU), and then resumed by delivery of a SIGCONT signal.
+        The following system calls and functions exhibit this behavior: epoll_pwait(),
+        epoll_wait(), read() from an inotify file descriptor, semop(), semtimedop(), sigtimedwait(),
+        and sigwaitinfo().
+        */
+
+        if (signal(SIGALRM, PiMain::sigHandlerStateMachine) == SIG_ERR ){
+          _exit(EXIT_FAILURE);
+        }
+        
 
         //std::function<void(int)> hnd = std::bind(&PiMain::sigHandlerStateMachine, this, std::placeholders::_1);
         /*

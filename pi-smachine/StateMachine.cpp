@@ -12,6 +12,7 @@
 #include <pthread.h>
 
 #include "logger.h"
+#include "timers.h"
 #include "StateMachine.h"
 #include "StateInit.h"
 #include "Timers.h"

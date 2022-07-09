@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 #include "logger.h"
+#include "timers.h"
 #include "Timers.h"
 #include "Event.h"
 #include "StateMachine.h"
@@ -23,12 +24,6 @@ const char TAG[] = "timers";
 Timers::Timers(StateMachine* owner) :
          m_owner(owner)
 {
-    sigset_t new_set;
-    sigemptyset (&new_set);
-    sigaddset (&new_set, SIGALRM);
-    if( sigprocmask(SIG_BLOCK, &new_set, NULL) < 0){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not set signal mask.");
-    }
 
 }
 
@@ -62,33 +57,33 @@ void Timers::stop(){
 void Timers::worker(Timers* owner){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker started.");
     struct timespec timeout;
-    sigset_t new_set;
     siginfo_t sig_info;
+    sigset_t new_set, org_set;
+    int res = 0;
 
     /*
      * Allow Timer Signal
      */
 
-    sigemptyset (&new_set);
-    sigaddset (&new_set, SIGALRM);
-    if( pthread_sigmask(SIG_BLOCK, &new_set, NULL) < 0){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not set thread signal mask.");
+    res = sigemptyset (&new_set);
+    res = sigaddset (&new_set, SIGALRM);
+    res = pthread_sigmask(SIG_UNBLOCK, &new_set, &org_set);
+    if(res < 0){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not set signal mask.");
         return;
-        //return (void*) 1L;
     }
 
-    std::cout <<  "----------- timer ----" << std::endl;
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Unblock SIGALRM signal");
 
     while(!owner->is_stop_signal()){
         /*
          * Wait timer signal
          */
         std::memset(&sig_info, 0, sizeof(siginfo_t));
-        
         timeout.tv_sec = 1;
         timeout.tv_nsec = 0;
 
-        int res = sigtimedwait(&new_set, &sig_info, &timeout);
+        res = sigtimedwait(&new_set, &sig_info, &timeout);
         if(res < 0){
             if(errno == EINTR){
                 //std::cout <<  "----------- timer ERROR ----" << std::endl;

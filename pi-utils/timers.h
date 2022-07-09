@@ -11,6 +11,9 @@
 #define PI_UTILS_TIMERS_H_
 
 #include <time.h>
+#include <sys/time.h>
+#include <signal.h>
+#include <iostream>
 
 namespace piutils {
 namespace timers {
@@ -63,6 +66,35 @@ public:
         return (tm.tv_sec*1000+tm.tv_nsec/1000000);
     }
 
+    /*
+    *
+    */
+   static int add_signal(int signal){
+        sigset_t new_set, org_set;
+        int res;
+
+        sigemptyset (&new_set);
+        sigemptyset (&org_set);
+
+        if(signal>0){
+            res = sigaddset (&new_set, signal);
+            res = sigprocmask(SIG_BLOCK, &new_set, &org_set);
+        }
+
+        return res;
+   }
+
+   static void print_sigset(const sigset_t* sigset){
+       int count = 0;
+       for(int sig = 1; sig < NSIG; sig++){
+            if( sigismember(sigset, sig) > 0){
+                std::cout <<  "Sig blocked: " << sig << std::endl;
+                count++;
+            }
+       }
+        if(count==0)
+            std::cout <<  "All signals available: " << std::endl;
+   } 
 };
 
 }//namespace timers

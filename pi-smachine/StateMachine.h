@@ -23,14 +23,6 @@
 #include "Threaded.h"
 #include "MqttClient.h"
 
-#define ADD_SIGNAL(signal)   sigset_t new_set;\
-  sigemptyset (&new_set);\
-  sigaddset (&new_set, signal);\
-  if( sigprocmask(SIG_BLOCK, &new_set, NULL) < 0){\
-     logger::log(logger::LLOG::ERROR, "Stm", std::string(__func__) + " Could not set signal mask.");\
-  }
-
-
 namespace smachine {
 
 class Timers;
