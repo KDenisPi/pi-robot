@@ -27,6 +27,6 @@ int main (int argc, char* argv[])
 
   delete dinfo;
 
-  std::cout << "Finished " << success << std::endl;
+  //std::cout << "Finished " << success << std::endl;
   exit( (success ? EXIT_SUCCESS : EXIT_FAILURE));
 }

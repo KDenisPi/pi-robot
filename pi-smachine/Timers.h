@@ -26,6 +26,10 @@ public:
     Timers(StateMachine* owner);
     virtual ~Timers();
 
+    virtual const std::string clname() const override {
+        return std::string("Timers");
+    }
+
     /*
      *
      */

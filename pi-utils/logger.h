@@ -32,6 +32,8 @@ void release();
 void set_level(const LLOG level);
 void set_update_conf();
 
+void finish();
+
 using log_message = std::pair<std::string, std::string>;
 using log_message_type = std::pair<logger::LLOG, log_message>;
 using log_type = piutils::circbuff::CircularBuffer<log_message_type>;
@@ -40,6 +42,10 @@ class Logger : public piutils::Threaded{
 public:
     Logger(const std::string& filename = "/var/log/pi-robot/async_log", const LLOG level=LLOG::DEBUG);
     virtual ~Logger();
+
+    virtual const std::string clname() const override {
+        return std::string("Logger");
+    }
 
     static void worker(Logger* p);
 
@@ -70,6 +76,8 @@ public:
         return _update_conf;
     }
 
+    void finish();
+
     /*
     * Update logger configuration from the configuration file
     */
@@ -82,7 +90,7 @@ public:
             {
                 int llevel = get_parameter_value(line, "llevel=");
                 if( llevel >= LLOG::ERROR && llevel <= LLOG::DEBUG){
-                    std::cout <<  "Log level changed to " << llevel << std::endl;
+                    //std::cout <<  "Log level changed to " << llevel << std::endl;
                     set_level((LLOG)llevel);
                 }
             }

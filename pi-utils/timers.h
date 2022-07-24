@@ -94,7 +94,7 @@ public:
        }
         if(count==0)
             std::cout <<  "All signals available: " << std::endl;
-   } 
+   }
 };
 
 }//namespace timers

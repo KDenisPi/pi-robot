@@ -20,8 +20,8 @@
 #include "smallthings.h"
 #include "core_common.h"
 
-#define LLOG(text, value) std::cout << text << value << std::endl;
-#define LLOGH(text, hvalue) std::cout << text << std::hex << hvalue << std::endl;
+#define LLOG(text, value) //std::cout << text << value << std::endl;
+#define LLOGH(text, hvalue) //std::cout << text << std::hex << hvalue << std::endl;
 
 namespace pi_core {
 namespace core_mailbox {
@@ -105,21 +105,21 @@ public:
         uint32_t mbox_handle_lock = 0;  //bus address (physical address)
 
         mbox_handle_alloc = mem_alloc(_fd, len, getpagesize(), (_sdram_addr == 0x40000000 ? 0xC : 0x4));
-        std::cout << "get_memory Hnd Alloc: " << std::hex << mbox_handle_alloc << std::endl;
+        //std::cout << "get_memory Hnd Alloc: " << std::hex << mbox_handle_alloc << std::endl;
 
         if(mbox_handle_alloc){
             mbox_handle_lock =  mem_lock(_fd, mbox_handle_alloc);
-            std::cout << "get_memory Hnd Lock: " << std::hex << mbox_handle_alloc << std::endl;
+            //std::cout << "get_memory Hnd Lock: " << std::hex << mbox_handle_alloc << std::endl;
 
             if(mbox_handle_lock){
                 //virtual address
                 mem = mapmem(BUS_TO_PHYS(mbox_handle_lock), len);
-                std::cout << "get_memory Mapmem: " << std::hex << mbox_handle_alloc << std::endl;
+                //std::cout << "get_memory Mapmem: " << std::hex << mbox_handle_alloc << std::endl;
             }
         }
 
         if(!mem){
-            std::cout << "Mailbox mem_alloc Failed: " << std::endl;
+            //std::cout << "Mailbox mem_alloc Failed: " << std::endl;
             mem_unlock(_fd, mbox_handle_lock);
             mem_free(_fd, mbox_handle_alloc);
         }
@@ -134,13 +134,13 @@ public:
 
         uint32_t mbox_handle_alloc = minfo->get_handle_alloc(); //allocated address
         uint32_t mbox_handle_lock = minfo->get_handle_lock();  //bus address (physical address)
-        std::cout << "deallocate_and_unlock_mailbox Unmap VAddr: " << std::hex << minfo->get_vaddr() << " Len: " << std::hex << minfo->get_size() << std::endl;
+        //std::cout << "deallocate_and_unlock_mailbox Unmap VAddr: " << std::hex << minfo->get_vaddr() << " Len: " << std::hex << minfo->get_size() << std::endl;
         unmapmem(minfo->get_vaddr(), minfo->get_size());
 
-        std::cout << "deallocate_and_unlock_mailbox Unlock: " << std::hex << mbox_handle_lock << " Len: " << std::hex << minfo->get_size() << std::endl;
+        //std::cout << "deallocate_and_unlock_mailbox Unlock: " << std::hex << mbox_handle_lock << " Len: " << std::hex << minfo->get_size() << std::endl;
         mem_unlock(_fd, mbox_handle_lock);
 
-        std::cout << "deallocate_and_unlock_mailbox Alloc: " << std::hex <<  mbox_handle_alloc << " Len: " << std::hex << minfo->get_size() << std::endl;
+        //std::cout << "deallocate_and_unlock_mailbox Alloc: " << std::hex <<  mbox_handle_alloc << " Len: " << std::hex << minfo->get_size() << std::endl;
         mem_free(_fd,  mbox_handle_alloc);
 
       return;

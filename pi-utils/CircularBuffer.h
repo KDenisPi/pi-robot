@@ -24,7 +24,7 @@ public:
     */
     CircularBuffer(const std::size_t max_size = 100) : max_size_(max_size), m_size(0) {
         buffer = new T[max_size];
-        //std::cout << "CircularBuffer " + std::string(__func__) + " Constructor" << std::endl;
+        ////std::cout << "CircularBuffer " + std::string(__func__) + " Constructor" << std::endl;
     }
 
     /*
@@ -32,7 +32,7 @@ public:
     */
     ~CircularBuffer(){
         delete[] buffer;
-        //std::cout << "CircularBuffer " + std::string(__func__) + " Destructor" << std::endl;
+        ////std::cout << "CircularBuffer " + std::string(__func__) + " Destructor" << std::endl;
     }
 
 
@@ -40,11 +40,11 @@ public:
     *
     */
     const void put(const T& value){
-        //std::cout << "CircularBuffer " + std::string(__func__) + " Put 1 started" << " Size: " << std::to_string(m_size) << std::endl;
+        ////std::cout << "CircularBuffer " + std::string(__func__) + " Put 1 started" << " Size: " << std::to_string(m_size) << std::endl;
         std::lock_guard<std::mutex> lk(cv_m);
 
         if( m_size == max_size_){
-            //std::cout << "Full 1 Size: " << std::to_string(m_size) << std::endl;
+            ////std::cout << "Full 1 Size: " << std::to_string(m_size) << std::endl;
             return;
         }
 
@@ -58,11 +58,11 @@ public:
     *
     */
     const void put(T&& value){
-        //std::cout << "CircularBuffer " + std::string(__func__) + " Put 2 started" << " Size: " << std::to_string(m_size) << std::endl;
+        ////std::cout << "CircularBuffer " + std::string(__func__) + " Put 2 started" << " Size: " << std::to_string(m_size) << std::endl;
         std::lock_guard<std::mutex> lk(cv_m);
 
         if( m_size == max_size_){
-            //std::cout << "Full 2 Size: " << std::to_string(m_size) << std::endl;
+            ////std::cout << "Full 2 Size: " << std::to_string(m_size) << std::endl;
             return;
         }
 
@@ -77,7 +77,7 @@ public:
     *
     */
     const T& get(){
-        //std::cout << "CircularBuffer " + std::string(__func__) + " Get started" << " Size: " << std::to_string(m_size)<< std::endl;
+        ////std::cout << "CircularBuffer " + std::string(__func__) + " Get started" << " Size: " << std::to_string(m_size)<< std::endl;
         std::lock_guard<std::mutex> lk(cv_m);
 
         const int ptail = tail_;

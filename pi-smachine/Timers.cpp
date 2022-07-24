@@ -86,7 +86,7 @@ void Timers::worker(Timers* owner){
         res = sigtimedwait(&new_set, &sig_info, &timeout);
         if(res < 0){
             if(errno == EINTR){
-                //std::cout <<  "----------- timer ERROR ----" << std::endl;
+                ////std::cout <<  "----------- timer ERROR ----" << std::endl;
                 logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " thread interrupted by unknown signal");
                 break;
             }
@@ -94,12 +94,12 @@ void Timers::worker(Timers* owner){
                 /*
                  * Timeout.
                  */
-                //std::cout <<  "----------- timer TIMEOUT ----" << std::endl;
+                ////std::cout <<  "----------- timer TIMEOUT ----" << std::endl;
                 //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer wait timeout ");
                 continue;
             }
             else{
-                std::cout <<  "----------- timer ERROR 1 ---- " << errno << std::endl;
+                //std::cout <<  "----------- timer ERROR 1 ---- " << errno << std::endl;
                 logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " sigtimedwait failed. Error: " + std::to_string(errno));
                 break;
             }
@@ -110,11 +110,11 @@ void Timers::worker(Timers* owner){
              */
             const int id  = sig_info._sifields._timer.si_sigval.sival_int;
 
-            //std::cout <<  "----------- timer SIGNAL ----" << std::endl;
+            ////std::cout <<  "----------- timer SIGNAL ----" << std::endl;
             // Remove timer from map
             owner->cancel_timer(id);
 
-            //std::cout <<  "----------- timer SIGNAL 1 ----" << std::endl;
+            ////std::cout <<  "----------- timer SIGNAL 1 ----" << std::endl;
             logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Detected signal ID: " + std::to_string(id));
             owner->get_owner()->put_event(std::make_shared<Event>(EVT_TIMER, id));
         }
@@ -132,7 +132,7 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
     struct sigevent evt;
     struct itimerspec itime;
 
-    //std::cout <<  "----------- create timer start ----" << std::endl;
+    ////std::cout <<  "----------- create timer start ----" << std::endl;
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " timer ID: " + std::to_string(timer->get_id()) +
         " Sec: " + std::to_string(timer->get_time().tv_sec) + " NSec: "+ std::to_string(timer->get_time().tv_nsec));
@@ -181,7 +181,7 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
     timer->set_tid(tid); //save system timer ID
     m_id_to_tm.emplace(timer->get_id(), timer);
 
-    //std::cout <<  "----------- create timer end ----" << std::endl;
+    ////std::cout <<  "----------- create timer end ----" << std::endl;
 
     return true;
 }

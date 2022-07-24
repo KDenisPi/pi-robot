@@ -49,18 +49,18 @@ public:
         _fd = open(dev.c_str(), O_RDONLY);
         if( _fd < 0 ){
             logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " Could not open: " + dev + " Error: " + std::to_string(errno));
-            std::cout << "map_memory Could not open /proc/self/pagemap: "<< errno << std::endl;
+            //std::cout << "map_memory Could not open /proc/self/pagemap: "<< errno << std::endl;
         }
 
         _sdram_addr = pi_core::CoreCommon::get_sdram_address();
-        std::cout << "map_memory Opend /proc/self/pagemap: "<< _fd << " SDRAM: " << std::hex << _sdram_addr << std::endl;
+        //std::cout << "map_memory Opend /proc/self/pagemap: "<< _fd << " SDRAM: " << std::hex << _sdram_addr << std::endl;
     }
 
     /*
     *
     */
     virtual ~PhysMemory(){
-        std::cout << "~PhysMemory /proc/self/pagemap: "<< _fd << std::endl;
+        //std::cout << "~PhysMemory /proc/self/pagemap: "<< _fd << std::endl;
         _close();
     }
 
@@ -74,7 +74,7 @@ public:
     */
     const std::shared_ptr<pi_core::MemInfo>  get_memory(const size_t len, const int alloc_type){
 
-        std::cout << "Allocate: " << len << " bytes. Type: " << alloc_type << std::endl;
+        //std::cout << "Allocate: " << len << " bytes. Type: " << alloc_type << std::endl;
 
         void* mem = nullptr;
         switch(alloc_type){
@@ -87,23 +87,23 @@ public:
         };
 
         if( !mem ){
-            std::cout << "Failed to allocate: " << len << " bytes" << std::endl;
+            //std::cout << "Failed to allocate: " << len << " bytes" << std::endl;
             return std::shared_ptr<pi_core::MemInfo>();
         }
 
         uintptr_t ph_mem = virtual_to_physical(mem);
         if( !ph_mem){
-            std::cout << "Failed to receive physical address" << std::endl;
+            //std::cout << "Failed to receive physical address" << std::endl;
             deallocate_and_unlock(mem, len, alloc_type);
             return std::shared_ptr<pi_core::MemInfo>();
         }
 
         //uintptr_t ph_mem_base = 0x40000000; //0xC0000000; 0x80000000; //0x40000000; //0x00000000
-        //std::cout << "------> get_memory Base: "  << std::hex << ph_mem_base << " PAddr: 0x" << std::hex << ph_mem << " PyAddr: 0x" << std::hex << (ph_mem | ph_mem_base) << std::endl << std::endl;
-        //std::cout << "get_memory " << " PyAddr: 0x" << std::hex << ph_mem << std::endl << std::endl;
+        ////std::cout << "------> get_memory Base: "  << std::hex << ph_mem_base << " PAddr: 0x" << std::hex << ph_mem << " PyAddr: 0x" << std::hex << (ph_mem | ph_mem_base) << std::endl << std::endl;
+        ////std::cout << "get_memory " << " PyAddr: 0x" << std::hex << ph_mem << std::endl << std::endl;
         //ph_mem |= ph_mem_base; //0xC0000000; 0x80000000; //0x40000000; //0x00000000
 
-        std::cout << "------> get_memory "  << std::hex << " PAddr: 0x" << std::hex << ph_mem << std::endl << std::endl;
+        //std::cout << "------> get_memory "  << std::hex << " PAddr: 0x" << std::hex << ph_mem << std::endl << std::endl;
 
         return std::shared_ptr<pi_core::MemInfo>(new pi_core::MemInfo(mem, ph_mem, len, alloc_type));
     }
@@ -154,7 +154,7 @@ protected:
         void* mem = mmap(NULL, len_page, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_LOCKED | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
         if (mem == MAP_FAILED) {
             logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " mmap failed Error: " + std::to_string(errno));
-            std::cout << "allocate_and_lock_mmap Failed to allocate MMAP:" << errno << std::endl;
+            //std::cout << "allocate_and_lock_mmap Failed to allocate MMAP:" << errno << std::endl;
             return nullptr;
         }
 
@@ -163,7 +163,7 @@ protected:
 
         memset(mem, 0, len_page);
 
-        std::cout << "allocate_and_lock_mmap Success Allocated: " << std::dec << len_page << "[" << len << "] Address " << std::hex << mem << std::endl << std::endl;
+        //std::cout << "allocate_and_lock_mmap Success Allocated: " << std::dec << len_page << "[" << len << "] Address " << std::hex << mem << std::endl << std::endl;
         return mem;
     }
 
@@ -177,7 +177,7 @@ protected:
         void* mem = valloc(len_page);
         if (mem == NULL) {
             logger::log(logger::LLOG::ERROR, "phys_mem", std::string(__func__) + " mmap failed Error: " + std::to_string(errno));
-            std::cout << "allocate_and_lock_valloc Failed to allocate MMAP:" << errno << std::endl;
+            //std::cout << "allocate_and_lock_valloc Failed to allocate MMAP:" << errno << std::endl;
             return nullptr;
         }
 
@@ -186,7 +186,7 @@ protected:
 
         memset(mem, 0, len_page);
 
-        std::cout << "allocate_and_lock_valloc Success Allocated: " << std::dec << len_page << "[" << len << "] Address " << std::hex << mem << std::endl << std::endl;
+        //std::cout << "allocate_and_lock_valloc Success Allocated: " << std::dec << len_page << "[" << len << "] Address " << std::hex << mem << std::endl << std::endl;
         return mem;
     }
 
@@ -207,7 +207,7 @@ protected:
     */
     bool deallocate_and_unlock_mmap(void* address, const size_t len){
        bool result = true;
-       std::cout << "deallocate_and_unlock_mmap Len: " << std::dec << len << " Address " << std::hex << address << std::endl;
+       //std::cout << "deallocate_and_unlock_mmap Len: " << std::dec << len << " Address " << std::hex << address << std::endl;
        size_t len_page = align_to_page_size(len);
        munlock(address, len_page);
 
@@ -217,7 +217,7 @@ protected:
            result = false;
       }
 
-      std::cout << "deallocate_and_unlock_mmap Success Len: " << std::dec << len_page << " Address " << std::hex << address << std::endl;
+      //std::cout << "deallocate_and_unlock_mmap Success Len: " << std::dec << len_page << " Address " << std::hex << address << std::endl;
       return result;
     }
 
@@ -226,13 +226,13 @@ protected:
     */
     bool deallocate_and_unlock_valloc(void* address, const size_t len){
        bool result = true;
-       std::cout << "deallocate_and_unlock_valloc Len: " << std::dec << len << " Address " << std::hex << address << std::endl;
+       //std::cout << "deallocate_and_unlock_valloc Len: " << std::dec << len << " Address " << std::hex << address << std::endl;
        size_t len_page = align_to_page_size(len);
        munlock(address, len_page);
 
       free(address);
 
-      std::cout << "deallocate_and_unlock_valloc Success Len: " << std::dec << len_page << " Address " << std::hex << address << std::endl;
+      //std::cout << "deallocate_and_unlock_valloc Success Len: " << std::dec << len_page << " Address " << std::hex << address << std::endl;
       return result;
     }
 
@@ -295,11 +295,11 @@ protected:
         int psize = getpagesize();
         if( !is_good() ){
             logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + "Error. Not initialized");
-            std::cout << "virtual_to_physical Not initialized " << std::endl;
+            //std::cout << "virtual_to_physical Not initialized " << std::endl;
             return result;
         }
 
-        std::cout << "virtual_to_physical Addr: " << std::hex << vaddress << " psize: " << std::dec << psize << std::endl << std::endl;
+        //std::cout << "virtual_to_physical Addr: " << std::hex << vaddress << " psize: " << std::dec << psize << std::endl << std::endl;
 
         //detect page number
         uintptr_t page_number = (uintptr_t)(vaddress)/psize;
@@ -317,7 +317,7 @@ protected:
             if( read(_fd, &phys_page, PAGEMAP_LENGTH) < 0){
                 logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " Could not read page information: Error: " + std::to_string(errno));
 
-                std::cout << "virtual_to_physical Could not read page information: Error: " << errno << std::endl;
+                //std::cout << "virtual_to_physical Could not read page information: Error: " << errno << std::endl;
             }
             else{
                 //check if page present
@@ -328,18 +328,18 @@ protected:
                     phys_page = phys_page & (~PAGEMAP_PAGE_FLAGS);
                     result = (uintptr_t)(phys_page*psize + byteOffsetFromPage);
 
-                    std::cout << "virtual_to_physical Page: " << std::dec << phys_page << " Address: " << std::hex << result << " Offset:" << byteOffsetFromPage <<  std::endl;
+                    //std::cout << "virtual_to_physical Page: " << std::dec << phys_page << " Address: " << std::hex << result << " Offset:" << byteOffsetFromPage <<  std::endl;
                 }
                 else{
                     logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " Page not present in memory");
-                    std::cout << "virtual_to_physical Page not present in memory: " << std::endl;
+                    //std::cout << "virtual_to_physical Page not present in memory: " << std::endl;
                 }
             }
 
         }
         else{
             logger::log(logger::LLOG::ERROR, "map_memory", std::string(__func__) + " Could not seek to page: Error: " + std::to_string(errno));
-            std::cout << "virtual_to_physical Could not seek to page: Error: " << errno << std::endl;
+            //std::cout << "virtual_to_physical Could not seek to page: Error: " << errno << std::endl;
         }
 
         return result;

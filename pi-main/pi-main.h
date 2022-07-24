@@ -43,7 +43,7 @@ public:
     * Singnal handler for State Machine
     */
     static void sigHandlerStateMachine(int sign){
-        std::cout <<  "Detected signal " << sign  << std::endl;
+        ////std::cout  "Detected signal " << sign  << std::endl;
         //
         // Stop state machine
         //
@@ -54,7 +54,7 @@ public:
             logger::set_update_conf();
         }
         else if (sign == SIGUSR1){// Start state machine
-            std::cout <<  "Detected signal. Run service " << sign  << std::endl;
+            ////std::cout  "Detected signal. Run service " << sign  << std::endl;
             _stm->run();
         }
     }
@@ -63,10 +63,10 @@ public:
     * Singnal handler for parent
     */
     static void sigHandlerParent(int sign){
-        std::cout <<  "Parent: Detected signal " << sign  << std::endl;
+        ////std::cout  "Parent: Detected signal " << sign  << std::endl;
 
         if(_stmPid){
-            std::cout <<  "Parent: Send signal to child  " << sign  << std::endl;
+            ////std::cout  "Parent: Send signal to child  " << sign  << std::endl;
             kill(_stmPid, sign);
         }
     }
@@ -147,7 +147,7 @@ public:
     void load_configuration(const int argc, char* argv[]){
         for(int i = 0; i < argc; i++){
             std::string arg = argv[i];
-            std::cout <<  "Arg: " << i << " [" << arg << "]" << std::endl;
+            ////std::cout  "Arg: " << i << " [" << arg << "]" << std::endl;
 
             if(strcmp(argv[i], "--conf") == 0){
                 _robot_conf = _validate_file_parameter(++i, argc, argv);
@@ -181,7 +181,7 @@ public:
     */
     void validate_configuration() {
         if(_robot_conf.empty()){
-            std::cout <<  err_message << std::endl <<  help_message << std::endl;
+            ////std::cout  err_message << std::endl <<  help_message << std::endl;
             _exit(EXIT_FAILURE);
         }
     }
@@ -245,8 +245,14 @@ private:
             _exit(EXIT_FAILURE);
 
         case 0: //child
+            logger::release();
+            //std::cout  << "--- start after fork daemon ---" << get_log_filename() << std::endl;
+
             //initialize daemon configuration
             daemon_initialization();
+
+            logger::log_init(get_log_filename());
+            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " After fork (daemon)");
 
             //Initialize and run
             initilize_and_run();
@@ -259,6 +265,9 @@ private:
 
             finish();
 
+            logger::finish();
+            logger::release();
+
             _exit(EXIT_SUCCESS);
              break;
 
@@ -266,6 +275,11 @@ private:
             sleep(5);
             //send command to start
             kill(_stmPid, SIGUSR1);
+
+            logger::finish();
+            logger::release();
+
+            _exit(EXIT_SUCCESS);
         }
     }
 
@@ -279,16 +293,27 @@ private:
             _exit(EXIT_FAILURE);
 
         case 0: //child
+            ////std::cout  "--- start after fork ---" << std::endl;
+            logger::release();
+            logger::log_init(get_log_filename());
+
+            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " After fork");
             //Initialize and run
             initilize_and_run();
 
             //Initilize signal handlers
             initialize_signal_handlers();
 
-            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
+            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Waiting for State Machine finishing");
             _stm->wait();
 
+            ////std::cout  "--- finish---" << std::endl;
             finish();
+
+            ////std::cout  "--- after finish---" << std::endl;
+
+            logger::finish();
+            logger::release();
 
             _exit(EXIT_SUCCESS);
              break;
@@ -297,10 +322,17 @@ private:
             sleep(5);
             //send command to start
             kill(_stmPid, SIGUSR1);
+
+            logger::finish();
+            logger::release();
+            _exit(EXIT_SUCCESS);
         }
    }
 
     void run_single() {
+
+        logger::log_init(get_log_filename());
+
         //Initialize and run
         initilize_and_run();
 
@@ -318,6 +350,9 @@ private:
         _stm->wait();
 
         finish();
+
+        logger::finish();
+        logger::release();
     }
 
     /*
@@ -343,6 +378,9 @@ private:
         */
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create state machine.");
         _stm = std::make_shared<smachine::StateMachine>(_factory, _pirobot);
+
+        ////std::cout  "--- initilize_and_run Create state machine ---" << std::endl;
+
 
         /*
         * Web interface for settings and status
@@ -427,7 +465,7 @@ private:
         if (signal(SIGALRM, PiMain::sigHandlerStateMachine) == SIG_ERR ){
           _exit(EXIT_FAILURE);
         }
-        
+
 
         //std::function<void(int)> hnd = std::bind(&PiMain::sigHandlerStateMachine, this, std::placeholders::_1);
         /*
@@ -472,13 +510,19 @@ private:
     void finish(){
 
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "State machine finished");
+
+        ////std::cout  "--- main finish---" << std::endl;
+
         if(_web)
             _web->http::web::WebSettingsItf::stop();
 
         sleep(2);
         _stm.reset();
+        ////std::cout  "--- main STM finished---" << std::endl;
         _factory.reset();
+        ////std::cout  "--- main factory finished---" << std::endl;
         _pirobot.reset();
+        ////std::cout  "--- main robot finished---" << std::endl;
 
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Child finished");
         //logger::release();
@@ -490,14 +534,14 @@ private:
     std::string _validate_file_parameter(const int idx, const int argc, char* argv[]){
         std::string filename;
         if(idx == argc){
-            std::cout <<  err_message << std::endl <<  help_message << std::endl;
+            ////std::cout  err_message << std::endl <<  help_message << std::endl;
             _exit(EXIT_FAILURE);
         }
 
         filename = argv[idx];
         std::ifstream file_stream(filename);
         if(!file_stream){
-            std::cout <<  "Configuration file " << filename << " does not exist or not available." << std::endl;
+            ////std::cout  "Configuration file " << filename << " does not exist or not available." << std::endl;
             _exit(EXIT_FAILURE);
         }
 
@@ -553,10 +597,22 @@ private:
     int _fd_null;
     int _fd_err;
 
+    const std::string get_log_filename() const {
+        if(_debug_mode) return log_folder + log_single;
+        if(_daemon_mode) return log_folder + log_daemon;
+
+        return log_folder+log_fork;
+    }
+
 protected:
     std::shared_ptr<pirobot::PiRobot> _pirobot;
     std::shared_ptr<smachine::StateFactory> _factory;
     std::shared_ptr<http::web::WebSettingsItf> _web;
+
+    const std::string log_folder = "/var/log/pi-robot/";
+    const std::string log_single = "async_log";
+    const std::string log_fork = "async_client_log";
+    const std::string log_daemon = "async_daemon_log";
 };
 
 template<class F, class W>

@@ -33,24 +33,24 @@ int main (int argc, char* argv[])
     pi_core::core_mailbox::MailboxCore* mmem = new pi_core::core_mailbox::MailboxCore();
     pi_core::core_mem::PhysMemory* pmem = new pi_core::core_mem::PhysMemory();
 
-    std::cout << "Starting..." << std::endl;
+    //std::cout << "Starting..." << std::endl;
 
     m_src = mmem->get_memory(buff_size_bytes);
     m_dst = mmem->get_memory(buff_size_bytes);
 
     if( m_src ){
-        std::cout << "Allocated " << std::dec << m_src->get_size() << " bites. VAddr: " << std::hex  << m_src->get_vaddr() << " PhysAddr: " << std::hex << m_src->get_paddr() << std::endl;
+        //std::cout << "Allocated " << std::dec << m_src->get_size() << " bites. VAddr: " << std::hex  << m_src->get_vaddr() << " PhysAddr: " << std::hex << m_src->get_paddr() << std::endl;
     }
     else{
-        std::cout << "Failed to allocate: " << std::dec << buff_size_bytes << " bytes" << std::endl;
+        //std::cout << "Failed to allocate: " << std::dec << buff_size_bytes << " bytes" << std::endl;
         success = false;
     }
 
     if( m_dst ){
-        std::cout << "Allocated " << std::dec << m_dst->get_size() << " bites. VAddr: " << std::hex  << m_dst->get_vaddr() << " PhysAddr: " << std::hex << m_dst->get_paddr() << std::endl;
+        //std::cout << "Allocated " << std::dec << m_dst->get_size() << " bites. VAddr: " << std::hex  << m_dst->get_vaddr() << " PhysAddr: " << std::hex << m_dst->get_paddr() << std::endl;
     }
     else{
-        std::cout << "Failed to allocate: " << std::dec << buff_size_bytes << " bytes" << std::endl;
+        //std::cout << "Failed to allocate: " << std::dec << buff_size_bytes << " bytes" << std::endl;
         success = false;
     }
 
@@ -65,7 +65,7 @@ int main (int argc, char* argv[])
       dctrl->Initialize(pi_core::core_dma::DmaControl::cs_flags_test);
       int block_counter = 0;
 
-      //std::cout << "Start to process DMA Control Block SRC: " << std::hex << m_src->get_paddr() << " DST: " << m_dst->get_paddr() << std::endl;
+      ////std::cout << "Start to process DMA Control Block SRC: " << std::hex << m_src->get_paddr() << " DST: " << m_dst->get_paddr() << std::endl;
       //cb->prepare(m_src->get_paddr(), m_dst->get_paddr(), m_src->get_size());
 
       while(block_counter < 5 && success){
@@ -78,7 +78,7 @@ int main (int argc, char* argv[])
         memset(p_src, 'A'+block_counter, buff_size_bytes - 1);
         memset(p_dst, 'W', buff_size_bytes - 1);
 
-        std::cout << "Start to process DMA Control Block SRC: " << std::hex << py_src << " DST: " << py_dst << std::endl;
+        //std::cout << "Start to process DMA Control Block SRC: " << std::hex << py_src << " DST: " << py_dst << std::endl;
         cb->prepare(py_src, py_dst, m_src->get_size());
 
         bool result = dctrl->process_control_block(cb);
@@ -90,7 +90,7 @@ int main (int argc, char* argv[])
           }
 
           if(i>= 10){
-             std::cout << " ******* FAILED ************" << std::endl;
+             //std::cout << " ******* FAILED ************" << std::endl;
              success = false;
           }
           else{
@@ -100,7 +100,7 @@ int main (int argc, char* argv[])
         }
 
         //success = pwm->write_data(m_src->get_paddr(), minfo->get_size());
-        std::cout << " Loop :" << block_counter << std::endl;
+        //std::cout << " Loop :" << block_counter << std::endl;
         printf("SRC -> %s\n", (char*)p_src );
         printf("DST -> %s\n", (char*)p_dst );
 
@@ -112,13 +112,13 @@ int main (int argc, char* argv[])
 
       delete cb;
       delete dctrl;
-      std::cout << "Write data returned " << success << std::endl << std::endl ;
+      //std::cout << "Write data returned " << success << std::endl << std::endl ;
     }
 
 
   clear_data:
 
-    std::cout << "****** Release memory " << success << std::endl << std::endl;
+    //std::cout << "****** Release memory " << success << std::endl << std::endl;
 
     mmem->free_memory(m_src);
     mmem->free_memory(m_dst);
@@ -126,6 +126,6 @@ int main (int argc, char* argv[])
     delete pmem;
     delete mmem;
 
-    std::cout << "Finished " << success << std::endl;
+    //std::cout << "Finished " << success << std::endl;
     exit( (success ? EXIT_SUCCESS : EXIT_FAILURE));
 }

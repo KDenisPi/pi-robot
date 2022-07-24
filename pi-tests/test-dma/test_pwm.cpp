@@ -27,16 +27,16 @@ int main (int argc, char* argv[])
     pirobot::PiRobot* rbt = nullptr;
     pi_core::core_pwm::PwmCore* pwm = nullptr;
 
-    std::cout << "Starting..." << std::endl;
+    //std::cout << "Starting..." << std::endl;
     if( argc < 2 ){
-      std::cout << "Failed. No configuration file" << std::endl;
+      //std::cout << "Failed. No configuration file" << std::endl;
       exit(EXIT_FAILURE);
     }
 
     rbt = new pirobot::PiRobot();
     success = rbt->configure(argv[1]);
     if( !success ){
-      std::cout << "Invalid configuration file " << std::string(argv[1]) << std::endl;
+      //std::cout << "Invalid configuration file " << std::string(argv[1]) << std::endl;
       goto clear_data;
     }
 
@@ -44,7 +44,7 @@ int main (int argc, char* argv[])
 
     success = rbt->start();
     if( !success ){
-      std::cout << "Could not start Pi-Robot " << std::endl;
+      //std::cout << "Could not start Pi-Robot " << std::endl;
       goto clear_data;
     }
 
@@ -57,10 +57,10 @@ int main (int argc, char* argv[])
       pi_core::core_mailbox::MailboxCore* mmem = new pi_core::core_mailbox::MailboxCore();
       m_src = mmem->get_memory(buff_size_bytes);
       if( m_src ){
-        std::cout << "Allocated " << std::dec << m_src->get_size() << " bites. VAddr: " << std::hex  << m_src->get_vaddr() << " PhysAddr: " << std::hex << m_src->get_paddr() << std::endl;
+        //std::cout << "Allocated " << std::dec << m_src->get_size() << " bites. VAddr: " << std::hex  << m_src->get_vaddr() << " PhysAddr: " << std::hex << m_src->get_paddr() << std::endl;
       }
       else{
-        std::cout << "Failed to allocate: " << std::dec << buff_size_bytes << " bytes" << std::endl;
+        //std::cout << "Failed to allocate: " << std::dec << buff_size_bytes << " bytes" << std::endl;
         success = false;
       }
 
@@ -89,7 +89,7 @@ int main (int argc, char* argv[])
         }
 
         success = pwm->write_data(py_src, buff_size_bytes);
-        std::cout << "PWM write_data finished: " << success << std::endl;
+        //std::cout << "PWM write_data finished: " << success << std::endl;
       }
 
       mmem->free_memory(m_src);
@@ -97,12 +97,12 @@ int main (int argc, char* argv[])
     }
 
 clear_data:
-    std::cout << "Release objects" << std::endl;
+    //std::cout << "Release objects" << std::endl;
 
     delete pwm;
     delete rbt;
 
-    std::cout << "Finished " << success << std::endl;
+    //std::cout << "Finished " << success << std::endl;
 
     exit( (success ? EXIT_SUCCESS : EXIT_FAILURE));
 }

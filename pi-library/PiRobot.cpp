@@ -26,6 +26,7 @@ PiRobot::PiRobot()
 
 PiRobot::~PiRobot() {
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + "Started");
+    //std::cout <<  "PiRobot::~PiRobot started" << std::endl;
     /*
      * Delete all objects
      */
@@ -200,7 +201,7 @@ void PiRobot::printConfig(){
             items_name += item_info.first + "; ";
         }
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " " + it_gpio->first + " " + items_name);
-    } 
+    }
 }
 
 /*

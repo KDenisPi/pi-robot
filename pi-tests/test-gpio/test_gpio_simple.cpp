@@ -23,7 +23,7 @@ void print_info(const int gpios, const pirobot::gpio::GPIO_MODE* p_modes, pirobo
 
 void print_info(const int gpios, const pgpio* p_gpio, const pirobot::gpio::GPIO_MODE* p_modes, pirobot::gpio::GPIO_MODE* g_modes, const int* g_levels){
     for(int i = 0; i < gpios; i++){
-        std::cout << i << " PIN: " << p_gpio[i]->getPin() << " PMode: " << p_modes[i] << " GMode: " << g_modes[i] << " Level: " << g_levels[i] << std::endl;
+        //std::cout << i << " PIN: " << p_gpio[i]->getPin() << " PMode: " << p_modes[i] << " GMode: " << g_modes[i] << " Level: " << g_levels[i] << std::endl;
     }
 }
 
@@ -40,14 +40,14 @@ int main (int argc, char* argv[])
     pirobot::gpio::GPIO_MODE g_modes[num_gpios];
     int g_levels[num_gpios];
 
-    std::cout << "Started " << std::endl;
+    //std::cout << "Started " << std::endl;
 
-    std::cout << "Create provider" << std::endl;
+    //std::cout << "Create provider" << std::endl;
     std::shared_ptr<pirobot::gpio::GpioProviderSimple> p_smp = std::make_shared<pirobot::gpio::GpioProviderSimple>();
 
-    std::cout << "----- Modes --- " << std::endl << p_smp->print_mode() << std::endl;
+    //std::cout << "----- Modes --- " << std::endl << p_smp->print_mode() << std::endl;
 
-    std::cout << "Create GPIO" << std::endl;
+    //std::cout << "Create GPIO" << std::endl;
     p_gpio[0] = std::make_shared<pirobot::gpio::Gpio>(0, pirobot::gpio::GPIO_MODE::IN, p_smp);
     p_gpio[1] = std::make_shared<pirobot::gpio::Gpio>(1, pirobot::gpio::GPIO_MODE::IN, p_smp);
     p_gpio[2] = std::make_shared<pirobot::gpio::Gpio>(2, pirobot::gpio::GPIO_MODE::OUT, p_smp);
@@ -59,7 +59,7 @@ int main (int argc, char* argv[])
         g_levels[i] = p_gpio[i]->digitalRead();
 
         if(p_modes[i] != g_modes[i]){
-           std::cout << "Mode on provider and GPIO levels are different after creating" << std::endl;
+           //std::cout << "Mode on provider and GPIO levels are different after creating" << std::endl;
            success = false;
         }
     }
@@ -67,17 +67,17 @@ int main (int argc, char* argv[])
     print_info(num_gpios, p_gpio, p_modes, g_modes, g_levels);
     sleep(1);
 
-    std::cout << std::endl << "GPIO. Change mode " << std::endl;
+    //std::cout << std::endl << "GPIO. Change mode " << std::endl;
 
     for(int i = 0; i < num_gpios; i++){
-       //change mode  
+       //change mode
        pirobot::gpio::GPIO_MODE new_mode = g_modes[i] == pirobot::gpio::GPIO_MODE::OUT ? pirobot::gpio::GPIO_MODE::IN : pirobot::gpio::GPIO_MODE::OUT;
        p_gpio[i]->setMode(new_mode);
        p_modes[i] = p_smp->getmode(p_gpio[i]->getPin());
        g_modes[i] = p_gpio[i]->getMode();
 
        if(p_modes[i] != new_mode || g_modes[i] != new_mode){
-           std::cout << "Mode on provider and GPIO levels are different after changing" << std::endl;
+           //std::cout << "Mode on provider and GPIO levels are different after changing" << std::endl;
            success = false;
        }
     }
@@ -85,40 +85,40 @@ int main (int argc, char* argv[])
     print_info(num_gpios, p_gpio, p_modes, g_modes, g_levels);
     sleep(1);
 
-    std::cout << std::endl << "GPIOs Get Level and Set Level ON" << std::endl;
+    //std::cout << std::endl << "GPIOs Get Level and Set Level ON" << std::endl;
     for(int i = 0; i < num_gpios; i++){
         p_gpio[i]->digitalWrite(1);
         g_levels[i] = p_gpio[i]->digitalRead();
         if(p_modes[i] == pirobot::gpio::GPIO_MODE::OUT && g_levels[i] != 1){
-           std::cout << "Level for GPIO OUT was not set" << std::endl;
+           //std::cout << "Level for GPIO OUT was not set" << std::endl;
            success = false;
         }
     }
-    
+
     print_info(num_gpios, p_gpio, p_modes, g_modes, g_levels);
     sleep(1);
 
-    std::cout << std::endl << "GPIOs Get Level and Set Level OFF" << std::endl;
+    //std::cout << std::endl << "GPIOs Get Level and Set Level OFF" << std::endl;
     for(int i = 0; i < num_gpios; i++){
         p_gpio[i]->digitalWrite(0);
         g_levels[i] = p_gpio[i]->digitalRead();
         if(p_modes[i] == pirobot::gpio::GPIO_MODE::OUT && g_levels[i] != 0){
-           std::cout << "Level for GPIO OUT was not set" << std::endl;
+           //std::cout << "Level for GPIO OUT was not set" << std::endl;
            success = false;
         }
     }
 
     print_info(num_gpios, p_gpio, p_modes, g_modes, g_levels);
 
-    std::cout << std::endl <<"Release GPIO objects " << std::endl;
+    //std::cout << std::endl <<"Release GPIO objects " << std::endl;
 
     for(int i = 0; i < num_gpios; i++){
         p_gpio[i].reset();
     }
 
-    std::cout << "Release Provider objects " << std::endl;
+    //std::cout << "Release Provider objects " << std::endl;
     p_smp.reset();
 
-    std::cout << "Finished " << success << std::endl;
+    //std::cout << "Finished " << success << std::endl;
     exit( (success ? EXIT_SUCCESS : EXIT_FAILURE));
 }

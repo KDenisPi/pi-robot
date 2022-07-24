@@ -20,5 +20,4 @@ int main (int argc, char* argv[])
   pmain->run();
 
   exit(EXIT_SUCCESS);
-
 }

@@ -23,7 +23,9 @@ public:
 
 	StateFactory(){}
 
-	virtual ~StateFactory() {}
+	virtual ~StateFactory() {
+	    //std::cout <<  "StateFactory::~StateFactory finished" << std::endl;
+	}
 
 	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& state_name, smachine::StateMachineItf* itf){
 		logger::log(logger::LLOG::DEBUG, "StFact", std::string(__func__) + " State:" + state_name);

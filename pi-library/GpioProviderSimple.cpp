@@ -50,7 +50,7 @@ void GpioProviderSimple::start() {
 GpioProviderSimple::~GpioProviderSimple() {
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__));
 
-    //std::cout << " GpioProviderSimple::~GpioProviderSimple" << std::endl;
+    ////std::cout << " GpioProviderSimple::~GpioProviderSimple" << std::endl;
     stop();
 
     for(int i = 0; i < s_pins; i++){

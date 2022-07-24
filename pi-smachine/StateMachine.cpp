@@ -28,6 +28,8 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
 {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
+    ////std::cout  "StateMachine::StateMachine started" << std::endl;
+
     m_timers = std::make_shared<Timers>(this);
     m_states = std::make_shared<std::list<std::shared_ptr<state::State>>>();
 
@@ -38,6 +40,7 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
     bool ctxt_init = m_env->configure(m_factory->get_configuration());
     if(!ctxt_init){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not load environment configuration");
+        ////std::cout  "StateMachine::StateMachine finish" << std::endl;
 		finish();
     }
 
@@ -54,6 +57,8 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Created callback notification function");
         pirobot->stm_notification = std::bind(&StateMachine::process_robot_notification, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
     }
+
+    ////std::cout  "StateMachine::StateMachine finished" << std::endl;
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
 }
@@ -92,7 +97,7 @@ bool StateMachine::start(){
  * Temporal: Wait for processing.
  */
 void StateMachine::wait(){
-    piutils::Threaded::stop(false);
+    piutils::Threaded::wait();
 }
 
 /*
@@ -109,6 +114,8 @@ void StateMachine::stop(){
 StateMachine::~StateMachine() {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
+    ////std::cout  "StateMachine::~StateMachine started" << std::endl;
+
     //Stop main thread if it is not stopped yet
     this->stop();
     // Stop Equipment
@@ -121,6 +128,8 @@ StateMachine::~StateMachine() {
 
     //Erase not processed states
     m_states->erase(m_states->begin(), m_states->end());
+
+    ////std::cout  "StateMachine::~StateMachine finished" << std::endl;
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
 }
@@ -143,11 +152,11 @@ const std::shared_ptr<Event> StateMachine::get_event(){
 void StateMachine::put_event(const std::shared_ptr<Event>& event, bool force){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Event:" + event->name() + " ID: " + std::to_string(event->id()));
 
-    std::cout <<  "put_event " << event->name() <<  std::endl;
+    ////std::cout  "put_event " << event->name() <<  std::endl;
 
     {
         std::lock_guard<std::mutex> lock(mutex_sm);
-        std::cout <<  "put_event lock " << event->name() << std::endl;
+        ////std::cout  "put_event lock " << event->name() << std::endl;
         if(force){
             std::queue<std::shared_ptr<Event>> events_empty;
             m_events.swap(events_empty);
@@ -155,7 +164,7 @@ void StateMachine::put_event(const std::shared_ptr<Event>& event, bool force){
         m_events.push(std::move(event));
     }
 
-    std::cout <<  "put_event notify " << event->name() << std::endl;
+    ////std::cout  "put_event notify " << event->name() << std::endl;
     cv.notify_one();
 }
 
@@ -273,8 +282,10 @@ void StateMachine::worker(StateMachine* stm){
             case EVT_NONE:
                 break;
             default:
-                logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Event detected: " + std::to_string(event->type()) +
-                    " Name: " + event->name() + " ID: " + event->id_str());
+                const std::string msg = " Event detected: " + std::to_string(event->type()) + " Name: " + event->name() + " ID: " + event->id_str();
+                logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + msg);
+                ////std::cout  msg << std::endl;
+
                 stm->process_event(event);
             }
         }
@@ -285,6 +296,7 @@ void StateMachine::worker(StateMachine* stm){
     }
 
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker finished.");
+    ////std::cout  "State Machine Worker finished." << std::endl;
 }
 
 /*

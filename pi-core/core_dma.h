@@ -114,7 +114,7 @@ public:
     {
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
-        std::cout << "**** DMA Control Block Condtructor " << std::endl;
+        //std::cout << "**** DMA Control Block Condtructor " << std::endl;
 
         _minfo = _mem_alloc->get_memory(sizeof(dma_ctrl_blk), 1);
         if(_minfo->is_empty()){
@@ -140,7 +140,7 @@ public:
     ~DmaControlBlock(){
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
-        std::cout << "**** DMA Control Block Destructor " << std::endl;
+        //std::cout << "**** DMA Control Block Destructor " << std::endl;
         if( _mem_alloc){
             _mem_alloc->free_memory(_minfo);
         }
@@ -173,7 +173,7 @@ public:
     */
     bool prepare(const uintptr_t src_addr, const uintptr_t dest_addr, const uint16_t txfr_len){
 
-        std::cout << "**** DMA prepare Src: 0x" << std::hex << src_addr << " Dst: 0x" << std::hex << dest_addr << " Len: " << std::dec << txfr_len << std::endl;
+        //std::cout << "**** DMA prepare Src: 0x" << std::hex << src_addr << " Dst: 0x" << std::hex << dest_addr << " Len: " << std::dec << txfr_len << std::endl;
 
         _ctrk_blk->_ti = _ti_flags;
         _ctrk_blk->_src_addr = src_addr;
@@ -221,7 +221,7 @@ public:
      */
     DmaInfo() {
         _addr_ctrl = dma_int_status_reg();
-        std::cout <<  "DmaCtrl DMA Control: 0x" << std::hex << _addr_ctrl << std::endl;
+        //std::cout <<  "DmaCtrl DMA Control: 0x" << std::hex << _addr_ctrl << std::endl;
 
         _dma_ctrl_regs = piutils::map_memory<dma_ctrl_regs>(_addr_ctrl);
         if(_dma_ctrl_regs == nullptr){
@@ -229,7 +229,7 @@ public:
             throw std::runtime_error(std::string("Fail to initialize DMA control register"));
         }
 
-        std::cout <<  "DmaCtrl DMA Control: INT_STATUS 0x" << std::hex << _dma_ctrl_regs->_int_status << " Enable: " <<  _dma_ctrl_regs->_enable  << std::endl;
+        //std::cout <<  "DmaCtrl DMA Control: INT_STATUS 0x" << std::hex << _dma_ctrl_regs->_int_status << " Enable: " <<  _dma_ctrl_regs->_enable  << std::endl;
     }
 
     /*
@@ -280,7 +280,7 @@ public:
         volatile dma_regs* dma_reg;
         uintptr_t dma_addr = dma_address(dma_channel);
 
-        std::cout << std::endl <<  "-----> DMA channel: " << std::dec << dma_channel <<  " addr: 0x" << std::hex << dma_addr << " Enabled: " << is_enabled(dma_channel) << std::endl;
+        //std::cout << std::endl <<  "-----> DMA channel: " << std::dec << dma_channel <<  " addr: 0x" << std::hex << dma_addr << " Enabled: " << is_enabled(dma_channel) << std::endl;
 
         dma_reg = piutils::map_memory<dma_regs>(dma_addr);
         if(dma_reg == nullptr){
@@ -288,8 +288,8 @@ public:
             throw std::runtime_error(std::string("Fail to initialize DMA control"));
         }
 
-        std::cout <<  cs_register_status(dma_reg->_cs) << std::endl << std::endl;
-        std::cout <<  ti_register_status(dma_reg->_ti) << std::endl << std::endl;
+        //std::cout <<  cs_register_status(dma_reg->_cs) << std::endl << std::endl;
+        //std::cout <<  ti_register_status(dma_reg->_ti) << std::endl << std::endl;
 
 
         dma_reg = piutils::unmap_memory<dma_regs>(static_cast<dma_regs*>((void*)dma_reg));
@@ -309,7 +309,7 @@ public:
       uint32_t dma_bit = (1 << dma_channel);
       uint32_t dma_enb = _dma_ctrl_regs->_enable;
 
-      std::cout <<  "dma_channel_enable: INT_STATUS 0x" << std::hex << _dma_ctrl_regs->_int_status << " Enable: " <<  _dma_ctrl_regs->_enable  << "  DMA:" << dma_channel << std::endl;
+      //std::cout <<  "dma_channel_enable: INT_STATUS 0x" << std::hex << _dma_ctrl_regs->_int_status << " Enable: " <<  _dma_ctrl_regs->_enable  << "  DMA:" << dma_channel << std::endl;
 
       if( (dma_enb&dma_bit) == 0 )
         _dma_ctrl_regs->_enable |= dma_bit;
@@ -407,9 +407,9 @@ public:
 
         _addr = DmaInfo::dma_address(dma);
 
-        std::cout <<  "DmaCtrl DMA channel: " << dma <<  " addr: 0x" << std::hex << _addr << std::endl;
+        //std::cout <<  "DmaCtrl DMA channel: " << dma <<  " addr: 0x" << std::hex << _addr << std::endl;
 
-        std::cout << "** DMA Control Condtructor " << std::endl;
+        //std::cout << "** DMA Control Condtructor " << std::endl;
 
         _dma_regs = piutils::map_memory<dma_regs>(_addr);
         if(_dma_regs == nullptr){
@@ -426,12 +426,12 @@ public:
     virtual ~DmaControl(){
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " addr: " + std::to_string(_addr));
 
-        std::cout << "** DMA Control Destructor " << std::endl;
+        //std::cout << "** DMA Control Destructor " << std::endl;
 
         if(_dma_regs){
 
             logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " Check if busy");
-            std::cout << " Check if busy" << std::endl;
+            //std::cout << " Check if busy" << std::endl;
 
             int i = 0;
             while( !is_finished() && ++i < 100){
@@ -440,14 +440,14 @@ public:
 
 
             if(i >= 100){
-              std::cout << " Check if busy - FAILED" << std::endl;
+              //std::cout << " Check if busy - FAILED" << std::endl;
               this->abort();
             }
 
             //reset DMA control state
             //reset();
 
-            //std::cout << " Clear TI" << std::endl;
+            ////std::cout << " Clear TI" << std::endl;
            // _dma_regs->_ti = 0;
             //usleep(100);
 
@@ -463,8 +463,8 @@ public:
     bool Initialize(const uint32_t cs_flags = cs_flags_pwm) {
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
-        std::cout << "************ DMA Control Initialize() **********" << std::endl;
-        //std::cout << DmaInfo::ti_register_status( _dma_regs->_ti) << std::endl;
+        //std::cout << "************ DMA Control Initialize() **********" << std::endl;
+        ////std::cout << DmaInfo::ti_register_status( _dma_regs->_ti) << std::endl;
 
         reset();
 
@@ -478,7 +478,7 @@ public:
     */
     void abort(){
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
-        std::cout << "*** DMA Control abort() " << std::endl;
+        //std::cout << "*** DMA Control abort() " << std::endl;
 
         _dma_regs->_cs |= DMA_REG_CS_ABORT;  //Abort current execution
         usleep(300);
@@ -490,7 +490,7 @@ public:
     void reset(const bool lite=false){
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
-        std::cout << "*** DMA Control reset() Lite: "  << lite << std::endl;
+        //std::cout << "*** DMA Control reset() Lite: "  << lite << std::endl;
 
         if(!lite){
           _dma_regs->_cs = DMA_REG_CS_RESET;  //Reset DMA
@@ -515,25 +515,25 @@ public:
     bool process_control_block(const pi_core::core_dma::DmaControlBlock* dma_ctrl_blk) {
         logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__));
 
-        std::cout << "process_control_block " << std::endl;
+        //std::cout << "process_control_block " << std::endl;
 
         //Check did we finis process the current DMA CB
         if( !is_finished() ){
             logger::log(logger::LLOG::DEBUG, "DmaCtrl", std::string(__func__) + " DMA is still busy");
 
-            std::cout << "process_control_block not finshed yet" << std::endl;
+            //std::cout << "process_control_block not finshed yet" << std::endl;
             return false;
         }
 
-        //std::cout << "process_control_block reset" << std::endl;
+        ////std::cout << "process_control_block reset" << std::endl;
         reset(true); //lite version
 
         //print_status(true);
 
         _started = true;
 
-        std::cout << "process_control_block set DMS CB" << std::endl;
-        std::cout << "process_control_block TI " << std::hex << DmaInfo::ti_register_status(dma_ctrl_blk->get_ctrl_blk()->_ti) << std::endl;
+        //std::cout << "process_control_block set DMS CB" << std::endl;
+        //std::cout << "process_control_block TI " << std::hex << DmaInfo::ti_register_status(dma_ctrl_blk->get_ctrl_blk()->_ti) << std::endl;
 
         //Set DMA Control Block Note: use physical address here!!!!
         _dma_regs->_conblk_ad = dma_ctrl_blk->get_phys_ctrl_blk();
@@ -553,12 +553,12 @@ public:
 
    void print_status(const bool fstatus = false) {
         const uint32_t txrf_len = _dma_regs->_txrf_len;
-        std::cout << "--------- Length  " << std::dec <<  txrf_len << std::endl;
+        //std::cout << "--------- Length  " << std::dec <<  txrf_len << std::endl;
         if(fstatus){
           const uint32_t cs = _dma_regs->_cs;
-          std::cout << "process_control_block -----> " << DmaInfo::cs_register_status(cs) << std::endl;
+          //std::cout << "process_control_block -----> " << DmaInfo::cs_register_status(cs) << std::endl;
           const uint32_t debug_reg = _dma_regs->_debug;
-          std::cout << "process_control_block -----> " << DmaInfo::debug_register_status(debug_reg) << std::endl;
+          //std::cout << "process_control_block -----> " << DmaInfo::debug_register_status(debug_reg) << std::endl;
 
         }
    }

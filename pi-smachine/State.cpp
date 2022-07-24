@@ -12,11 +12,11 @@ namespace state {
 
 State::State(StateMachineItf* itf, const std::string& name) : m_name(name), m_itf(itf)
 {
-	std::cout <<  "State " << " " << m_name  << std::endl;
+	//std::cout <<  "State " << " " << m_name  << std::endl;
 }
 
 State::~State(){
-	std::cout <<  "~State " << m_name << std::endl;
+	//std::cout <<  "~State " << m_name << std::endl;
 }
 
 } /* namespace state */

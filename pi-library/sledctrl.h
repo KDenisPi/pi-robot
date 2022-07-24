@@ -27,7 +27,7 @@ namespace sledctrl {
 using pled = std::shared_ptr<pirobot::item::SLed>;
 using transf_type = std::pair<std::string, std::shared_ptr<pirobot::item::SledTransformer>>;
 
-class SLedCtrl : public pirobot::item::Item, piutils::Threaded
+class SLedCtrl : public pirobot::item::Item, public piutils::Threaded
 {
 public:
     SLedCtrl(item::ItemTypes itype,

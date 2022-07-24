@@ -30,6 +30,8 @@ public:
         logger::log(logger::LLOG::DEBUG, "tmain", std::string(__func__) + " State:" + state_name);
 
         if(state_name.compare("StInitialization") == 0){
+	        ////std::cout  "Create StInit" << std::endl;
+
             return std::shared_ptr<smachine::state::State>(new tmain::StInit(itf));
         }
 

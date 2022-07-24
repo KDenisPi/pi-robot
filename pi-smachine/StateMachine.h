@@ -33,6 +33,10 @@ public:
 
     virtual ~StateMachine();
 
+    virtual const std::string clname() const override {
+        return std::string("StateMachine");
+    }
+
     /*
     * Get next event to the event's queue
     */
