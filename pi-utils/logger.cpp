@@ -50,14 +50,14 @@ Logger::Logger(const std::string& filename, const LLOG level) : m_flush(false), 
     //log->set_pattern("%v");
 
     m_buff = std::make_shared<log_type>(_q_size);
-    //piutils::Threaded::start<Logger>(this);
+    piutils::Threaded::start<Logger>(this);
 }
 
 Logger::~Logger() {
     ////std::cout <<  "--- Logger::~Logger---" << std::endl;
 
     set_flush();
-    //piutils::Threaded::stop();
+    piutils::Threaded::stop();
     log->flush();
 }
 
@@ -90,13 +90,13 @@ void Logger::llog(const logger::LLOG level, const std::string& pattern, const st
 
     //////std::cout <<  "---> " << pattern << " " << message << std::endl;
     log_message_type msg = std::make_pair(level, std::make_pair(pattern,message));
-    write_log(msg);
+    //write_log(msg);
     //const std::string msg = pattern + " " + message;
     ////std::cout <<  msg << std::endl;
     //log->debug("{}", msg);
 
-    //m_buff->put(std::move(msg));
-    //cv.notify_one();
+    m_buff->put(std::move(msg));
+    cv.notify_one();
 }
 
 /*
@@ -108,7 +108,7 @@ void Logger::write_log(const log_message_type& logm) const{
     if(logm.first == LLOG::INFO)
         log->info("{0} {1}", logm_.first, logm_.second);
     else if(logm.first == LLOG::DEBUG)
-        log->debug("{} {}", logm_.first, logm_.second);
+        log->debug("{0} {1}", logm_.first, logm_.second);
     else if(logm.first == LLOG::NECECCARY)
         log->warn("{0} {1}", logm_.first, logm_.second);
     else if(logm.first == LLOG::ERROR)
