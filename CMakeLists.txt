@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 #project name
-project(pi-robot VERSION 1.1.2)
+project(pi-robot VERSION 1.2.0)
 enable_testing()
 
 set(PI_VER ${PROJECT_VERSION})
@@ -90,7 +90,7 @@ set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_NAME lib${PROJECT_NAME})
 
 #libspdlog
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto (>= 1.6.8)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "mosquitto (>= 1.6.8)")
 
 # package information
 set(CPACK_PACKAGE_VENDOR ${PROJECT_VENDOR})
