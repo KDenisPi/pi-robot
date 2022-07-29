@@ -23,6 +23,12 @@ message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
 message( STATUS "CMAKE_BIULD_TYPE is ${CMAKE_BIULD_TYPE}")
 
 add_library(libmosquitto SHARED IMPORTED)
+add_library(libpi-utils SHARED IMPORTED)
+add_library(libpi-sql SHARED IMPORTED)
+add_library(libpi-library SHARED IMPORTED)
+add_library(libpi-smachine SHARED IMPORTED)
+add_library(libpi-mqtt SHARED IMPORTED)
+add_library(libpi-http SHARED IMPORTED)
 
 #
 # C++ 11
@@ -45,7 +51,7 @@ message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
 
 set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http mosquitto pthread dl curl rt)
-link_directories("${PROJECT_SOURCE_DIR}/../build")
+#link_directories("${PROJECT_SOURCE_DIR}/../build")
 
 include_directories(BEFORE
     ${PROJECT_SOURCE_DIR}/../pi-utils
