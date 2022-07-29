@@ -48,7 +48,7 @@ void StInitializeSensors::OnEntry(){
     sgp30->set_baseline(ctxt->data.spg30_base_co2, ctxt->data.spg30_base_tvoc);
     sgp30->start();
 
-   timer_create(TIMER_WARM_INTERVAL, 15) //wait for 15 seconds before real use
+   timer_create(TIMER_WARM_INTERVAL, 15); //wait for 15 seconds before real use
 }
 
 bool StInitializeSensors::OnTimer(const int id){

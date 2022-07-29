@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 #project name
-project(weather VERSION 0.9.2)
+project(weather VERSION 0.9.5)
 
 set(DAEMON ${PROJECT_NAME}d)
 
@@ -18,7 +18,6 @@ set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
 set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
 
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
-#message( STATUS "MOSQUITTO_LIB ${MOSQUITTO_LIB}")
 message( STATUS "JSONCONS ${JSONCONS}")
 message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
 message( STATUS "CMAKE_BIULD_TYPE is ${CMAKE_BIULD_TYPE}")
@@ -89,7 +88,7 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto (>= 1.6.8), libpi-robot (>=1.1.0)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "mosquitto (>= 1.6.8), libpi-robot (>=1.1.0)")
 
 # package information
 set(CPACK_PACKAGE_VENDOR ${PROJECT_VENDOR})
@@ -115,17 +114,6 @@ set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPA
 # Daemon file
 #
 install(TARGETS ${DAEMON} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-
-#
-# Mosquitto library
-#
-#snap install mosquitto
-#libmosquitto-dev/focal 1.6.9-1 amd64
-#libmosquitto1/focal 1.6.9-1 amd64
-#mosquitto-clients/focal 1.6.9-1 amd64
-#mosquitto-dev/focal,focal 1.6.9-1 all
-#mosquitto/focal 1.6.9-1 amd64
-
 
 #configuration file
 install(FILES ${PROJECT_SOURCE_DIR}/../conf/Weather.json

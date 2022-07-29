@@ -53,7 +53,7 @@ void StMeasurement::measure(){
 
         headlights(true);
 
-        timer_create(TIMER_MEASURE_LIGHT_INTERVAL, ctxt->measure_light_interval) //measurement interval
+        timer_create(TIMER_MEASURE_LIGHT_INTERVAL, ctxt->measure_light_interval); //measurement interval
 
         Measurement data;
 
@@ -227,9 +227,9 @@ void StMeasurement::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Create Timer ID: " + std::to_string(TIMER_UPDATE_INTERVAL));
 
     //Create timers
-    timer_create(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval) //measurement interval
-    timer_create(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval) //update measurement information on LCD interval
-    timer_create(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval) //save information
+    timer_create(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval); //measurement interval
+    timer_create(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval); //update measurement information on LCD interval
+    timer_create(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval); //save information
 }
 
 //
@@ -251,7 +251,7 @@ bool StMeasurement::OnTimer(const int id){
             measure();
 
             auto ctxt = get_env<weather::Context>();
-            timer_create(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval) //measurement interval
+            timer_create(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval); //measurement interval
 
             return true;
         }
@@ -269,7 +269,7 @@ bool StMeasurement::OnTimer(const int id){
             Measurement data = ctxt->data;
             storage_write(data);
 
-            timer_create(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval) //save information
+            timer_create(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval); //save information
         }
 
         case TIMER_SHOW_DATA_INTERVAL:
@@ -312,7 +312,7 @@ void StMeasurement::update_lcd(){
     lcd->write_string_at(1,0, str_1, false);
 
     //update measurement information on LCD interval
-    timer_create(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval)
+    timer_create(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval);
 }
 
 bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){

@@ -26,7 +26,7 @@ void StInitializeLcd::OnEntry(){
     auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
     led_white_r->On();
 
-    timer_create(TIMER_LCD_INTERVAL, 5) //wait for 5 seconds before real use
+    timer_create(TIMER_LCD_INTERVAL, 5); //wait for 5 seconds before real use
 }
 
 bool StInitializeLcd::OnTimer(const int id){

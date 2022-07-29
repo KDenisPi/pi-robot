@@ -30,7 +30,7 @@ void StNoHardware::OnEntry(){
     ctxt->_fstorage.prepare_data_files_list(ctxt->_fstor_path, ctxt->_data_path, ctxt->_data_list_file, fline);
 #endif
 
-    //timer_create(TIMER_FINISH_ROBOT, 55) //wait for 15 seconds before finish
+    timer_create(TIMER_FINISH_ROBOT, 55); //wait for 15 seconds before finish
 }
 
 bool StNoHardware::OnTimer(const int id){

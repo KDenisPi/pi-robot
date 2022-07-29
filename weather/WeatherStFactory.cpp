@@ -23,7 +23,7 @@ namespace weather {
 /*
  *
  */
-const std::shared_ptr<smachine::state::State> WeatherStFactory::get_state(const std::string& state_name, const std::shared_ptr<smachine::StateMachineItf>& itf)
+const std::shared_ptr<smachine::state::State> WeatherStFactory::get_state(const std::string& state_name, smachine::StateMachineItf* itf)
 {
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " State:" + state_name);
 	if(state_name.compare("StInitialization") == 0){

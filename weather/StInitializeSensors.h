@@ -14,7 +14,7 @@ namespace weather {
 
 class StInitializeSensors : public smachine::state::State {
 public:
-    StInitializeSensors(const std::shared_ptr<smachine::StateMachineItf>& itf) : smachine::state::State(itf, "StInitializeSensors") {}
+    StInitializeSensors(smachine::StateMachineItf* itf) : smachine::state::State(itf, "StInitializeSensors") {}
     virtual ~StInitializeSensors(){}
 
     virtual void OnEntry() override;

@@ -14,7 +14,7 @@ namespace weather {
 
 class StInitializeLcd : public smachine::state::State {
 public:
-    StInitializeLcd(const std::shared_ptr<smachine::StateMachineItf>& itf) : smachine::state::State(itf, "StInitializeLcd") {}
+    StInitializeLcd(smachine::StateMachineItf* itf) : smachine::state::State(itf, "StInitializeLcd") {}
     virtual ~StInitializeLcd(){}
 
     virtual void OnEntry() override;

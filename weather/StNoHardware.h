@@ -19,7 +19,7 @@ namespace weather {
 
 class StNoHardware : public smachine::state::State {
 public:
-    StNoHardware(const std::shared_ptr<smachine::StateMachineItf>& itf) : smachine::state::State(itf, "StNoHardware") {}
+    StNoHardware(smachine::StateMachineItf* itf) : smachine::state::State(itf, "StNoHardware") {}
     virtual ~StNoHardware(){}
 
     virtual void OnEntry() override;
