@@ -12,6 +12,7 @@
 #include <string>
 #include <functional>
 #include <map>
+#include <stdexcept>
 
 #include "provider.h"
 
