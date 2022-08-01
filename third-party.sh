@@ -56,6 +56,9 @@ then
   git clone https://github.com/danielaparker/jsoncons jsoncons
 fi
 
+https://github.com/nlohmann/json
+https://github.com/DaveGamble/cJSON
+
 
 #
 # Web Server
