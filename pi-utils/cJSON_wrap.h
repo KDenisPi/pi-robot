@@ -23,7 +23,7 @@ namespace cjson_wrap {
 using floader = std::unique_ptr<piutils::floader::Floader>;
 using cj_obj = cJSON*;
 
-class CJsonWrap 
+class CJsonWrap
 {
 public:
     CJsonWrap(const floader& fl) {
@@ -59,7 +59,7 @@ public:
     */
     const std::string get_attr_string_def(const cj_obj obj, const std::string& name, const std::string& def_val){
         std::string val;
-        if(!get_attr_string(obj, name, val)) 
+        if(!get_attr_string(obj, name, val))
             return def_val;
         return val;
     }
@@ -78,13 +78,21 @@ public:
     /*
         Get array
     */
-   const cj_obj get_array(const cj_obj obj, const std::string& name) noexcept(false) {
+    const cj_obj get_array(const cj_obj obj, const std::string& name) noexcept(false) {
         const cj_obj obj_i = cJSON_GetObjectItemCaseSensitive(obj, name.c_str());
         if(!cJSON_IsArray(obj_i))
             throw std::runtime_error(std::string("Absent array. Name: ") + name);
 
         return obj_i;
-   }
+    }
+
+    const cj_obj get_first(const cj_obj array) const {
+        return (cJSON_IsArray(array) ? array->child : nullptr);
+    }
+
+    const cj_obj get_next(const cj_obj item) const {
+        return (item != nullptr ? item->next : nullptr);
+    }
 
     /*
         Get value by name and use default value if absent
@@ -152,7 +160,7 @@ private:
 private:
     cj_obj cjson;
     std::string perror;
-    
+
 };
 
 

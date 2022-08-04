@@ -29,7 +29,26 @@ int main (int argc, char* argv[])
         std::cout << "Version: " << ver << std::endl;
         bool real_w = cjson->get_attr<bool>(cjson->get(), std::string("real_world"));
         std::cout << "real_world: " << real_w << std::endl;
-        int32_t real_wi = cjson->get_attr<int32_t>(cjson->get(), std::string("real_world"));
+        //int32_t real_wi = cjson->get_attr<int32_t>(cjson->get(), std::string("real_world"));
+
+        auto providers = cjson->get_array(cjson->get(), std::string("providers"));
+        auto provider = cjson->get_first(providers);
+        while(provider){
+            auto pr_type = cjson->get_attr_string(provider, std::string("type"));
+            std::cout << "type: " << pr_type << std::endl;
+
+            provider = cjson->get_next(provider);
+        }
+
+        auto gpios = cjson->get_array(cjson->get(), std::string("gpios"));
+        auto gpio = cjson->get_first(gpios);
+        while(gpio){
+            auto pr_type = cjson->get_attr_string(gpio, std::string("name"));
+            std::cout << "name: " << pr_type << std::endl;
+
+            gpio = cjson->get_next(gpio);
+        }
+
     }
     catch(std::runtime_error& exc){
         std::cout << "Error: "<< + exc.what() << std::endl;

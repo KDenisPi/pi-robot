@@ -3,10 +3,14 @@ cmake_minimum_required(VERSION 3.0)
 #project name
 project(pi-utils)
 
+include_directories(BEFORE
+    ${CJSON}
+)
+
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_UTILS_SOURCES)
 
-add_library(pi-utils SHARED ${PI_UTILS_SOURCES})
-add_library(pi-utils-dev STATIC ${PI_UTILS_SOURCES})
+add_library(pi-utils SHARED ${PI_UTILS_SOURCES} ${CJSON}/cJSON.c)
+add_library(pi-utils-dev STATIC ${PI_UTILS_SOURCES} ${CJSON}/cJSON.c)
 
 add_library(PiRobot::pi-utils ALIAS pi-utils)
 add_library(PiRobotStatic::pi-utils-dev ALIAS pi-utils-dev)
