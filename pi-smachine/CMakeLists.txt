@@ -7,7 +7,7 @@ include_directories(BEFORE
    ${PROJECT_SOURCE_DIR}/../pi-library
    ${PROJECT_SOURCE_DIR}/../pi-utils
    ${PROJECT_SOURCE_DIR}/../pi-mqtt
-   ${JSONCONS}
+   ${CJSON}
 )
 
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)

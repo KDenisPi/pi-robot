@@ -6,7 +6,7 @@ project(pi-mqtt)
 include_directories(BEFORE
    ${PROJECT_SOURCE_DIR}/../pi-smashine
    ${PROJECT_SOURCE_DIR}/../pi-utils
-   ${JSONCONS}
+   ${CJSON}
 )
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_MQTT_SOURCES)

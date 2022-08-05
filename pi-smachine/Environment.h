@@ -14,7 +14,7 @@
 #include <cstdio>
 
 #include "logger.h"
-#include "JsonHelper.h"
+#include "cJSON_wrap.h"
 #include "MqttServerInfo.h"
 
 namespace smachine {
@@ -74,58 +74,66 @@ public:
             return false;
         }
 
+        const std::unique_ptr<piutils::floader::Floader> fl = std::unique_ptr<piutils::floader::Floader>(new piutils::floader::Floader(conf));
+        if(!fl->is_success()){
+            logger::log(logger::LLOG::ERROR, "Env", std::string(__func__) + "Could not load file " + fl->get_name() + " Error: " + std::to_string(fl->get_err()));
+            return false;
+        }
+
         logger::log(logger::LLOG::NECECCARY, "Env", std::string(__func__) + " Loading Robot environment configuration ...");
-        std::ifstream ijson(conf);
+
+        logger::log(logger::LLOG::NECECCARY, "Env", std::string(__func__) + " Parse JSON from: " + conf);
+        std::shared_ptr<piutils::cjson_wrap::CJsonWrap> cjson = std::make_shared<piutils::cjson_wrap::CJsonWrap>(fl);
+        if(!cjson->is_succeess()){
+            logger::log(logger::LLOG::ERROR, "Env", std::string(__func__) + " Could not parse JSON: " + cjson->get_error());
+            return false;
+        }
+
         try{
-            logger::log(logger::LLOG::NECECCARY, "Env", std::string(__func__) + " Parse JSON from: " + conf);
-
-            jsoncons::json conf = jsoncons::json::parse(ijson);
-
-
 
             /*
             * Load general application parameters
             */
-            if(conf.contains("context"))
+            if(cjson->contains("context"))
             {
-                const jsoncons::json& json_context  =  conf["context"];
-                _log_path = jsonhelper::get_attr<std::string>(json_context, "log_path", "/var/log/pi-robot");
-                _log_name = jsonhelper::get_attr<std::string>(json_context, "log_name", "async_file_logger");
-                _log_file = jsonhelper::get_attr<std::string>(json_context, "log_file", "async_log");
-                _web_pages = jsonhelper::get_attr<std::string>(json_context, "web_pages", "../");
+                auto json_context  =  cjson->get_object("context");
+                _log_path = cjson->get_attr_string_def(json_context, "log_path", "/var/log/pi-robot");
+                _log_name = cjson->get_attr_string_def(json_context, "log_name", "async_file_logger");
+                _log_file = cjson->get_attr_string_def(json_context, "log_file", "async_log");
+                _web_pages =cjson->get_attr_string_def(json_context, "web_pages", "../");
             }
 
             /*
             * Load email parameters
             */
-            if(conf.contains("email"))
+            if(cjson->contains("email"))
             {
-                const jsoncons::json& json_context  =  conf["email"];
-                _email_server = jsonhelper::get_attr<std::string>(json_context, "server", "");
-                _email_cert = jsonhelper::get_attr<std::string>(json_context, "certificate", "");
-                _email_user = jsonhelper::get_attr<std::string>(json_context, "user", "");
-                _email_password = jsonhelper::get_attr<std::string>(json_context, "password", "");
-                _email_from = jsonhelper::get_attr<std::string>(json_context, "from", "");
-                _email_to = jsonhelper::get_attr<std::string>(json_context, "to", "");
+                auto json_email  =  cjson->get_object("email");
+                _email_server = cjson->get_attr_string_def(json_email, "server", "");
+                _email_cert = cjson->get_attr_string_def(json_email, "certificate", "");
+                _email_user = cjson->get_attr_string_def(json_email, "user", "");
+                _email_password = cjson->get_attr_string_def(json_email, "password", "");
+                _email_from = cjson->get_attr_string_def(json_email, "from", "");
+                _email_to = cjson->get_attr_string_def(json_email, "to", "");
             }
 
             /*
             * Load MQTT configuration
             */
-            if(conf.contains("mqtt"))
+            if(cjson->contains("mqtt"))
             {
-                const jsoncons::json& json_mqtt  =  conf["mqtt"];
+                auto json_mqtt  =  cjson->get_object("mqtt");
                 //host name is mandatory
-                auto mqtt_enable = jsonhelper::get_attr<bool>(json_mqtt, "enable", false);
-                auto host = jsonhelper::get_attr_mandatory<std::string>(json_mqtt, "host");
-                auto clientid = jsonhelper::get_attr<std::string>(json_mqtt, "client_id", "");
+                auto mqtt_enable = cjson->get_attr_def<bool>(json_mqtt, "enable", false);
+                auto host = cjson->get_attr_string(json_mqtt, "host");
+                auto clientid = cjson->get_attr_string_def(json_mqtt, "client_id", "");
 
-                auto keep_alive = jsonhelper::get_attr<int>(json_mqtt, "keep_alive", 10);
-                auto qos = jsonhelper::get_attr<int>(json_mqtt, "qos", 0);
+                auto keep_alive = cjson->get_attr_def<int>(json_mqtt, "keep_alive", 10);
+                auto qos = cjson->get_attr_def<int>(json_mqtt, "qos", 0);
 
-                auto tls = jsonhelper::get_attr<bool>(json_mqtt, "tls", false);
+                auto tls = cjson->get_attr_def<bool>(json_mqtt, "tls", false);
                 //default port for TLS is 8883 otherwise 1883
-                auto port = jsonhelper::get_attr<int>(json_mqtt, "port", (tls ? 8883 : 1883));
+                auto port = cjson->get_attr_def<int>(json_mqtt, "port", (tls ? 8883 : 1883));
 
                 _mqtt_conf.set_host(host);
                 _mqtt_conf.set_port(port);
@@ -134,9 +142,9 @@ public:
                 _mqtt_conf.set_enable( host.empty() ? false : mqtt_enable);
 
                 if(tls){
-                    auto tls_ca_file = jsonhelper::get_attr_mandatory<std::string>(json_mqtt, "tls_ca_file");
-                    auto tls_insecure = jsonhelper::get_attr<bool>(json_mqtt, "tls_insecure", false);
-                    auto tls_version = jsonhelper::get_attr<std::string>(json_mqtt, "tls_version", "tlsv1.2");
+                    auto tls_ca_file = cjson->get_attr_string(json_mqtt, "tls_ca_file");
+                    auto tls_insecure = cjson->get_attr_def<bool>(json_mqtt, "tls_insecure", false);
+                    auto tls_version = cjson->get_attr_string_def(json_mqtt, "tls_version", "tlsv1.2");
 
                     _mqtt_conf.set_cafile(tls_ca_file);
                     _mqtt_conf.set_tls_insecure(tls_insecure);
@@ -151,7 +159,7 @@ public:
             /*
             * SQL data storage. for future use
             */
-            if(conf.contains("sql"))
+            if(cjson->contains("sql"))
             {
             }
             else {
@@ -161,12 +169,12 @@ public:
             /*
             * File based data storage
             */
-            if(conf.contains("file"))
+            if(cjson->contains("file"))
             {
-                const jsoncons::json& json_file  =  conf["file"];
-                auto file_enable = jsonhelper::get_attr<bool>(json_file, "enable", true);
-                auto data_path = jsonhelper::get_attr<std::string>(json_file, "data_path", "/var/data/pi-robot/data");
-                auto local_time = jsonhelper::get_attr<bool>(json_file, "local_time", true);
+                auto json_file  =  cjson->get_object("file");
+                auto file_enable = cjson->get_attr_def<bool>(json_file, "enable", true);
+                auto data_path = cjson->get_attr_string_def(json_file, "data_path", "/var/data/pi-robot/data");
+                auto local_time = cjson->get_attr_def<bool>(json_file, "local_time", true);
 
                 set_use_file_storage(file_enable);
                 _fstor_path = data_path;
@@ -179,10 +187,8 @@ public:
 
 
         }
-        catch(jsoncons::ser_error& perr){
-            logger::log(logger::LLOG::ERROR, "Env", std::string(__func__) + " Invalid configuration " +
-                perr.what() + " Line: " + std::to_string(perr.line()) + " Column: " + std::to_string(perr.column()));
-
+        catch(std::runtime_error& exc){
+            logger::log(logger::LLOG::ERROR, "Env", std::string(__func__) + exc.what());
             return false;
         }
 

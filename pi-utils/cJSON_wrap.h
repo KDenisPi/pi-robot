@@ -76,8 +76,35 @@ public:
     }
 
     /*
+        Detect if we have element with name
+    */
+   const bool contains(const std::string& name, const cj_obj obj = nullptr) {
+        const cj_obj obj_i = cJSON_GetObjectItemCaseSensitive((obj==nullptr ? cjson : obj), name.c_str());
+        return (obj_i != nullptr);
+   }
+
+    /*
+        Get object
+    */
+    const cj_obj get_object(const std::string& name) noexcept(false) {
+        return get_object(cjson, name);
+    }
+
+    const cj_obj get_object(const cj_obj obj, const std::string& name) noexcept(false) {
+        const cj_obj obj_i = cJSON_GetObjectItemCaseSensitive(obj, name.c_str());
+        if(!cJSON_IsObject(obj_i))
+            throw std::runtime_error(std::string("Absent object. Name: ") + name);
+
+        return obj_i;
+    }
+
+    /*
         Get array
     */
+    const cj_obj get_array(const std::string& name) noexcept(false) {
+        return get_array(cjson, name);
+    }
+
     const cj_obj get_array(const cj_obj obj, const std::string& name) noexcept(false) {
         const cj_obj obj_i = cJSON_GetObjectItemCaseSensitive(obj, name.c_str());
         if(!cJSON_IsArray(obj_i))

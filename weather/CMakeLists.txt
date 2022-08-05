@@ -18,7 +18,7 @@ set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
 set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
 
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
-message( STATUS "JSONCONS ${JSONCONS}")
+message( STATUS "CJSON ${CJSON}")
 message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
 message( STATUS "CMAKE_BIULD_TYPE is ${CMAKE_BIULD_TYPE}")
 
@@ -63,7 +63,7 @@ include_directories(BEFORE
     ${PROJECT_SOURCE_DIR}/../pi-http
     ${PROJECT_SOURCE_DIR}/../pi-data
     ${MONGOOSE_HOME}
-    ${JSONCONS}
+    ${CJSON}
     ${SQLITE3_HOME}
 )
 

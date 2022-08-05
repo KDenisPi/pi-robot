@@ -6,7 +6,7 @@ project(pi-library)
 include_directories(BEFORE
    ${PROJECT_SOURCE_DIR}/../pi-utils
    ${PROJECT_SOURCE_DIR}/../pi-core
-   ${JSONCONS}
+   ${CJSON}
 )
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_LIBRARY_SOURCES)

@@ -7,8 +7,8 @@ enable_testing()
 include_directories(BEFORE
     ${PROJECT_SOURCE_DIR}/../../pi-utils
     ${PROJECT_SOURCE_DIR}/../../pi-library
-    ${JSONCONS}
-)
+    ${CJSON}
+    )
 
 message( STATUS "GPIO GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "GPIO CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
