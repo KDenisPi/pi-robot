@@ -9,6 +9,7 @@
 #define PI_SMACHINE_EVENT_H_
 
 #include <memory>
+#include <string>
 
 namespace smachine {
 
