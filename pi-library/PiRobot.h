@@ -20,6 +20,8 @@
 #include <bcm_host.h>
 #endif
 
+#include "cJSON_wrap.h"
+
 #include "provider.h"
 #include "GpioProvider.h"
 #include "gpio.h"
@@ -106,8 +108,8 @@ private:
     * Create GPIO for the provider. Provider should created before using add_provider function
     */
     void add_gpio(const std::string& name, const std::string& provider_name,
-        const pirobot::gpio::GPIO_MODE gpio_mode, 
-        const int pin, 
+        const pirobot::gpio::GPIO_MODE gpio_mode,
+        const int pin,
         const pirobot::gpio::PULL_MODE pull_mode = pirobot::gpio::PULL_MODE::PULL_OFF,
         const pirobot::gpio::GPIO_EDGE_LEVEL edge_level = pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_NONE) noexcept(false);
 
@@ -133,7 +135,7 @@ public:
             pdata - provider data used for notification
     */
     void notify_low(const pirobot::provider::PROVIDER_TYPE ptype, const std::string& pname, std::shared_ptr<pirobot::provider::ProviderData> pdata);
-    
+
     //pring configuration
     void printConfig();
 
@@ -155,6 +157,9 @@ public:
         return m_configuration;
    }
 
+    bool load_providers(const std::shared_ptr<piutils::cjson_wrap::CJsonWrap>& cjson) noexcept(false);
+    bool load_gpios(const std::shared_ptr<piutils::cjson_wrap::CJsonWrap>& cjson) noexcept(false);
+
 private:
 
     void set_real_world(const bool real_world){
@@ -175,7 +180,7 @@ private:
         std::allocator<std::pair<const std::string, std::shared_ptr<gpio::Gpio>> >
     > gpios;
 
-    //Map for detection GPIO by low level name (Provider + Pin) 
+    //Map for detection GPIO by low level name (Provider + Pin)
     std::map <std::string,
         std::shared_ptr<gpio::Gpio>,
         std::less<std::string>,
