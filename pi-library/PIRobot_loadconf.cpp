@@ -14,23 +14,16 @@
 #include "Adafruit_PWMServoDriver.h"
 
 #include "item.h"
-#include "led.h"
-#include "button.h"
-#include "blinking.h"
-#include "Drv8835.h"
-#include "DCMotor.h"
+#include "AnalogLightMeter.h"
 #include "ULN2003StepperMotor.h"
 #include "MCP320X.h"
-#include "AnalogLightMeter.h"
 #include "Mpu6050.h"
 #include "Si7021.h"
 #include "sgp30.h"
 #include "bmp280.h"
 #include "tsl2561.h"
 #include "lcd.h"
-#include "sled.h"
-#include "sledctrl_spi.h"
-#include "sledctrl_pwm.h"
+
 #include "AnalogMeterSimple.h"
 #include "dustSensor.h"
 #include "tmp36Sensor.h"
@@ -119,42 +112,6 @@ bool PiRobot::configure(const std::string& cfile){
             /*
             * Detect GPIO name
             */
-            auto f_get_gpio_name = [this, cjson](const piutils::cjson_wrap::cj_obj object, const std::string& gpio_object_name, const std::string& item_name) -> std::string{
-                auto gpio_object = cjson->get_object(object, gpio_object_name);
-
-                //
-                // If GPIO has his own name - use it without checking provider and PIN
-                //
-                if(cjson->contains("name", gpio_object)){
-                    return cjson->get_attr_string(gpio_object, "name");
-                }
-
-                auto gpio_provider = cjson->get_attr_string(gpio_object, "provider");
-                auto gpio_pin = cjson->get_attr<int>(gpio_object, "pin");
-
-                logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item Name: " + item_name + " GPIO provider: " + gpio_provider + " Pin:" + std::to_string(gpio_pin));
-
-                const auto provider = get_provider(gpio_provider);
-                if(provider->get_ptype() != provider::PROVIDER_TYPE::PROV_GPIO){
-                    const std::string msg = " Invalid provider type. " + gpio_provider + " Is not GPIO provider.";
-                    logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + msg);
-                    throw std::runtime_error(msg);
-                }
-
-                return gpio::Gpio::get_gpio_name(gpio_provider, gpio_pin);
-            };
-
-            auto f_get_motor_direction = [this, cjson](const piutils::cjson_wrap::cj_obj object, const std::string& item_name) -> item::MOTOR_DIR{
-                std::string direction_name = cjson->get_attr_string_def(object, "direction", "CLOCKWISE");
-
-                if((direction_name != "CLOCKWISE") && (direction_name != "COUTERCLOCKWISE")){
-                    logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid Motor direction value: " + direction_name + " for " + item_name);
-                    throw std::runtime_error(std::string(" Invalid Motor direction value: ") + direction_name + " for " + item_name);
-                }
-
-                return (direction_name == "CLOCKWISE" ? item::MOTOR_DIR::DIR_CLOCKWISE : item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
-            };
-
 
             const auto json_items = cjson->get_array(std::string("items"));
             auto json_item = cjson->get_first(json_items);
@@ -185,122 +142,7 @@ bool PiRobot::configure(const std::string& cfile){
                             throw std::runtime_error(std::string(" Invalid Item configuration. GPIO information is absent."));
                         }
 
-                        std::string gpio_name = f_get_gpio_name(json_item, "gpio", item_name);
-
-                    /*
-                    * LED parameters: Name, Comment, [GPIO provider, PIN]
-                    */
-                        if(itype==item::ItemTypes::LED){
-                            items_add(item_name, std::make_shared<pirobot::item::Led>(get_gpio(gpio_name), item_name, item_comment));
-
-                            //Link GPIO with item
-                            link_gpio_item(gpio_name, std::make_pair(item_name, itype));
-                        }//LED
-
-                    /*
-                    * BUTTON parameters: Name, Comment, [GPIO provider, PIN]
-                    */
-                        else if(itype==item::ItemTypes::BUTTON){
-                            auto btn_state = cjson->get_attr_string_def(json_item, "state", "NOT_PUSHED");
-                            auto btn_pull_mode = cjson->get_attr_string_def(json_item, "pull_mode", "PULL_UP");
-
-                            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Button Name: " + item_name + " State: " + btn_state + " Pull mode:" + btn_pull_mode);
-
-                            if((btn_state != "NOT_PUSHED") && (btn_state != "PUSHED")){
-                                logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid Button state value.");
-                                throw std::runtime_error(std::string(" Invalid Button state value."));
-                            }
-
-                            if((btn_pull_mode != "PULL_UP") && (btn_pull_mode != "PULL_DOWN")){
-                                logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid Button pull mode value.");
-                                throw std::runtime_error(std::string(" Invalid Button pull mode value."));
-                            }
-
-                            items_add(item_name,
-                                std::make_shared<pirobot::item::Button>(
-                                        get_gpio(gpio_name),
-                                        item_name, item_comment,
-                                        (btn_state == "NOT_PUSHED" ? item::BUTTON_STATE::BTN_NOT_PUSHED : item::BUTTON_STATE::BTN_PUSHED),
-                                        (btn_pull_mode == "PULL_UP" ? gpio::PULL_MODE::PULL_UP : gpio::PULL_MODE::PULL_DOWN)));
-
-                            //Link GPIO with item
-                            link_gpio_item(gpio_name, std::make_pair(item_name, itype));
-
-                        }//BUTTON
-
-                    /*
-                    * DRV8835 parameters: Name, Comment, [GPIO provider, PIN]
-                    */
-                        else if(itype==item::ItemTypes::DRV8835){
-                            auto drv8835_mode = cjson->get_attr_string_def(json_item, "mode", "PH_EN");
-
-                            if((drv8835_mode != "PH_EN") && (drv8835_mode != "IN_IN")){
-                                logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid Drv8835 mode value.");
-                                throw std::runtime_error(std::string(" Invalid Drv8835 mode value."));
-                            }
-
-                            items_add(item_name, std::make_shared<pirobot::item::Drv8835>(get_gpio(gpio_name), item_name, item_comment));
-
-                            //Link GPIO with item
-                            link_gpio_item(gpio_name, std::make_pair(item_name, itype));
-                        }//DRV8835
-
-                    /*
-                    * DCMotor parameters: Name, Comment, two GPIOs, DRV8835, Direction
-                    */
-                        else if(itype==item::ItemTypes::DCMotor){
-
-                            std::string pwm_gpio_name = f_get_gpio_name(json_item, "gpio_pwm", item_name);
-                            if(pwm_gpio_name == gpio_name){
-                                logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid GPIO PWM value (duplicate).");
-                                throw std::runtime_error(std::string("Invalid GPIO PWM value (duplicate)."));
-                            }
-
-                            auto drv8835_name = cjson->get_attr_string(json_item, "drv8835");
-                            auto direction = f_get_motor_direction(json_item, item_name);
-
-                            items_add(item_name,
-                                std::make_shared<pirobot::item::dcmotor::DCMotor>(
-                                        std::static_pointer_cast<pirobot::item::Drv8835>(get_item(drv8835_name)),
-                                        get_gpio(gpio_name),
-                                        get_gpio(pwm_gpio_name), item_name, item_comment,
-                                        direction)
-                                );
-
-                            //Link GPIO with item
-                            link_gpio_item(gpio_name, std::make_pair(item_name, itype));
-                            link_gpio_item(pwm_gpio_name, std::make_pair(item_name, itype));
-
-                        }//DC Motor
-                    /*
-                    // Analog-Digital converter
-                    */
-                        else  if(itype== item::ItemTypes::AnlgDgtConvertor){
-                            auto analog_inputs =  cjson->get_attr_def<int>(json_item, "analog_inputs", 8);
-                            auto spi_channel  =  cjson->get_attr_def<int>(json_item, "spi_channel", 0);
-                            auto loop_delay  =  cjson->get_attr_def<unsigned int>(json_item, "delay", 5);
-                            auto dev_type = cjson->get_attr_string_def(json_item, "dtype", "MCP3208");
-
-                            pirobot::mcp320x::MCP3XXX_DEVICE_TYPE anlg_device = mcp320x::MCP3XXX_DEVICE_TYPE::MCP3208;
-                            if(analog_inputs == 8){
-                                anlg_device = (dev_type=="MCP3008" ? mcp320x::MCP3XXX_DEVICE_TYPE::MCP3008 : mcp320x::MCP3XXX_DEVICE_TYPE::MCP3208);
-                            }
-                            else if(analog_inputs == 4){
-                                anlg_device = (dev_type=="MCP3004" ? mcp320x::MCP3XXX_DEVICE_TYPE::MCP3004 : mcp320x::MCP3XXX_DEVICE_TYPE::MCP3204);
-                            }
-
-                            items_add(item_name, std::make_shared<pirobot::mcp320x::MCP320X>(
-                                std::static_pointer_cast<pirobot::spi::SPI>(get_provider("SPI")),
-                                get_gpio(gpio_name),
-                                item_name,
-                                item_comment,
-                                anlg_device,
-                                (spi_channel == 0 ? spi::SPI_CHANNELS::SPI_0 : spi::SPI_CHANNELS::SPI_1),
-                                loop_delay));
-
-                            //Link GPIO with item
-                            link_gpio_item(gpio_name, std::make_pair(item_name, itype));
-                        }
+                        load_item_one_gpio(cjson, json_item, itype, item_name, item_comment);
                     }//Single GPIO based Items
                     break;
 
@@ -310,12 +152,12 @@ bool PiRobot::configure(const std::string& cfile){
                             DCMotor parameters: Name, Comment, [GPIO provider, PIN]
                             [0]=PHASE_0, [1]=PHASE_1, [2]=PHASE_2, [3]=PHASE_3
                             */
-                            std::string gpio_phase_0_name = f_get_gpio_name(json_item, "gpio_phase_0", item_name);
-                            std::string gpio_phase_1_name = f_get_gpio_name(json_item, "gpio_phase_1", item_name);
-                            std::string gpio_phase_2_name = f_get_gpio_name(json_item, "gpio_phase_2", item_name);
-                            std::string gpio_phase_3_name = f_get_gpio_name(json_item, "gpio_phase_3", item_name);
+                            std::string gpio_phase_0_name = f_get_gpio_name(cjson, json_item, "gpio_phase_0", item_name);
+                            std::string gpio_phase_1_name = f_get_gpio_name(cjson, json_item, "gpio_phase_1", item_name);
+                            std::string gpio_phase_2_name = f_get_gpio_name(cjson, json_item, "gpio_phase_2", item_name);
+                            std::string gpio_phase_3_name = f_get_gpio_name(cjson, json_item, "gpio_phase_3", item_name);
 
-                            auto direction = f_get_motor_direction(json_item, item_name);
+                            auto direction = f_get_motor_direction(cjson, json_item, item_name);
 
                             items_add(item_name, std::make_shared<pirobot::item::ULN2003StepperMotor>(
                                     get_gpio(gpio_phase_0_name),
@@ -337,15 +179,15 @@ bool PiRobot::configure(const std::string& cfile){
                             /*
 
                             */
-                            std::string gpio_rs_name = f_get_gpio_name(json_item, "gpio_rs", item_name);
-                            std::string gpio_enable_name = f_get_gpio_name(json_item, "gpio_enable", item_name);
+                            std::string gpio_rs_name = f_get_gpio_name(cjson, json_item, "gpio_rs", item_name);
+                            std::string gpio_enable_name = f_get_gpio_name(cjson, json_item, "gpio_enable", item_name);
 
-                            std::string gpio_data_4_name = f_get_gpio_name(json_item, "gpio_data_4", item_name);
-                            std::string gpio_data_5_name = f_get_gpio_name(json_item, "gpio_data_5", item_name);
-                            std::string gpio_data_6_name = f_get_gpio_name(json_item, "gpio_data_6", item_name);
-                            std::string gpio_data_7_name = f_get_gpio_name(json_item, "gpio_data_7", item_name);
+                            std::string gpio_data_4_name = f_get_gpio_name(cjson, json_item, "gpio_data_4", item_name);
+                            std::string gpio_data_5_name = f_get_gpio_name(cjson, json_item, "gpio_data_5", item_name);
+                            std::string gpio_data_6_name = f_get_gpio_name(cjson, json_item, "gpio_data_6", item_name);
+                            std::string gpio_data_7_name = f_get_gpio_name(cjson, json_item, "gpio_data_7", item_name);
 
-                            std::string gpio_backlite_name = f_get_gpio_name(json_item, "gpio_backlite", item_name);
+                            std::string gpio_backlite_name = f_get_gpio_name(cjson, json_item, "gpio_backlite", item_name);
 
                             auto lines  =  cjson->get_attr_def<int>(json_item, "lines", 1);
                             auto bitmode  =  cjson->get_attr_def<int>(json_item, "bitmode", 4);
@@ -429,7 +271,7 @@ bool PiRobot::configure(const std::string& cfile){
                                 ameter->add_receiver(pin, std::make_shared<analogdata::AnalogDataReceiverItf>(ameter_name, pin));
                             }
                             else if(ameter_type == "dustsensor"){
-                                std::string gpio_name = f_get_gpio_name(meter, "gpio", item_name);
+                                std::string gpio_name = f_get_gpio_name(cjson, meter, "gpio", item_name);
                                 ameter->add_receiver(pin, std::make_shared<item::dustsensor::DustSensor>(get_gpio(gpio_name), pin, ameter_name));
                             }
                             else if(ameter_type == "tmp36"){
@@ -446,18 +288,7 @@ bool PiRobot::configure(const std::string& cfile){
                 * BLINKER parameters: Name, SUB.ITEM=LED
                 */
                     {
-                        auto led = cjson->get_attr_string(json_item, "led");
-                        auto tm_on  =  cjson->get_attr_def<int>(json_item, "tm_on", 250);
-                        auto tm_off  =  cjson->get_attr_def<int>(json_item, "tm_off", 500);
-                        auto blinks  =  cjson->get_attr_def<int>(json_item, "blinks", 0);
-
-                        items_add(item_name, std::make_shared<pirobot::item::Blinking<pirobot::item::Led>>(
-                                std::static_pointer_cast<pirobot::item::Led>(get_item(led)),
-                                item_name,
-                                item_comment,
-                                tm_on,
-                                tm_off,
-                                blinks));
+                        load_item_one_gpio(cjson, json_item, itype, item_name, item_comment);
                     }
                     break;
                     /*
@@ -544,78 +375,12 @@ bool PiRobot::configure(const std::string& cfile){
                     *  SPI based LED stripe controller
                     */
                     case item::ItemTypes::SLEDCRTLSPI:
-                    {
-                        auto spi_channel  =  cjson->get_attr_def<int>(json_item, "spi_channel", 0);
-                        auto stripes  =  cjson->get_attr_def<int>(json_item, "stripes", 0);
-
-                        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item: " + item_name + " Comment: " + item_comment);
-                        items_add(item_name, std::make_shared<pirobot::item::sledctrl::SLedCtrlSpi>(
-                                        std::static_pointer_cast<pirobot::spi::SPI>(get_provider("SPI")),
-                                        stripes,
-                                        item_name,
-                                        item_comment,
-                                        (spi_channel == 0 ? spi::SPI_CHANNELS::SPI_0 : spi::SPI_CHANNELS::SPI_1)
-                                    ));
-
-                        auto sledctrl = std::static_pointer_cast<pirobot::item::sledctrl::SLedCtrlSpi>(get_item(item_name));
-
-                        const auto json_sled = cjson->get_array(json_item, std::string("stripe"));
-                        auto stripe = cjson->get_first(json_sled);
-                        while(stripe){
-                            auto leds  =  cjson->get_attr<int>(stripe, "leds");
-                            auto sled_name  =  cjson->get_attr_string(stripe, "name");
-                            auto sled_comm  =  cjson->get_attr_string_def(stripe, "comment", "");
-                            auto sled_type  =  cjson->get_attr_string(stripe, "type");
-                            if( sled_type != "WS2810" ){
-                                logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid LED stripe type " + sled_type);
-                                throw std::runtime_error(std::string(" Invalid LED stripe type" + sled_type));
-                            }
-                            pirobot::item::SLedType stype = (sled_type == "WS2810" ? pirobot::item::SLedType::WS2810 : pirobot::item::SLedType::WS2812B);
-
-                            sledctrl->add_sled(std::make_shared<pirobot::item::SLed>(leds, stype, sled_name, sled_comm));
-                            stripe = cjson->get_next(stripe);
-                        }
-                    }
-                    break;
-
                     /*
                     *  PWM based LED stripe controller
                     */
                     case item::ItemTypes::SLEDCRTLPWM:
                     {
-                        auto stripes  =  cjson->get_attr_def<int>(json_item, "stripes", 0);
-                        std::string pwm_gpio = f_get_gpio_name(json_item, "gpio_pwm", item_name);
-
-                        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item: " + item_name + " Comment: " + item_comment);
-
-                        items_add(item_name, std::make_shared<pirobot::item::sledctrl::SLedCtrlPwm>(
-                                        stripes,
-                                        item_name,
-                                        get_gpio(pwm_gpio),
-                                        item_comment
-                                    ));
-
-                        //Link GPIO with item
-                        link_gpio_item(pwm_gpio, std::make_pair(item_name, itype));
-
-                        auto sledctrl = std::static_pointer_cast<pirobot::item::sledctrl::SLedCtrlSpi>(get_item(item_name));
-
-                        const auto json_sled = cjson->get_array(json_item, std::string("stripe"));
-                        auto stripe = cjson->get_first(json_sled);
-                        while(stripe){
-                            auto leds  =  cjson->get_attr<int>(stripe, "leds");
-                            auto sled_name  =  cjson->get_attr_string(stripe, "name");
-                            auto sled_comm  =  cjson->get_attr_string_def(stripe, "comment", "");
-                            auto sled_type  =  cjson->get_attr_string(stripe, "type");
-                            if( sled_type != "WS2812B" ){
-                                logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid LED stripe type " + sled_type);
-                                throw std::runtime_error(std::string(" Invalid LED stripe type" + sled_type));
-                            }
-                            pirobot::item::SLedType stype = (sled_type == "WS2810" ? pirobot::item::SLedType::WS2810 : pirobot::item::SLedType::WS2812B);
-
-                            sledctrl->add_sled(std::make_shared<pirobot::item::SLed>(leds, stype, sled_name, sled_comm));
-                            stripe = cjson->get_next(stripe);
-                        }
+                        load_sled(cjson, json_item, itype, item_name, item_comment);
                     }
 
                 }//Item types
@@ -639,35 +404,45 @@ bool PiRobot::configure(const std::string& cfile){
     return result;
 }
 
-/*
-    Low level notification function (provider callback etc)
-    Parameters:
-        ptype - provider type
-        pname - provider name
-        pdata - provider data used for notification
-*/
-void PiRobot::notify_low(const pirobot::provider::PROVIDER_TYPE ptype, const std::string& pname, std::shared_ptr<pirobot::provider::ProviderData> pdata) {
-    if(ptype == pirobot::provider::PROVIDER_TYPE::PROV_GPIO){
-        const std::string gpio_name = gpio::Gpio::get_gpio_name(pname, pdata->pin());
-        auto gpio_item = gpio_items.find(gpio_name);
-        if(gpio_item == gpio_items.end()){
-            //It is strange
-            return;
-        }
+std::string PiRobot::f_get_gpio_name(const std::shared_ptr<piutils::cjson_wrap::CJsonWrap>& cjson,
+                        const piutils::cjson_wrap::cj_obj object,
+                        const std::string& gpio_object_name,
+                        const std::string& item_name){
 
-        //check all Items used this GPIO
-        const std::shared_ptr<std::vector<item_name_type>> v_items = gpio_item->second;
-        for(auto item_info : *(v_items)){
-            /*
-            * If this GPIO used by buttom notify system about state change
-            */
-            if(item_info.second == item::ItemTypes::BUTTON){
-                const std::shared_ptr<pirobot::item::Button> btn = std::static_pointer_cast<pirobot::item::Button>(get_item(item_info.first));
-                btn->process_level(gpio::Gpio::value_to_level(pdata->value()));
-            }
-        }
+    auto gpio_object = cjson->get_object(object, gpio_object_name);
+
+    //
+    // If GPIO has his own name - use it without checking provider and PIN
+    //
+    if(cjson->contains("name", gpio_object)){
+        return cjson->get_attr_string(gpio_object, "name");
     }
 
+    auto gpio_provider = cjson->get_attr_string(gpio_object, "provider");
+    auto gpio_pin = cjson->get_attr<int>(gpio_object, "pin");
+
+    logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item Name: " + item_name + " GPIO provider: " + gpio_provider + " Pin:" + std::to_string(gpio_pin));
+
+    const auto provider = get_provider(gpio_provider);
+    if(provider->get_ptype() != provider::PROVIDER_TYPE::PROV_GPIO){
+        const std::string msg = " Invalid provider type. " + gpio_provider + " Is not GPIO provider.";
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + msg);
+        throw std::runtime_error(msg);
+    }
+
+    return gpio::Gpio::get_gpio_name(gpio_provider, gpio_pin);
 }
+
+item::MOTOR_DIR PiRobot::f_get_motor_direction(const std::shared_ptr<piutils::cjson_wrap::CJsonWrap>& cjson,const piutils::cjson_wrap::cj_obj object, const std::string& item_name){
+    std::string direction_name = cjson->get_attr_string_def(object, "direction", "CLOCKWISE");
+
+    if((direction_name != "CLOCKWISE") && (direction_name != "COUTERCLOCKWISE")){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid Motor direction value: " + direction_name + " for " + item_name);
+        throw std::runtime_error(std::string(" Invalid Motor direction value: ") + direction_name + " for " + item_name);
+    }
+
+    return (direction_name == "CLOCKWISE" ? item::MOTOR_DIR::DIR_CLOCKWISE : item::MOTOR_DIR::DIR_COUTERCLOCKWISE);
+}
+
 
 }//namespace

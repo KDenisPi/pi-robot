@@ -157,8 +157,17 @@ public:
         return m_configuration;
    }
 
+
+    std::string f_get_gpio_name(const std::shared_ptr<piutils::cjson_wrap::CJsonWrap>& cjson, const piutils::cjson_wrap::cj_obj object, const std::string& gpio_object_name, const std::string& item_name);
+    item::MOTOR_DIR f_get_motor_direction(const std::shared_ptr<piutils::cjson_wrap::CJsonWrap>& cjson,const piutils::cjson_wrap::cj_obj object, const std::string& item_name);
+
+
     bool load_providers(const std::shared_ptr<piutils::cjson_wrap::CJsonWrap>& cjson) noexcept(false);
     bool load_gpios(const std::shared_ptr<piutils::cjson_wrap::CJsonWrap>& cjson) noexcept(false);
+    bool load_item_one_gpio(const std::shared_ptr<piutils::cjson_wrap::CJsonWrap>& cjson, const piutils::cjson_wrap::cj_obj json_item,
+            item::ItemTypes itype, const std::string& item_name, const std::string& item_comment) noexcept(false);
+    bool load_sled(const std::shared_ptr<piutils::cjson_wrap::CJsonWrap>& cjson, const piutils::cjson_wrap::cj_obj json_item,
+            item::ItemTypes itype, const std::string& item_name, const std::string& item_comment) noexcept(false);
 
 private:
 
