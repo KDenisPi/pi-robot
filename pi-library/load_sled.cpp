@@ -88,7 +88,7 @@ bool PiRobot::load_sled(const std::shared_ptr<piutils::cjson_wrap::CJsonWrap>& c
             stripe = cjson->get_next(stripe);
         }
     }
-
+    return true;
 }
 
 }
