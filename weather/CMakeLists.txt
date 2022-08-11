@@ -14,8 +14,8 @@ ENDIF(REAL_HARDWARE)
 
 message( STATUS "THIRD_PARTY_HOME: ${THIRD_PARTY_HOME}")
 
-set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
 set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
+set(CJSON "${THIRD_PARTY_HOME}/cJSON")
 
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
 message( STATUS "CJSON ${CJSON}")
@@ -23,12 +23,17 @@ message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
 message( STATUS "CMAKE_BIULD_TYPE is ${CMAKE_BIULD_TYPE}")
 
 add_library(libmosquitto SHARED IMPORTED)
-add_library(libpi-utils SHARED IMPORTED)
-add_library(libpi-sql SHARED IMPORTED)
-add_library(libpi-library SHARED IMPORTED)
-add_library(libpi-smachine SHARED IMPORTED)
-add_library(libpi-mqtt SHARED IMPORTED)
-add_library(libpi-http SHARED IMPORTED)
+
+IF(REAL_HARDWARE)
+    add_library(libpi-utils SHARED IMPORTED)
+    add_library(libpi-sql SHARED IMPORTED)
+    add_library(libpi-library SHARED IMPORTED)
+    add_library(libpi-smachine SHARED IMPORTED)
+    add_library(libpi-mqtt SHARED IMPORTED)
+    add_library(libpi-http SHARED IMPORTED)
+ELSE(REAL_HARDWARE)
+    link_directories("${PROJECT_SOURCE_DIR}/../build")
+ENDIF(REAL_HARDWARE)
 
 #
 # C++ 11
@@ -51,9 +56,9 @@ message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
 
 set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http mosquitto pthread dl curl rt)
-#link_directories("${PROJECT_SOURCE_DIR}/../build")
 
 include_directories(BEFORE
+    ${CJSON}
     ${PROJECT_SOURCE_DIR}/../pi-utils
     ${PROJECT_SOURCE_DIR}/../pi-main
     ${PROJECT_SOURCE_DIR}/../pi-sql
@@ -63,7 +68,6 @@ include_directories(BEFORE
     ${PROJECT_SOURCE_DIR}/../pi-http
     ${PROJECT_SOURCE_DIR}/../pi-data
     ${MONGOOSE_HOME}
-    ${CJSON}
     ${SQLITE3_HOME}
 )
 

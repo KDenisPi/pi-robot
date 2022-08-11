@@ -26,13 +26,24 @@ using cj_obj = cJSON*;
 class CJsonWrap
 {
 public:
+    /*
+     Parser
+    */
     CJsonWrap(const floader& fl) {
         cjson = cJSON_Parse(fl->get());
         if(cjson == NULL){ //Print parse error error
             perror= std::string(cJSON_GetErrorPtr());
         }
+    }
 
-
+    /*
+    Printer
+    */
+    CJsonWrap() {
+        cjson = cJSON_CreateObject();
+        if(cjson == NULL){ //Print parse error error
+            perror= "Could not create root object";
+        }
     }
 
     virtual ~CJsonWrap() {
@@ -144,6 +155,69 @@ public:
         return val;
     }
 
+    bool add_string(cj_obj obj_i, const std::string& name, const std::string& val) noexcept(false){
+        if(!cJSON_IsObject(obj_i))
+            throw std::runtime_error(std::string("Root object is absent for name: ") + name);
+        if(name.empty())
+            throw std::runtime_error(std::string("No name"));
+
+        cj_obj value = cJSON_CreateString(val.c_str());
+        if(value == nullptr){
+            throw std::runtime_error(std::string("Could not create string Name: ") + name);
+        }
+
+        cJSON_AddItemToObject(obj_i, name.c_str(), value);
+        return true;
+    }
+
+    template<class T>
+    bool add_number(cj_obj obj_i, const std::string name, T& val) noexcept(false){
+        if(!cJSON_IsObject(obj_i))
+            throw std::runtime_error(std::string("Root object is absent for name: ") + name);
+        if(name.empty())
+            throw std::runtime_error(std::string("No name"));
+
+        cj_obj value = cJSON_CreateNumber(val);
+        if(value == nullptr){
+            throw std::runtime_error(std::string("Could not create number Name: ") + name);
+        }
+
+        cJSON_AddItemToObject(obj_i, name.c_str(), value);
+        return true;
+    }
+
+    cj_obj add_array(cj_obj obj_i, const std::string name) noexcept(false) {
+        if(!cJSON_IsObject(obj_i))
+            throw std::runtime_error(std::string("Root object is absent for name: ") + name);
+        if(name.empty())
+            throw std::runtime_error(std::string("No name"));
+
+        auto a_obj = cJSON_CreateArray();
+        if(!cJSON_IsArray(a_obj))
+            throw std::runtime_error(std::string("Could not create array Name: ") + name);
+
+        cJSON_AddItemToObject(obj_i, name.c_str(), a_obj);
+        return a_obj;
+    }
+
+    cj_obj add_object(cj_obj obj_i, const std::string name) noexcept(false) {
+        if(!cJSON_IsObject(obj_i))
+            throw std::runtime_error(std::string("Root object is absent for name: ") + name);
+        if(name.empty())
+            throw std::runtime_error(std::string("No name"));
+
+        auto a_obj = cJSON_CreateObject();
+        if(!cJSON_IsObject(a_obj))
+            throw std::runtime_error(std::string("Could not create object Name: ") + name);
+
+        cJSON_AddItemToObject(obj_i, name.c_str(), a_obj);
+        return a_obj;
+    }
+
+
+    const std::string print() const {
+        return std::string(cJSON_Print(this->get()));
+    }
 
 private:
     /*
@@ -183,13 +257,11 @@ private:
     }
 
 
-
 private:
     cj_obj cjson;
     std::string perror;
 
 };
-
 
 
 }//namespace cjson_wrap

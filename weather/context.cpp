@@ -5,9 +5,9 @@
  *      Author: Denis Kudia
  */
 
-#include "context.h"
 #include "logger.h"
-#include "JsonHelper.h"
+#include "context.h"
+#include "cJSON_wrap.h"
 
 namespace weather {
 
@@ -16,28 +16,31 @@ namespace weather {
 */
 bool Context::load_initial_data(const std::string& filename){
 
-    std::ifstream ijson(filename);
-    if (!ijson.is_open()){
-        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Could not open configuraion file: " + filename);
+    const std::unique_ptr<piutils::floader::Floader> fl = std::unique_ptr<piutils::floader::Floader>(new piutils::floader::Floader(filename));
+    if(!fl->is_success()){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + "Could not load file " + fl->get_name() + " Error: " + std::to_string(fl->get_err()));
+        return false;
+    }
+
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Parse JSON from: " + filename);
+    std::shared_ptr<piutils::cjson_wrap::CJsonWrap> cjson = std::make_shared<piutils::cjson_wrap::CJsonWrap>(fl);
+    if(!cjson->is_succeess()){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not parse JSON: " + cjson->get_error());
         return false;
     }
 
     try{
-        logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Parse JSON from: " + filename);
-
-        jsoncons::json conf = jsoncons::json::parse(ijson);
-        version = jsonhelper::get_attr<std::string>(conf, "version", "0.9");
+        version = cjson->get_attr_string_def(cjson->get(), "version", "0.9");
 
         //
         // This values used for Spg30 calibration
         //
-        data.spg30_base_co2 = jsonhelper::get_attr<uint16_t>(conf, "base_co2", 0);
-        data.spg30_base_tvoc = jsonhelper::get_attr<uint16_t>(conf, "base_tvoc", 0);
+        data.spg30_base_co2 = cjson->get_attr_def<uint16_t>(cjson->get(), "base_co2", 0);
+        data.spg30_base_tvoc = cjson->get_attr_def<uint16_t>(cjson->get(), "base_tvoc", 0);
 
     }
-    catch(jsoncons::ser_error& perr){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid configuration " +
-            perr.what() + " Line: " + std::to_string(perr.line()) + " Column: " + std::to_string(perr.column()));
+    catch(std::runtime_error& exc){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + exc.what());
         return false;
     }
 
@@ -52,39 +55,42 @@ bool Context::save_initial_data(const std::string& filename){
 
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Save configuration to JSON: " + filename);
 
-    //check if previous file exist and
-    jsoncons::json conf = jsoncons::json::object{
-        {"version", version},
-        {"base_co2", std::to_string(data.spg30_base_co2)},
-        {"base_tvoc", std::to_string(data.spg30_base_tvoc)}
-    };
+    std::shared_ptr<piutils::cjson_wrap::CJsonWrap> cjson = std::make_shared<piutils::cjson_wrap::CJsonWrap>();
 
-    jsoncons::json sgp30;
-    sgp30.insert_or_assign("co2", std::to_string(data.spg30_co2));
-    sgp30.insert_or_assign("tvoc", std::to_string(data.spg30_tvoc));
+    try{
+        cjson->add_string(cjson->get(), "version", "1.00");
+        cjson->add_number<uint16_t>(cjson->get(),"base_co2", data.spg30_base_co2);
+        cjson->add_number<uint16_t>(cjson->get(),"base_tvoc", data.spg30_base_tvoc);
 
-    jsoncons::json si7021;
-    si7021.insert_or_assign("humidity", std::to_string(data.si7021_humidity));
-    si7021.insert_or_assign("temperature", std::to_string(data.si7021_temperature));
-    si7021.insert_or_assign("absolute_humidity", std::to_string(data.si7021_abs_humidity));
+        auto sgp30 = cjson->add_object(cjson->get(), "sgp30");
+        cjson->add_number<uint16_t>(sgp30,"co2", data.spg30_co2);
+        cjson->add_number<uint16_t>(sgp30,"tvoc", data.spg30_tvoc);
 
-    jsoncons::json bmp280;
-    bmp280.insert_or_assign("pressure", std::to_string(data.bmp280_pressure));
-    bmp280.insert_or_assign("temperature", std::to_string(data.bmp280_temperature));
-    bmp280.insert_or_assign("altitude", std::to_string(data.bmp280_altitude));
+        auto si7021 = cjson->add_object(cjson->get(), "si7021");
+        cjson->add_number<float>(si7021,"humidity", data.si7021_humidity);
+        cjson->add_number<float>(si7021,"temperature", data.si7021_temperature);
+        cjson->add_number<float>(si7021,"absolute_humidity", data.si7021_abs_humidity);
 
-    jsoncons::json tsl2651;
-    tsl2651.insert_or_assign("luminosity", std::to_string(data.tsl2651_lux));
+        auto bmp280 = cjson->add_object(cjson->get(), "bmp280");
+        cjson->add_number<float>(bmp280,"pressure", data.bmp280_pressure);
+        cjson->add_number<float>(bmp280,"temperature", data.bmp280_temperature);
+        cjson->add_number<float>(bmp280,"altitude", data.bmp280_altitude);
 
-    conf["sgp30"] = std::move(sgp30);
-    conf["si7021"] = std::move(si7021);
-    conf["bmp280"] = std::move(bmp280);
-    conf["tsl2651"] = std::move(tsl2651);
+        auto tsl2651 = cjson->add_object(cjson->get(), "tsl2651");
+        cjson->add_number<uint32_t>(tsl2651,"luminosity", data.tsl2651_lux);
 
-    std::ofstream os_file(filename);
-    os_file << conf;
-    os_file.close();
 
+        std::string json = cjson->print();
+        std::ofstream os_file(filename);
+        os_file << json;
+        os_file.close();
+    }
+    catch(std::runtime_error& exc){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + exc.what());
+        return false;
+    }
+
+    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Configuration saved successfully");
     return true;
 }
 
