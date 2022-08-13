@@ -20,14 +20,14 @@
     },
 
     "mqtt" : {
-        "enable": "false",
-        "host" : "",
-        "client_id": "NoHardware",
-        "port": 8883,
+        "enable": false,
+        "host" : "192.168.1.11",
+        "client_id": "PiRobot",
+        "port": 1883,
         "keep_alive": 10,
         "qos": 0,
 
-        "tls": true,
+        "tls": false,
         "tls_ca_file" : "/home/denis/pi-robot/mqtt_tls/m2mqtt_ca.crt",
         "tls_insecure": true,
         "tls_version": "tlsv1"
