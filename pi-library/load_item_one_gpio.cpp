@@ -21,6 +21,24 @@ const char TAG[] = "PiRobot";
 bool PiRobot::load_item_one_gpio(const std::shared_ptr<piutils::cjson_wrap::CJsonWrap>& cjson, const piutils::cjson_wrap::cj_obj json_item,
             item::ItemTypes itype, const std::string& item_name, const std::string& item_comment){
 
+    if(itype== item::ItemTypes::BLINKER){
+        auto led = cjson->get_attr_string(json_item, "led");
+        auto tm_on  =  cjson->get_attr_def<int>(json_item, "tm_on", 250);
+        auto tm_off  =  cjson->get_attr_def<int>(json_item, "tm_off", 500);
+        auto blinks  =  cjson->get_attr_def<int>(json_item, "blinks", 0);
+
+        items_add(item_name, std::make_shared<pirobot::item::Blinking<pirobot::item::Led>>(
+                std::static_pointer_cast<pirobot::item::Led>(get_item(led)),
+                item_name,
+                item_comment,
+                tm_on,
+                tm_off,
+                blinks));
+                
+        return true;
+    }
+
+
     std::string gpio_name = f_get_gpio_name(cjson, json_item, "gpio", item_name);
 
 /*
@@ -138,20 +156,6 @@ bool PiRobot::load_item_one_gpio(const std::shared_ptr<piutils::cjson_wrap::CJso
         link_gpio_item(gpio_name, std::make_pair(item_name, itype));
     }
 
-    else  if(itype== item::ItemTypes::BLINKER){
-        auto led = cjson->get_attr_string(json_item, "led");
-        auto tm_on  =  cjson->get_attr_def<int>(json_item, "tm_on", 250);
-        auto tm_off  =  cjson->get_attr_def<int>(json_item, "tm_off", 500);
-        auto blinks  =  cjson->get_attr_def<int>(json_item, "blinks", 0);
-
-        items_add(item_name, std::make_shared<pirobot::item::Blinking<pirobot::item::Led>>(
-                std::static_pointer_cast<pirobot::item::Led>(get_item(led)),
-                item_name,
-                item_comment,
-                tm_on,
-                tm_off,
-                blinks));
-    }
     return true;
 }
 
