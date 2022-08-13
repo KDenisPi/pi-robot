@@ -10,6 +10,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <iostream>
+
 #ifndef CJSON_WRAP_H
 #define CJSON_WRAP_H
 
@@ -138,7 +140,7 @@ public:
     template<class T>
     const T get_attr_def(const cj_obj obj, const std::string& name, const T& def_val){
         T val;
-        if(!get_attr(obj, name, val)){}
+        if(!get_attr<T>(obj, name, val))
             return def_val;
         return val;
     }
@@ -149,7 +151,7 @@ public:
     template<class T>
     const T get_attr(const cj_obj obj, const std::string& name) noexcept(false) {
         T val;
-        if(!get_attr(obj, name, val)){
+        if(!get_attr<T>(obj, name, val)){
             throw std::runtime_error(std::string("Absent mandatory attribute. Name: ") + name);
         }
         return val;
@@ -238,22 +240,24 @@ private:
     */
     template<class T>
     const bool get_attr(const cj_obj obj, const std::string& name, T& val){
+        bool result = false;
         const cj_obj obj_i = cJSON_GetObjectItemCaseSensitive(obj, name.c_str());
-        //std::cout << name << " " << obj_i->valuedouble << " Int: " << obj_i->valueint << " size: " << sizeof(val) << std::endl;
+        //std::cout << name << " double: " << obj_i->valuedouble << " Int: " << obj_i->valueint << " size: " << sizeof(val) << std::endl;
+        //std::cout << name << " bool " << cJSON_IsBool(obj_i) << " Number: " << cJSON_IsNumber(obj_i) << std::endl;
 
-        if( cJSON_IsBool(obj_i) && sizeof(val)==1)
+        if( cJSON_IsBool(obj_i))
         {
             val = (T)obj_i->valueint;
-            return true;
+            result = true;
         }
-
-        if(cJSON_IsNumber(obj_i) && sizeof(val)>1)
+        else if(cJSON_IsNumber(obj_i))
         {
             val = (T)obj_i->valuedouble;
-            return true;
+            result = true;
         }
 
-        return false;
+        //std::cout << name << " result " << result << " Value: " << val << std::endl;
+        return result;
     }
 
 

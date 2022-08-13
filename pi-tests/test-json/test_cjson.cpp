@@ -64,7 +64,8 @@ int main (int argc, char* argv[])
             auto provider = cjson->get_first(providers);
             while(provider){
                 auto pr_type = cjson->get_attr_string(provider, std::string("type"));
-                std::cout << "type: " << pr_type << std::endl;
+                auto i2c_addr = cjson->get_attr_def<int>(provider, "i2c_addr", 0x11);
+                std::cout << "type: " << pr_type << " addr: " << i2c_addr << std::endl;
 
                 provider = cjson->get_next(provider);
             }
