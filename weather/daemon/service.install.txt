@@ -8,3 +8,7 @@ sudo systemctl stop weather.service
 sudo systemctl status weather.service
 
 sudo update-rc.d -f weather remove
+
+
+------
+/etc/init/d/weatherd
