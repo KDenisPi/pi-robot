@@ -18,6 +18,7 @@
 
 #include "item.h"
 #include "sled.h"
+#include "sled_transforms.h"
 #include "sled_data.h"
 
 namespace pirobot {
@@ -25,7 +26,7 @@ namespace item {
 namespace sledctrl {
 
 using pled = std::shared_ptr<pirobot::item::SLed>;
-using transf_type = std::pair<std::string, std::shared_ptr<pirobot::item::SledTransformer>>;
+using transf_type = std::pair<std::string, std::shared_ptr<pirobot::sled::SledTransformer>>;
 
 class SLedCtrl : public pirobot::item::Item, public piutils::Threaded
 {
@@ -74,14 +75,14 @@ public:
     * Add Right shift transformation
     */
     void add_r_shift(const int shift_count){
-        this->transformation_add( std::make_pair(std::string("SHIFT_R"), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::ShiftTransformation(shift_count, pirobot::item::Direction::ToRight))));
+        this->transformation_add( std::make_pair(std::string("SHIFT_R"), std::shared_ptr<pirobot::sled::SledTransformer>(new pirobot::sled::ShiftTransformation(shift_count, pirobot::sled::Direction::ToRight))));
     }
 
     /*
     * Add Left shift transformation
     */
     void add_l_shift(const int shift_count){
-        this->transformation_add( std::make_pair(std::string("SHIFT_R"), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::ShiftTransformation(shift_count, pirobot::item::Direction::ToLeft))));
+        this->transformation_add( std::make_pair(std::string("SHIFT_R"), std::shared_ptr<pirobot::sled::SledTransformer>(new pirobot::sled::ShiftTransformation(shift_count, pirobot::sled::Direction::ToLeft))));
     }
 
     /*
@@ -92,28 +93,28 @@ public:
             transformations_clear();
         }
 
-        this->transformation_add( std::make_pair(std::string("LED_OFF"), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::OffTransformation())));
+        this->transformation_add( std::make_pair(std::string("LED_OFF"), std::shared_ptr<pirobot::sled::SledTransformer>(new pirobot::sled::OffTransformation())));
     }
 
     /*
     * Add SET color for group of LEDs transformation
     */
    void add_copy_rgbs(std::vector<uint32_t>& rgbs, const int stpos = 0, const int repeat = -1){
-        this->transformation_add( std::make_pair(std::string("SET_RGBS"), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::SetColorGroupTransformation(rgbs, stpos, repeat))));
+        this->transformation_add( std::make_pair(std::string("SET_RGBS"), std::shared_ptr<pirobot::sled::SledTransformer>(new pirobot::sled::SetColorGroupTransformation(rgbs, stpos, repeat))));
    }
 
     /*
     * Add SET color for group of LEDs transformation
     */
    void add_copy_rgb(const std::uint32_t rgb, const int stpos){
-        this->transformation_add( std::make_pair(std::string("SET_RGB"), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::SetColorTransformation(rgb, stpos, 1))));
+        this->transformation_add( std::make_pair(std::string("SET_RGB"), std::shared_ptr<pirobot::sled::SledTransformer>(new pirobot::sled::SetColorTransformation(rgb, stpos, 1))));
    }
 
     /*
     * Add LAST transformation reaction
     */
    void add_last_operation(const std::string& evt, std::function<void(const std::string&)> ntf_finished){
-        this->transformation_add( std::make_pair(std::string("LAST_OP"), std::shared_ptr<pirobot::item::SledTransformer>(new pirobot::item::NopTransformation(evt,ntf_finished))));
+        this->transformation_add( std::make_pair(std::string("LAST_OP"), std::shared_ptr<pirobot::sled::SledTransformer>(new pirobot::sled::NopTransformation(evt,ntf_finished))));
    }
 
     //Add LED Stripe
@@ -398,7 +399,7 @@ private:
     std::vector<transf_type> _transf;
     std::size_t _transf_idx;
 
-    transf_type _transf_empty = std::make_pair(std::string(""), std::shared_ptr<pirobot::item::SledTransformer>());
+    transf_type _transf_empty = std::make_pair(std::string(""), std::shared_ptr<pirobot::sled::SledTransformer>());
     /*
     *
     */

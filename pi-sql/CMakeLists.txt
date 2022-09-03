@@ -8,6 +8,8 @@ include_directories(BEFORE
     ${SQLITE3_HOME}
 )
 
+message( STATUS "INCLUDE_DIRECTORIES:  ${PROJECT} ${INCLUDE_DIRECTORIES}")
+
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_SQL_SOURCES)
 aux_source_directory(${SQLITE3_HOME} SQLITE_SOURCES)
 

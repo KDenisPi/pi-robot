@@ -293,6 +293,7 @@ public:
 
 
         dma_reg = piutils::unmap_memory<dma_regs>(static_cast<dma_regs*>((void*)dma_reg));
+        return true;
     }
 
     /*

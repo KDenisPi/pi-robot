@@ -31,15 +31,16 @@ message( STATUS "CMAKE_BIULD_TYPE is ${CMAKE_BIULD_TYPE}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-#
+message( STATUS "CMAKE_BUILD_TYPE:  ${CMAKE_BUILD_TYPE}" )
+
 # C++ 11
 #
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("debug mode")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -g -std=c++11 -fexceptions -Wno-psabi -Og")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -g -std=c++14 -fexceptions -Wno-psabi -Og")
 ELSE(CMAKE_BUILD_TYPE NOT STREQUAL "Debug")
     message("release with debug info mode")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_RELWITHDEBINFO} -std=c++11 -fexceptions -Wno-psabi")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_RELWITHDEBINFO} -std=c++14 -fexceptions -Wno-psabi")
 ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -49,6 +50,8 @@ message( STATUS "CMAKE_C_FLAGS_DEBUG is ${CMAKE_C_FLAGS_DEBUG}")
 
 message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
+message( STATUS "CMAKE_C_FLAGS:  ${CMAKE_C_FLAGS}" )
+ 
 
 #libspdlog-dev/focal,now 1:1.5.0-1 amd64
 #libspdlog1/focal,now 1:1.5.0-1 amd64 [installed,automatic]
@@ -60,6 +63,8 @@ add_library(libmosquitto SHARED IMPORTED)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} mosquitto)
 message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
+
+message( STATUS "INCLUDE_DIRECTORIES:  ${INCLUDE_DIRECTORIES}")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-core)
