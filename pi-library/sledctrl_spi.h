@@ -44,9 +44,7 @@ public:
     */
     virtual const std::string printConfig() override {
         std::string result =  name() + " SPI Channel: " + std::to_string(_spi_channel) + "\n";
-
         result += SLedCtrl::printConfig();
-
         return result;
     }
 
@@ -66,14 +64,13 @@ public:
 
 
 private:
-
     std::shared_ptr<pirobot::spi::SPI> _spi;
     pirobot::spi::SPI_CHANNELS _spi_channel;
 };
 
 
-}
-}
-}
+} //namespace sledctrl
+} //namespace item
+} //namespace pirobot
 
 #endif

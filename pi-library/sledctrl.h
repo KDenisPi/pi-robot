@@ -117,7 +117,11 @@ public:
         this->transformation_add( std::make_pair(std::string("LAST_OP"), std::shared_ptr<pirobot::sled::SledTransformer>(new pirobot::sled::NopTransformation(evt,ntf_finished))));
    }
 
-    //Add LED Stripe
+    /**
+     * @brief Add LED stripe to the controller
+     *
+     * @param led - SLed Item
+     */
     void add_sled(const pled& led){
 
         if( _sleds.size() == _max_sleds){
@@ -129,7 +133,7 @@ public:
             _max_leds = led->leds();
         }
 
-        std::size_t bsize = get_buffer_length(led->leds(), led->stype());
+        std::size_t bsize = led->get_buffer_length();
         if( bsize > _data_buff_len )
             _data_buff_len = bsize;
 
@@ -157,7 +161,7 @@ public:
     */
     virtual bool initialize() override {
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Allocate memory");
-        prepare_bufeer();
+        prepare_buffer();
 
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Start worker" );
         return piutils::Threaded::start<SLedCtrl>(this);
@@ -245,10 +249,9 @@ public:
         {
             int lcount = sled->leds();
             const pirobot::item::SLedType stp = sled->stype();
-            const std::size_t blen = get_buffer_length(lcount, stp);
+            const std::size_t blen = sled->get_buffer_length();
 
-            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Procedd LED stripe with : " +
-                    std::to_string(lcount) + " Type: " + std::to_string(stp));
+            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Procedd LED stripe with : " + std::to_string(lcount) + " Type: " + std::to_string(stp));
 
             const std::uint8_t* lgm = sled->gamma();
             const std::uint32_t* ldata = sled->leds_data();
@@ -260,40 +263,37 @@ public:
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Fill data buffer" );
             for( std::size_t lidx = 0; lidx < lcount; lidx++ ){
 
-                // Convert 0RGB to R,G,B
+                // Test purpose only. Convert 0RGB to R,G,B
                 std::uint8_t rgb[3] = {
                     lgm[ (ldata[lidx] & 0xFF) ],
                     lgm[ ((ldata[lidx] >> 8 ) & 0xFF) ],
                     lgm[ ((ldata[lidx] >> 16 ) & 0xFF) ]
                 };
 
-                if( stp == pirobot::item::SLedType::WS2812B){
-                    //
-                    // Replace each R,G,B byte by 3 bytes
-                    //
-                    for(int rgb_idx = 0; rgb_idx < 3; rgb_idx++){
-                        int idx = (lidx + rgb_idx)*3;
-                        _data_buff[idx] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]];
-                        _data_buff[idx+1] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]+1];
-                        _data_buff[idx+2] |= pirobot::sledctrl::sled_data[rgb[rgb_idx]+2];
-                    }
-                }
-                else{
-                    int idx = lidx*3;
-                    _data_buff[idx + 0] |= rgb[0];
-                    _data_buff[idx + 1] |= rgb[1];
-                    _data_buff[idx + 2] |= rgb[2];
-                }
+                const int idx = lidx*3;
+                _data_buff[idx + 0] &= (ldata[lidx] & 0xFF);
+                _data_buff[idx + 1] &= ((ldata[lidx] >> 8 ) & 0xFF);
+                _data_buff[idx + 2] &= ((ldata[lidx] >> 16 ) & 0xFF);
             }
 
             write_data(_data_buff, blen);
         }
 
+        //switch off stransmission channel
         this->Off();
-        // Wait 500 ms before sending new data
-        std::this_thread::sleep_for(std::chrono::microseconds(500));
+        //delay before new portion
+        this->data_delay();
 
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Finished" );
+    }
+
+    /**
+     * @brief If we put data to ourself we should make delay (500 ms) before send another part
+     *
+     */
+    virtual void data_delay(){
+        // Wait 500 ms before sending new data
+        std::this_thread::sleep_for(std::chrono::microseconds(500));
     }
 
     /*
@@ -320,11 +320,8 @@ public:
         for (auto sled  : _sleds )
         {
             /*
-            * Check should we apply this transformation for this LED stripe
+            * TODO: Check should we apply this transformation for this LED stripe?
             */
-            //if(!led_idx.empty() && led_idx != sled->name() ){
-            //      continue;
-            //}
 
             transf.second->transform(sled->leds_data(), sled->leds());
             applied = true;
@@ -407,24 +404,13 @@ private:
         return _data_buff_len;
     }
 
-    void prepare_bufeer() {
+    void prepare_buffer() {
         if( _data_buff == nullptr ){
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Create data buffer: " + std::to_string(_data_buff_len) );
             _data_buff = (uint8_t*) std::malloc(sizeof(uint8_t)*_data_buff_len);
         }
     }
 
-    /*
-    *   Calculate buffer length
-    *
-    *   WS2812B: LEDs * 3(RGB) * 3 (3 bits for 1 data bit) + 15 (50us)
-    */
-    const std::size_t get_buffer_length(const int leds, pirobot::item::SLedType stype) {
-        std::size_t bsize =  leds * 3;
-        if( stype == pirobot::item::SLedType::WS2812B)
-            bsize = bsize * 3 + 15;
-        return bsize;
-    }
 };
 
 }//sledctrl

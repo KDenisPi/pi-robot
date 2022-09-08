@@ -38,7 +38,6 @@ enum ItemTypes{
     LCD,
     SLED,
     SLEDCRTLSPI,
-    SLEDCRTLPWM,
     AnalogMeterSimple,
     DustSensor,
     Tmp36,

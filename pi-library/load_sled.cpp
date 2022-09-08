@@ -9,7 +9,6 @@
 #include "logger.h"
 
 #include "sledctrl_spi.h"
-#include "sledctrl_pwm.h"
 
 namespace pirobot {
 const char TAG[] = "PiRobot";
@@ -39,50 +38,15 @@ bool PiRobot::load_sled(const std::shared_ptr<piutils::cjson_wrap::CJsonWrap>& c
             auto sled_name  =  cjson->get_attr_string(stripe, "name");
             auto sled_comm  =  cjson->get_attr_string_def(stripe, "comment", "");
             auto sled_type  =  cjson->get_attr_string(stripe, "type");
-            if( sled_type != "WS2810" ){
+            /*
+            It is not true anymore: We will send data to WS2801 directly or to WS2812B through middle layer controller (Arduino)
+
+            if( sled_type != "WS2801" ){
                 logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid LED stripe type " + sled_type);
                 throw std::runtime_error(std::string(" Invalid LED stripe type" + sled_type));
             }
-            pirobot::item::SLedType stype = (sled_type == "WS2810" ? pirobot::item::SLedType::WS2810 : pirobot::item::SLedType::WS2812B);
-
-            sledctrl->add_sled(std::make_shared<pirobot::item::SLed>(leds, stype, sled_name, sled_comm));
-            stripe = cjson->get_next(stripe);
-        }
-    }
-    /*
-    *  PWM based LED stripe controller
-    */
-    else if(item::ItemTypes::SLEDCRTLPWM == itype)
-    {
-        auto stripes  =  cjson->get_attr_def<int>(json_item, "stripes", 0);
-        std::string pwm_gpio = f_get_gpio_name(cjson, json_item, "gpio_pwm", item_name);
-
-        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Item: " + item_name + " Comment: " + item_comment);
-
-        items_add(item_name, std::make_shared<pirobot::item::sledctrl::SLedCtrlPwm>(
-                        stripes,
-                        item_name,
-                        get_gpio(pwm_gpio),
-                        item_comment
-                    ));
-
-        //Link GPIO with item
-        link_gpio_item(pwm_gpio, std::make_pair(item_name, itype));
-
-        auto sledctrl = std::static_pointer_cast<pirobot::item::sledctrl::SLedCtrlSpi>(get_item(item_name));
-
-        const auto json_sled = cjson->get_array(json_item, std::string("stripe"));
-        auto stripe = cjson->get_first(json_sled);
-        while(stripe){
-            auto leds  =  cjson->get_attr<int>(stripe, "leds");
-            auto sled_name  =  cjson->get_attr_string(stripe, "name");
-            auto sled_comm  =  cjson->get_attr_string_def(stripe, "comment", "");
-            auto sled_type  =  cjson->get_attr_string(stripe, "type");
-            if( sled_type != "WS2812B" ){
-                logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Invalid LED stripe type " + sled_type);
-                throw std::runtime_error(std::string(" Invalid LED stripe type" + sled_type));
-            }
-            pirobot::item::SLedType stype = (sled_type == "WS2810" ? pirobot::item::SLedType::WS2810 : pirobot::item::SLedType::WS2812B);
+            */
+            pirobot::item::SLedType stype = (sled_type == "WS2801" ? pirobot::item::SLedType::WS2801 : pirobot::item::SLedType::WS2812B);
 
             sledctrl->add_sled(std::make_shared<pirobot::item::SLed>(leds, stype, sled_name, sled_comm));
             stripe = cjson->get_next(stripe);

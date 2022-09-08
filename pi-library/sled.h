@@ -21,7 +21,7 @@ namespace pirobot {
 namespace item {
 
 enum SLedType {
-    WS2810 = 0,
+    WS2801 = 0,
     WS2812B
 };
 
@@ -50,7 +50,7 @@ public:
     }
 
     virtual const std::string printConfig() override {
-        std::string result =  name() + " LEDs:  " +  std::to_string(_leds) + " Type: " + (_stype == SLedType::WS2810 ? "WS2810" : "WS2812B") + "\n";
+        std::string result =  name() + " LEDs:  " +  std::to_string(_leds) + " Type: " + (_stype == SLedType::WS2801 ? "WS2801" : "WS2812B") + "\n";
         return result;
     }
 
@@ -78,6 +78,20 @@ public:
     const SLedType stype() const {
         return _stype;
     }
+
+    /*
+    *   Calculate buffer length
+    *
+    *   WS2812B: LEDs * 3(RGB) * 3 (3 bits for 1 data bit) + 15 (50us)
+    */
+    const std::size_t get_buffer_length() const{
+        return  _leds * 3;
+        /* We do not support direct data for this type anymore
+        if( _stype == pirobot::item::SLedType::WS2812B)
+            bsize = bsize * 3 + 15;
+        */
+    }
+
 
 private:
     std::size_t _leds;          //LEDs number

@@ -375,10 +375,6 @@ bool PiRobot::configure(const std::string& cfile){
                     *  SPI based LED stripe controller
                     */
                     case item::ItemTypes::SLEDCRTLSPI:
-                    /*
-                    *  PWM based LED stripe controller
-                    */
-                    case item::ItemTypes::SLEDCRTLPWM:
                     {
                         load_sled(cjson, json_item, itype, item_name, item_comment);
                     }
