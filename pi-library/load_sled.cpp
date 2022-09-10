@@ -48,7 +48,10 @@ bool PiRobot::load_sled(const std::shared_ptr<piutils::cjson_wrap::CJsonWrap>& c
             */
             pirobot::item::SLedType stype = (sled_type == "WS2801" ? pirobot::item::SLedType::WS2801 : pirobot::item::SLedType::WS2812B);
 
-            sledctrl->add_sled(std::make_shared<pirobot::item::SLed>(leds, stype, sled_name, sled_comm));
+            if(!sledctrl->add_sled(std::make_shared<pirobot::item::SLed>(leds, stype, sled_name, sled_comm))){
+                //could not add SLED
+                return false;
+            }
             stripe = cjson->get_next(stripe);
         }
     }

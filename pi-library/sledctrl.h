@@ -106,8 +106,8 @@ public:
     /*
     * Add SET color for group of LEDs transformation
     */
-   void add_copy_rgb(const std::uint32_t rgb, const int stpos){
-        this->transformation_add( std::make_pair(std::string("SET_RGB"), std::shared_ptr<pirobot::sled::SledTransformer>(new pirobot::sled::SetColorTransformation(rgb, stpos, 1))));
+   void add_copy_rgb(const std::uint32_t rgb, const int stpos = 0, const int leds = 1){
+        this->transformation_add( std::make_pair(std::string("SET_RGB"), std::shared_ptr<pirobot::sled::SledTransformer>(new pirobot::sled::SetColorTransformation(rgb, stpos, leds))));
    }
 
     /*
@@ -122,11 +122,11 @@ public:
      *
      * @param led - SLed Item
      */
-    void add_sled(const pled& led){
+    bool add_sled(const pled& led){
 
         if( _sleds.size() == _max_sleds){
             logger::log(logger::LLOG::ERROR, "LedCtrl", std::string(__func__) + " Too much SLEDs");
-            return;
+            return false;
         }
 
         if( _max_leds < led->leds()){
@@ -137,10 +137,10 @@ public:
         if( bsize > _data_buff_len )
             _data_buff_len = bsize;
 
-        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Added SLEDs " + led->name() +
-            " Max LEDs now: " + std::to_string(_max_leds) + " Buffer size now: " + std::to_string(_data_buff_len));
-
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Added SLEDs " + led->name() + " Max LEDs now: " + std::to_string(_max_leds) + " Buffer size now: " + std::to_string(_data_buff_len));
         _sleds.push_back(led);
+
+        return true;
     }
 
     //Get LED stripes number
@@ -260,7 +260,7 @@ public:
             logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Initialize buffer Len: " + std::to_string(dlen));
             std::memset( (void*)_data_buff, 0, dlen);
 
-            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Fill data buffer" );
+            logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Fill data buffer");
             for( std::size_t lidx = 0; lidx < lcount; lidx++ ){
 
                 // Test purpose only. Convert 0RGB to R,G,B
@@ -276,7 +276,11 @@ public:
                 _data_buff[idx + 2] &= ((ldata[lidx] >> 16 ) & 0xFF);
             }
 
-            write_data(_data_buff, blen);
+            if(!write_data(_data_buff, blen)){
+                //Error on SPI level
+                logger::log(logger::LLOG::ERROR, "LedCtrl", std::string(__func__) + " Could not write data");
+                break;
+            }
         }
 
         //switch off stransmission channel

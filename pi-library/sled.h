@@ -62,6 +62,10 @@ public:
 
     }
 
+    static uint32_t inline rgb2uint32_t(const uint8_t r, const uint8_t g, const uint8_t b){
+        return ((((((uint32_t)0|r) << 8)|g) << 8)|b);
+    }
+
     // Get LEDs number
     const std::size_t leds() const {
         return _leds;

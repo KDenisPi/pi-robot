@@ -85,11 +85,14 @@ enum SPI_CHANNELS {
     SPI_1 = 1,
 };
 
-#define SPI_SpeedDefault 1000000 //1Mhz
+enum SPI_SPEED : int {
+    DEF = 1000000,
+    MHZ_25 = DEF*25
+};
 
 struct SPI_config {
     int channels;
-    int speed[2] = {SPI_SpeedDefault, SPI_SpeedDefault};
+    int speed[2] = {SPI_SPEED::DEF, SPI_SPEED::DEF};
     SPI_MODE mode[2] = {SPI_MODE::MODE_0, SPI_MODE::MODE_0};
     bool real_world = true;
 

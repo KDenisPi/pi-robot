@@ -211,10 +211,11 @@ public:
 
     virtual bool transform(uint32_t* ldata, const std::size_t llen) override{
         std::size_t nset = ( (_repeat > 0 && (_led_start + _rgbs.size()*_repeat) < llen) ? _rgbs.size()*_repeat : llen);
-        if( nset > 32 ) nset = 32;
+        if( nset > 32 ){
+            nset = 32;
+        }
 
-        logger::log(logger::LLOG::DEBUG, "SLED", std::string(__func__) + " Start: " + std::to_string(_led_start) +
-            " Last: " + std::to_string(nset) + " RGBs: " + std::to_string(_rgbs.size()));
+        logger::log(logger::LLOG::DEBUG, "SLED", std::string(__func__) + " Start: " + std::to_string(_led_start) + " Last: " + std::to_string(nset) + " RGBs: " + std::to_string(_rgbs.size()));
 
         int j = 0;
         for( int i = 0; i < nset; i++){
@@ -244,6 +245,7 @@ public:
         std::size_t nset = ((_led_start + _led_count) >= llen ? llen - _led_start : _led_count);
         if(nset < 0 || _led_count == 0){
             logger::log(logger::LLOG::ERROR, "SLED", std::string(__func__) + " Incorrect LED index");
+            return false;
         }
         else {
             for( int i = 0; i < nset; i++){
