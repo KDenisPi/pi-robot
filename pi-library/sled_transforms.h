@@ -23,7 +23,7 @@ using SLedRep = struct PutInterval;
 */
 class SledTransformer {
 public:
-    SledTransformer(const int cnt = 1, const SLedRep& delay_bw = {0, 500}, const bool llast = false) :
+    SledTransformer(const int cnt = 1, const SLedRep& delay_bw = {0, 0}, const bool llast = false) :
         _count(cnt), _org_count(cnt), _delay_bw(delay_bw), _llast(llast) {}
     virtual ~SledTransformer() {}
 

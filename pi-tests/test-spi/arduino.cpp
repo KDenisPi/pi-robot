@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory>
+#include <chrono>
 
 #include "logger.h"
 #include "GpioProviderSimple.h"
@@ -48,7 +49,8 @@ int main (int argc, char* argv[])
         std::cout << sled1->printConfig() << std::endl;
 
         //Create SLED control object
-        sleds_spi leds_ctrl = std::make_shared<pirobot::item::sledctrl::SLedCtrlSpi>(p_pspi, 0, std::string("PI_LEDS"));
+        sleds_spi leds_ctrl = std::make_shared<pirobot::item::sledctrl::SLedCtrlSpi>(p_pspi, 1, std::string("PI_LEDS"));
+        leds_ctrl->set_refresh_delay(std::chrono::microseconds(0));
         std::cout << leds_ctrl->printConfig() << std::endl;
 
         //Add Stripe LEDS

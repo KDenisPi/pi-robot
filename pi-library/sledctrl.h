@@ -32,7 +32,7 @@ class SLedCtrl : public pirobot::item::Item, public piutils::Threaded
 {
 public:
     SLedCtrl(item::ItemTypes itype,
-        const int sleds,
+        const int sleds,	//Maximum supported number of Stripe LEDs (no LEDs)
         const std::string& name,
         const std::string& comment="") :
             item::Item(name, comment, itype) ,
@@ -124,7 +124,7 @@ public:
      */
     bool add_sled(const pled& led){
 
-        if( _sleds.size() == _max_sleds){
+        if( _sleds.size() >= _max_sleds){
             logger::log(logger::LLOG::ERROR, "LedCtrl", std::string(__func__) + " Too much SLEDs");
             return false;
         }
@@ -171,7 +171,7 @@ public:
     * Print device configuration
     */
     virtual const std::string printConfig() override {
-        std::string result =  name() + " Maximun supported SLEDs: " + std::to_string(_max_sleds) + "\n";
+        std::string result =  name() + " Maximun supported SLEDs: " + std::to_string(_max_sleds) + " Refresh delay (ms): " + std::to_string(get_refresh_delay().count()) + "\n";
 
         for (auto sled : _sleds){
             result += sled->printConfig();
@@ -283,21 +283,28 @@ public:
             }
         }
 
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Switch channel Off" );
         //switch off stransmission channel
         this->Off();
+
+        logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Delay" );
         //delay before new portion
         this->data_delay();
 
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Finished" );
+
     }
 
     /**
      * @brief If we put data to ourself we should make delay (500 ms) before send another part
      *
      */
-    virtual void data_delay(){
-        // Wait 500 ms before sending new data
-        std::this_thread::sleep_for(std::chrono::microseconds(500));
+    inline void data_delay() const {
+        if(_refresh_delay.count()>0){
+	   logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Refresh delay (ms): " + std::to_string(_refresh_delay.count()));
+           // Wait 500 ms before sending new data
+           std::this_thread::sleep_for(std::chrono::microseconds(_refresh_delay));
+        }
     }
 
     /*
@@ -389,6 +396,14 @@ public:
     }
 
 
+    void set_refresh_delay(std::chrono::microseconds rf_delay){
+	_refresh_delay = rf_delay;
+    }
+
+    const std::chrono::microseconds get_refresh_delay() const {
+	return _refresh_delay;
+    }
+
 private:
     std::vector<pled> _sleds;   //LED stripe list
     int _max_leds;              //Maximum number of LEDs
@@ -399,6 +414,8 @@ private:
 
     std::vector<transf_type> _transf;
     std::size_t _transf_idx;
+
+    std::chrono::microseconds _refresh_delay = std::chrono::microseconds(500);
 
     transf_type _transf_empty = std::make_pair(std::string(""), std::shared_ptr<pirobot::sled::SledTransformer>());
     /*
