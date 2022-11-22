@@ -13,11 +13,9 @@
 #include <functional>
 #include <utility>
 
-#include "Threaded.h"
-#include "CircularBuffer.h"
-
 #include "logger.h"
-#include "spdlog/sinks/daily_file_sink.h"
+
+#include <spdlog/sinks/daily_file_sink.h>
 
 
 namespace logger {

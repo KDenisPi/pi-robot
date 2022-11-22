@@ -4,12 +4,14 @@ cmake_minimum_required(VERSION 3.0)
 project(test-spi)
 enable_testing()
 
-include_directories(BEFORE
-    /usr/include
+include_directories(AFTER
     ${PROJECT_SOURCE_DIR}/../../pi-utils
     ${PROJECT_SOURCE_DIR}/../../pi-library
     ${CJSON}
     )
+
+get_directory_property (INC_DIRS INCLUDE_DIRECTORIES)
+message( STATUS "INCLUDE_DIRECTORIES: ${PROJECT_NAME} ${INC_DIRS}")
 
 message( STATUS "SPI GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "SPI CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )

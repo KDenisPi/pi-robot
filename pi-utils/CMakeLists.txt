@@ -3,17 +3,26 @@ cmake_minimum_required(VERSION 3.0)
 #project name
 project(pi-utils)
 
-include_directories(BEFORE
+#unset(CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES)
+#unset(CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES)
+
+include_directories(AFTER
     ${CJSON}
 )
+
+get_directory_property (INC_DIRS INCLUDE_DIRECTORIES)
+message( STATUS "INCLUDE_DIRECTORIES: ${PROJECT_NAME} ${INC_DIRS}")
+
+#set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} /usr/include)
+#message( STATUS "CMAKE_REQUIRED_INCLUDES: ${PROJECT_NAME} ${CMAKE_REQUIRED_INCLUDES}")
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_UTILS_SOURCES)
 
 add_library(pi-utils SHARED ${PI_UTILS_SOURCES} ${CJSON}/cJSON.c)
-add_library(pi-utils-dev STATIC ${PI_UTILS_SOURCES} ${CJSON}/cJSON.c)
+#add_library(pi-utils-dev STATIC ${PI_UTILS_SOURCES} ${CJSON}/cJSON.c)
 
 add_library(PiRobot::pi-utils ALIAS pi-utils)
-add_library(PiRobotStatic::pi-utils-dev ALIAS pi-utils-dev)
+#add_library(PiRobotStatic::pi-utils-dev ALIAS pi-utils-dev)
 
 install(TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}-t

@@ -3,21 +3,22 @@ cmake_minimum_required(VERSION 3.0)
 #project name
 project(pi-sql)
 
-include_directories(BEFORE
+include_directories(AFTER
     ${PROJECT_SOURCE_DIR}/../pi-utils
     ${SQLITE3_HOME}
 )
 
-message( STATUS "INCLUDE_DIRECTORIES:  ${PROJECT} ${INCLUDE_DIRECTORIES}")
+get_directory_property (INC_DIRS INCLUDE_DIRECTORIES)
+message( STATUS "INCLUDE_DIRECTORIES: ${PROJECT_NAME} ${INC_DIRS}")
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_SQL_SOURCES)
 aux_source_directory(${SQLITE3_HOME} SQLITE_SOURCES)
 
 add_library(pi-sql SHARED ${PI_SQL_SOURCES} ${SQLITE_SOURCES})
-add_library(pi-sql-dev STATIC ${PI_SQL_SOURCES} ${SQLITE_SOURCES})
+#add_library(pi-sql-dev STATIC ${PI_SQL_SOURCES} ${SQLITE_SOURCES})
 
 add_library(PiRobot::pi-sql ALIAS pi-sql)
-add_library(PiRobotStatic::pi-sql-dev ALIAS pi-sql-dev)
+#add_library(PiRobotStatic::pi-sql-dev ALIAS pi-sql-dev)
 
 install(TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}-t

@@ -69,7 +69,12 @@ add_library(libmosquitto SHARED IMPORTED)
 set(EXTRA_LIBS ${EXTRA_LIBS} mosquitto)
 message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
 
-message( STATUS "INCLUDE_DIRECTORIES:  ${INCLUDE_DIRECTORIES}")
+#include_directories(BEFORE
+#    /usr/include
+#)
+
+#get_directory_property (INC_DIRS INCLUDE_DIRECTORIES)
+#message( STATUS "INCLUDE_DIRECTORIES:  ${INC_DIRS}")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-core)

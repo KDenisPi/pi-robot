@@ -44,6 +44,17 @@ int main (int argc, char* argv[])
     std::cout << p_pspi->printConfig() << std::endl;
 
     {
+        uint8_t spi_data[6] = {0xA1, 0xA2, 0xB1, 0xB2, 0xC1, 0xC2};
+
+        if(p_pspi->set_channel_on(pirobot::spi::SPI_CHANNELS::SPI_0)){
+            int res = p_pspi->data_read_write(pirobot::spi::SPI_CHANNELS::SPI_0, spi_data, sizeof(spi_data));
+
+            p_pspi->set_channel_off(pirobot::spi::SPI_CHANNELS::SPI_0);
+        }
+
+
+
+/*        
         //Create Stripe LEDS object
         sled sled1 = std::make_shared<pirobot::item::SLed>(150, pirobot::item::SLedType::WS2812B, std::string("LEDS_P"));
         std::cout << sled1->printConfig() << std::endl;
@@ -69,6 +80,7 @@ int main (int argc, char* argv[])
             std::cout << "Stop SELD controller" << std::endl;
             leds_ctrl->stop();
         }
+*/        
     }
 
     std::cout << "Release SPI Provider objects " << std::endl;
