@@ -217,19 +217,21 @@ public:
     * Switch On SPI channel using accordingly GPIO
     */
     bool set_channel_on(const SPI_CHANNELS channel){
+        logger::log(logger::LLOG::DEBUG, "SPI", std::string(__func__) + " On Channel: " + std::to_string(channel));
         if(channel >= m_channels){
-            logger::log(logger::LLOG::DEBUG, "SPI", std::string(__func__) + " Invalid channel number: " + std::to_string(channel));
+            logger::log(logger::LLOG::ERROR, "SPI", std::string(__func__) + " Invalid channel number: " + std::to_string(channel));
             return false;
         }
 
         //if another channel is active
         if(channel != m_channel){
+            logger::log(logger::LLOG::DEBUG, "SPI", std::string(__func__) + " Another channel can be active. try switch is off: " + std::to_string(m_channel));
             set_channel_off(m_channel);
         }
 
         //switch GPIO for channel to LOW
         if(!m_gpio[channel]){
-            logger::log(logger::LLOG::DEBUG, "SPI", std::string(__func__) + " No GPIO for channel: " + std::to_string(channel));
+            logger::log(logger::LLOG::ERROR, "SPI", std::string(__func__) + " No GPIO for channel: " + std::to_string(channel));
             return false;
         }
 

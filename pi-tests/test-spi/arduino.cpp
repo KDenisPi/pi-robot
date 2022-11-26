@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <memory>
 #include <chrono>
+#include <bitset>
+
 
 #include "logger.h"
 #include "GpioProviderSimple.h"
@@ -30,7 +32,7 @@ int main (int argc, char* argv[])
 
     std::cout << "Prepare SPI configuration" << std::endl;
     pspi_cfg cfg;
-    cfg.speed[0] = pirobot::spi::SPI_SPEED::MHZ_25; // 25 Mhz
+    //cfg.speed[0] = pirobot::spi::SPI_SPEED::MHZ_25; // 25 Mhz
 
     std::cout << "Create GPIO provider" << std::endl;
     provider g_prov = std::make_shared<pirobot::gpio::GpioProviderSimple>();
@@ -39,16 +41,34 @@ int main (int argc, char* argv[])
     gpio p_gpio_ce0 = std::make_shared<pirobot::gpio::Gpio>(19, pirobot::gpio::GPIO_MODE::OUT, g_prov, pirobot::gpio::PULL_MODE::PULL_OFF, pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_NONE);
     gpio p_gpio_ce1 = std::make_shared<pirobot::gpio::Gpio>(18, pirobot::gpio::GPIO_MODE::OUT, g_prov, pirobot::gpio::PULL_MODE::PULL_OFF, pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_NONE);
 
+    gpio p_gpio_miso = std::make_shared<pirobot::gpio::Gpio>(20, pirobot::gpio::GPIO_MODE::IN, g_prov, pirobot::gpio::PULL_MODE::PULL_OFF, pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_NONE);
+    gpio p_gpio_mosi = std::make_shared<pirobot::gpio::Gpio>(21, pirobot::gpio::GPIO_MODE::OUT, g_prov, pirobot::gpio::PULL_MODE::PULL_OFF, pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_NONE);
+    gpio p_gpio_clk  = std::make_shared<pirobot::gpio::Gpio>(22, pirobot::gpio::GPIO_MODE::OUT, g_prov, pirobot::gpio::PULL_MODE::PULL_OFF, pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_NONE);
+
+    std::cout << p_gpio_ce0->to_string() << std::endl;
+    std::cout << p_gpio_ce1->to_string() << std::endl;
+
     std::cout << "Create SPI provider" << std::endl;
     pspi p_pspi = std::make_shared<pirobot::spi::SPI>(std::string("PI_SPI"), cfg, p_gpio_ce0, p_gpio_ce1);
     std::cout << p_pspi->printConfig() << std::endl;
 
     {
-        uint8_t spi_data[6] = {0xA1, 0xA2, 0xB1, 0xB2, 0xC1, 0xC2};
+        uint8_t spi_data[18] = {0xA1, 0xA2, 0xB1, 0xB2, 0xC1, 0xC2,0xA1, 0xA2, 0xB1, 0xB2, 0xC1, 0xC2,0xA1, 0xA2, 0xB1, 0xB2, 0xC1, 0xC2};
+        uint8_t buff[18];
+
+        std::cout << "p_gpio_ce0 " << p_gpio_ce0->is_High() << " p_gpio_ce1 " << p_gpio_ce1->is_High() << std::endl;
+
+        std::cout << "Prepare to send data" << std::endl;
 
         if(p_pspi->set_channel_on(pirobot::spi::SPI_CHANNELS::SPI_0)){
-            int res = p_pspi->data_read_write(pirobot::spi::SPI_CHANNELS::SPI_0, spi_data, sizeof(spi_data));
+            std::cout << "Sending data" << std::endl;
+            std::cout << "p_gpio_ce0 " << p_gpio_ce0->is_High() << " p_gpio_ce1 " << p_gpio_ce1->is_High() << std::endl;
 
+	    for(int i=0; i< sizeof(spi_data); i++){
+                    memcpy(buff, spi_data, sizeof(spi_data));
+	            int res = p_pspi->data_rw(buff, sizeof(buff));
+        	    std::cout << i << " Result: " << res << " Data: " << std::bitset<8>(buff[0]) << std::endl;
+            }
             p_pspi->set_channel_off(pirobot::spi::SPI_CHANNELS::SPI_0);
         }
 
