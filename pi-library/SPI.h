@@ -222,21 +222,21 @@ public:
             return false;
         }
 
-        //do not need to do anything - there is current channel
-        if(channel == m_channel){
-            return true;
-        }
-
         //if another channel is active
-        if(m_channel >= 0){
-            set_channel_off(channel);
+        if(channel != m_channel){
+            set_channel_off(m_channel);
         }
 
         //switch GPIO for channel to LOW
         if(!m_gpio[channel]){
             logger::log(logger::LLOG::DEBUG, "SPI", std::string(__func__) + " No GPIO for channel: " + std::to_string(channel));
             return false;
-       }
+        }
+
+        if(channel == m_channel && !m_gpio[channel]->is_High()){
+            logger::log(logger::LLOG::DEBUG, "SPI", std::string(__func__) + " Nothing to do. Channel: " + std::to_string(channel));
+            return true;
+        }
 
         logger::log(logger::LLOG::DEBUG, "SPI", std::string(__func__) + " ON Done. Channel: " + std::to_string(channel));
 
