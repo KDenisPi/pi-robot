@@ -32,7 +32,8 @@ int main (int argc, char* argv[])
 
     std::cout << "Prepare SPI configuration" << std::endl;
     pspi_cfg cfg;
-    //cfg.speed[0] = pirobot::spi::SPI_SPEED::MHZ_25; // 25 Mhz
+    cfg.speed[0] = pirobot::spi::SPI_SPEED::MHZ_2; // 25 Mhz
+    cfg.speed[1] = pirobot::spi::SPI_SPEED::MHZ_2; // 25 Mhz
 
     std::cout << "Create GPIO provider" << std::endl;
     provider g_prov = std::make_shared<pirobot::gpio::GpioProviderSimple>();
@@ -41,10 +42,6 @@ int main (int argc, char* argv[])
     gpio p_gpio_ce0 = std::make_shared<pirobot::gpio::Gpio>(19, pirobot::gpio::GPIO_MODE::OUT, g_prov, pirobot::gpio::PULL_MODE::PULL_OFF, pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_NONE);
     gpio p_gpio_ce1 = std::make_shared<pirobot::gpio::Gpio>(18, pirobot::gpio::GPIO_MODE::OUT, g_prov, pirobot::gpio::PULL_MODE::PULL_OFF, pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_NONE);
 
-    gpio p_gpio_miso = std::make_shared<pirobot::gpio::Gpio>(20, pirobot::gpio::GPIO_MODE::IN, g_prov, pirobot::gpio::PULL_MODE::PULL_OFF, pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_NONE);
-    gpio p_gpio_mosi = std::make_shared<pirobot::gpio::Gpio>(21, pirobot::gpio::GPIO_MODE::OUT, g_prov, pirobot::gpio::PULL_MODE::PULL_OFF, pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_NONE);
-    gpio p_gpio_clk  = std::make_shared<pirobot::gpio::Gpio>(22, pirobot::gpio::GPIO_MODE::OUT, g_prov, pirobot::gpio::PULL_MODE::PULL_OFF, pirobot::gpio::GPIO_EDGE_LEVEL::EDGE_NONE);
-
     std::cout << p_gpio_ce0->to_string() << std::endl;
     std::cout << p_gpio_ce1->to_string() << std::endl;
 
@@ -52,31 +49,8 @@ int main (int argc, char* argv[])
     pspi p_pspi = std::make_shared<pirobot::spi::SPI>(std::string("PI_SPI"), cfg, p_gpio_ce0, p_gpio_ce1);
     std::cout << p_pspi->printConfig() << std::endl;
 
-    {
-        uint8_t spi_data[18] = {0xA1, 0xA2, 0xB1, 0xB2, 0xC1, 0xC2,0xA1, 0xA2, 0xB1, 0xB2, 0xC1, 0xC2,0xA1, 0xA2, 0xB1, 0xB2, 0xC1, 0xC2};
-        uint8_t buff[18];
-
-        std::cout << "p_gpio_ce0 " << p_gpio_ce0->is_High() << " p_gpio_ce1 " << p_gpio_ce1->is_High() << std::endl;
-
-        std::cout << "Prepare to send data" << std::endl;
-
-        if(p_pspi->set_channel_on(pirobot::spi::SPI_CHANNELS::SPI_0)){
-            std::cout << "Sending data" << std::endl;
-            std::cout << "p_gpio_ce0 " << p_gpio_ce0->is_High() << " p_gpio_ce1 " << p_gpio_ce1->is_High() << std::endl;
-
-	    for(int i=0; i< sizeof(spi_data); i++){
-                    memcpy(buff, spi_data, sizeof(spi_data));
-	            int res = p_pspi->data_rw(buff, sizeof(buff));
-        	    std::cout << i << " Result: " << res << " Data: " << std::bitset<8>(buff[0]) << std::endl;
-            }
-            p_pspi->set_channel_off(pirobot::spi::SPI_CHANNELS::SPI_0);
-        }
-
-
-
-/*        
         //Create Stripe LEDS object
-        sled sled1 = std::make_shared<pirobot::item::SLed>(150, pirobot::item::SLedType::WS2812B, std::string("LEDS_P"));
+        sled sled1 = std::make_shared<pirobot::item::SLed>(15, pirobot::item::SLedType::WS2801, std::string("LEDS_P"));
         std::cout << sled1->printConfig() << std::endl;
 
         //Create SLED control object
@@ -86,9 +60,6 @@ int main (int argc, char* argv[])
 
         //Add Stripe LEDS
         if(leds_ctrl->add_sled(sled1)){
-            const uint32_t rgb_1 = pirobot::item::SLed::rgb2uint32_t(0x20, 0x40, 0x80);
-            leds_ctrl->add_copy_rgb(rgb_1, 0, sled1->leds());
-
             const uint32_t rgb_2 = pirobot::item::SLed::rgb2uint32_t(0x90, 0x30, 0x10);
             leds_ctrl->add_copy_rgb(rgb_2, 0, sled1->leds());
 
@@ -100,8 +71,6 @@ int main (int argc, char* argv[])
             std::cout << "Stop SELD controller" << std::endl;
             leds_ctrl->stop();
         }
-*/        
-    }
 
     std::cout << "Release SPI Provider objects " << std::endl;
     p_pspi.reset();

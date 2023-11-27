@@ -86,13 +86,18 @@ enum SPI_CHANNELS {
 };
 
 enum SPI_SPEED : int {
-    DEF = 1000000,
-    MHZ_25 = DEF*25
+    MHZ_1  = 1000000,
+    MHZ_2  = MHZ_1*2,
+    MHZ_5  = MHZ_1*5,
+    MHZ_10 = MHZ_1*10,
+    MHZ_15 = MHZ_1*15,
+    MHZ_20 = MHZ_1*20,
+    MHZ_25 = MHZ_1*25
 };
 
 struct SPI_config {
     int channels;
-    int speed[2] = {SPI_SPEED::DEF, SPI_SPEED::DEF};
+    int speed[2] = {SPI_SPEED::MHZ_1, SPI_SPEED::MHZ_1};
     SPI_MODE mode[2] = {SPI_MODE::MODE_0, SPI_MODE::MODE_0};
     bool real_world = true;
 

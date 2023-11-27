@@ -264,16 +264,25 @@ public:
             for( std::size_t lidx = 0; lidx < lcount; lidx++ ){
 
                 // Test purpose only. Convert 0RGB to R,G,B
-                std::uint8_t rgb[3] = {
+                /*
+		std::uint8_t rgb[3] = {
                     lgm[ (ldata[lidx] & 0xFF) ],
                     lgm[ ((ldata[lidx] >> 8 ) & 0xFF) ],
                     lgm[ ((ldata[lidx] >> 16 ) & 0xFF) ]
                 };
+		*/
 
                 const int idx = lidx*3;
-                _data_buff[idx + 0] &= (ldata[lidx] & 0xFF);
-                _data_buff[idx + 1] &= ((ldata[lidx] >> 8 ) & 0xFF);
-                _data_buff[idx + 2] &= ((ldata[lidx] >> 16 ) & 0xFF);
+                _data_buff[idx + 0] = (ldata[lidx] & 0xFF);
+                _data_buff[idx + 1] = ((ldata[lidx] >> 8 ) & 0xFF);
+                _data_buff[idx + 2] = ((ldata[lidx] >> 16 ) & 0xFF);
+
+	        //std::cout << "Idx: " << lidx << " Val: " << std::hex << ldata[lidx] << std::endl;
+
+                //_data_buff[idx + 0] = 0x40;
+                //_data_buff[idx + 1] = 0x20;
+                //_data_buff[idx + 2] = 0x80;
+
             }
 
             if(!write_data(_data_buff, blen)){
