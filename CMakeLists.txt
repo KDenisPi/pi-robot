@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 #project name
-project(pi-robot VERSION 1.2.4)
+project(pi-robot VERSION 1.2.5)
 enable_testing()
 
 set(PI_VER ${PROJECT_VERSION})
@@ -56,7 +56,7 @@ message( STATUS "CMAKE_C_FLAGS_DEBUG is ${CMAKE_C_FLAGS_DEBUG}")
 message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 message( STATUS "CMAKE_C_FLAGS:  ${CMAKE_C_FLAGS}" )
- 
+
 
 #libspdlog-dev/focal,now 1:1.5.0-1 amd64
 #libspdlog1/focal,now 1:1.5.0-1 amd64 [installed,automatic]
