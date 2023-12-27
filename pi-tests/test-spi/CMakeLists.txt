@@ -20,7 +20,7 @@ message( STATUS "SPI REAL_HARDWARE:  ${REAL_HARDWARE}" )
 
 add_executable(test_spi_arduino arduino.cpp)
 
-set(TEST_SPI_LIBS pi-utils pi-library pthread crypt rt)
+set(TEST_SPI_LIBS pi-library ${TEST_LIBS})
 
 if(REAL_HARDWARE)
     find_library(BCM_HOST_LIB bcm_host PATH "/opt/vc/lib")

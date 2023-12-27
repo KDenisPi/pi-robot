@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.12)
 
 #project name
-project(pi-robot VERSION 1.2.5)
+set(VER_MJR 1)
+set(VER_MIN 2.5)
+
+project(pi-robot VERSION ${VER_MJR}.${VER_MIN})
 enable_testing()
 
 set(PI_VER ${PROJECT_VERSION})
@@ -10,12 +13,12 @@ message( STATUS "REAL_HARDWARE:  ${REAL_HARDWARE}" )
 IF(REAL_HARDWARE)
     set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../third-party")
 ELSE(REAL_HARDWARE)
+    set(REAL_HARDWARE 0)
     set(THIRD_PARTY_HOME "$ENV{HOME}/third-party")
 ENDIF(REAL_HARDWARE)
 
 message( STATUS "THIRD_PARTY_HOME: ${THIRD_PARTY_HOME}")
 
-#set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
 set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
 set(MONGOOSE_SRC "${MONGOOSE_HOME}/mongoose.c")
 set(SQLITE3_HOME "${THIRD_PARTY_HOME}/sqlite-amalgamation-3240000")
@@ -25,16 +28,14 @@ message( STATUS "CJSON: ${CJSON}")
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
 message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
 message( STATUS "MONGOOSE_SRC ${MONGOOSE_SRC}")
-message( STATUS "CMAKE_BIULD_TYPE is ${CMAKE_BIULD_TYPE}")
+message( STATUS "CMAKE_BIULD_TYPE is ${CMAKE_BUILD_TYPE}")
 
 #cmake version 3.12 and above
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-message( STATUS "CMAKE_BUILD_TYPE:  ${CMAKE_BUILD_TYPE}" )
-
 if(NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 14)
+    set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
@@ -42,10 +43,10 @@ endif()
 #
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("debug mode")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -g -std=c++14 -fexceptions -Wno-psabi -Og")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -g -std=c++17 -fexceptions -Wno-psabi -Og")
 ELSE(CMAKE_BUILD_TYPE NOT STREQUAL "Debug")
     message("release with debug info mode")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_RELWITHDEBINFO} -std=c++14 -fexceptions -Wno-psabi")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_RELWITHDEBINFO} -std=c++17 -fexceptions -Wno-psabi")
 ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -77,7 +78,7 @@ message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
 #message( STATUS "INCLUDE_DIRECTORIES:  ${INC_DIRS}")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
-add_subdirectory(${PROJECT_SOURCE_DIR}/pi-core)
+#add_subdirectory(${PROJECT_SOURCE_DIR}/pi-core)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-sql)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-mqtt)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-http)
@@ -133,7 +134,7 @@ set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPA
 message( STATUS "CPACK_DEBIAN_PACKAGE_ARCHITECTURE:  ${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}" )
 
 install(EXPORT pi-utils-t NAMESPACE PiRobot DESTINATION lib)
-install(EXPORT pi-core-t NAMESPACE PiRobot DESTINATION lib)
+#install(EXPORT pi-core-t NAMESPACE PiRobot DESTINATION lib)
 install(EXPORT pi-sql-t NAMESPACE PiRobot DESTINATION lib)
 install(EXPORT pi-mqtt-t NAMESPACE PiRobot DESTINATION lib)
 install(EXPORT pi-http-t NAMESPACE PiRobot DESTINATION lib)

@@ -14,8 +14,6 @@
 #include <vector>
 #include <mutex>
 
-//#include <wiringPi.h>
-
 #ifdef REAL_HARDWARE
 #include <bcm_host.h>
 #endif
