@@ -12,7 +12,13 @@ enable_testing()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http mosquitto pthread dl curl rt fmt)
+set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http mosquitto pthread dl curl rt)
+
+IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+    message("test-main 64")
+    set(EXTRA_LIBS  ${EXTRA_LIBS} fmt)
+ENDIF()
+
 link_directories("${PROJECT_SOURCE_DIR}/../../build")
 
 message( STATUS "EXTRA_LIBS ${EXTRA_LIBS}")

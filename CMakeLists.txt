@@ -58,6 +58,8 @@ message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 message( STATUS "CMAKE_C_FLAGS:  ${CMAKE_C_FLAGS}" )
 
+message( STATUS "CMAKE_SYSTEM_VERSION:  ${CMAKE_SYSTEM_VERSION}" )
+message( STATUS "CMAKE_SYSTEM_PROCESSOR:  ${CMAKE_SYSTEM_PROCESSOR}" )
 
 #libspdlog-dev/focal,now 1:1.5.0-1 amd64
 #libspdlog1/focal,now 1:1.5.0-1 amd64 [installed,automatic]
