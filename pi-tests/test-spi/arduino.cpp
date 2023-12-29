@@ -50,7 +50,7 @@ int main (int argc, char* argv[])
     std::cout << p_pspi->printConfig() << std::endl;
 
         //Create Stripe LEDS object
-        sled sled1 = std::make_shared<pirobot::item::SLed>(15, pirobot::item::SLedType::WS2801, std::string("LEDS_P"));
+        sled sled1 = std::make_shared<pirobot::item::SLed>(28, pirobot::item::SLedType::WS2801, std::string("LEDS_P"));
         std::cout << sled1->printConfig() << std::endl;
 
         //Create SLED control object
@@ -61,7 +61,26 @@ int main (int argc, char* argv[])
         //Add Stripe LEDS
         if(leds_ctrl->add_sled(sled1)){
             const uint32_t rgb_2 = pirobot::item::SLed::rgb2uint32_t(0x90, 0x30, 0x10);
-            leds_ctrl->add_copy_rgb(rgb_2, 0, sled1->leds());
+            std::vector<uint32_t> lll = {
+	        0x150580, 0x1505B0,
+	        0x300580, 0x3005B0,
+	        0x000080, 0x0000B0,
+        	0x002080, 0x0020B0,
+	        0x008000, 0x00B000,
+        	0x008010, 0x00B010,
+	        0x008025, 0x00B025,
+	        0x805005, 0xB05005,
+	        0x801000, 0xB01000,
+	        0x804000, 0xB04000,
+	        0x801040, 0xB01040,
+	        0x800010, 0xB00010,
+	        0x800000, 0xB00000,
+	        0x800040, 0xB0004
+	};
+
+            //leds_ctrl->add_copy_rgb(rgb_2, 0, sled1->leds());
+            leds_ctrl->add_copy_rgbs(lll);
+
 
             if(leds_ctrl->initialize()){
                 std::cout << "Transformation started. Waiting for 10 seconds" << std::endl;
