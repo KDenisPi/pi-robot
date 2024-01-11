@@ -50,14 +50,17 @@ apt-get install libspdlog-dev
 #
 # JSON
 #
-echo jsoncons
-if [ ! -d  ./jsoncons ]
-then
-  git clone https://github.com/danielaparker/jsoncons jsoncons
-fi
+#echo jsoncons
+#if [ ! -d  ./jsoncons ]
+#then
+#  git clone https://github.com/danielaparker/jsoncons jsoncons
+#fi
 
-https://github.com/nlohmann/json
+#https://github.com/nlohmann/json
 https://github.com/DaveGamble/cJSON
+
+
+https://github.com/DaveGamble/cJSON.git
 
 
 #
