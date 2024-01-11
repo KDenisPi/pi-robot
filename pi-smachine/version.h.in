@@ -1,3 +1,10 @@
+namespace smachine {
+
 #define VER_MAJOR @VER_MJR@
 #define VER_MINOR @VER_MIN@
 
+static const bool is_real_hardware() {
+    return (bool) @REAL_HARDWARE@;
+}
+
+} //namespace
