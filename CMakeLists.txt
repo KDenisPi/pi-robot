@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 #project name
 set(VER_MJR 1)
-set(VER_MIN 2.5)
+set(VER_MIN 3)
 
 project(pi-robot VERSION ${VER_MJR}.${VER_MIN})
 enable_testing()
