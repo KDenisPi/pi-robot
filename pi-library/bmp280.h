@@ -130,7 +130,7 @@ public:
     const uint8_t get_config();
 
     //Return current pressure, temperature, altitude values
-    void get_results(float& pressure, float& temp, float& altitude);
+    const bool get_results(float& pressure, float& temp, float& altitude);
 
     //
     //Set measure control parameters
@@ -147,7 +147,7 @@ public:
     bool set_measure_control(const uint8_t power_mode, const uint8_t pressure_over, const uint8_t temp_over = 0xFF);
 
     //Set config
-    void set_config(const uint8_t spi, const uint8_t filter, const uint8_t standby_time);
+    bool set_config(const uint8_t spi, const uint8_t filter, const uint8_t standby_time);
 
 private:
     uint8_t _i2caddr;

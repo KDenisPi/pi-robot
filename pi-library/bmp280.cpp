@@ -122,8 +122,8 @@ bool Bmp280::set_measure_control(const uint8_t power_mode, const uint8_t pressur
 
     uint8_t meas_ctrl = (temp_over_val << 5) | (pressure_over << 2) | power_mode;
 
-    _i2c->I2CWriteReg8(m_fd, BMP280_CTRL_MEASURE, meas_ctrl);
-    return true;
+    int res = _i2c->I2CWriteReg8(m_fd, BMP280_CTRL_MEASURE, meas_ctrl);
+    return (res >= 0); //true;
 }
 
 //Get measure control parameters
@@ -154,15 +154,16 @@ const uint8_t Bmp280::get_config(){
 }
 
 //Set config
-void Bmp280::set_config(const uint8_t spi, const uint8_t filter, const uint8_t standby_time){
+bool Bmp280::set_config(const uint8_t spi, const uint8_t filter, const uint8_t standby_time){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " SPI: " + std::to_string(spi) + " Filter: " + std::to_string(filter) + " SB Time: " + std::to_string(standby_time));
 
     int8_t config = (standby_time << 5) | (filter << 2) | spi;
-    _i2c->I2CWriteReg8(m_fd, BMP280_CONFIG, config);
+    int res = _i2c->I2CWriteReg8(m_fd, BMP280_CONFIG, config);
+    return (res >= 0); //true;
 }
 
 //Return current pressure and temperature values
-void Bmp280::get_results(float& pressure, float& temp, float& altitude){
+const bool Bmp280::get_results(float& pressure, float& temp, float& altitude){
     uint8_t raw[6];
 
     //for FORCED ans SLEEP modes make measurement
@@ -171,6 +172,11 @@ void Bmp280::get_results(float& pressure, float& temp, float& altitude){
 
     int read_bytes = _i2c->I2CReadData(m_fd, BMP280_PRESSURE_MSB, raw, 6);
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Read bytes: " + std::to_string(read_bytes));
+
+    if(read_bytes <= 0){
+        pressure = temp = altitude = 0.0;
+        return false;
+    }
 
     int32_t raw_pressure = construct_value(raw[0], raw[1], (raw[2] >> 4));
     int32_t raw_temp = construct_value(raw[3], raw[4], (raw[5] >> 4));
@@ -184,6 +190,8 @@ void Bmp280::get_results(float& pressure, float& temp, float& altitude){
 
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Pressure: " + std::to_string(pressure) + " Temperature: " + std::to_string(temp) +
         " Altitude: " + std::to_string(altitude));
+
+    return true;
 }
 
 // TODO: Read array?
