@@ -20,7 +20,7 @@ DESC=weather
 
 DAEMON=/usr/local/bin/weatherd
 CONFIG=/usr/local/etc/weather/Weather.json
-PARAMETERS="--conf $CONFIG"
+PARAMETERS="--conf $CONFIG --llevel DEBUG"
 
 #check executable and configuration files
 test -f $DAEMON || exit 0

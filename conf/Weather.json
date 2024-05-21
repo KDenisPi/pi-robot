@@ -20,7 +20,7 @@
     },
 
     "mqtt" : {
-        "enable": false,
+        "enable": true,
         "host" : "192.168.1.11",
         "client_id": "PiRobot",
         "port": 1883,
@@ -67,7 +67,7 @@
         {
             "type": "BMP280",
             "name": "BMP280",
-            "i2c_addr": 119
+            "i2c_addr": 118
         },
         {
             "type": "TSL2561",

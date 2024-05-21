@@ -92,6 +92,11 @@ void StMeasurement::measure(){
         if(data.tsl2651_lux != 0 && tsl2651_lux!=0)
             mdiff = m_abs(m_change(data.tsl2651_lux, tsl2651_lux));
 
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
+              " New: " + std::to_string(data.tsl2651_lux) + " Diff: " + std::to_string(m_abs(lux_diff)) + " LhDiff:" + std::to_string(ctxt->light_off_on_diff) +
+              " MDiff: " + std::to_string(mdiff));
+
+
         if( mdiff > 2){
             logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
                 " New: " + std::to_string(data.tsl2651_lux) + " Diff: " + std::to_string(m_abs(lux_diff)) + " LhDiff:" + std::to_string(ctxt->light_off_on_diff) +
@@ -248,6 +253,7 @@ bool StMeasurement::OnTimer(const int id){
         //switch to main state
         case TIMER_UPDATE_INTERVAL:
         {
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Measure values");
             measure();
 
             auto ctxt = get_env<weather::Context>();
@@ -264,12 +270,14 @@ bool StMeasurement::OnTimer(const int id){
             //TODO: Add MQTT here
             //
             auto ctxt = get_env<weather::Context>();
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Write measurement");
-
             Measurement data = ctxt->data;
+
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Write measurement");
             storage_write(data);
 
             timer_create(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval); //save information
+
+            return true;
         }
 
         case TIMER_SHOW_DATA_INTERVAL:
