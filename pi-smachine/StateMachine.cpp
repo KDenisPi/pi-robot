@@ -195,7 +195,7 @@ void StateMachine::state_pop(){
  *
  */
 bool StateMachine::timer_start(const int timer_id, const time_t interval, const bool interval_timer){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started for ID: " + std::to_string(timer_id));
     return this->m_timers->create_timer(std::make_shared<Timer>(timer_id, interval, 0, interval_timer));
 }
 

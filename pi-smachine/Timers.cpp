@@ -109,6 +109,10 @@ void Timers::worker(Timers* owner){
              * Timer signal is received. Process it.
              */
             const int id  = sig_info._sifields._timer.si_sigval.sival_int;
+            const int tid = sig_info.si_timerid;
+            const int ovrr = sig_info.si_overrun;
+
+            logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " ID: " + std::to_string(id) + " TID: " + std::to_string(tid) + " Ovr: " + std::to_string(ovrr));
 
             ////std::cout <<  "----------- timer SIGNAL ----" << std::endl;
             // Remove timer from map
@@ -178,6 +182,8 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
         return false;
     }
 
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer ID: " + std::to_string(timer->get_id()) + " SID: " + std::to_string((uintmax_t)tid));
+
     timer->set_tid(tid); //save system timer ID
     m_id_to_tm.emplace(timer->get_id(), timer);
 
@@ -192,6 +198,7 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
 bool Timers::cancel_timer(const int id){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " timer ID: " + std::to_string(id));
     int err = 0;
+    timer_t tid = 0;
 
     {
         std::lock_guard<std::mutex> lock(mutex_tm);
@@ -201,12 +208,14 @@ bool Timers::cancel_timer(const int id){
             return true;
         }
 
-        timer_t tid = timer->second->get_tid();
+        tid = timer->second->get_tid();
         if(timer_delete(tid) < 0){
             err == errno;
         }
         m_id_to_tm.erase(id);
     }
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer ID: " + std::to_string(id) + " SID: " + std::to_string((uintmax_t)tid));
 
     if(err != 0){
         if(err == EINVAL){
