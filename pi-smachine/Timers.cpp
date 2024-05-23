@@ -195,7 +195,7 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
 /*
  *
  */
-bool Timers::cancel_timer(const int id){
+bool Timers::cancel_timer(const int id, const bool del_timer /*= true*/){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " timer ID: " + std::to_string(id));
     int err = 0;
     timer_t tid = 0;
@@ -209,8 +209,10 @@ bool Timers::cancel_timer(const int id){
         }
 
         tid = timer->second->get_tid();
-        if(timer_delete(tid) < 0){
-            err == errno;
+        if(del_timer){
+            if(timer_delete(tid) < 0){
+                err == errno;
+            }
         }
         m_id_to_tm.erase(id);
     }

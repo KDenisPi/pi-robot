@@ -34,7 +34,7 @@ public:
      *
      */
     virtual bool create_timer(const std::shared_ptr<Timer> timer) override;
-    virtual bool cancel_timer(const int id) override;
+    virtual bool cancel_timer(const int id, const bool del_timer = true) override;
     virtual bool reset_timer(const int id) override;
 
     /*
