@@ -21,7 +21,7 @@ public:
 	virtual ~TimersItf() {}
 
 	virtual bool create_timer(const std::shared_ptr<Timer> timer) = 0;
-	virtual bool cancel_timer(const int id, const bool del_timer = true) = 0;
+	virtual bool cancel_timer(const int id) = 0;
 	virtual bool reset_timer(const int id) = 0;
 	//detect is timer active now
 	virtual bool is_timer(const int id) = 0;

@@ -132,7 +132,6 @@ void Timers::worker(Timers* owner){
  *
  */
 bool Timers::create_timer(const std::shared_ptr<Timer> timer){
-    timer_t tid;
     struct sigevent evt;
     struct itimerspec itime;
 
@@ -156,7 +155,7 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
     evt.sigev_notify_function = NULL;
     evt.sigev_notify_attributes = NULL;
 
-    if( timer_create(CLOCK_REALTIME, &evt, &tid) < 0){
+    if( timer_create(CLOCK_REALTIME, &evt, &timer->m_tid) < 0){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " could not create timer Error: " + std::to_string(errno));
         return false;
     }
@@ -176,15 +175,13 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
         itime.it_value.tv_nsec = timer->get_time().tv_nsec;
     }
 
-    if(timer_settime(tid, 0, &itime, NULL) < 0){
+    if(timer_settime(timer->get_tid(), 0, &itime, NULL) < 0){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " could not set timer Error: " + std::to_string(errno));
-        timer_delete(tid);
+        timer_delete(timer->get_tid());
         return false;
     }
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer ID: " + std::to_string(timer->get_id()) + " SID: " + std::to_string((uintmax_t)tid));
-
-    timer->set_tid(tid); //save system timer ID
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer ID: " + std::to_string(timer->get_id()) + " SID: " + std::to_string((uintmax_t)timer->get_tid()));
     m_id_to_tm.emplace(timer->get_id(), timer);
 
     ////std::cout <<  "----------- create timer end ----" << std::endl;
@@ -195,7 +192,7 @@ bool Timers::create_timer(const std::shared_ptr<Timer> timer){
 /*
  *
  */
-bool Timers::cancel_timer(const int id, const bool del_timer /*= true*/){
+bool Timers::cancel_timer(const int id){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " timer ID: " + std::to_string(id));
     int err = 0;
     timer_t tid = 0;
@@ -209,11 +206,15 @@ bool Timers::cancel_timer(const int id, const bool del_timer /*= true*/){
         }
 
         tid = timer->second->get_tid();
-        if(del_timer){
-            if(timer_delete(tid) < 0){
-                err == errno;
-            }
+        /*
+        Each POSIX timer consumes a small amount of system resources. Therefore, when
+        we have finished using a timer, we should free these resources by using timer_delete()
+        to remove the timer.
+        */
+        if(timer_delete(tid) < 0){
+            err == errno;
         }
+
         m_id_to_tm.erase(id);
     }
 

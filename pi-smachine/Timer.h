@@ -19,15 +19,13 @@ public:
 
 	const int get_id() const { return m_id;}
 	const timer_t get_tid() const { return m_tid;}
-	void set_tid(const timer_t tid) { m_tid = tid;}
 	const struct timespec& get_time() const { return m_itime;}
-
 	bool is_interval() const {return m_interval;}
 
+	timer_t m_tid;
 private:
 	bool m_interval;
 	int m_id;
-	timer_t m_tid;
 	struct timespec m_itime;
 };
 
