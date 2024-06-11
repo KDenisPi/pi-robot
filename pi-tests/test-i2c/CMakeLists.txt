@@ -19,7 +19,7 @@ add_executable(test_i2c_tsl2561 test_i2c_tsl2561.cpp)
 add_executable(test_i2c_sgp30 test_i2c_sgp30.cpp)
 add_executable(test_i2c_bmp280 test_i2c_bmp280.cpp)
 
-set(TEST_I2C_LIBS pi-library pi-utils pthread crypt rt)
+set(TEST_I2C_LIBS pi-library pi-utils pthread crypt rt ${EXTRA_LIBS})
 
 if(REAL_HARDWARE)
     find_library(BCM_HOST_LIB bcm_host PATH "/opt/vc/lib")

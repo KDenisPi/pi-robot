@@ -59,6 +59,13 @@ message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 add_library(libmosquitto SHARED IMPORTED)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} mosquitto)
+
+message( STATUS "CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
+IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+    message("Support for 64")
+    set(EXTRA_LIBS  ${EXTRA_LIBS} fmt)
+ENDIF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+
 message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
