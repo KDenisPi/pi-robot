@@ -27,6 +27,8 @@
 namespace weather {
 
 void StMeasurement::headlights(const bool light_on){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Headlights ON: " + std::to_string(light_on));
+
     auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
     auto led_white_l = get_item<pirobot::item::Led>("led_white_l");
 
@@ -52,7 +54,6 @@ void StMeasurement::measure(){
     try {
 
         headlights(true);
-
         timer_create(TIMER_MEASURE_LIGHT_INTERVAL, ctxt->measure_light_interval); //measurement interval
 
         Measurement data;
@@ -303,6 +304,8 @@ bool StMeasurement::OnTimer(const int id){
 // Update informationon LCD screen
 //
 void StMeasurement::update_lcd(){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Update informationon LCD screen");
+
     auto ctxt = get_env<weather::Context>();
     auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
 
