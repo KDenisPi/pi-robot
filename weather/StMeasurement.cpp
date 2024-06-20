@@ -87,6 +87,7 @@ void StMeasurement::measure(){
             data.tsl2651_lux = tsl2651_lux;
         }
 
+/*
         int lux_diff = data.tsl2651_lux - tsl2651_lux;
 
         float mdiff = 0.0;
@@ -97,30 +98,16 @@ void StMeasurement::measure(){
               " New: " + std::to_string(data.tsl2651_lux) + " Diff: " + std::to_string(m_abs(lux_diff)) + " LhDiff:" + std::to_string(ctxt->light_off_on_diff) +
               " MDiff: " + std::to_string(mdiff));
 
+*/
+        logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) + " New: " + std::to_string(data.tsl2651_lux));
 
-        if( mdiff > 2){
-            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
-                " New: " + std::to_string(data.tsl2651_lux) + " Diff: " + std::to_string(m_abs(lux_diff)) + " LhDiff:" + std::to_string(ctxt->light_off_on_diff) +
-                " MDiff: " + std::to_string(mdiff));
-
-            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
-            if( lux_diff>0 ){ //light On - LCD ON
-                if( !lcd->is_on() ){
-                    event_add(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
-                }
-            }
-            else { //light OFF - LCD OFF
-                if( lcd->is_on() ){
-                    event_add(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
-                }
+        auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+        if(data.tsl2651_lux >= ctxt->light_low_level){
+            if(!lcd->is_on()){
+                event_add(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
             }
         }
-        else if( data.tsl2651_lux < ctxt->light_low_level) { //Dark in the room - LCD OFF
-            logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) +
-                " New: " + std::to_string(data.tsl2651_lux) + " Diff: " + std::to_string(m_abs(lux_diff)) + " LhDiff:" + std::to_string(ctxt->light_off_on_diff) +
-                " MDiff: " + std::to_string(mdiff));
-
-            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+        else { //Dark in the room - LCD OFF
             if( lcd->is_on() ){
                 event_add(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
             }

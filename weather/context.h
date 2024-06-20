@@ -51,7 +51,7 @@ public:
     Measurement data;
 
     int light_off_on_diff = 600; //difference between light OFF and lights ON
-    int light_low_level = 10;
+    int light_low_level = 30;
 
     const bool show_temperature_in_celcius() const {
         return _temp_C;
