@@ -45,6 +45,7 @@ bool StInitialization::OnTimer(const int id){
 
             auto ctxt = get_env<weather::Context>();
             timer_create(TIMER_IP_CHECK_INTERVAL, ctxt->ip_check_interval);
+            return true;
         }
         break;
     }
