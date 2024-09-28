@@ -7,6 +7,8 @@
 
 int main (int argc, char* argv[])
 {
+    std::cout << "Test timers started..." << std::endl;
+
     logger::log_init(std::string("test-timer.log"));
     logger::log(logger::LLOG::DEBUG, "TIMER", std::string(__func__) + " Started ");
 

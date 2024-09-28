@@ -14,4 +14,4 @@ set(TEST_TIMERS_LIBS  pi-utils pthread crypt rt ${EXTRA_LIBS})
 
 target_link_libraries(test_timers ${TEST_TIMERS_LIBS})
 
-add_test(NAME test-timers COMMAND test_timrs)
+add_test(NAME test-timers COMMAND test_timers)
