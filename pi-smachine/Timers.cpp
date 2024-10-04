@@ -19,7 +19,7 @@
 
 namespace smachine {
 
-const char TAG[] = "timers";
+const char TAG[] = "timer";
 
 Timers::Timers(StateMachine* owner) :
          m_owner(owner)

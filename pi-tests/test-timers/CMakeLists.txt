@@ -8,7 +8,7 @@ include_directories(BEFORE
     ${PROJECT_SOURCE_DIR}/../../pi-utils
 )
 
-add_executable(test_timers test_timer.cpp Timer.cpp)
+add_executable(test_timers test_timer.cpp Timer.cpp Timers2.cpp)
 
 set(TEST_TIMERS_LIBS  pi-utils pthread crypt rt ${EXTRA_LIBS})
 
