@@ -13,23 +13,36 @@ int main (int argc, char* argv[])
     logger::log_init(std::string("test-timer.log"));
     logger::log(logger::LLOG::DEBUG, "TIMER", std::string(__func__) + " Started ");
 
-    smachine::timer::TimersPtr tmrs = std::make_shared<smachine::timer::Timers>();
-    smachine::timer::TimerPtr tmr = smachine::timer::Timer::create(100);
+    std::cout << "PID: " <<  gettid() << std::endl;
 
+    sigset_t new_set, org_set;
+    sigemptyset (&new_set);
+    sigaddset (&new_set, TIMER_SIG);
+    pthread_sigmask(SIG_BLOCK, &new_set, &org_set);
+
+    smachine::timer::TimersPtr tmrs = std::make_shared<smachine::timer::Timers>();
     if(tmrs){
         tmrs->start();
+        sleep(1);
+        smachine::timer::timer_info tm_info = {100,2,0,true};
 
-        if(tmr){
-            std::cout << "Start timer" << std::endl;
-            tmr->start();
-            sleep(5);
-            std::cout << "Stop timer" << std::endl;
-            tmr->stop();
-            std::cout << "Release timer" << std::endl;
-            tmr.reset();
-        }
-        else
-            std::cout << "Failed create timer" << std::endl;
+        std::cout << "Create timer" << std::endl;
+        tmrs->create_timer(tm_info);
+        tm_info = {101,1,0,false};
+        tmrs->create_timer(tm_info);
+        sleep(3);
+/*
+        std::cout << "Cancel timer" << std::endl;
+        tmrs->cancel_timer(100);
+        sleep(3);
+        std::cout << "Reset timer timer" << std::endl;
+*/
+        tmrs->reset_timer(100);
+
+        sleep(3);
+
+        tmrs->stop();
+        std::cout << "Finished" << std::endl;
     }
 
     exit(EXIT_SUCCESS);

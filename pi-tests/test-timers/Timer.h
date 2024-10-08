@@ -19,32 +19,39 @@ namespace timer {
 class Timer;
 using TimerPtr = std::shared_ptr<smachine::timer::Timer>;
 
+struct timer_info {
+    int id;
+    time_t tv_sec;
+    long tv_nsec;
+    bool interval;
+};
+
 /**
  * @brief
  *
  */
 class Timer {
 public:
-	Timer(const int id, const time_t tv_sec = 1, const long tv_nsec = 0, const bool interval = false) :
-		_id(id), tid(nullptr), _interval(interval) {
+	Timer(const struct timer_info& tm_info) :
+		_id(tm_info.id), tid(nullptr), _interval(tm_info.interval) {
 
-		if(interval){
-			itime.it_interval.tv_sec = tv_sec;
-			itime.it_interval.tv_nsec = tv_nsec;
+		if(_interval){
+			itime.it_interval.tv_sec = tm_info.tv_sec;
+			itime.it_interval.tv_nsec = tm_info.tv_nsec;
 
-			itime.it_value.tv_sec = tv_sec;
-			itime.it_value.tv_nsec = tv_nsec;
+			itime.it_value.tv_sec = tm_info.tv_sec;
+			itime.it_value.tv_nsec = tm_info.tv_nsec;
 		}
 		else{
 			itime.it_interval.tv_sec = 0;
 			itime.it_interval.tv_nsec = 0;
 
-			itime.it_value.tv_sec = tv_sec;
-			itime.it_value.tv_nsec = tv_nsec;
+			itime.it_value.tv_sec = tm_info.tv_sec;
+			itime.it_value.tv_nsec = tm_info.tv_nsec;
 		}
 	}
 
-	static const TimerPtr create(const int id, const time_t tv_sec = 1, const long tv_nsec = 0, const bool interval = false);
+	static const TimerPtr create(const struct timer_info& tm_info);
 
 	Timer() = delete;
 	virtual ~Timer();
@@ -56,6 +63,19 @@ public:
 	const timer_t get_tid() const {return tid;}
 	const struct itimerspec& get_time() const {return itime;}
 	bool is_interval() const {return _interval;}
+
+	const std::string get_timeinfo() const{
+		struct itimerspec curr_info;
+		timer_gettime(tid, &curr_info);
+		return info_to_string(curr_info);
+	}
+
+	const std::string info_to_string(const itimerspec& info) const {
+		std::string res = std::string(" it_interval: ") + std::to_string(info.it_interval.tv_sec) + " sec. " + std::to_string(info.it_interval.tv_nsec) + " nsec. ";
+		res = res + std::string("it_value: ") + std::to_string(info.it_value.tv_sec) + " sec. " + std::to_string(info.it_value.tv_nsec) + " nsec. ";
+
+		return res;
+	}
 
 protected:
 	timer_t tid;
