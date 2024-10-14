@@ -6,6 +6,12 @@
 #include "Timer.h"
 #include "Timers2.h"
 
+void handler(std::shared_ptr<smachine::Event> event);
+
+void handler(std::shared_ptr<smachine::Event> event){
+    std::cout << "Detected timer event ID: " <<  event->id() << " Type: " << event->type() << std::endl;
+}
+
 int main (int argc, char* argv[])
 {
     std::cout << "Test timers started..." << std::endl;
@@ -22,6 +28,8 @@ int main (int argc, char* argv[])
 
     smachine::timer::TimersPtr tmrs = std::make_shared<smachine::timer::Timers>();
     if(tmrs){
+        tmrs->put_event = std::bind(&handler, std::placeholders::_1);
+
         tmrs->start();
         sleep(1);
         smachine::timer::timer_info tm_info = {100,2,0,true};
@@ -31,14 +39,8 @@ int main (int argc, char* argv[])
         tm_info = {101,1,0,false};
         tmrs->create_timer(tm_info);
         sleep(3);
-/*
-        std::cout << "Cancel timer" << std::endl;
-        tmrs->cancel_timer(100);
-        sleep(3);
-        std::cout << "Reset timer timer" << std::endl;
-*/
-        tmrs->reset_timer(100);
 
+        tmrs->reset_timer(100);
         sleep(3);
 
         tmrs->stop();
