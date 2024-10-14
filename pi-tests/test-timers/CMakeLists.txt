@@ -11,7 +11,7 @@ include_directories(BEFORE
 
 add_executable(test_timers test_timer.cpp Timer.cpp Timers2.cpp)
 
-set(TEST_TIMERS_LIBS  pi-utils pi-smachine pthread atomic crypt rt ${EXTRA_LIBS})
+set(TEST_TIMERS_LIBS  pi-utils pi-smachine pi-library pthread atomic crypt rt ${EXTRA_LIBS})
 
 target_link_libraries(test_timers ${TEST_TIMERS_LIBS})
 

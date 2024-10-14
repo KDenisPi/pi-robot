@@ -203,6 +203,10 @@ void Timers::worker(Timers* p){
             break;
         }
 
+        if(p->put_event){
+            p->put_event(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_TIMER, evt_data.timer_id));
+        }
+
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " TID: " + std::to_string(evt_data.timer_id) + " Cnt: " + std::to_string(evt_data.evt_counter));
     }
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker finished.");
