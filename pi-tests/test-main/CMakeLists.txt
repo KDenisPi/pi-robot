@@ -37,7 +37,7 @@ message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
 message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 
-set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http mosquitto pthread dl curl rt)
+set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http mosquitto pthread atomic dl curl rt)
 link_directories("${PROJECT_SOURCE_DIR}/../../build")
 
 message( STATUS "EXTRA_LIBS ${EXTRA_LIBS}")

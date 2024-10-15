@@ -15,7 +15,7 @@ namespace tmain {
 
 class StInit : public smachine::state::State {
 public:
-    StInit(smachine::StateMachineItf* itf) : smachine::state::State(itf, "StInit") {
+    StInit() : smachine::state::State("StInit") {
         ////std::cout  "StInit::StInit" << std::endl;
     }
 
@@ -26,8 +26,8 @@ public:
     virtual void OnEntry() override {
         ////std::cout  "StInit OnEntry()" << std::endl;
 
-        timer_create(TIMER_1, 7);
-        timer_create(TIMER_2, 3);
+        init_timer(TIMER_1, 7, 0, false);
+        init_timer(TIMER_2, 3, 0, false);
     }
 
     virtual bool OnTimer(const int id) override {
@@ -38,12 +38,12 @@ public:
         switch(id){
             case TIMER_1:
             {
-                finish();
+                STM_FINISH();
                 return true;
             }
             case TIMER_2:
             {
-                timer_create(TIMER_3, 3);
+                init_timer(TIMER_3, 3, 0, false);
                 return true;
             }
             case TIMER_3:

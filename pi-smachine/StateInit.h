@@ -15,7 +15,7 @@ namespace state {
 
 class StateInit: public State {
 public:
-	StateInit(StateMachineItf* itf) : state::State(itf, "StateInit") {} 
+	StateInit() : state::State("StateInit") {}
 	virtual ~StateInit() {}
 
 	virtual void OnEntry() override;

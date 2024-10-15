@@ -12,25 +12,28 @@
 #include <pthread.h>
 
 #include "logger.h"
-#include "timers.h"
 #include "StateMachine.h"
 #include "StateInit.h"
-#include "Timers.h"
 
 namespace smachine {
 
 const char TAG[] = "smash";
+
+ StateMachine* StateMachine::class_instance = nullptr;
 
 StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
     const std::shared_ptr<pirobot::PiRobot> pirobot) :
         m_factory(factory),
         m_pirobot(pirobot)
 {
+    class_instance = this;
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
     ////std::cout  "StateMachine::StateMachine started" << std::endl;
 
-    m_timers = std::make_shared<Timers>(this);
+    m_timers = std::make_shared<timer::Timers2>();
+    m_timers->put_event = std::bind(&StateMachine::add_event, this, std::placeholders::_1);
+
     m_states = std::make_shared<std::list<std::shared_ptr<state::State>>>();
 
     /*
@@ -134,6 +137,53 @@ StateMachine::~StateMachine() {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
 }
 
+
+/**
+ * @brief
+ *
+ * @param tm_info
+ * @return true
+ * @return false
+ */
+bool StateMachine::create_timer(const struct timer::timer_info& tm_info){
+    return m_timers->create_timer(tm_info);
+}
+
+/**
+ * @brief
+ *
+ * @param id
+ * @return true
+ * @return false
+ */
+bool StateMachine::cancel_timer(const int id){
+    return m_timers->cancel_timer(id);
+}
+
+/**
+ * @brief
+ *
+ * @param id
+ * @return true
+ * @return false
+ */
+bool StateMachine::reset_timer(const int id){
+    return m_timers->reset_timer(id);
+}
+
+/**
+ * @brief
+ *
+ * @param id
+ * @return true
+ * @return false
+ */
+bool StateMachine::is_timer(const int id){
+    return m_timers->is_timer(id);
+}
+
+
+
 /*
  *
  */
@@ -183,6 +233,10 @@ void StateMachine::state_change(const std::string& new_state){
     put_event(std::make_shared<EventChangeState>(new_state));
 }
 
+void StateMachine::state_change_to_first(){
+    state_change(get_first_state());
+}
+
 /*
  *
  */
@@ -190,28 +244,6 @@ void StateMachine::state_pop(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pop State");
     put_event(std::make_shared<Event>(EVENT_TYPE::EVT_POP_STATE, "PopState"));
 }
-
-/*
- *
- */
-bool StateMachine::timer_start(const int timer_id, const time_t interval, const bool interval_timer){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started for ID: " + std::to_string(timer_id));
-    return this->m_timers->create_timer(std::make_shared<Timer>(timer_id, interval, 0, interval_timer));
-}
-
-/*
- *
- */
-bool StateMachine::timer_cancel(const int timer_id){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-    return this->m_timers->cancel_timer(timer_id);
-}
-
-//check if timer is running
-bool StateMachine::timer_check(const int timer_id){
-    return m_timers->is_timer(timer_id);
-}
-
 
 /*
  *
@@ -391,7 +423,7 @@ void StateMachine::process_change_state(const std::shared_ptr<Event>& event){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + cname);
 
         bool new_state = true;
-        auto newstate = (cname == "StateInit") ? std::make_shared<smachine::state::StateInit>(dynamic_cast<StateMachineItf*>(this)) : m_factory->get_state(cname, dynamic_cast<StateMachineItf*>(this));
+        auto newstate = (cname == "StateInit") ? std::make_shared<smachine::state::StateInit>() : m_factory->get_state(cname);
 /*
         auto newstate = (cname == "StateInit" ?
             std::make_shared<smachine::state::StateInit>(std::shared_ptr<StateMachineItf>(dynamic_cast<StateMachineItf*>(this))) :

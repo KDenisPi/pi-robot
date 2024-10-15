@@ -9,10 +9,16 @@
 #define PI_SMACHINE_STATE_H_
 
 #include <memory>
+#include <functional>
 
 #include "Event.h"
 #include "Timer.h"
-#include "StateMachineItf.h"
+
+#define GET_ROBOT() smachine::StateMachine::class_instance->get_robot()
+#define STM_FINISH() smachine::StateMachine::class_instance->finish();
+#define STM_STATE_CHANGE(state) smachine::StateMachine::class_instance->state_change(state)
+#define STM_STATE_CHANGE2FIRST() smachine::StateMachine::class_instance->state_change_to_first()
+#define STM_TIMER_CREATE(tm_info) smachine::StateMachine::class_instance->create_timer(tm_info);
 
 namespace smachine {
 namespace state {
@@ -24,8 +30,13 @@ namespace state {
 
 class State {
 public:
-	State(StateMachineItf* itf, const std::string& name);
-	virtual ~State();
+	State(const std::string& name) : m_name(name){
+
+	}
+
+	virtual ~State(){
+
+	}
 
 	virtual void OnEntry() {}
 	virtual bool OnEvent(const std::shared_ptr<smachine::Event> event) {return false;};
@@ -39,106 +50,9 @@ public:
 		return (m_name == state.m_name);
 	}
 
-protected:
-	std::shared_ptr<pirobot::PiRobot> get_robot() const { 
-		if(m_itf){
-			return m_itf->get_robot();
-		}
-		assert(false);
-		return std::shared_ptr<pirobot::PiRobot>();
-	}
-
-
-	//Get Item by name
-	template<class T> std::shared_ptr<T> get_item(const std::string name){
-		return std::static_pointer_cast<T>(get_robot()->get_item(name));
-	}
-
-	/*
-	* Timers
-	*/
-	bool timer_create(const int timer_id, const time_t interval){
-		if(m_itf){
-			return m_itf->timer_start(timer_id, interval);
-		}
-		assert(false);
-		return false;
-	}
-
-	bool timer_cancel(const int timer_id){
-		if(m_itf){
-			return m_itf->timer_cancel(timer_id);
-		}
-		assert(false);
-		return false;
-	}
-
-	bool timer_check(const int timer_id){
-		if(m_itf){
-			return m_itf->timer_check(timer_id);
-		}
-		assert(false);
-		return false;
-	}
-
-	/*
-	* States
-	*/
-	void state_change(const std::string& state){
-		if(m_itf){
-			return m_itf->state_change(state);
-		}
-		assert(false);
-	}
-
-	void state_pop(){
-		if(m_itf){
-			return m_itf->state_pop();
-		}
-		assert(false);
-	}
-
-	const std::string get_first_state() const {
-		if(m_itf){
-			return m_itf->get_first_state();
-		}
-		assert(false);
-		return std::string();
-	}
-
-	/*
-	* Event
-	*/
-	void event_add(const std::shared_ptr<Event>& event){
-		if(m_itf){
-			return m_itf->add_event(event);
-		}
-		assert(false);
-	}
-
-	/*
-	* Finish
-	*/
-	void finish(){
-		if(m_itf){
-			return m_itf->finish();
-		}
-		assert(false);
-	}
-
-	/*
-	* Get Environment
-	*/
-	template<class T> std::shared_ptr<T> get_env(){
-		if(m_itf){
-			return std::static_pointer_cast<T>(m_itf->get_env());
-		}
-		assert(false);
-		return std::shared_ptr<T>();
-	}
+	bool init_timer(const int id, const time_t tv_sec, long tv_nsec, bool interval);
 
 private:
-	StateMachineItf* m_itf;
 	std::string m_name;
 };
 

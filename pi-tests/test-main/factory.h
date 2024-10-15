@@ -26,17 +26,15 @@ public:
 
 	virtual ~TMainStFactory() {}
 
-	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& state_name, smachine::StateMachineItf* itf) override {
+	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& state_name) override {
         logger::log(logger::LLOG::DEBUG, "tmain", std::string(__func__) + " State:" + state_name);
 
         if(state_name.compare("StInitialization") == 0){
-	        ////std::cout  "Create StInit" << std::endl;
-
-            return std::shared_ptr<smachine::state::State>(new tmain::StInit(itf));
+            return std::shared_ptr<smachine::state::State>(new tmain::StInit());
         }
 
         //return empty object
-        return smachine::StateFactory::get_state(state_name, itf);
+        return smachine::StateFactory::get_state(state_name);
     }
 
 	/*

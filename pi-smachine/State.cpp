@@ -5,19 +5,18 @@
  *      Author: Denis Kudia
  */
 
+#include "StateMachine.h"
+#include "PiRobot.h"
 #include "State.h"
 
 namespace smachine {
 namespace state {
 
-State::State(StateMachineItf* itf, const std::string& name) : m_name(name), m_itf(itf)
-{
-	//std::cout <<  "State " << " " << m_name  << std::endl;
+bool State::init_timer(const int id, const time_t tv_sec, long tv_nsec, bool interval){
+    struct smachine::timer::timer_info tm_info = {id, tv_sec, tv_nsec, interval};
+    return STM_TIMER_CREATE(tm_info);
 }
 
-State::~State(){
-	//std::cout <<  "~State " << m_name << std::endl;
-}
 
 } /* namespace state */
 } /* namespace smachine */

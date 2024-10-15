@@ -14,6 +14,7 @@
 #include <list>
 #include <pthread.h>
 
+#include "Timers2.h"
 #include "StateMachineItf.h"
 #include "PiRobot.h"
 #include "StateFactory.h"
@@ -25,7 +26,8 @@
 
 namespace smachine {
 
-class Timers;
+class Timers2;
+class StateFactory;
 
 class StateMachine : public StateMachineItf, public piutils::Threaded {
 public:
@@ -59,14 +61,14 @@ public:
     // Generate finish signal
     virtual void finish() override;
     virtual void state_change(const std::string& new_state) override;
+    void state_change_to_first();
 	virtual const std::string get_first_state() override;
     virtual void state_pop() override;
 
-    virtual bool timer_start(const int timer_id, const time_t interval, const bool interval_timer) override;
-    virtual bool timer_cancel(const int timer_id) override;
-
-	//check if timer is running
-	virtual bool timer_check(const int timer_id);
+	virtual bool create_timer(const struct timer::timer_info& tm_info) override;
+	virtual bool cancel_timer(const int id) override;
+	virtual bool reset_timer(const int id) override;
+	virtual bool is_timer(const int id) override;
 
     virtual std::shared_ptr<pirobot::PiRobot> get_robot() override {return m_pirobot;}
     virtual std::shared_ptr<Environment> get_env() override {return m_env; }
@@ -98,8 +100,18 @@ public:
      */
     void process_robot_notification(int itype, std::string& name, void* data);
 
+    /**
+     * @brief
+     *
+     * @param p
+     */
     static void worker(StateMachine* p);
 
+    /**
+     * @brief
+     *
+     */
+    static StateMachine* class_instance;
 private:
     //
     bool start();
@@ -122,7 +134,7 @@ private:
     /*
      * Timer support object
      */
-    std::shared_ptr<smachine::Timers> m_timers;
+    std::shared_ptr<smachine::timer::Timers2> m_timers;
 
     // Hardware configuration
     std::shared_ptr<pirobot::PiRobot> m_pirobot;

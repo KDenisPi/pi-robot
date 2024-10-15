@@ -15,6 +15,8 @@
 
 namespace smachine {
 
+class StateMachine;
+
 class StateFactory {
 public:
 	StateFactory(const std::string& firstState) : _firstState(firstState) {
@@ -27,9 +29,9 @@ public:
 	    //std::cout <<  "StateFactory::~StateFactory finished" << std::endl;
 	}
 
-	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& state_name, smachine::StateMachineItf* itf){
+	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& state_name){
 		logger::log(logger::LLOG::DEBUG, "StFact", std::string(__func__) + " State:" + state_name);
-		return std::make_shared<smachine::state::State>(itf, state_name);
+		return std::make_shared<smachine::state::State>(state_name);
 	}
 
 	/*
