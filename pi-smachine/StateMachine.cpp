@@ -33,6 +33,7 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
 
     m_timers = std::make_shared<timer::Timers2>();
     m_timers->put_event = std::bind(&StateMachine::add_event, this, std::placeholders::_1);
+    m_timers->init();
 
     m_states = std::make_shared<std::list<std::shared_ptr<state::State>>>();
 
@@ -46,9 +47,6 @@ StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
         ////std::cout  "StateMachine::StateMachine finish" << std::endl;
 		finish();
     }
-
-    //Start timers
-    m_timers->start();
 
     if( !start()){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " State machine could not start!");
@@ -200,21 +198,15 @@ const std::shared_ptr<Event> StateMachine::get_event(){
  *
  */
 void StateMachine::put_event(const std::shared_ptr<Event>& event, bool force){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Event:" + event->name() + " ID: " + std::to_string(event->id()));
-
-    ////std::cout  "put_event " << event->name() <<  std::endl;
-
+    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Event:" + event->name() + " ID: " + std::to_string(event->id()));
     {
         std::lock_guard<std::mutex> lock(mutex_sm);
-        ////std::cout  "put_event lock " << event->name() << std::endl;
         if(force){
             std::queue<std::shared_ptr<Event>> events_empty;
             m_events.swap(events_empty);
         }
         m_events.push(std::move(event));
     }
-
-    ////std::cout  "put_event notify " << event->name() << std::endl;
     cv.notify_one();
 }
 

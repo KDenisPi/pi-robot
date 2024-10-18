@@ -6,6 +6,11 @@ enable_testing()
 
 set(PI_VER ${PROJECT_VERSION})
 
+set(MAKE_STATIC_LIB 0)
+message( STATUS "MAKE_STATIC_LIB: ${MAKE_STATIC_LIB}")
+set(MAKE_DEV_LIB 0)
+message( STATUS "MAKE_DEV_LIB: ${MAKE_DEV_LIB}")
+
 message( STATUS "REAL_HARDWARE:  ${REAL_HARDWARE}" )
 IF(REAL_HARDWARE)
     set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../third-party")

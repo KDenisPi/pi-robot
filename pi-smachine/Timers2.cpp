@@ -9,6 +9,7 @@
  *
  */
 #include <string>
+#include <tuple>
 #include "Timers2.h"
 
 namespace smachine {
@@ -16,7 +17,7 @@ namespace timer {
 
 const char TAG[] = "Timers2";
 
- Timers2* Timers2::class_instance = nullptr;
+Timers2* Timers2::class_instance = nullptr;
 
 /**
  * @brief
@@ -28,24 +29,22 @@ const char TAG[] = "Timers2";
 void Timers2::handler(int sig, siginfo_t* si, void* uc){
     const int id = si->si_value.sival_int;
 
+    if(class_instance->put_event){
+        class_instance->put_event(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_TIMER, id));
+    }
+/*
     const auto cur_val = class_instance->event_info.load();
-    if(cur_val.evt_counter >= 1000)
-        class_instance->event_info = {id,0};
-    else
-        class_instance->event_info = {id,cur_val.evt_counter+1};
+    if(cur_val.evt_counter >= 1000){
+        const struct timer_event n_val = {id,0};
+        class_instance->event_info.store(n_val);
+    }
+    else{
+        const struct timer_event n_val = {id,cur_val.evt_counter+1};
+        class_instance->event_info.store(n_val);
+    }
+*/
 }
 
-
-/**
- * @brief
- *
- * @return true
- * @return false
- */
-const bool Timers2::start(){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-    return piutils::Threaded::start<Timers2>(this);
-}
 
 /**
  * @brief
@@ -54,7 +53,7 @@ const bool Timers2::start(){
 void Timers2::stop(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    piutils::Threaded::stop();
+    //piutils::Threaded::stop();
     timers.clear();
 }
 
@@ -70,10 +69,13 @@ const bool Timers2::init(){
     struct sigevent sev;
     sigset_t new_set, org_set;
 
+    logger::log(logger::LLOG::INFO, TAG, std::string(__func__));
+
     /* Unblock processing for TIMER_SIG signal*/
     sigemptyset (&new_set);
     sigaddset (&new_set, TIMER_SIG);
-    pthread_sigmask(SIG_UNBLOCK, &new_set, &org_set);
+    sigprocmask(SIG_UNBLOCK, &new_set, &org_set);
+    pthread_sigmask(SIG_BLOCK, &new_set, &org_set);
 
     sa.sa_flags = SA_SIGINFO;
     sa.sa_sigaction = Timers2::handler;
@@ -93,16 +95,20 @@ const bool Timers2::init(){
  * @return true
  * @return false
  */
-const bool Timers2::create_timer(const struct timer_info& tm_info){
+const bool Timers2::create_timer(const struct timer_info& tm_info, const bool reset_if_exist){
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Timer ID:" + std::to_string(tm_info.id));
 
-    auto is_timer = timers.find(tm_info.id);
+    const auto is_timer = timers.find(tm_info.id);
     if(is_timer != timers.end()){
+        if(reset_if_exist){
+            is_timer->second->start();
+            return true;
+        }
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer is present already.");
-        return true;
+        return false;
     }
 
-    auto timer = smachine::timer::Timer::create(tm_info);
+    const auto timer = smachine::timer::Timer::create(tm_info);
     if(timer){
         {
             std::lock_guard<std::mutex> lock(mutex_tm);
@@ -175,41 +181,15 @@ const bool Timers2::is_timer(const int id){
     return (timer != timers.end());
 }
 
-/**
- * @brief
- *
- * @param owner
- */
-void Timers2::worker(Timers2* p){
-    timer_event evt_data = {0,0};
-
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker started.");
-
-    p->init();
-
-    auto fn = [p](long cnt_cur){return (cnt_cur == p->event_info.load().evt_counter) && !p->is_stop_signal();};
-
-
-    for(;;){
-        while(fn(evt_data.evt_counter))
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-
-        evt_data = p->event_info;
-
-        if(p->is_stop_signal()){
-            break;
-        }
-
-        if(p->put_event){
-            p->put_event(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_TIMER, evt_data.timer_id));
-        }
-
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " TID: " + std::to_string(evt_data.timer_id) + " Cnt: " + std::to_string(evt_data.evt_counter));
+const timer_id Timers2::get_timer_ids(const int id){
+    std::lock_guard<std::mutex> lock(mutex_tm);
+    auto timer = timers.find(id);
+    if(timer != timers.end()){
+        return std::make_tuple(id, timer->second->get_tid());
     }
-    logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Worker finished.");
+    return std::make_tuple(-1,0);
 }
+
 
 }//timer
 }//smachine

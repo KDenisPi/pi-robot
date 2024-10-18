@@ -60,7 +60,7 @@ public:
 	const bool stop();
 
 	const int get_id() const {return _id;}
-	const timer_t get_tid() const {return tid;}
+	const uintmax_t get_tid() const {return (uintmax_t)tid;}
 	const struct itimerspec& get_time() const {return itime;}
 	bool is_interval() const {return _interval;}
 

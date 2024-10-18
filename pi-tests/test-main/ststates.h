@@ -26,14 +26,12 @@ public:
     virtual void OnEntry() override {
         ////std::cout  "StInit OnEntry()" << std::endl;
 
-        init_timer(TIMER_1, 7, 0, false);
-        init_timer(TIMER_2, 3, 0, false);
+        init_timer(TIMER_1, 10, 0, false);
+        init_timer(TIMER_2, 2, 0, true);
     }
 
     virtual bool OnTimer(const int id) override {
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnTimer ID: " + std::to_string(id));
-
-        ////std::cout  "Timer " << std::to_string(id) << std::endl;
 
         switch(id){
             case TIMER_1:
@@ -43,10 +41,12 @@ public:
             }
             case TIMER_2:
             {
-                init_timer(TIMER_3, 3, 0, false);
+                init_timer(TIMER_3, 1, 0, false);
+                init_timer(TIMER_4, 1, 0, false);
                 return true;
             }
             case TIMER_3:
+            case TIMER_4:
             {
                 return true;
             }

@@ -15,6 +15,7 @@
 #include <thread>
 #include <mutex>
 #include <sstream>
+#include <atomic>
 
 
 namespace piutils {
@@ -84,7 +85,7 @@ public:
     *
     */
     inline const bool is_stop_signal(){
-        return m_stopSignal;
+        return m_stopSignal.load();
     }
 
     /*
@@ -106,7 +107,7 @@ public:
 
 private:
     std::thread m_thread;
-    bool m_stopSignal;
+    std::atomic_bool m_stopSignal;
     std::string m_thread_id_str;
     unsigned int m_loop_delay;
 

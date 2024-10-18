@@ -15,10 +15,15 @@ configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_SMASHINE_SOURCES)
 
 add_library(pi-smachine SHARED ${PI_SMASHINE_SOURCES})
-add_library(pi-smachine-dev STATIC ${PI_SMASHINE_SOURCES})
-
 add_library(PiRobot::pi-smachine ALIAS pi-smachine)
+
+if(MAKE_STATIC_LIB)
+add_library(pi-smachine-dev STATIC ${PI_SMASHINE_SOURCES})
+endif(MAKE_STATIC_LIB)
+
+if(MAKE_DEV_LIB)
 add_library(PiRobotStatic::pi-smachine-dev ALIAS pi-smachine-dev)
+endif(MAKE_DEV_LIB)
 
 install(TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}-t

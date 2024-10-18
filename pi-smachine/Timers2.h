@@ -29,6 +29,7 @@ namespace timer {
 
 class Timers2;
 using TimersPtr = std::shared_ptr<smachine::timer::Timers2>;
+using timer_id = std::tuple<int, uintmax_t>;
 
 /**
  * @brief
@@ -44,7 +45,7 @@ struct timer_event {
  * @brief
  *
  */
-class Timers2 : public piutils::Threaded
+class Timers2
 {
 public:
     /**
@@ -53,11 +54,13 @@ public:
      */
     Timers2() {
         class_instance = this;
+
+        //init();
     }
 
     virtual ~Timers2() {}
 
-    std::atomic<timer_event> event_info;
+    void stop();
 
     /**
      * @brief
@@ -76,16 +79,11 @@ public:
      */
     const bool init();
 
-    const bool start();
-    void stop();
-
-
-    const bool create_timer(const struct timer_info& tm_info);
+    const bool create_timer(const struct timer_info& tm_info, const bool reset_if_exist = true);
     const bool cancel_timer(const int id);
     const bool reset_timer(const int id);
     const bool is_timer(const int id);
-
-    static void worker(Timers2* p);
+    const timer_id get_timer_ids(const int id);
 
     static Timers2* class_instance;
     std::function<void(std::shared_ptr<smachine::Event>)> put_event = nullptr;
