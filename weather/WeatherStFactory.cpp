@@ -23,27 +23,27 @@ namespace weather {
 /*
  *
  */
-const std::shared_ptr<smachine::state::State> WeatherStFactory::get_state(const std::string& state_name, smachine::StateMachineItf* itf)
+const std::shared_ptr<smachine::state::State> WeatherStFactory::get_state(const std::string& state_name)
 {
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " State:" + state_name);
 	if(state_name.compare("StInitialization") == 0){
-		return std::shared_ptr<smachine::state::State>(new weather::StInitialization(itf));
+		return std::shared_ptr<smachine::state::State>(new weather::StInitialization());
 	}
 	else if(state_name.compare("StMeasurement") == 0){
-		return std::shared_ptr<smachine::state::State>(new weather::StMeasurement(itf));
+		return std::shared_ptr<smachine::state::State>(new weather::StMeasurement());
 	}
 	else if(state_name.compare("StInitializeSensors") == 0){
-		return std::shared_ptr<smachine::state::State>(new weather::StInitializeSensors(itf));
+		return std::shared_ptr<smachine::state::State>(new weather::StInitializeSensors());
 	}
 	else if(state_name.compare("StInitializeLcd") == 0){
-		return std::shared_ptr<smachine::state::State>(new weather::StInitializeLcd(itf));
+		return std::shared_ptr<smachine::state::State>(new weather::StInitializeLcd());
 	}
 	else if(state_name.compare("StNoHardware") == 0){
-		return std::shared_ptr<smachine::state::State>(new weather::StNoHardware(itf));
+		return std::shared_ptr<smachine::state::State>(new weather::StNoHardware());
 	}
 
 	//return empty object
-	return smachine::StateFactory::get_state(state_name, itf);
+	return smachine::StateFactory::get_state(state_name);
 }
 
 
