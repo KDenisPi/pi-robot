@@ -154,10 +154,11 @@ public:
         return result;
     }
 
+/*
 	template<class T> std::shared_ptr<T> get_context(){
 		return std::static_pointer_cast<T>(_itf->get_env());
 	}
-
+*/
  protected:
     struct mg_server* _server;
 

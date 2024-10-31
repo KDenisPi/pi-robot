@@ -27,11 +27,10 @@
 namespace smachine {
 
 class Timers2;
-class StateFactory;
 
 class StateMachine : public StateMachineItf, public piutils::Threaded {
 public:
-    StateMachine(const std::shared_ptr<StateFactory> factory, const std::shared_ptr<pirobot::PiRobot> pirobot);
+    StateMachine();
 
     virtual ~StateMachine();
 
@@ -58,25 +57,117 @@ public:
     /*
      *
      */
-    // Generate finish signal
-    virtual void finish() override;
-    virtual void state_change(const std::string& new_state) override;
-    void state_change_to_first();
-	virtual const std::string get_first_state() override;
-    virtual void state_pop() override;
+    /**
+     * @brief Generate finish signal
+     *
+     */
+    virtual void finish() override{
+        put_event(std::make_shared<Event>(EVENT_TYPE::EVT_FINISH, "Finish"));
+    }
 
-	virtual bool create_timer(const struct timer::timer_info& tm_info) override;
-	virtual bool cancel_timer(const int id) override;
-	virtual bool reset_timer(const int id) override;
-	virtual bool is_timer(const int id) override;
+    /**
+     * @brief
+     *
+     * @param new_state
+     */
+    virtual void state_change(const std::string& new_state) override{
+        logger::log(logger::LLOG::DEBUG, "smash", std::string(__func__) + " Generate event Change state to: " + new_state);
+        put_event(std::make_shared<EventChangeState>(new_state));
+    }
 
-    virtual std::shared_ptr<pirobot::PiRobot> get_robot() override {return m_pirobot;}
-    virtual std::shared_ptr<Environment> get_env() override {return m_env; }
+    /**
+     * @brief
+     *
+     */
+    void state_change_to_first(){
+        state_change(getfirststate()); //get_factory()->get_first_state());
+    }
+
+    /**
+     * @brief
+     *
+     */
+    virtual void state_pop() override{
+        logger::log(logger::LLOG::DEBUG, "smash", std::string(__func__) + " Pop State");
+        put_event(std::make_shared<Event>(EVENT_TYPE::EVT_POP_STATE, "PopState"));
+    }
 
     /*
     * Start State machine execution from the beginning
     */
-    void run();
+    void run(){
+        //Add first event
+        logger::log(logger::LLOG::DEBUG, "smash", std::string(__func__) + " Started");
+        put_event(std::make_shared<Event>(EVT_CHANGE_STATE, "StateInit"));
+    }
+
+    void state_push(const std::shared_ptr<state::State> state){
+        get_states()->push_front(state);
+
+        const std::string stack = print_state_stack();
+        logger::log(logger::LLOG::DEBUG, "smash", std::string(__func__) + stack);
+    }
+
+
+    /**
+     * @brief Temporal: Wait for processing
+     *
+     */
+    void wait(){
+        piutils::Threaded::wait();
+    }
+
+    /**
+     * @brief
+     *
+     * @param tm_info
+     * @return true
+     * @return false
+     */
+    virtual bool create_timer(const struct timer::timer_info& tm_info) override{
+        return m_timers->create_timer(tm_info);
+    }
+
+    /**
+     * @brief
+     *
+     * @param id
+     * @return true
+     * @return false
+     */
+    virtual bool cancel_timer(const int id) override{
+        return m_timers->cancel_timer(id);
+    }
+
+    /**
+     * @brief
+     *
+     * @param id
+     * @return true
+     * @return false
+     */
+    virtual bool reset_timer(const int id) override{
+        return m_timers->reset_timer(id);
+    }
+
+    /**
+     * @brief
+     *
+     * @param id
+     * @return true
+     * @return false
+     */
+    virtual bool is_timer(const int id) override{
+        return m_timers->is_timer(id);
+    }
+
+    std::function<const std::shared_ptr<pirobot::PiRobot>()> get_robot = nullptr;
+    //std::function<void(std::shared_ptr<E>)> get_env = nullptr;
+    //std::function<void(std::shared_ptr<F>)> get_factory = nullptr;
+
+    std::function<std::string()> getfirststate = nullptr;
+    std::function<bool(const std::string&)>configure_environment = nullptr;
+    std::function<const std::shared_ptr<smachine::state::State>(const std::string&)> get_state = nullptr;
 
     bool process_timer_event(const std::shared_ptr<Event>& event);
     bool process_event(const std::shared_ptr<Event>& event);
@@ -84,11 +175,6 @@ public:
     void process_change_state(const std::shared_ptr<Event>& event);
     void process_finish_event();
 
-
-    /*
-     * Temporal: Wait for processing
-     */
-    void wait();
 
     /*
      * Debug function print current stack of states
@@ -112,11 +198,27 @@ public:
      *
      */
     static StateMachine* class_instance;
+    static StateMachineItf* itf;
 private:
-    //
-    bool start();
-    //
-    void stop();
+    /**
+     * @brief
+     *
+     * @return true
+     * @return false
+     */
+    bool start(){
+        logger::log(logger::LLOG::DEBUG, "smash", std::string(__func__) + " Started");
+        return piutils::Threaded::start<StateMachine>(this);
+    }
+
+    /**
+     * @brief
+     *
+     */
+    void stop(){
+        logger::log(logger::LLOG::DEBUG, "smash", std::string(__func__) + " Started.");
+        piutils::Threaded::stop();
+    }
 
     //
     bool empty() const {
@@ -124,8 +226,6 @@ private:
     }
 
     inline std::shared_ptr<std::list<std::shared_ptr<state::State>>> get_states() const {return m_states;}
-
-    void state_push(const std::shared_ptr<state::State> state);
 
     std::mutex mutex_sm;
     std::queue<std::shared_ptr<Event>> m_events;
@@ -135,14 +235,9 @@ private:
      * Timer support object
      */
     std::shared_ptr<smachine::timer::Timers2> m_timers;
-
-    // Hardware configuration
-    std::shared_ptr<pirobot::PiRobot> m_pirobot;
-    // State factory
-    std::shared_ptr<StateFactory> m_factory;
-    //Environment
-    std::shared_ptr<Environment> m_env;
 };
+
+using sm = smachine::StateMachine;
 
 } /* namespace smachine */
 

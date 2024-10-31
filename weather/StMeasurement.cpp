@@ -155,20 +155,20 @@ bool StMeasurement::storage_start(){
 
     if(!ctxt->start_file_storage()){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not initialize file storage");
-        timer_create(TIMER_FINISH_ROBOT, 5);
+        init_timer(TIMER_FINISH_ROBOT, 5, 0, false);
         return false;
     }
 
     if(!ctxt->start_mqtt_storage()){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not initialize MQTT storage");
-        timer_create(TIMER_FINISH_ROBOT, 5);
+        init_timer(TIMER_FINISH_ROBOT, 5, 0, false);
         return false;
     }
 
 #ifdef USE_SQL_STORAGE
     if(!ctxt->_sqlstorage.start(ctxt->_db_name)){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not initialize SQL storage");
-        timer_create(TIMER_FINISH_ROBOT, 5);
+        init_timer(TIMER_FINISH_ROBOT, 5, 0, false);
         return false;
     }
 #endif
@@ -220,9 +220,9 @@ void StMeasurement::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Create Timer ID: " + std::to_string(TIMER_UPDATE_INTERVAL));
 
     //Create timers
-    timer_create(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval); //measurement interval
-    timer_create(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval); //update measurement information on LCD interval
-    timer_create(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval); //save information
+    init_timer(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval), 0, false);     //measurement interval
+    init_timer(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval, 0, false);    //update measurement information on LCD interval
+    init_timer(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval, 0, false);  //save information
 }
 
 //

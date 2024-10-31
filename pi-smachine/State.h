@@ -14,11 +14,19 @@
 #include "Event.h"
 #include "Timer.h"
 
+
 #define GET_ROBOT() smachine::StateMachine::class_instance->get_robot()
+
+#define GET_ENV() smachine::StateMachine::class_instance->get_env()
 #define STM_FINISH() smachine::StateMachine::class_instance->finish();
+
 #define STM_STATE_CHANGE(state) smachine::StateMachine::class_instance->state_change(state)
 #define STM_STATE_CHANGE2FIRST() smachine::StateMachine::class_instance->state_change_to_first()
+
 #define STM_TIMER_CREATE(tm_info) smachine::StateMachine::class_instance->create_timer(tm_info);
+#define STM_TIMER_CANCEL(id) smachine::StateMachine::class_instance->cancel_timer(id);
+#define STM_TIMER_RESTART(id) smachine::StateMachine::class_instance->reset_timer(id);
+
 
 namespace smachine {
 namespace state {

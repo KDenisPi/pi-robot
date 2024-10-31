@@ -5,4 +5,5 @@
  *      Author: Denis Kudia
  */
 
+#include "StateMachine.h"
 #include "StateFactory.h"

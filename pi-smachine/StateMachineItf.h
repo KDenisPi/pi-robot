@@ -38,13 +38,6 @@ public:
 	virtual void state_change(const std::string& new_state) = 0;
 
 	/**
-	 * @brief Get the first state object
-	 *
-	 * @return const std::string
-	 */
-	virtual const std::string get_first_state() = 0;
-
-	/**
 	 * @brief
 	 *
 	 * @param event
@@ -56,9 +49,6 @@ public:
 	 *
 	 */
 	virtual void state_pop() = 0;
-
-	virtual std::shared_ptr<pirobot::PiRobot> get_robot() = 0;
-	virtual std::shared_ptr<Environment> get_env() = 0;
 
 	/**
 	 * @brief Create a timer object

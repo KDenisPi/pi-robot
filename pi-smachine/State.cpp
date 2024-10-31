@@ -6,7 +6,6 @@
  */
 
 #include "StateMachine.h"
-#include "PiRobot.h"
 #include "State.h"
 
 namespace smachine {

@@ -36,13 +36,6 @@ public:
         //return empty object
         return smachine::StateFactory::get_state(state_name);
     }
-
-	/*
-	 * Create Environment object
-	 */
-	virtual std::shared_ptr<smachine::Environment> get_environment() override {
-		return std::make_shared<Context>();
-	}
 };
 
 } //end namespace
