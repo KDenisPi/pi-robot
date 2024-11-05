@@ -9,6 +9,8 @@
 #define TMAIN_FACTORY_H_
 
 #include "Environment.h"
+#include "ststates.h"
+#include "state_next.h"
 
 namespace tmain {
 
@@ -31,6 +33,10 @@ public:
 
         if(state_name.compare("StInitialization") == 0){
             return std::shared_ptr<smachine::state::State>(new tmain::StInit());
+        }
+
+        if(state_name.compare("StNext") == 0){
+            return std::shared_ptr<smachine::state::State>(new tmain::StNext());
         }
 
         //return empty object

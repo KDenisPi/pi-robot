@@ -108,6 +108,13 @@ public:
         logger::log(logger::LLOG::DEBUG, "smash", std::string(__func__) + stack);
     }
 
+    /**
+     * @brief
+     *
+     * @return true
+     * @return false
+     */
+    const bool init();
 
     /**
      * @brief Temporal: Wait for processing

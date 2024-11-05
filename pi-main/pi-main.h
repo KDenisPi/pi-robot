@@ -387,10 +387,10 @@ private:
         _stm->get_state = std::bind(&F::get_state, _factory, std::placeholders::_1);
         _stm->configure_environment = std::bind(&E::configure, _env, std::placeholders::_1);
 
-        std::function<bool()>configure_factory = nullptr;
-        std::function<const std::shared_ptr<smachine::state::State>(const std::string&)> get_state = nullptr;
+        _stm->init();
 
-
+        //std::function<bool()>configure_factory = nullptr;
+        //std::function<const std::shared_ptr<smachine::state::State>(const std::string&)> get_state = nullptr;
 
         /*
         * Web interface for settings and status

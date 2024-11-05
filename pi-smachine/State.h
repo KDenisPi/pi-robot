@@ -20,8 +20,9 @@
 #define GET_ENV() smachine::StateMachine::class_instance->get_env()
 #define STM_FINISH() smachine::StateMachine::class_instance->finish();
 
-#define STM_STATE_CHANGE(state) smachine::StateMachine::class_instance->state_change(state)
-#define STM_STATE_CHANGE2FIRST() smachine::StateMachine::class_instance->state_change_to_first()
+#define STM_STATE_CHANGE(state) smachine::StateMachine::class_instance->state_change(state);
+#define STM_STATE_CHANGE2FIRST() smachine::StateMachine::class_instance->state_change_to_first();
+#define STM_STATE_POP() smachine::StateMachine::class_instance->state_pop();
 
 #define STM_TIMER_CREATE(tm_info) smachine::StateMachine::class_instance->create_timer(tm_info);
 #define STM_TIMER_CANCEL(id) smachine::StateMachine::class_instance->cancel_timer(id);

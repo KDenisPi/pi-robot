@@ -24,14 +24,15 @@ public:
     }
 
     virtual void OnEntry() override {
-        ////std::cout  "StInit OnEntry()" << std::endl;
+        logger::log(logger::LLOG::DEBUG, "StInit", std::string(__func__));
 
         init_timer(TIMER_1, 10, 0, false);
         init_timer(TIMER_2, 2, 0, true);
+        init_timer(TIMER_3, 1, 0, false);
     }
 
     virtual bool OnTimer(const int id) override {
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnTimer ID: " + std::to_string(id));
+        logger::log(logger::LLOG::DEBUG, "StInit", std::string(__func__) + " OnTimer ID: " + std::to_string(id));
 
         switch(id){
             case TIMER_1:
@@ -41,11 +42,14 @@ public:
             }
             case TIMER_2:
             {
-                init_timer(TIMER_3, 1, 0, false);
                 init_timer(TIMER_4, 1, 0, false);
                 return true;
             }
             case TIMER_3:
+            {
+                STM_STATE_CHANGE("StNext")
+                return true;
+            }
             case TIMER_4:
             {
                 return true;
@@ -56,11 +60,12 @@ public:
     }
 
     virtual bool OnEvent(const std::shared_ptr<smachine::Event> event) override {
+        logger::log(logger::LLOG::DEBUG, "StInit", std::string(__func__));
         return true;
     }
 
     virtual void OnSubstateExit(const std::string substate_name) override {
-
+        logger::log(logger::LLOG::DEBUG, "StInit", std::string(__func__) + " " + substate_name);
     }
 
 };

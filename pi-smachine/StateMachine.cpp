@@ -30,10 +30,25 @@ StateMachine::StateMachine()
     ////std::cout  "StateMachine::StateMachine started" << std::endl;
 
     m_timers = std::make_shared<timer::Timers2>();
+    m_states = std::make_shared<std::list<std::shared_ptr<state::State>>>();
+
+
+    ////std::cout  "StateMachine::StateMachine finished" << std::endl;
+
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
+}
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+const bool StateMachine::init(){
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
+
     m_timers->put_event = std::bind(&StateMachine::add_event, this, std::placeholders::_1);
     m_timers->init();
-
-    m_states = std::make_shared<std::list<std::shared_ptr<state::State>>>();
 
     /*
     * Create project environment and load value for parameters
@@ -43,11 +58,12 @@ StateMachine::StateMachine()
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not load environment configuration");
         ////std::cout  "StateMachine::StateMachine finish" << std::endl;
 		finish();
+        return false;
     }
 
     if( !start()){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " State machine could not start!");
-        //TODO: throw exception here?
+        return false;
     }
 
     //set callback function for hardware calls
@@ -56,13 +72,12 @@ StateMachine::StateMachine()
         get_robot()->stm_notification = std::bind(&StateMachine::process_robot_notification, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
     }
 
-    ////std::cout  "StateMachine::StateMachine finished" << std::endl;
-
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
+    return true;
 }
 
 
-/*
+/**
+ * @brief Destroy the State Machine:: State Machine object
  *
  */
 StateMachine::~StateMachine() {
