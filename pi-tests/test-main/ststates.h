@@ -10,6 +10,7 @@
 
 #include "StateMachine.h"
 #include "defines.h"
+#include "Context.h"
 
 namespace tmain {
 
@@ -25,6 +26,11 @@ public:
 
     virtual void OnEntry() override {
         logger::log(logger::LLOG::DEBUG, "StInit", std::string(__func__));
+
+        const auto ctx = GET_ENV(tmain::Context);
+        auto name = ctx->name();
+        logger::log(logger::LLOG::DEBUG, "StInit", std::string(__func__) + " Name: " + name);
+
 
         init_timer(TIMER_1, 10, 0, false);
         init_timer(TIMER_2, 2, 0, true);

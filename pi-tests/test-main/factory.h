@@ -8,17 +8,10 @@
 #ifndef TMAIN_FACTORY_H_
 #define TMAIN_FACTORY_H_
 
-#include "Environment.h"
 #include "ststates.h"
 #include "state_next.h"
 
 namespace tmain {
-
-class Context : public smachine::Environment {
-public:
-    Context(){}
-    virtual ~Context() noexcept {}
-};
 
 class TMainStFactory: public smachine::StateFactory {
 public:

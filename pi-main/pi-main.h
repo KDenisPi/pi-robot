@@ -565,6 +565,13 @@ private:
     */
     static std::shared_ptr<smachine::StateMachine> _stm;
 
+    /**
+     * @brief
+     *
+     */
+    static std::shared_ptr<E> _env;
+
+
     /*
     * State Machine process ID
     */
@@ -618,7 +625,6 @@ protected:
     std::shared_ptr<Rob> _pirobot;
     std::shared_ptr<F> _factory;
     std::shared_ptr<W> _web;
-    std::shared_ptr<E> _env;
 
     const std::string log_folder = "/var/log/pi-robot/";
     const std::string log_single = "async_log";
@@ -631,6 +637,9 @@ pid_t pimain::PiMain<F, E, W>::_stmPid;
 
 template<class F, class E, class W>
 std::shared_ptr<smachine::StateMachine> pimain::PiMain<F, E, W>::_stm;
+
+template<class F, class E, class W>
+std::shared_ptr<E> pimain::PiMain<F, E, W>::_env;
 
 } //namespace pimain
 #endif

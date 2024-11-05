@@ -25,9 +25,17 @@ namespace smachine {
 class Environment{
 public:
     Environment() : _use_file_storage(false), _use_sql_storage(false) {
+        class_instance = this;
         _start_time = std::chrono::system_clock::now();
     }
     virtual ~Environment() {}
+
+    static Environment* class_instance;
+
+    template<class T>
+    const T* get_env() {
+        return dynamic_cast<T*>(class_instance);
+    }
 
     /*
     * Start time in Local/UTC

@@ -13,7 +13,7 @@
 
 namespace weather {
 
-class WeatherStFactory: public smachine::StateFactory<Context> {
+class WeatherStFactory: public smachine::StateFactory {
 public:
 	WeatherStFactory(const std::string& firstState = "StInitialization") : smachine::StateFactory(firstState) {
 		logger::log(logger::LLOG::DEBUG, "WtFact", std::string(__func__) + " Set first state:" + firstState);
