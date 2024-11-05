@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.7)
 
 #project name
 project(pi-robot VERSION 1.3.0)
@@ -32,7 +32,6 @@ message( STATUS "MONGOOSE_HOME ${MONGOOSE_HOME}")
 message( STATUS "MONGOOSE_SRC ${MONGOOSE_SRC}")
 message( STATUS "CMAKE_BIULD_TYPE is ${CMAKE_BIULD_TYPE}")
 
-#cmake version 3.0 and above
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
