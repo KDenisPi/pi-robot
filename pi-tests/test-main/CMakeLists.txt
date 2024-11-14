@@ -37,7 +37,11 @@ message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
 message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 
-set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http mosquitto pthread atomic dl curl rt)
+IF(USE_SQL_STORAGE)
+    set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http mosquitto pthread atomic dl curl rt)
+ELSE(USE_SQL_STORAGE)
+    set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-library pi-smachine pi-mqtt pi-http mosquitto pthread atomic dl curl rt)
+ENDIF(USE_SQL_STORAGE)
 link_directories("${PROJECT_SOURCE_DIR}/../../build")
 
 message( STATUS "EXTRA_LIBS ${EXTRA_LIBS}")
@@ -47,7 +51,9 @@ message( STATUS "Link ${PROJECT_SOURCE_DIR}/../../build")
 include_directories(BEFORE
     ${PROJECT_SOURCE_DIR}/../../pi-utils
     ${PROJECT_SOURCE_DIR}/../../pi-main
+IF(USE_SQL_STORAGE)
     ${PROJECT_SOURCE_DIR}/../../pi-sql
+ENDIF(USE_SQL_STORAGE)
     ${PROJECT_SOURCE_DIR}/../../pi-library
     ${PROJECT_SOURCE_DIR}/../../pi-smachine
     ${PROJECT_SOURCE_DIR}/../../pi-mqtt

@@ -20,6 +20,13 @@ ENDIF(TCHAIN)
 
 message( STATUS "BUILD_SYSTEM: ${BUILD_SYSTEM}")
 
+#
+# Let's exclude not used now type of storages
+#
+# USE_SQL_STORAGE
+# USE_WEB_SERVER
+# USE_DATA_MQTT
+#
 
 message( STATUS "REAL_HARDWARE:  ${REAL_HARDWARE}" )
 IF(REAL_HARDWARE)
@@ -30,10 +37,15 @@ ENDIF(REAL_HARDWARE)
 
 message( STATUS "THIRD_PARTY_HOME: ${THIRD_PARTY_HOME}")
 
-#set(JSONCONS "${THIRD_PARTY_HOME}/jsoncons/include")
-set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
+#set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
+set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose")
+
 set(MONGOOSE_SRC "${MONGOOSE_HOME}/mongoose.c")
+
+IF(USE_SQL_STORAGE)
 set(SQLITE3_HOME "${THIRD_PARTY_HOME}/sqlite-amalgamation-3240000")
+ENDIF(USE_SQL_STORAGE)
+
 set(CJSON "${THIRD_PARTY_HOME}/cJSON")
 
 message( STATUS "CJSON: ${CJSON}")
@@ -85,7 +97,11 @@ message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-core)
-add_subdirectory(${PROJECT_SOURCE_DIR}/pi-sql)
+
+IF(USE_SQL_STORAGE)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/pi-sql)
+ENDIF(USE_SQL_STORAGE)
+
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-mqtt)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-http)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)
@@ -145,7 +161,11 @@ message( STATUS "CPACK_DEBIAN_PACKAGE_ARCHITECTURE:  ${CPACK_DEBIAN_PACKAGE_ARCH
 
 install(EXPORT pi-utils-t NAMESPACE PiRobot DESTINATION lib)
 install(EXPORT pi-core-t NAMESPACE PiRobot DESTINATION lib)
-install(EXPORT pi-sql-t NAMESPACE PiRobot DESTINATION lib)
+
+IF(USE_SQL_STORAGE)
+    install(EXPORT pi-sql-t NAMESPACE PiRobot DESTINATION lib)
+ENDIF(USE_SQL_STORAGE)
+
 install(EXPORT pi-mqtt-t NAMESPACE PiRobot DESTINATION lib)
 install(EXPORT pi-http-t NAMESPACE PiRobot DESTINATION lib)
 install(EXPORT pi-library-t NAMESPACE PiRobot DESTINATION lib)
