@@ -7,6 +7,7 @@
 
 #include <signal.h>
 #include <time.h>
+#include <string>
 
 #include "Timer.h"
 #include "logger.h"

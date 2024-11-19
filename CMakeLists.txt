@@ -11,15 +11,6 @@ message( STATUS "MAKE_STATIC_LIB: ${MAKE_STATIC_LIB}")
 set(MAKE_DEV_LIB 0)
 message( STATUS "MAKE_DEV_LIB: ${MAKE_DEV_LIB}")
 
-#detect PROCESSOR will be used for build
-IF(TCHAIN)
-    SET(BUILD_SYSTEM "-m32")
-ELSE(TCHAIN)
-    SET(BUILD_SYSTEM "")
-ENDIF(TCHAIN)
-
-message( STATUS "BUILD_SYSTEM: ${BUILD_SYSTEM}")
-
 #
 # Let's exclude not used now type of storages
 #
@@ -62,10 +53,10 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 #
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("debug mode")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -g -std=c++14 -fexceptions -Wno-psabi -Og ${BUILD_SYSTEM}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -g -std=c++14 -fexceptions -Wno-psabi -Og")
 ELSE(CMAKE_BUILD_TYPE NOT STREQUAL "Debug")
     message("release with debug info mode")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_RELWITHDEBINFO} -std=c++14 -fexceptions -Wno-psabi ${BUILD_SYSTEM}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_RELWITHDEBINFO} -std=c++14 -fexceptions -Wno-psabi")
 ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -93,7 +84,13 @@ IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
     set(EXTRA_LIBS  ${EXTRA_LIBS} fmt)
 ENDIF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
 
-message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
+IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
+    message("Support for 64 ARM")
+    set(EXTRA_LIBS  ${EXTRA_LIBS} fmt)
+ENDIF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
+
+
+message( STATUS "EXTRA_LIBS: ${EXTRA_LIBS}")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-core)
