@@ -47,9 +47,8 @@ public:
 
         std::string sport = (port == 0 ? "8080" : std::to_string(port));
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Port: " + sport);
-        mg_set_option(_server, "listening_port", sport.c_str());
-
-        mg_add_uri_handler(_server, "/", WebSettings::html_pages);
+        const std::string url = "http://0.0.0.0:" + sport;
+        mg_http_listen(&mgr, url.c_str(), WebSettings::html_pages, NULL);
     }
 
     /*
@@ -57,7 +56,8 @@ public:
     */
    virtual bool initialize() override {
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__));
-        _server = mg_create_server(this);
+        mg_mgr_init(&mgr);  // Initialise event manager
+        mgr.userdata = (void*)this;
         return true;
    }
 
@@ -66,6 +66,7 @@ public:
     */
     virtual ~WebSettings() {
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__));
+        mg_mgr_free(&mgr);
     }
 
     /*
@@ -79,32 +80,42 @@ public:
         piutils::Threaded::stop();
     }
 
-    /*
-    *
-    */
-    static int html_pages(struct mg_connection *conn) {
+/**
+ * @brief
+ *
+ * @param c
+ * @param ev
+ * @param ev_data
+ */
+    static void html_pages(struct mg_connection *c, int ev, void *ev_data) {
 
-        if(std::strstr(conn->uri, "/data") != NULL || std::strstr(conn->uri, ".json") != NULL || std::strstr(conn->uri, ".csv") != NULL){
-            return static_cast<WebSettings*>(conn->server_param)->data_files(conn);
+        if (ev == MG_EV_HTTP_MSG) {
+            struct mg_http_message *hm = (struct mg_http_message *) ev_data;
+            const auto srv = static_cast<WebSettings*>(c->mgr->userdata);
+
+            if(mg_match(hm->uri, mg_str("/data"), NULL) ||
+                mg_match(hm->uri, mg_str(".json"), NULL) ||
+                mg_match(hm->uri, mg_str(".csv"),NULL)
+                ){
+                return srv->data_files(c, hm);
+            }
+
+            auto page_info = srv->get_page(hm);
+            if(page_info.second.size()==0){
+                return srv->file_not_found(c, hm);
+            }
+
         }
-
-        auto page_info = static_cast<WebSettings*>(conn->server_param)->get_page(conn);
-
-        //check loaded size
-        if(page_info.second.size()==0){
-            mg_send_header(conn, "Content-Type", "text/html; charset=utf-8");
-            mg_send_status(conn, 404);
-            mg_printf_data(conn, "Page not found!<br> Requested URI is [%s], query string is [%s]",
-                 conn->uri,
-                 conn->query_string == NULL ? "(none)" : conn->query_string);
-
-            return 0;
+        else {
+            mg_http_reply(c, 503, NULL, "\n");
         }
+/*
 
         mg_send_header(conn, "Content-Type", page_info.first.c_str());
         //mg_send_header(conn, "Content-Length", std::to_string(page_info.second.length()).c_str());
         mg_send_data(conn, page_info.second.c_str(), page_info.second.size());
-        return 0;
+
+    */
     }
 
     /*
@@ -114,24 +125,42 @@ public:
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " started");
 
         while(!p->is_stop_signal()){
-            mg_poll_server(p->_server, 1000);
+            mg_mgr_poll(&p->mgr, 1000);
         }
-
-        mg_destroy_server(&p->_server);
 
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " finished");
     }
 
-    /*
+   /**
+    * @brief Get the page object
     *   Should be overloaded
+    *
+    * @param conn
+    * @return const std::pair<std::string, std::string>
     */
-    virtual const std::pair<std::string, std::string> get_page(const struct mg_connection *conn) {
+    virtual const std::pair<std::string, std::string> get_page(const struct mg_http_message *hm) {
         return std::make_pair("", "");
     }
 
-    virtual int data_files(struct mg_connection *conn) { return 0;}
+    /**
+     * @brief
+     *
+     * @param conn
+     */
+    virtual void data_files(struct mg_connection *conn, const struct mg_http_message *hm){
+       mg_http_reply(conn, 200, "Content-Type: text/plain\r\n", "No such files\n");
+    }
 
-    //Prepare list of IP addresses
+    static void file_not_found(struct mg_connection *conn, const struct mg_http_message *hm){
+       mg_http_reply(conn, 404, "Content-Type: text/html\r\n",
+        "Page not found!<br> Requested URI is [%s], query string is [%s]\n", hm->uri.buf, (hm->query.len == 0 ? "None" : hm->query.buf));
+    }
+
+    /**
+     * @brief Prepare list of IP addresses
+     *
+     * @return const std::string
+     */
     const std::string prepare_ip_list(){
         piutils::netinfo::NetInfo netInfo;
         std::string result;
@@ -154,13 +183,8 @@ public:
         return result;
     }
 
-/*
-	template<class T> std::shared_ptr<T> get_context(){
-		return std::static_pointer_cast<T>(_itf->get_env());
-	}
-*/
  protected:
-    struct mg_server* _server;
+    struct mg_mgr mgr;  // Mongoose event manager. Holds all connections
 
     //data interface
     std::shared_ptr<smachine::StateMachineItf> _itf;
