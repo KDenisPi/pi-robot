@@ -1,0 +1,10 @@
+	NAME			CODE	TIME	REPEAT	RST.HND	DESCRIPTION
+    TIMER_FINISH_ROBOT      	= 1000,	5 sec	NO	--	Shutdown system
+    TIMER_WARM_INTERVAL     	= 1001, 15 sec  NO	--	Warm up time for sensors. Call at the beginning
+    TIMER_UPDATE_INTERVAL   	= 1002, 10 sec  YES	YES	Measurement interval, MEASURE_INTERVAL. Better restart by hand.
+    TIMER_LCD_INTERVAL      	= 1003, 5 sec	NO	--	Warm up time for LCD
+    TIMER_USER_INTERVAL     	= 1004,			--	Not used now
+    TIMER_IP_CHECK_INTERVAL 	= 1005, 75 sec  YES	NO	Detect(check) IP address and save it for future using. Automatic reset
+    TIMER_SHOW_DATA_INTERVAL	= 1006, 40 sec  YES	YES	Update measurement information on LCD interval
+    TIMER_MEASURE_LIGHT_INTERVAL= 1007,	1 sec   YES	YES	Lights duration during measurement process 
+    TIMER_WRITE_DATA_INTERVAL	= 1008	30 sec	YES	?	Write measurement data interval.	
