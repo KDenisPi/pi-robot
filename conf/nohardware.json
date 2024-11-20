@@ -5,7 +5,11 @@
     "context": {
         "log_path": "/var/log/pi-robot",
         "log_name": "async_file_logger",
-        "log_file": "async_log",
-        "web_pages": "/home/pi/pi-robot/web"
+        "log_file": "async_log"
+    },
+
+    "http": {
+        "web_root": "/home/pi/pi-robot/web",
+        "port" : "8080"
     }
 }

@@ -10,11 +10,12 @@
 #include <utility>
 
 #include "mongoose.h"
+
 #include "Threaded.h"
 #include "logger.h"
 #include "web_utils.h"
 #include "networkinfo.h"
-#include "StateMachineItf.h"
+#include "Environment.h"
 
 namespace http {
 namespace web {
@@ -24,46 +25,75 @@ public:
     WebSettingsItf() {}
     virtual ~WebSettingsItf() {}
 
+    /**
+     * @brief
+     *
+     * @return true
+     * @return false
+     */
     virtual bool initialize() {return true;}
+
+    /**
+     * @brief
+     *
+     */
     virtual void start() {}
+
+    /**
+     * @brief
+     *
+     */
     virtual void stop() {}
+
+    /**
+     * @brief Get the page by URI object
+     *
+     * @param uri
+     * @return const std::pair<std::string, std::string>
+     */
+    virtual const std::pair<std::string, std::string> get_page_by_URI(const std::string& uri) {return std::make_pair("", "");}
 };
 
 
-const char* mime_html = "text/html; charset=utf-8";
-const char* mime_js = "application/javascript; charset=utf-8";
-const char* mime_plain = "text/plain; charset=utf-8";
-const char* mime_css = "text/css; charset=utf-8";
-const char* mime_json = "application/json; charset=utf-8";
-const char* mime_csv = "text/csv; charset=utf-8";
+const char* mime_html = "Content-Type: text/html; charset=utf-8\r\n";
+const char* mime_js = "Content-Type: application/javascript; charset=utf-8\r\n";
+const char* mime_plain = "Content-Type: text/plain; charset=utf-8\r\n";
+const char* mime_css = "Content-Type: text/css; charset=utf-8\r\n";
+const char* mime_json = "Content-Type: application/json; charset=utf-8\r\n";
+const char* mime_csv = "Content-Type: text/csv; charset=utf-8\r\n";
 
 class WebSettings : public piutils::Threaded, public WebSettingsItf {
 
 public:
-    WebSettings(const uint16_t port, std::shared_ptr<smachine::StateMachineItf> itf) : _itf(itf) {
-        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__));
+    WebSettings(const uint16_t port){
+        std::string sport = (port == 0 ? "8080" : std::to_string(port));
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Port: " + sport);
+
+        init();
 
         initialize();
 
-        std::string sport = (port == 0 ? "8080" : std::to_string(port));
-        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Port: " + sport);
         const std::string url = "http://0.0.0.0:" + sport;
         mg_http_listen(&mgr, url.c_str(), WebSettings::html_pages, NULL);
     }
 
-    /*
-    *
-    */
-   virtual bool initialize() override {
+    /**
+     * @brief Internal initialization function
+     *
+     * @return true
+     * @return false
+     */
+    bool init() {
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__));
         mg_mgr_init(&mgr);  // Initialise event manager
         mgr.userdata = (void*)this;
         return true;
-   }
+    }
 
-    /*
-    *
-    */
+    /**
+     * @brief Destroy the Web Settings object
+     *
+     */
     virtual ~WebSettings() {
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__));
         mg_mgr_free(&mgr);
@@ -131,16 +161,27 @@ public:
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " finished");
     }
 
-   /**
-    * @brief Get the page object
-    *   Should be overloaded
-    *
-    * @param conn
-    * @return const std::pair<std::string, std::string>
-    */
-    virtual const std::pair<std::string, std::string> get_page(const struct mg_http_message *hm) {
+    /**
+     * @brief Get the page object
+     *
+     * @param hm
+     * @return const std::pair<std::string, std::string>
+     */
+    const std::pair<std::string, std::string> get_page(const struct mg_http_message *hm) {
+        const std::string uri = std::string(hm->uri.buf);
+        return get_page_by_URI(uri);
+    }
+
+    /**
+     * @brief Get the page by URI object
+     *
+     * @param uri
+     * @return const std::pair<std::string, std::string>
+     */
+    virtual const std::pair<std::string, std::string> get_page_by_URI(const std::string& uri) override {
         return std::make_pair("", "");
     }
+
 
     /**
      * @brief
@@ -148,11 +189,17 @@ public:
      * @param conn
      */
     virtual void data_files(struct mg_connection *conn, const struct mg_http_message *hm){
-       mg_http_reply(conn, 200, "Content-Type: text/plain\r\n", "No such files\n");
+       mg_http_reply(conn, 200, mime_plain, "No such files\n");
     }
 
+    /**
+     * @brief
+     *
+     * @param conn
+     * @param hm
+     */
     static void file_not_found(struct mg_connection *conn, const struct mg_http_message *hm){
-       mg_http_reply(conn, 404, "Content-Type: text/html\r\n",
+       mg_http_reply(conn, 404, mime_html,
         "Page not found!<br> Requested URI is [%s], query string is [%s]\n", hm->uri.buf, (hm->query.len == 0 ? "None" : hm->query.buf));
     }
 
@@ -185,9 +232,6 @@ public:
 
  protected:
     struct mg_mgr mgr;  // Mongoose event manager. Holds all connections
-
-    //data interface
-    std::shared_ptr<smachine::StateMachineItf> _itf;
 };
 
 }//namespace web

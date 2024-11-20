@@ -252,13 +252,13 @@ private:
             logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " After fork (daemon)");
 
             //Initialize and run
-            initilize_and_run();
+            if(initilize_and_run()){
+                //Initilize signal handlers
+                initialize_signal_handlers();
 
-            //Initilize signal handlers
-            initialize_signal_handlers();
-
-            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
-            _stm->wait();
+                logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
+                _stm->wait();
+            }
 
             finish();
 
@@ -331,20 +331,21 @@ private:
         logger::log_init(get_log_filename());
 
         //Initialize and run
-        initilize_and_run();
+        if(initilize_and_run()){
+            //Initilize signal handlers
+            initialize_signal_handlers();
 
-        //Initilize signal handlers
-        initialize_signal_handlers();
+            _stmPid = getpid();
 
-        _stmPid = getpid();
+            sleep(5); //start State Machine
+            //_stm->run();
+            //send command to start
+            kill(_stmPid, SIGUSR1);
 
-        sleep(5); //start State Machine
-        //_stm->run();
-        //send command to start
-        kill(_stmPid, SIGUSR1);
+            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
+            _stm->wait();
 
-        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
-        _stm->wait();
+        }
 
         finish();
 
@@ -355,7 +356,7 @@ private:
     /*
     * Initialize objects and wait
     */
-   void initilize_and_run(){
+   bool initilize_and_run(){
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Create child. LLEVEL: " + std::to_string(_llevel));
         logger::set_level(_llevel);
         /*
@@ -380,8 +381,6 @@ private:
         _stm = std::make_shared<smachine::StateMachine>();
 
         _stm->get_robot = std::bind(&PiMain<F,E,W>::robot, this);
-        //_stm->get_env  = std::bind(&PiMain<F,E,W>::environment, this);
-        //_stm->get_factory = std::bind(&PiMain<F,E,W>::factory, this);
 
         _stm->getfirststate = std::bind(&F::get_first_state, _factory);
         _stm->get_state = std::bind(&F::get_state, _factory, std::placeholders::_1);
@@ -389,19 +388,18 @@ private:
 
         _stm->init();
 
-        //std::function<bool()>configure_factory = nullptr;
-        //std::function<const std::shared_ptr<smachine::state::State>(const std::string&)> get_state = nullptr;
-
         /*
         * Web interface for settings and status
         */
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Created Web interface. Use HTTP: " + std::to_string(use_http()));
         if(use_http()){
-           _web = std::make_shared<W>();
+           _web = std::make_shared<W>(_env->get_web_port());
             if(web()){
                 web()->http::web::WebSettingsItf::start();
             }
         }
+
+        return true;
    }
 
     /*

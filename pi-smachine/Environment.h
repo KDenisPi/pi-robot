@@ -108,7 +108,13 @@ public:
                 _log_path = cjson->get_attr_string_def(json_context, "log_path", "/var/log/pi-robot");
                 _log_name = cjson->get_attr_string_def(json_context, "log_name", "async_file_logger");
                 _log_file = cjson->get_attr_string_def(json_context, "log_file", "async_log");
-                _web_pages =cjson->get_attr_string_def(json_context, "web_pages", "../");
+            }
+
+            if(cjson->contains("http"))
+            {
+                auto json_http  =  cjson->get_object("http");
+                web_pages =cjson->get_attr_string_def(json_http, "web_pages", web_pages);
+                web_port = cjson->get_attr_def<int>(json_http, "port", web_port);
             }
 
             /*
@@ -234,13 +240,30 @@ public:
     std::string _email_to;
 
     /*
-    * Web pages location
+    * HTTP Web pages root directory
     */
-    std::string _web_pages = "../web";
+    std::string web_pages = "../web";
+    uint16_t web_port = 8080;
+
+
     std::string _data_path = "/var/data/pi-robot";
 
+    /**
+     * @brief Get the web root object
+     *
+     * @return const std::string
+     */
     const std::string get_web_root() const {
-        return _web_pages;
+        return web_pages;
+    }
+
+    /**
+     * @brief Get the web port object
+     *
+     * @return const std::uint16_t
+     */
+    const std::uint16_t get_web_port() const {
+        return web_port;
     }
 
     const std::string get_json_data() const {

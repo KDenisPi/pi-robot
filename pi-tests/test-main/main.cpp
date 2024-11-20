@@ -11,7 +11,7 @@
 
 using namespace std;
 
-using tm_type = pimain::PiMain<tmain::TMainStFactory,tmain::Context, http::web::WebSettingsItf>;
+using tm_type = pimain::PiMain<tmain::TMainStFactory,tmain::Context, http::web::WebSettings>;
 
 int main (int argc, char* argv[])
 {
