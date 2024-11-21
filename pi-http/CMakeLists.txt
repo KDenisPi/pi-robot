@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.7)
 #project name
 project(pi-http)
 
-include_directories(BEFORE ${MONGOOSE_HOME}
-   ${PROJECT_SOURCE_DIR}/../weather
+include_directories(BEFORE
+    ${MONGOOSE_HOME}
 )
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_HTTP_SOURCES_MAIN)

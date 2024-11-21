@@ -5,8 +5,11 @@ project(test-http)
 enable_testing()
 
 include_directories(BEFORE
+    ${MONGOOSE_HOME}
     ${PROJECT_SOURCE_DIR}/../../pi-http
     ${PROJECT_SOURCE_DIR}/../../pi-utils
+    ${PROJECT_SOURCE_DIR}/../../pi-smachine
+    ${PROJECT_SOURCE_DIR}/../../pi-mqtt
     ${CJSON}
     )
 

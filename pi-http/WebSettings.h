@@ -8,6 +8,7 @@
 #define HTTP_WEB_SETTINGS_H
 
 #include <utility>
+#include <arpa/inet.h>
 
 #include "mongoose.h"
 
@@ -15,7 +16,6 @@
 #include "logger.h"
 #include "web_utils.h"
 #include "networkinfo.h"
-#include "Environment.h"
 
 namespace http {
 namespace web {
@@ -73,7 +73,8 @@ public:
 
         initialize();
 
-        const std::string url = "http://0.0.0.0:" + sport;
+        const std::string url = "http://127.0.0.1:" + sport;
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Listener: " + url);
         mg_http_listen(&mgr, url.c_str(), WebSettings::html_pages, NULL);
     }
 
@@ -110,6 +111,10 @@ public:
         piutils::Threaded::stop();
     }
 
+    static const std::string mg_addr2str(const struct mg_addr& addr){
+        return piutils::netinfo::NetUtils::ip2str(addr.ip, addr.is_ip6) + ":" + std::to_string(ntohs(addr.port));
+    }
+
 /**
  * @brief
  *
@@ -122,6 +127,8 @@ public:
         if (ev == MG_EV_HTTP_MSG) {
             struct mg_http_message *hm = (struct mg_http_message *) ev_data;
             const auto srv = static_cast<WebSettings*>(c->mgr->userdata);
+
+            logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Request: " +  mg_addr2str(c->loc));
 
             if(mg_match(hm->uri, mg_str("/data"), NULL) ||
                 mg_match(hm->uri, mg_str(".json"), NULL) ||
@@ -137,7 +144,8 @@ public:
 
         }
         else {
-            mg_http_reply(c, 503, NULL, "\n");
+            //logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " EvType: " +  std::to_string(ev));
+            //mg_http_reply(c, 503, NULL, "");
         }
 /*
 
@@ -168,7 +176,7 @@ public:
      * @return const std::pair<std::string, std::string>
      */
     const std::pair<std::string, std::string> get_page(const struct mg_http_message *hm) {
-        const std::string uri = std::string(hm->uri.buf);
+        const std::string uri = std::string(hm->uri.buf, hm->uri.len);
         return get_page_by_URI(uri);
     }
 
