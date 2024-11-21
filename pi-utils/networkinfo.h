@@ -40,6 +40,35 @@ namespace netinfo {
 
 #define NIP6_FMT "%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x"
 
+
+class NetUtils {
+public:
+    static const std::string to_string(const struct in_addr& data){
+        char buffer[50];
+        std::sprintf(buffer, NIPQUAD_FMT, NIPQUAD(data));
+        return std::string(buffer);
+    }
+
+    static const std::string to_string(const struct in6_addr& data){
+        char buffer[50];
+        std::sprintf(buffer, NIP6_FMT, NIP6(data));
+        return std::string(buffer);
+    }
+
+    static const std::string ip2str(const u_int8_t* ip, const bool ip6 = false){
+        char buffer[50];
+        if(ip6){
+            struct in6_addr data;
+            memcpy(data.s6_addr, ip, sizeof(data.s6_addr));
+            return to_string(data);
+        }
+        else
+            std::sprintf(buffer, NIPQUAD_FMT, ip[0], ip[1], ip[2], ip[3]);
+
+        return std::string(buffer);
+    }
+};
+
 enum IpType {
     IP_V4,
     IP_V6
@@ -70,7 +99,7 @@ public:
     }
 
     const std::string to_string() {
-        return to_string(_ip_data);
+        return NetUtils::to_string(_ip_data);
     }
 
 private:
@@ -78,21 +107,6 @@ private:
     std::string _label;
     T _ip_data;
 
-    const std::string to_string(const struct in_addr& data){
-        char buffer[50];
-        std::sprintf(buffer, NIPQUAD_FMT, NIPQUAD(data));
-        std::string result(buffer);
-
-        return result;
-    }
-
-    const std::string to_string(const struct in6_addr& data){
-        char buffer[50];
-        std::sprintf(buffer, NIP6_FMT, NIP6(data));
-        std::string result(buffer);
-
-        return result;
-    }
 };
 
 using IpAddress_V6 = IpAddress<struct in6_addr>;
