@@ -62,6 +62,8 @@ const char* mime_css = "Content-Type: text/css; charset=utf-8\r\n";
 const char* mime_json = "Content-Type: application/json; charset=utf-8\r\n";
 const char* mime_csv = "Content-Type: text/csv; charset=utf-8\r\n";
 
+using dir_map = std::map<std::string, std::string>;
+
 class WebSettings : public piutils::Threaded, public WebSettingsItf {
 
 public:
@@ -73,7 +75,7 @@ public:
 
         initialize();
 
-        const std::string url = "http://127.0.0.1:" + sport;
+        const std::string url = "http://0.0.0.0:" + sport;
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Listener: " + url);
         mg_http_listen(&mgr, url.c_str(), WebSettings::html_pages, NULL);
     }
@@ -100,6 +102,8 @@ public:
         mg_mgr_free(&mgr);
     }
 
+    static const size_t MAX_BUFF_SIZE = 4096;
+
     /*
     *
     */
@@ -111,17 +115,23 @@ public:
         piutils::Threaded::stop();
     }
 
+    /**
+     * @brief Convert struct mg_addr to string
+     *
+     * @param addr
+     * @return const std::string
+     */
     static const std::string mg_addr2str(const struct mg_addr& addr){
         return piutils::netinfo::NetUtils::ip2str(addr.ip, addr.is_ip6) + ":" + std::to_string(ntohs(addr.port));
     }
 
-/**
- * @brief
- *
- * @param c
- * @param ev
- * @param ev_data
- */
+    /**
+     * @brief
+     *
+     * @param c
+     * @param ev
+     * @param ev_data
+     */
     static void html_pages(struct mg_connection *c, int ev, void *ev_data) {
 
         if (ev == MG_EV_HTTP_MSG) {
@@ -130,11 +140,17 @@ public:
 
             logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Request: " +  mg_addr2str(c->loc));
 
-            if(mg_match(hm->uri, mg_str("/data"), NULL) ||
-                mg_match(hm->uri, mg_str(".json"), NULL) ||
-                mg_match(hm->uri, mg_str(".csv"),NULL)
-                ){
-                return srv->data_files(c, hm);
+            if(mg_match(hm->uri, mg_str("/data/*"), NULL)){
+                auto uri = mg_str2str(hm->uri);
+
+                logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Data request: " + uri);
+
+                if(uri.find(".csv")>0 && srv->is_dir_map("data"))
+                    return srv->data_files(c, hm, "data");
+                else if(uri.find(".json")>0 && srv->is_dir_map("json"))
+                    return srv->data_files(c, hm, "json");
+
+                return srv->file_not_found(c, hm);
             }
 
             auto page_info = srv->get_page(hm);
@@ -144,16 +160,7 @@ public:
 
         }
         else {
-            //logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " EvType: " +  std::to_string(ev));
-            //mg_http_reply(c, 503, NULL, "");
         }
-/*
-
-        mg_send_header(conn, "Content-Type", page_info.first.c_str());
-        //mg_send_header(conn, "Content-Length", std::to_string(page_info.second.length()).c_str());
-        mg_send_data(conn, page_info.second.c_str(), page_info.second.size());
-
-    */
     }
 
     /*
@@ -196,8 +203,20 @@ public:
      *
      * @param conn
      */
-    virtual void data_files(struct mg_connection *conn, const struct mg_http_message *hm){
-       mg_http_reply(conn, 200, mime_plain, "No such files\n");
+    virtual void data_files(struct mg_connection *conn, struct mg_http_message *hm, const std::string& dir){
+        struct mg_http_serve_opts opts;
+        memset(&opts, 0, sizeof(mg_http_serve_opts));
+        opts.mime_types = "html=text/html,htm=text/html,css=text/css,csv=text/csv,json=application/json";
+
+        const std::string uri = std::string(hm->uri.buf, hm->uri.len);
+        auto file = uri_file(uri);
+        auto full_path = dmaps[dir] + file;
+
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " File: " + full_path);
+
+        mg_http_serve_file(conn, hm, full_path.c_str(), &opts);
+
+        //mg_http_reply(conn, 200, mime_plain, "No such files\n");
     }
 
     /**
@@ -207,8 +226,50 @@ public:
      * @param hm
      */
     static void file_not_found(struct mg_connection *conn, const struct mg_http_message *hm){
-       mg_http_reply(conn, 404, mime_html,
-        "Page not found!<br> Requested URI is [%s], query string is [%s]\n", hm->uri.buf, (hm->query.len == 0 ? "None" : hm->query.buf));
+        auto body = prepare_output("Page not found!<br> Requested URI is [%s], query string is [%s]\n", mg_str2str(hm->uri).c_str(), (hm->query.len == 0 ? "None" : mg_str2str(hm->query).c_str()));
+        mg_http_reply(conn, 404, mime_html, "%s", body.c_str());
+    }
+
+    /**
+     * @brief
+     *
+     * @param conn
+     * @param code
+     * @param mime_type
+     * @param body
+     */
+    static void send_string(struct mg_connection *conn, const int code, const char* mime_type, const std::string& body){
+        mg_printf(conn, "HTTP/1.1 %u %s\r\n", code, http_status_code_str(code));
+        mg_printf(conn, mime_type);
+        mg_printf(conn, "Content-Length: %u\r\n\r\n", body.length());
+        mg_printf(conn, "%s", body.c_str());
+        conn->is_resp = 0;
+    }
+
+    /**
+     * @brief
+     *
+     * @param fmt
+     * @param ...
+     * @return const std::string
+     */
+    static const std::string prepare_output(const char *fmt, ...){
+        char buffer[MAX_BUFF_SIZE];
+        va_list ap;
+        va_start(ap, fmt);
+        size_t len = vsnprintf(buffer, sizeof(buffer), fmt, ap);
+        va_end(ap);
+        return std::string(buffer, len);
+    }
+
+    /**
+     * @brief
+     *
+     * @param mstr
+     * @return const std::string
+     */
+    static const std::string mg_str2str(const struct mg_str& mstr){
+        return std::string(mstr.buf, mstr.len);
     }
 
     /**
@@ -238,8 +299,130 @@ public:
         return result;
     }
 
+    /**
+     * @brief
+     *
+     * @param status_code
+     * @return const char*
+     */
+    static const char *http_status_code_str(int status_code) {
+        switch (status_code) {
+            case 100: return "Continue";
+            case 101: return "Switching Protocols";
+            case 102: return "Processing";
+            case 200: return "OK";
+            case 201: return "Created";
+            case 202: return "Accepted";
+            case 203: return "Non-authoritative Information";
+            case 204: return "No Content";
+            case 205: return "Reset Content";
+            case 206: return "Partial Content";
+            case 207: return "Multi-Status";
+            case 208: return "Already Reported";
+            case 226: return "IM Used";
+            case 300: return "Multiple Choices";
+            case 301: return "Moved Permanently";
+            case 302: return "Found";
+            case 303: return "See Other";
+            case 304: return "Not Modified";
+            case 305: return "Use Proxy";
+            case 307: return "Temporary Redirect";
+            case 308: return "Permanent Redirect";
+            case 400: return "Bad Request";
+            case 401: return "Unauthorized";
+            case 402: return "Payment Required";
+            case 403: return "Forbidden";
+            case 404: return "Not Found";
+            case 405: return "Method Not Allowed";
+            case 406: return "Not Acceptable";
+            case 407: return "Proxy Authentication Required";
+            case 408: return "Request Timeout";
+            case 409: return "Conflict";
+            case 410: return "Gone";
+            case 411: return "Length Required";
+            case 412: return "Precondition Failed";
+            case 413: return "Payload Too Large";
+            case 414: return "Request-URI Too Long";
+            case 415: return "Unsupported Media Type";
+            case 416: return "Requested Range Not Satisfiable";
+            case 417: return "Expectation Failed";
+            case 418: return "I'm a teapot";
+            case 421: return "Misdirected Request";
+            case 422: return "Unprocessable Entity";
+            case 423: return "Locked";
+            case 424: return "Failed Dependency";
+            case 426: return "Upgrade Required";
+            case 428: return "Precondition Required";
+            case 429: return "Too Many Requests";
+            case 431: return "Request Header Fields Too Large";
+            case 444: return "Connection Closed Without Response";
+            case 451: return "Unavailable For Legal Reasons";
+            case 499: return "Client Closed Request";
+            case 500: return "Internal Server Error";
+            case 501: return "Not Implemented";
+            case 502: return "Bad Gateway";
+            case 503: return "Service Unavailable";
+            case 504: return "Gateway Timeout";
+            case 505: return "HTTP Version Not Supported";
+            case 506: return "Variant Also Negotiates";
+            case 507: return "Insufficient Storage";
+            case 508: return "Loop Detected";
+            case 510: return "Not Extended";
+            case 511: return "Network Authentication Required";
+            case 599: return "Network Connect Timeout Error";
+            default: return "";
+        }
+    }
+
+    /**
+     * @brief
+     *
+     * @param dir
+     * @param folder
+     */
+    void add_dir_map(const std::string& dir, const std::string& folder){
+        dmaps[dir] = folder;
+    }
+
+    const bool is_dir_map(const std::string& dir) const{
+        const auto dir_key = dmaps.find(dir);
+        return (dir_key != dmaps.end());
+    }
+
+    /**
+     * @brief Set the web root object
+     *
+     * @param root
+     */
+    void set_web_root(const std::string& root){
+        if(!root.empty()){
+            web_root = root;
+        }
+    }
+
+    /**
+     * @brief
+     *
+     * @param uri
+     * @return const std::string
+     */
+    const std::string uri_file(const std::string& uri){
+        auto pos = uri.find_last_of("/");
+        return uri.substr(pos+1);
+    }
+
  protected:
     struct mg_mgr mgr;  // Mongoose event manager. Holds all connections
+
+    /*
+    Map between internal folder name and filesystem folders
+    Example:
+        "data" =  "/opt/data"
+    */
+    dir_map dmaps;
+
+    std::string web_root = "./";
+
 };
 
 }//namespace web
