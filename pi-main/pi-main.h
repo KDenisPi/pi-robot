@@ -394,6 +394,10 @@ private:
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Created Web interface. Use HTTP: " + std::to_string(use_http()));
         if(use_http()){
            _web = std::make_shared<W>(_env->get_web_port());
+           _web->set_web_root(_env->get_web_root());
+           _web->add_dir_map("data", _env->get_csv_data());
+           _web->add_dir_map("json", _env->get_json_data());
+
             if(web()){
                 web()->http::web::WebSettingsItf::start();
             }
