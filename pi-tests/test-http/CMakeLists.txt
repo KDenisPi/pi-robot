@@ -15,7 +15,7 @@ include_directories(BEFORE
 
 add_executable(test_http test_http.cpp)
 
-set(TEST_HTTP_LIBS pi-utils pi-http pthread crypt rt)
+set(TEST_HTTP_LIBS  ${EXTRA_LIBS} pi-utils pi-http pthread crypt rt)
 
 message( STATUS "HTTP tests Libs: ${TEST_HTTP_LIBS}")
 
