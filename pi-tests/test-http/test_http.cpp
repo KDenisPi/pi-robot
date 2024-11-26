@@ -12,9 +12,10 @@ int main (int argc, char* argv[])
     bool success = true;
     std::unique_ptr<http_test::HttpTestWebSet> web_srv = std::make_unique<http_test::HttpTestWebSet>();
 
-    web_srv->set_web_root("./");
-    web_srv->add_dir_map("data", "/home/deniskudia/sources/pi-robot/conf/");
-    web_srv->add_dir_map("json", "/home/deniskudia/sources/pi-robot/conf/");
+    web_srv->set_web_root("/home/deniskudia/sources/pi-robot/pi-tests/test-http");
+    web_srv->add_dir_map("statis", "./static");
+    web_srv->add_dir_map("data", "/home/deniskudia/sources/pi-robot/conf");
+    web_srv->add_dir_map("json", "/home/deniskudia/sources/pi-robot/conf");
 
     logger::log_init(std::string("test-http.log"));
     logger::log(logger::LLOG::DEBUG, "HTTP", std::string(__func__) + " Create Web server ");

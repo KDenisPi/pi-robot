@@ -16,6 +16,7 @@
 #include "logger.h"
 #include "web_utils.h"
 #include "networkinfo.h"
+#include "smallthings.h"
 
 namespace http {
 namespace web {
@@ -140,9 +141,9 @@ public:
 
             logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Request: " +  mg_addr2str(c->loc));
 
+            //data files JSON or CSV, located in /data folder
             if(mg_match(hm->uri, mg_str("/data/*"), NULL)){
-                auto uri = mg_str2str(hm->uri);
-
+                const auto uri = mg_str2str(hm->uri);
                 logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Data request: " + uri);
 
                 if(uri.find(".csv")>0 && srv->is_dir_map("data"))
@@ -152,9 +153,26 @@ public:
 
                 return srv->file_not_found(c, hm);
             }
+            else if(mg_match(hm->uri, mg_str("/static/*"), NULL)){ //STATIC files, located in /static
+                const auto uri = mg_str2str(hm->uri);
+                logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Static request: " + uri);
+                if(srv->is_dir_map("static")){
+                    return srv->data_files(c, hm, "static");
+                }
 
-            auto page_info = srv->get_page(hm);
-            if(page_info.second.size()==0){
+                return srv->file_not_found(c, hm);
+            }
+
+            //HTML pages
+            const auto page_info = srv->get_page(hm);
+            if(!page_info.second.empty()){
+                const std::string page = piutils::webutils::WebUtils::load_page(page_info.second);
+                if(!page.empty())
+                    return send_string(c, 200, page_info.first.c_str(), page);
+                else //404 or 503 or something else
+                    return srv->file_not_found(c, hm);
+            }
+            else{
                 return srv->file_not_found(c, hm);
             }
 
@@ -163,9 +181,11 @@ public:
         }
     }
 
-    /*
-    *
-    */
+    /**
+     * @brief
+     *
+     * @param p
+     */
     static void worker(WebSettings* p){
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " started");
 
@@ -194,7 +214,16 @@ public:
      * @return const std::pair<std::string, std::string>
      */
     virtual const std::pair<std::string, std::string> get_page_by_URI(const std::string& uri) override {
+        const auto file = uri_file(uri);
+        const auto full_path = web_root + "/" + file;
+
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " URI: " + uri + " File: " + full_path);
+
+        if(piutils::chkfile(full_path)){
+            return std::make_pair(std::string(mime_html), full_path);
+        }
         return std::make_pair("", "");
+
     }
 
 
@@ -206,15 +235,20 @@ public:
     virtual void data_files(struct mg_connection *conn, struct mg_http_message *hm, const std::string& dir){
         struct mg_http_serve_opts opts;
         memset(&opts, 0, sizeof(mg_http_serve_opts));
-        opts.mime_types = "html=text/html,htm=text/html,css=text/css,csv=text/csv,json=application/json";
+        opts.mime_types = "html=text/html,htm=text/html,css=text/css,csv=text/csv,json=application/json,jpg=image/jpeg,png=image/png";
 
         const std::string uri = std::string(hm->uri.buf, hm->uri.len);
-        auto file = uri_file(uri);
-        auto full_path = dmaps[dir] + file;
+        const auto file = uri_file(uri);
+        const auto full_path = dmaps[dir] + "/" + file;
 
-        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " File: " + full_path);
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " URI: " + uri + " File: " + full_path);
 
-        mg_http_serve_file(conn, hm, full_path.c_str(), &opts);
+        if(piutils::chkfile(full_path)){
+            mg_http_serve_file(conn, hm, full_path.c_str(), &opts);
+        }
+        else{
+            file_not_found(conn, hm);
+        }
 
         //mg_http_reply(conn, 200, mime_plain, "No such files\n");
     }

@@ -397,6 +397,7 @@ private:
            _web->set_web_root(_env->get_web_root());
            _web->add_dir_map("data", _env->get_csv_data());
            _web->add_dir_map("json", _env->get_json_data());
+           _web->add_dir_map("static", _env->get_web_root() + "/static");
 
             if(web()){
                 web()->http::web::WebSettingsItf::start();
