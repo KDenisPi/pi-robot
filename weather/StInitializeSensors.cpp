@@ -18,7 +18,7 @@ namespace weather {
 void StInitializeSensors::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    auto ctxt = get_env<weather::Context>();
+    const auto ctxt = GET_ENV(weather::Context);
     auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
 
     auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
@@ -58,13 +58,13 @@ bool StInitializeSensors::OnTimer(const int id){
         case TIMER_FINISH_ROBOT:
         {
             STM_TIMER_CANCEL(TIMER_WARM_INTERVAL);
-            finish();
+            STM_FINISH();
             return true;
         }
         //switch to main state
         case TIMER_WARM_INTERVAL:
         {
-            auto ctxt = get_env<weather::Context>();
+            const auto ctxt = GET_ENV(weather::Context);
 
             auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
             auto led_white_l = get_item<pirobot::item::Led>("led_white_l");
@@ -74,7 +74,7 @@ bool StInitializeSensors::OnTimer(const int id){
             led_white_l->Off();
             led_red->Off();
 
-            state_pop();
+            STM_STATE_POP();
             return true;
         }
     }

@@ -28,7 +28,7 @@ public:
     //take measurement from all sensors
     void measure();
     //stop measurement and save current state
-    void finish();
+    void save_data_and_finish();
     //update information on LCD screen
     void update_lcd();
 

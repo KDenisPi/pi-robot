@@ -16,7 +16,7 @@ namespace weather {
 void StInitializeLcd::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    auto ctxt = get_env<weather::Context>();
+    const auto ctxt = GET_ENV(weather::Context);
     auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
 
     lcd->display_ctrl(LCD_DISPLAYON|LCD_CURSORON|LCD_BLINKOFF);
@@ -26,7 +26,7 @@ void StInitializeLcd::OnEntry(){
     auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
     led_white_r->On();
 
-    timer_create(TIMER_LCD_INTERVAL, 5); //wait for 5 seconds before real use
+    init_timer(TIMER_LCD_INTERVAL, 5, 0, false); //wait for 5 seconds before real use
 }
 
 bool StInitializeLcd::OnTimer(const int id){
@@ -40,7 +40,7 @@ bool StInitializeLcd::OnTimer(const int id){
             auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
             led_white_r->Off();
 
-            state_pop();
+            STM_STATE_POP();
             return true;
         }
     }

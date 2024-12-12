@@ -49,12 +49,12 @@ void StMeasurement::headlights(const bool light_on){
 void StMeasurement::measure(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    auto ctxt = get_env<weather::Context>();
+    const auto ctxt = GET_ENV(weather::Context);
 
     try {
 
         headlights(true);
-        timer_create(TIMER_MEASURE_LIGHT_INTERVAL, ctxt->measure_light_interval); //measurement interval
+        init_timer(TIMER_MEASURE_LIGHT_INTERVAL, ctxt->measure_light_interval, 0, false); //measurement interval
 
         Measurement data;
 
@@ -150,7 +150,7 @@ void StMeasurement::measure(){
 *
 */
 bool StMeasurement::storage_start(){
-    auto ctxt = get_env<weather::Context>();
+    const auto ctxt = GET_ENV(weather::Context);
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " Local time: " + std::to_string(ctxt->_fstor_local_time));
 
     if(!ctxt->start_file_storage()){
@@ -180,7 +180,7 @@ bool StMeasurement::storage_start(){
 *
 */
 bool StMeasurement::storage_stop(){
-    auto ctxt = get_env<weather::Context>();
+    const auto ctxt = GET_ENV(weather::Context);
 
     ctxt->stop_file_storage();
     ctxt->stop_mqtt_storage();
@@ -213,14 +213,14 @@ void StMeasurement::OnEntry(){
         return;
     }
 
-    auto ctxt = get_env<weather::Context>();
+    const auto ctxt = GET_ENV(weather::Context);
     //initial measurement
     measure();
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Create Timer ID: " + std::to_string(TIMER_UPDATE_INTERVAL));
 
     //Create timers
-    init_timer(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval), 0, false);     //measurement interval
+    init_timer(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval, 0, false);     //measurement interval
     init_timer(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval, 0, false);    //update measurement information on LCD interval
     init_timer(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval, 0, false);  //save information
 }
@@ -234,7 +234,7 @@ bool StMeasurement::OnTimer(const int id){
     switch(id){
         case TIMER_FINISH_ROBOT:
         {
-            finish();
+            save_data_and_finish();
             return true;
         }
 
@@ -244,8 +244,8 @@ bool StMeasurement::OnTimer(const int id){
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Measure values");
             measure();
 
-            auto ctxt = get_env<weather::Context>();
-            timer_create(TIMER_UPDATE_INTERVAL, ctxt->measure_check_interval); //measurement interval
+            const auto ctxt = GET_ENV(weather::Context);
+            STM_TIMER_RESTART(TIMER_UPDATE_INTERVAL); //measurement interval
 
             return true;
         }
@@ -257,13 +257,13 @@ bool StMeasurement::OnTimer(const int id){
             //
             //TODO: Add MQTT here
             //
-            auto ctxt = get_env<weather::Context>();
+            const auto ctxt = GET_ENV(weather::Context);
             Measurement data = ctxt->data;
 
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Write measurement");
             storage_write(data);
 
-            timer_create(TIMER_WRITE_DATA_INTERVAL, ctxt->measure_write_interval); //save information
+            STM_TIMER_RESTART(TIMER_WRITE_DATA_INTERVAL); //save information
 
             return true;
         }
@@ -293,7 +293,7 @@ bool StMeasurement::OnTimer(const int id){
 void StMeasurement::update_lcd(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Update informationon LCD screen");
 
-    auto ctxt = get_env<weather::Context>();
+    const auto ctxt = GET_ENV(weather::Context);
     auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
 
     //Check if LCD switched off - do nothing
@@ -310,13 +310,13 @@ void StMeasurement::update_lcd(){
     lcd->write_string_at(1,0, str_1, false);
 
     //update measurement information on LCD interval
-    timer_create(TIMER_SHOW_DATA_INTERVAL, ctxt->measure_show_interval);
+    STM_TIMER_RESTART(TIMER_SHOW_DATA_INTERVAL);
 }
 
 bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEvent: " + event->to_string());
 
-    auto ctxt = get_env<weather::Context>();
+    const auto ctxt = GET_ENV(weather::Context);
 
     if(smachine::EVENT_TYPE::EVT_USER == event->type()){
         //High level CO2 or TVOC detected
@@ -362,7 +362,7 @@ bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
             //
             if(event->name() == EVT_LCD_OFF && lcd->is_on()){
                 //Stop update LCD timer
-                timer_cancel(TIMER_SHOW_DATA_INTERVAL);
+                STM_TIMER_CANCEL(TIMER_SHOW_DATA_INTERVAL);
                 lcd->Off();
             }
 
@@ -383,32 +383,33 @@ bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
 //
 // Stop measurement and save current state
 //
-void StMeasurement::finish(){
+void StMeasurement::save_data_and_finish(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    auto ctxt = get_env<weather::Context>();
+    const auto ctxt = GET_ENV(weather::Context);
     auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
     lcd->write_string_at(0,0, ctxt->get_str(StrID::Finishing), true);
 
-    timer_cancel(TIMER_UPDATE_INTERVAL);
-    timer_cancel(TIMER_IP_CHECK_INTERVAL);
-    timer_cancel(TIMER_SHOW_DATA_INTERVAL);
-    timer_cancel(TIMER_WRITE_DATA_INTERVAL);
+    STM_TIMER_CANCEL(TIMER_UPDATE_INTERVAL);
+    STM_TIMER_CANCEL(TIMER_IP_CHECK_INTERVAL);
+    STM_TIMER_CANCEL(TIMER_SHOW_DATA_INTERVAL);
+    STM_TIMER_CANCEL(TIMER_WRITE_DATA_INTERVAL);
 
-    auto context = get_env<weather::Context>();
     //Stop SGP30 and save current values
     auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
     sgp30->stop();
 
-    sgp30->get_baseline(context->data.spg30_base_co2, context->data.spg30_base_tvoc);
+    sgp30->get_baseline(ctxt->data.spg30_base_co2, ctxt->data.spg30_base_tvoc);
     std::string data_file = "./initial.json";
-    context->save_initial_data(data_file);
+    ctxt->save_initial_data(data_file);
 
     lcd->clear_display();
     lcd->Off();
 
     //Stop all used storages
     storage_stop();
+
+    STM_FINISH();
 }
 
 }//namespace weather

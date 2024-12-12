@@ -15,7 +15,7 @@ namespace weather {
 void StInitialization::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    auto ctxt = get_env<weather::Context>();
+    const auto ctxt = GET_ENV(weather::Context);
 
     /*
     * Initialize available storages (file, mqtt, sql)
@@ -24,7 +24,7 @@ void StInitialization::OnEntry(){
     ctxt->init_file_storage();
     ctxt->init_mqtt_storage();
 
-    state_change("StInitializeLcd");
+    STM_STATE_CHANGE("StInitializeLcd");
 }
 
 bool StInitialization::OnTimer(const int id){
@@ -33,7 +33,7 @@ bool StInitialization::OnTimer(const int id){
     switch(id){
         case TIMER_FINISH_ROBOT:
         {
-            finish();
+            STM_FINISH();
             return true;
         }
         break;
@@ -43,8 +43,8 @@ bool StInitialization::OnTimer(const int id){
             //detect IP address and save it for future using
             detect_ip_address();
 
-            auto ctxt = get_env<weather::Context>();
-            timer_create(TIMER_IP_CHECK_INTERVAL, ctxt->ip_check_interval);
+            const auto ctx = GET_ENV(weather::Context);
+            init_timer(TIMER_IP_CHECK_INTERVAL, ctxt->ip_check_interval, 0, true);
             return true;
         }
         break;
@@ -56,7 +56,7 @@ bool StInitialization::OnTimer(const int id){
 bool StInitialization::OnEvent(const std::shared_ptr<smachine::Event> event){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + "  Event: " + event->to_string());
 
-    auto ctxt = get_env<weather::Context>();
+    const auto ctxt = GET_ENV(weather::Context);
 
     //Process button pressed
     if( (smachine::EVENT_TYPE::EVT_BTN_DOWN == event->type()) ||
@@ -113,17 +113,17 @@ void StInitialization::OnSubstateExit(const std::string substate_name) {
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started SubState: " + substate_name);
 
     if(substate_name == "StInitializeSensors"){
-        state_change("StMeasurement");
+        STM_STATE_CHANGE("StMeasurement");
     }
     else if(substate_name == "StInitializeLcd"){
 
         //detect IP address and save it for future using
         detect_ip_address();
 
-        auto ctxt = get_env<weather::Context>();
-        timer_create(TIMER_IP_CHECK_INTERVAL, ctxt->ip_check_interval);
+        const auto ctxt = GET_ENV(weather::Context);
+        init_timer(TIMER_IP_CHECK_INTERVAL, ctxt->ip_check_interval, 0, true);
 
-        state_change("StInitializeSensors");
+        STM_STATE_CHANGE("StInitializeSensors");
     }
 }
 

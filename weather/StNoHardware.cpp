@@ -18,7 +18,7 @@ void StNoHardware::OnEntry(){
     piutils::netinfo::NetInfo netInfo;
     netInfo.load_ip_list();
 
-    auto ctxt = get_env<weather::Context>();
+    const auto ctxt = GET_ENV(weather::Context);
     ctxt->ip4_address = detect_ip_address_by_type(&netInfo, piutils::netinfo::IpType::IP_V4);
     ctxt->ip6_address = detect_ip_address_by_type(&netInfo, piutils::netinfo::IpType::IP_V6);
 
@@ -39,7 +39,7 @@ bool StNoHardware::OnTimer(const int id){
     switch(id){
         case TIMER_FINISH_ROBOT:
         {
-            finish();
+            STM_FINISH();
             return true;
         }
     }
