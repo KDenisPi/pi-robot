@@ -208,7 +208,7 @@ public:
     */
     void transformations_clear(){
         logger::log(logger::LLOG::DEBUG, "LedCtrl", std::string(__func__) + " Started" );
-        _transf.empty();
+        _transf.clear();
         _transf_idx = 0;
     }
 
