@@ -18,12 +18,12 @@ namespace weather {
 void StInitializeSensors::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    const auto ctxt = GET_ENV(weather::Context);
-    auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+    const weather::Context* ctxt = GET_ENV(weather::Context);
+    auto lcd = GET_ITEM(pirobot::item::lcd::Lcd, "Lcd");
 
-    auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
-    auto led_white_l = get_item<pirobot::item::Led>("led_white_l");
-    auto led_red = get_item<pirobot::item::Led>("led_red");
+    auto led_white_r = GET_ITEM(pirobot::item::Led, "led_white_r");
+    auto led_white_l = GET_ITEM(pirobot::item::Led, "led_white_l");
+    auto led_red = GET_ITEM(pirobot::item::Led, "led_red");
 
     led_white_r->On();
     led_white_l->On();
@@ -36,14 +36,14 @@ void StInitializeSensors::OnEntry(){
     ctxt->load_initial_data(data_file);
 
     //make measurement using Si7021 and then use this values for SGP30
-    auto si7021 = get_item<pirobot::item::Si7021>("SI7021");
+    auto si7021 = GET_ITEM(pirobot::item::Si7021, "SI7021");
     si7021->get_results(ctxt->data.si7021_humidity, ctxt->data.si7021_temperature, ctxt->data.si7021_abs_humidity);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Result Humidity: " + std::to_string(ctxt->data.si7021_humidity) +
         " Temperature: " + std::to_string(ctxt->data.si7021_temperature) + "C");
 
     //use absolute humidity for SGP30
-    auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
+    auto sgp30 = GET_ITEM(pirobot::item::Sgp30, "SGP30");
     sgp30->set_humidity(ctxt->data.si7021_abs_humidity);
     sgp30->set_baseline(ctxt->data.spg30_base_co2, ctxt->data.spg30_base_tvoc);
     sgp30->start();
@@ -66,9 +66,9 @@ bool StInitializeSensors::OnTimer(const int id){
         {
             const auto ctxt = GET_ENV(weather::Context);
 
-            auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
-            auto led_white_l = get_item<pirobot::item::Led>("led_white_l");
-            auto led_red = get_item<pirobot::item::Led>("led_red");
+            auto led_white_r = GET_ITEM(pirobot::item::Led, "led_white_r");
+            auto led_white_l = GET_ITEM(pirobot::item::Led, "led_white_l");
+            auto led_red = GET_ITEM(pirobot::item::Led, "led_red");
 
             led_white_r->Off();
             led_white_l->Off();

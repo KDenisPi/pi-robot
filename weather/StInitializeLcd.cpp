@@ -17,13 +17,13 @@ void StInitializeLcd::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
     const auto ctxt = GET_ENV(weather::Context);
-    auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+    auto lcd = GET_ITEM(pirobot::item::lcd::Lcd, "Lcd");
 
     lcd->display_ctrl(LCD_DISPLAYON|LCD_CURSORON|LCD_BLINKOFF);
     lcd->write_string_at(0,0, ctxt->get_str(StrID::Starting), true);
 
     //switch Green led ON
-    auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
+    auto led_white_r = GET_ITEM(pirobot::item::Led, "led_white_r");
     led_white_r->On();
 
     init_timer(TIMER_LCD_INTERVAL, 5, 0, false); //wait for 5 seconds before real use
@@ -37,7 +37,7 @@ bool StInitializeLcd::OnTimer(const int id){
         {
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Timer LCD_INTERVAL");
 
-            auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
+            auto led_white_r = GET_ITEM(pirobot::item::Led, "led_white_r");
             led_white_r->Off();
 
             STM_STATE_POP();

@@ -29,8 +29,8 @@ namespace weather {
 void StMeasurement::headlights(const bool light_on){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Headlights ON: " + std::to_string(light_on));
 
-    auto led_white_r = get_item<pirobot::item::Led>("led_white_r");
-    auto led_white_l = get_item<pirobot::item::Led>("led_white_l");
+    auto led_white_r = GET_ITEM(pirobot::item::Led, "led_white_r");
+    auto led_white_l = GET_ITEM(pirobot::item::Led, "led_white_l");
 
     if(light_on){
         led_white_r->On();
@@ -60,25 +60,25 @@ void StMeasurement::measure(){
 
         //make measurement using Si7021 and then use this values for SGP30
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SI7021");
-        auto si7021 = get_item<pirobot::item::Si7021>("SI7021");
+        auto si7021 = GET_ITEM(pirobot::item::Si7021, "SI7021");
         si7021->get_results(data.si7021_humidity, data.si7021_temperature, data.si7021_abs_humidity);
 
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- SGP30");
-        auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
+        auto sgp30 = GET_ITEM(pirobot::item::Sgp30, "SGP30");
         sgp30->get_results(data.spg30_co2, data.spg30_tvoc);
 
         //update absolute humidity value
         sgp30->set_humidity(data.si7021_abs_humidity);
 
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- BMP280");
-        auto bmp280 = get_item<pirobot::item::Bmp280>("BMP280");
+        auto bmp280 = GET_ITEM(pirobot::item::Bmp280, "BMP280");
         bmp280->get_results(data.bmp280_pressure, data.bmp280_temperature, data.bmp280_altitude);
 
         //
         //detect luminosity and of light was changed from On to Off or from Off to On - create event
         //
         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " ----- TSL2561");
-        auto tsl2561 = get_item<pirobot::item::Tsl2561>("TSL2561");
+        auto tsl2561 = GET_ITEM(pirobot::item::Tsl2561, "TSL2561");
         int32_t tsl2651_lux = ctxt->data.tsl2651_lux;
 
         if( !tsl2561->get_results(data.tsl2651_lux)){
@@ -101,7 +101,7 @@ void StMeasurement::measure(){
 */
         logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + " ----- TSL2561 --- Old: " + std::to_string(tsl2651_lux) + " New: " + std::to_string(data.tsl2651_lux));
 
-        auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+        auto lcd = GET_ITEM(pirobot::item::lcd::Lcd, "Lcd");
         if(data.tsl2651_lux >= ctxt->light_low_level){
             if(!lcd->is_on()){
                 event_add(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
@@ -196,7 +196,7 @@ bool StMeasurement::storage_stop(){
 * Write measurement result to storage(s)
 */
 void StMeasurement::storage_write(Measurement& meas){
-    auto ctxt = get_env<weather::Context>();
+    auto ctxt = GET_ENV(weather::Context);
     ctxt->write_measurement(meas);
 }
 
@@ -294,7 +294,7 @@ void StMeasurement::update_lcd(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Update informationon LCD screen");
 
     const auto ctxt = GET_ENV(weather::Context);
-    auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+    auto lcd = GET_ITEM(pirobot::item::lcd::Lcd, "Lcd");
 
     //Check if LCD switched off - do nothing
     if(!lcd->is_on()){
@@ -326,11 +326,11 @@ bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
             //
             // Always switch LCD to ON
             //
-            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+            auto lcd = GET_ITEM(pirobot::item::lcd::Lcd, "Lcd");
             lcd->On();
 
             //Start blink Red LED
-            auto red_blinker = get_item<pirobot::item::Blinking<pirobot::item::Led>>("red_blinker");
+            auto red_blinker = GET_ITEM(pirobot::item::Blinking<pirobot::item::Led>, "red_blinker");
             red_blinker->On();
 
             return true;
@@ -340,7 +340,7 @@ bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Level returned to normal");
 
             //Stop blink Red LED
-            auto red_blinker = get_item<pirobot::item::Blinking<pirobot::item::Led>>("red_blinker");
+            auto red_blinker = GET_ITEM(pirobot::item::Blinking<pirobot::item::Led>, "red_blinker");
             red_blinker->Off();
 
             //
@@ -355,7 +355,7 @@ bool StMeasurement::OnEvent(const std::shared_ptr<smachine::Event> event){
         if(event->name() == EVT_LCD_ON || event->name() == EVT_LCD_OFF){
             logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Event: " + event->name());
 
-            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+            auto lcd = GET_ITEM(pirobot::item::lcd::Lcd, "Lcd");
 
             //
             //Switch LCD OFF
@@ -387,7 +387,7 @@ void StMeasurement::save_data_and_finish(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
     const auto ctxt = GET_ENV(weather::Context);
-    auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+    auto lcd = GET_ITEM(pirobot::item::lcd::Lcd, "Lcd");
     lcd->write_string_at(0,0, ctxt->get_str(StrID::Finishing), true);
 
     STM_TIMER_CANCEL(TIMER_UPDATE_INTERVAL);
@@ -396,7 +396,7 @@ void StMeasurement::save_data_and_finish(){
     STM_TIMER_CANCEL(TIMER_WRITE_DATA_INTERVAL);
 
     //Stop SGP30 and save current values
-    auto sgp30 = get_item<pirobot::item::Sgp30>("SGP30");
+    auto sgp30 = GET_ITEM(pirobot::item::Sgp30, "SGP30");
     sgp30->stop();
 
     sgp30->get_baseline(ctxt->data.spg30_base_co2, ctxt->data.spg30_base_tvoc);

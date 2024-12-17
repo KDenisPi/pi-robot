@@ -56,7 +56,16 @@ public:
     /*
      * Get Item by name
      */
-    std::shared_ptr<item::Item> get_item(const std::string& name) const noexcept(false);
+    template<class T>
+    const std::shared_ptr<T> get_item(const std::string& name)  const noexcept(false) {
+        const auto item = this->items.find(name);
+        if(item == items.end()){
+            logger::log(logger::LLOG::ERROR, "PiRobot", std::string(__func__) + " Absent requested Item with ID " + name);
+            throw std::runtime_error(std::string("No Item with ID: ") + name);
+        }
+        return std::static_pointer_cast<T>(item->second);
+
+    }
 
     /*
     * Link Gpio and Item

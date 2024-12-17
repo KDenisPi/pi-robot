@@ -15,7 +15,7 @@ namespace weather {
 void StInitialization::OnEntry(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    const auto ctxt = GET_ENV(weather::Context);
+    auto ctxt = GET_ENV(weather::Context);
 
     /*
     * Initialize available storages (file, mqtt, sql)
@@ -43,7 +43,7 @@ bool StInitialization::OnTimer(const int id){
             //detect IP address and save it for future using
             detect_ip_address();
 
-            const auto ctx = GET_ENV(weather::Context);
+            const auto ctxt = GET_ENV(weather::Context);
             init_timer(TIMER_IP_CHECK_INTERVAL, ctxt->ip_check_interval, 0, true);
             return true;
         }
@@ -59,10 +59,9 @@ bool StInitialization::OnEvent(const std::shared_ptr<smachine::Event> event){
     const auto ctxt = GET_ENV(weather::Context);
 
     //Process button pressed
-    if( (smachine::EVENT_TYPE::EVT_BTN_DOWN == event->type()) ||
-          (smachine::EVENT_TYPE::EVT_BTN_UP == event->type())){
-        auto btn1 = get_item<pirobot::item::Button>("btn_1");
-        auto btn2 = get_item<pirobot::item::Button>("btn_2");
+    if( (smachine::EVENT_TYPE::EVT_BTN_DOWN == event->type()) || (smachine::EVENT_TYPE::EVT_BTN_UP == event->type())){
+        auto btn1 = GET_ITEM(pirobot::item::Button,"btn_1");
+        auto btn2 = GET_ITEM(pirobot::item::Button,"btn_2");
 
         //Save time moment when button was pressed
         if(event->name() == btn1->name()){
@@ -95,7 +94,7 @@ bool StInitialization::OnEvent(const std::shared_ptr<smachine::Event> event){
 
             //write  IP information on LCD
             //First line Header, second IP4 address
-            auto lcd = get_item<pirobot::item::lcd::Lcd>("Lcd");
+            auto lcd = GET_ITEM(pirobot::item::lcd::Lcd,"Lcd");
             lcd->write_string_at(0,0, ctxt->get_str(StrID::Ip4Address), true);
             lcd->write_string_at(1,0, ctxt->ip4_address, false);
 

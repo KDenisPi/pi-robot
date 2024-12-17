@@ -28,13 +28,13 @@ bool PiRobot::load_item_one_gpio(const std::shared_ptr<piutils::cjson_wrap::CJso
         auto blinks  =  cjson->get_attr_def<int>(json_item, "blinks", 0);
 
         items_add(item_name, std::make_shared<pirobot::item::Blinking<pirobot::item::Led>>(
-                std::static_pointer_cast<pirobot::item::Led>(get_item(led)),
+                get_item<pirobot::item::Led>(led),
                 item_name,
                 item_comment,
                 tm_on,
                 tm_off,
                 blinks));
-                
+
         return true;
     }
 
@@ -115,7 +115,7 @@ bool PiRobot::load_item_one_gpio(const std::shared_ptr<piutils::cjson_wrap::CJso
 
         items_add(item_name,
             std::make_shared<pirobot::item::dcmotor::DCMotor>(
-                    std::static_pointer_cast<pirobot::item::Drv8835>(get_item(drv8835_name)),
+                    get_item<pirobot::item::Drv8835>(drv8835_name),
                     get_gpio(gpio_name),
                     get_gpio(pwm_gpio_name), item_name, item_comment,
                     direction)
@@ -182,7 +182,7 @@ void PiRobot::notify_low(const pirobot::provider::PROVIDER_TYPE ptype, const std
             * If this GPIO used by buttom notify system about state change
             */
             if(item_info.second == item::ItemTypes::BUTTON){
-                const std::shared_ptr<pirobot::item::Button> btn = std::static_pointer_cast<pirobot::item::Button>(get_item(item_info.first));
+                auto btn = get_item<pirobot::item::Button>(item_info.first);
                 btn->process_level(gpio::Gpio::value_to_level(pdata->value()));
             }
         }

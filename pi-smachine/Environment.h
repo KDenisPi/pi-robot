@@ -34,7 +34,7 @@ public:
 
     template<class T>
     const T* get_env() {
-        return dynamic_cast<T*>(class_instance);
+        return dynamic_cast<T*>(this);
     }
 
     /*
