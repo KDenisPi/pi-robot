@@ -204,5 +204,20 @@ void NetInfo::get_ip_list(bool is_ip4, NetInfo* net_info) {
       close(fd);
 }
 
+const std::string  NetInfo::detect_ip_address_by_type(const piutils::netinfo::IpType ip_type){
+    std::list<piutils::netinfo::ItfInfo> itf_ip_wlan = get_default_ip(ip_type, "wl");
+    if(!itf_ip_wlan.empty()){
+        return itf_ip_wlan.front().second;
+    }
+    else {
+        std::list<piutils::netinfo::ItfInfo> itf_ip_eth = get_default_ip(ip_type, "e");
+        if(!itf_ip_eth.empty()){
+            return itf_ip_eth.front().second;
+        }
+    }
+
+    return "Not detected";
+}
+
 } //namespace netinfo
 } //namespace piutils

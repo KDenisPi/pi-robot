@@ -25,6 +25,8 @@
 #define STM_STATE_CHANGE2FIRST() smachine::StateMachine::class_instance->state_change_to_first();
 #define STM_STATE_POP() smachine::StateMachine::class_instance->state_pop();
 
+#define STM_ADD_EVENT(event) smachine::StateMachine::class_instance->add_event(event);
+
 #define STM_TIMER_CREATE(tm_info) smachine::StateMachine::class_instance->create_timer(tm_info);
 #define STM_TIMER_CANCEL(id) smachine::StateMachine::class_instance->cancel_timer(id);
 #define STM_TIMER_RESTART(id) smachine::StateMachine::class_instance->reset_timer(id);

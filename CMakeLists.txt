@@ -89,7 +89,6 @@ IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
     set(EXTRA_LIBS  ${EXTRA_LIBS} fmt)
 ENDIF()
 
-
 message( STATUS "EXTRA_LIBS: ${EXTRA_LIBS}")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)

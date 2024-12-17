@@ -21,6 +21,9 @@
 namespace http {
 namespace web {
 
+using pinfo = std::pair<std::string, std::string>;
+using dir_map = std::map<std::string, std::string>;
+
 class WebSettingsItf {
 public:
     WebSettingsItf() {}
@@ -52,7 +55,7 @@ public:
      * @param uri
      * @return const std::pair<std::string, std::string>
      */
-    virtual const std::pair<std::string, std::string> get_page_by_URI(const std::string& uri) {return std::make_pair("", "");}
+    virtual const pinfo get_page_by_URI(const std::string& uri) {return std::make_pair("", "");}
 };
 
 
@@ -62,8 +65,6 @@ const char* mime_plain = "Content-Type: text/plain; charset=utf-8\r\n";
 const char* mime_css = "Content-Type: text/css; charset=utf-8\r\n";
 const char* mime_json = "Content-Type: application/json; charset=utf-8\r\n";
 const char* mime_csv = "Content-Type: text/csv; charset=utf-8\r\n";
-
-using dir_map = std::map<std::string, std::string>;
 
 class WebSettings : public piutils::Threaded, public WebSettingsItf {
 
@@ -168,7 +169,12 @@ public:
             if(!page_info.second.empty()){
                 const std::string page = piutils::webutils::WebUtils::load_page(page_info.second);
                 if(!page.empty())
-                    return send_string(c, 200, page_info.first.c_str(), page);
+                    if(srv->if_html_post_processing()){
+                        return send_string(c, 200, page_info.first.c_str(), srv->html_post_processing(page_info.second, page));
+                    }
+                    else{   
+                        return send_string(c, 200, page_info.first.c_str(), page);
+                    }
                 else //404 or 503 or something else
                     return srv->file_not_found(c, hm);
             }
@@ -202,7 +208,7 @@ public:
      * @param hm
      * @return const std::pair<std::string, std::string>
      */
-    const std::pair<std::string, std::string> get_page(const struct mg_http_message *hm) {
+    const pinfo get_page(const struct mg_http_message *hm) {
         const std::string uri = std::string(hm->uri.buf, hm->uri.len);
         return get_page_by_URI(uri);
     }
@@ -213,9 +219,9 @@ public:
      * @param uri
      * @return const std::pair<std::string, std::string>
      */
-    virtual const std::pair<std::string, std::string> get_page_by_URI(const std::string& uri) override {
+    virtual const pinfo get_page_by_URI(const std::string& uri) override {
         const auto file = uri_file(uri);
-        const auto full_path = web_root + "/" + file;
+        const auto full_path = get_web_root() + "/" + file;
 
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " URI: " + uri + " File: " + full_path);
 
@@ -226,6 +232,15 @@ public:
 
     }
 
+    /**
+     * @brief 
+     * 
+     * @param html 
+     * @return const std::string 
+     */
+    virtual const std::string html_post_processing(const std::string& page_name, const std::string& html){
+        return html;
+    }
 
     /**
      * @brief
@@ -235,7 +250,7 @@ public:
     virtual void data_files(struct mg_connection *conn, struct mg_http_message *hm, const std::string& dir){
         struct mg_http_serve_opts opts;
         memset(&opts, 0, sizeof(mg_http_serve_opts));
-        opts.mime_types = "html=text/html,htm=text/html,css=text/css,csv=text/csv,json=application/json,jpg=image/jpeg,png=image/png";
+        opts.mime_types = "html=text/html,htm=text/html,css=text/css,csv=text/csv,json=application/json,jpg=image/jpeg,png=image/png,js=application/javascript";
 
         const std::string uri = std::string(hm->uri.buf, hm->uri.len);
         const auto file = uri_file(uri);
@@ -435,6 +450,15 @@ public:
     }
 
     /**
+     * @brief Get the web root object
+     * 
+     * @return const std::string 
+     */
+    const std::string get_web_root() const {
+        return web_root;
+    }
+
+    /**
      * @brief
      *
      * @param uri
@@ -442,7 +466,26 @@ public:
      */
     const std::string uri_file(const std::string& uri){
         auto pos = uri.find_last_of("/");
-        return uri.substr(pos+1);
+        return (pos==0 ? std::string() : uri.substr(pos+1));
+    }
+
+    /**
+     * @brief Set the flag html pproc object
+     * 
+     * @param flag 
+     */
+    void set_flag_html_post_processing(const bool flag){
+        flag_html_post_processing = flag;
+    }
+
+    /**
+     * @brief 
+     * 
+     * @return true 
+     * @return false 
+     */
+    const bool if_html_post_processing() const {
+        return flag_html_post_processing;
     }
 
  protected:
@@ -456,6 +499,8 @@ public:
     dir_map dmaps;
 
     std::string web_root = "./";
+
+    bool flag_html_post_processing = false;
 
 };
 

@@ -19,8 +19,8 @@ void StNoHardware::OnEntry(){
     netInfo.load_ip_list();
 
     const auto ctxt = GET_ENV(weather::Context);
-    ctxt->ip4_address = detect_ip_address_by_type(&netInfo, piutils::netinfo::IpType::IP_V4);
-    ctxt->ip6_address = detect_ip_address_by_type(&netInfo, piutils::netinfo::IpType::IP_V6);
+    ctxt->ip4_address = netInfo.detect_ip_address_by_type(piutils::netinfo::IpType::IP_V4);
+    ctxt->ip6_address = netInfo.detect_ip_address_by_type(piutils::netinfo::IpType::IP_V6);
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " IP4: " + ctxt->ip4_address);
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " IP6: " + ctxt->ip6_address);

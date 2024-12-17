@@ -104,12 +104,12 @@ void StMeasurement::measure(){
         auto lcd = GET_ITEM(pirobot::item::lcd::Lcd, "Lcd");
         if(data.tsl2651_lux >= ctxt->light_low_level){
             if(!lcd->is_on()){
-                event_add(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
+                STM_ADD_EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_ON));
             }
         }
         else { //Dark in the room - LCD OFF
             if( lcd->is_on() ){
-                event_add(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
+                STM_ADD_EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_LCD_OFF));
             }
         }
 
@@ -124,12 +124,12 @@ void StMeasurement::measure(){
 
         //Level switch from Low to High
         if((co2_lvl<4 && tvoc_lvl<4) && (ctxt->get_CO2_level()==4 || ctxt->get_TVOC_level()==4)){
-            event_add(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_ON));
+            STM_ADD_EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_ON));
         }
 
         //Level switch from High to Low
         if((co2_lvl==4 || tvoc_lvl==4) && (ctxt->get_CO2_level()<4 && ctxt->get_TVOC_level()<4)){
-            event_add(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_OFF));
+            STM_ADD_EVENT(std::make_shared<smachine::Event>(smachine::EVENT_TYPE::EVT_USER, EVT_HIGH_LEVEL_OFF));
         }
 
     }

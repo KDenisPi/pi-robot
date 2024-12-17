@@ -33,7 +33,7 @@ public:
     static Environment* class_instance;
 
     template<class T>
-    const T* get_env() {
+    T* get_env() {
         return dynamic_cast<T*>(this);
     }
 

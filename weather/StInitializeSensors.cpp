@@ -18,7 +18,7 @@ namespace weather {
 void StInitializeSensors::OnEntry(){
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
-    const weather::Context* ctxt = GET_ENV(weather::Context);
+    auto ctxt = GET_ENV(weather::Context);
     auto lcd = GET_ITEM(pirobot::item::lcd::Lcd, "Lcd");
 
     auto led_white_r = GET_ITEM(pirobot::item::Led, "led_white_r");
