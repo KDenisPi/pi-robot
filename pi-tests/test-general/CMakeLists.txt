@@ -12,7 +12,7 @@ include_directories(BEFORE
 
 add_executable(test_cbuff test_cbuff.cpp)
 
-set(TEST_GENERAL_LIBS pi-utils pi-mqtt pthread crypt rt)
+set(TEST_GENERAL_LIBS ${EXTRA_LIBS} pi-utils pi-mqtt pthread crypt rt)
 
 message( STATUS "General tests Libs: ${TEST_GENERAL_LIBS}")
 
