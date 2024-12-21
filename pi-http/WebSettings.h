@@ -167,21 +167,25 @@ public:
             //HTML pages
             const auto page_info = srv->get_page(hm);
             if(!page_info.second.empty()){
-                const std::string page = piutils::webutils::WebUtils::load_page(page_info.second);
-                if(!page.empty())
-                    if(srv->if_html_post_processing()){
-                        return send_string(c, 200, page_info.first.c_str(), srv->html_post_processing(page_info.second, page));
-                    }
-                    else{   
-                        return send_string(c, 200, page_info.first.c_str(), page);
-                    }
-                else //404 or 503 or something else
-                    return srv->file_not_found(c, hm);
+                if(piutils::is_regular_file(page_info.second)){
+                    const std::string page = piutils::webutils::WebUtils::load_page(page_info.second);
+                    if(!page.empty())
+                        if(srv->if_html_post_processing()){
+                            return send_string(c, 200, page_info.first.c_str(), srv->html_post_processing(page_info.second, page));
+                        }
+                        else{
+                            return send_string(c, 200, page_info.first.c_str(), page);
+                        }
+                    else //404 or 503 or something else
+                        return srv->file_not_found(c, hm);
+                }
+                else{
+                    return send_string(c, 200, mime_html, page_info.second + " is directory.");
+                }
             }
             else{
                 return srv->file_not_found(c, hm);
             }
-
         }
         else {
         }
@@ -221,9 +225,9 @@ public:
      */
     virtual const pinfo get_page_by_URI(const std::string& uri) override {
         const auto file = uri_file(uri);
-        const auto full_path = get_web_root() + "/" + file;
+        const auto full_path = get_web_root() + "/" + (file.empty() ? get_default_page() : file);
 
-        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " URI: " + uri + " File: " + full_path);
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " URI: " + uri + " File: " + file + " Full path: " + full_path);
 
         if(piutils::chkfile(full_path)){
             return std::make_pair(std::string(mime_html), full_path);
@@ -233,10 +237,10 @@ public:
     }
 
     /**
-     * @brief 
-     * 
-     * @param html 
-     * @return const std::string 
+     * @brief
+     *
+     * @param html
+     * @return const std::string
      */
     virtual const std::string html_post_processing(const std::string& page_name, const std::string& html){
         return html;
@@ -451,8 +455,8 @@ public:
 
     /**
      * @brief Get the web root object
-     * 
-     * @return const std::string 
+     *
+     * @return const std::string
      */
     const std::string get_web_root() const {
         return web_root;
@@ -471,21 +475,40 @@ public:
 
     /**
      * @brief Set the flag html pproc object
-     * 
-     * @param flag 
+     *
+     * @param flag
      */
     void set_flag_html_post_processing(const bool flag){
         flag_html_post_processing = flag;
     }
 
     /**
-     * @brief 
-     * 
-     * @return true 
-     * @return false 
+     * @brief
+     *
+     * @return true
+     * @return false
      */
     const bool if_html_post_processing() const {
         return flag_html_post_processing;
+    }
+
+
+    /**
+     * @brief Set the default page object
+     *
+     * @param page
+     */
+    void set_default_page(const std::string& page){
+        default_page = page;
+    }
+
+    /**
+     * @brief Get the default page object
+     *
+     * @return const std::string
+     */
+    const std::string get_default_page() const {
+        return default_page;
     }
 
  protected:
@@ -499,6 +522,7 @@ public:
     dir_map dmaps;
 
     std::string web_root = "./";
+    std::string default_page = "";
 
     bool flag_html_post_processing = false;
 

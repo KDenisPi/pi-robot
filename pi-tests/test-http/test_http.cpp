@@ -13,6 +13,8 @@ int main (int argc, char* argv[])
     std::unique_ptr<http_test::HttpTestWebSet> web_srv = std::make_unique<http_test::HttpTestWebSet>();
 
     web_srv->set_web_root("/home/deniskudia/sources/pi-robot/pi-tests/test-http");
+    web_srv->set_default_page("default.html");
+
     web_srv->add_dir_map("statis", "./static");
     web_srv->add_dir_map("data", "/home/deniskudia/sources/pi-robot/conf");
     web_srv->add_dir_map("json", "/home/deniskudia/sources/pi-robot/conf");
@@ -23,7 +25,7 @@ int main (int argc, char* argv[])
 
     web_srv->start();
 
-    sleep(10);
+    sleep(15);
 
     std::cout << "Release Web server " << std::endl;
 

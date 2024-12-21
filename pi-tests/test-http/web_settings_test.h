@@ -15,10 +15,6 @@
 #include "WebSettings.h"
 #include "Environment.h"
 
-#ifndef GET_ENV
-#define GET_ENV(T) smachine::Environment::class_instance->get_env<T>()
-#endif
-
 namespace http_test {
 class HttpTestWebSet : public http::web::WebSettings {
 public:
