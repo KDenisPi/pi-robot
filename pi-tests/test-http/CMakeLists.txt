@@ -13,7 +13,7 @@ include_directories(BEFORE
     ${CJSON}
     )
 
-add_executable(test_http test_http.cpp)
+add_executable(test_http test_http.cpp web_settings_test.cpp)
 
 set(TEST_HTTP_LIBS pi-utils pi-http ${EXTRA_LIBS} pthread crypt rt)
 

@@ -11,6 +11,8 @@ int main (int argc, char* argv[])
 {
     bool success = true;
     std::unique_ptr<http_test::HttpTestWebSet> web_srv = std::make_unique<http_test::HttpTestWebSet>();
+    std::shared_ptr<http_test::Context> app_context = std::make_shared<http_test::Context>();
+
 
     web_srv->set_web_root("/home/deniskudia/sources/pi-robot/pi-tests/test-http");
     web_srv->set_default_page("default.html");
