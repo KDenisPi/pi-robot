@@ -14,7 +14,7 @@
 namespace http_test {
 
 //#ifndef GET_ENV
-//#define GET_ENV(T) smachine::Environment::class_instance->get_env<T>()
+//#define GET_ENV(T) smachine::env::Environment::class_instance->get_env<T>()
 //#endif
 
 const std::string HttpTestWebSet::html_post_processing(const std::string& page_name, const std::string& html){

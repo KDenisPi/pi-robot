@@ -18,7 +18,7 @@
 #define GET_ROBOT() smachine::StateMachine::class_instance->get_robot()
 #define GET_ITEM(T,N) GET_ROBOT()->get_item<T>(N)
 
-#define GET_ENV(T) smachine::Environment::class_instance->get_env<T>()
+#define GET_ENV(T) smachine::env::Environment::class_instance->get_env<T>()
 #define STM_FINISH() smachine::StateMachine::class_instance->finish();
 
 #define STM_STATE_CHANGE(state) smachine::StateMachine::class_instance->state_change(state);

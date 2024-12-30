@@ -18,6 +18,7 @@
 #include "MqttServerInfo.h"
 
 namespace smachine {
+namespace env {
 
 /*
  * Use Environment class for saving your own data
@@ -308,5 +309,6 @@ public:
 
  };
 
-}
+} //namespace env
+} //namespace smachine
 #endif /* PI_SMACHINE_ENVIRONMENT_H_ */

@@ -16,7 +16,7 @@
 
 namespace tmain {
 
-class Context : public smachine::Environment {
+class Context : public smachine::env::Environment {
 public:
     Context(){}
     virtual ~Context() noexcept {}

@@ -16,9 +16,9 @@
 
 namespace http_test {
 
-class Context : public smachine::Environment {
+class Context : public smachine::env::Environment {
 public:
-    Context() : smachine::Environment() {
+    Context() : smachine::env::Environment() {
         refresh();
     }
 

@@ -18,7 +18,7 @@
 
 namespace weather {
 
-class Context : public smachine::Environment {
+class Context : public smachine::env::Environment {
 public:
     Context() : version("0.9"), ip4_address(""), ip6_address(""), _CO2_level(0), _TVOC_level(0) {
 

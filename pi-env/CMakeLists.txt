@@ -1,29 +1,27 @@
 cmake_minimum_required(VERSION 3.7)
 
 #project name
-project(pi-smachine)
+project(pi-env)
 
 include_directories(BEFORE
-   ${PROJECT_SOURCE_DIR}/../pi-library
-   ${PROJECT_SOURCE_DIR}/../pi-utils
-   ${PROJECT_SOURCE_DIR}/../pi-mqtt
-   ${PROJECT_SOURCE_DIR}/../pi-env
-   ${CJSON}
+    ${PROJECT_SOURCE_DIR}/../pi-utils
+    ${PROJECT_SOURCE_DIR}/../pi-mqtt
+    ${CJSON}
 )
 
-configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)
+#configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)
 
-aux_source_directory(${PROJECT_SOURCE_DIR} PI_SMASHINE_SOURCES)
+aux_source_directory(${PROJECT_SOURCE_DIR} PI_ENV_SOURCES)
 
-add_library(pi-smachine SHARED ${PI_SMASHINE_SOURCES})
-add_library(PiRobot::pi-smachine ALIAS pi-smachine)
+add_library(pi-env SHARED ${PI_ENV_SOURCES})
+add_library(PiRobot::pi-env ALIAS pi-env)
 
 if(MAKE_STATIC_LIB)
-add_library(pi-smachine-dev STATIC ${PI_SMASHINE_SOURCES})
+add_library(pi-env-dev STATIC ${PI_ENV_SOURCES})
 endif(MAKE_STATIC_LIB)
 
 if(MAKE_DEV_LIB)
-add_library(PiRobotStatic::pi-smachine-dev ALIAS pi-smachine-dev)
+add_library(PiRobotStatic::pi-env-dev ALIAS pi-env-dev)
 endif(MAKE_DEV_LIB)
 
 install(TARGETS ${PROJECT_NAME}

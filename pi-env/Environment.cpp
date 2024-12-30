@@ -12,9 +12,10 @@
 #include "Environment.h"
 
 namespace smachine {
+namespace env {
 
 const char TAG[] = "envr";
-
-
 Environment* Environment::class_instance = nullptr;
+
+}
 }

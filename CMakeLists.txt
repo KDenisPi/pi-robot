@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 
 #project name
-project(pi-robot VERSION 1.3.1)
+project(pi-robot VERSION 1.3.2)
 enable_testing()
 
 set(PI_VER ${PROJECT_VERSION})
@@ -99,6 +99,7 @@ IF(USE_SQL_STORAGE)
 ENDIF()
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-mqtt)
+add_subdirectory(${PROJECT_SOURCE_DIR}/pi-env)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-http)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smachine)
