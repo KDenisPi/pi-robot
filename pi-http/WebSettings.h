@@ -59,13 +59,6 @@ public:
 };
 
 
-const char* mime_html = "Content-Type: text/html; charset=utf-8\r\n";
-const char* mime_js = "Content-Type: application/javascript; charset=utf-8\r\n";
-const char* mime_plain = "Content-Type: text/plain; charset=utf-8\r\n";
-const char* mime_css = "Content-Type: text/css; charset=utf-8\r\n";
-const char* mime_json = "Content-Type: application/json; charset=utf-8\r\n";
-const char* mime_csv = "Content-Type: text/csv; charset=utf-8\r\n";
-
 class WebSettings : public piutils::Threaded, public WebSettingsItf {
 
 public:
@@ -81,6 +74,14 @@ public:
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Listener: " + url);
         mg_http_listen(&mgr, url.c_str(), WebSettings::html_pages, NULL);
     }
+
+
+    static std::string mime_html;
+    static std::string mime_js;
+    static std::string mime_plain;
+    static std::string mime_css;
+    static std::string mime_json;
+    static std::string mime_csv;
 
     /**
      * @brief Internal initialization function
@@ -180,7 +181,7 @@ public:
                         return srv->file_not_found(c, hm);
                 }
                 else{
-                    return send_string(c, 200, mime_html, page_info.second + " is directory.");
+                    return send_string(c, 200, mime_html.c_str(), page_info.second + " is directory.");
                 }
             }
             else{
@@ -230,7 +231,7 @@ public:
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " URI: " + uri + " File: " + file + " Full path: " + full_path);
 
         if(piutils::chkfile(full_path)){
-            return std::make_pair(std::string(mime_html), full_path);
+            return std::make_pair(mime_html, full_path);
         }
         return std::make_pair("", "");
 
@@ -280,7 +281,7 @@ public:
      */
     static void file_not_found(struct mg_connection *conn, const struct mg_http_message *hm){
         auto body = prepare_output("Page not found!<br> Requested URI is [%s], query string is [%s]\n", mg_str2str(hm->uri).c_str(), (hm->query.len == 0 ? "None" : mg_str2str(hm->query).c_str()));
-        mg_http_reply(conn, 404, mime_html, "%s", body.c_str());
+        mg_http_reply(conn, 404, mime_html.c_str(), "%s", body.c_str());
     }
 
     /**

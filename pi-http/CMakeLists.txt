@@ -5,6 +5,7 @@ project(pi-http)
 
 include_directories(BEFORE
     ${MONGOOSE_HOME}
+    ${PROJECT_SOURCE_DIR}/../pi-utils
 )
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_HTTP_SOURCES_MAIN)
