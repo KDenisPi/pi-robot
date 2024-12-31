@@ -28,6 +28,8 @@ public:
 
     void refresh(){
         piutils::netinfo::NetInfo netInfo;
+        netInfo.load_ip_list();
+
         ip4_address = netInfo.detect_ip_address_by_type(piutils::netinfo::IpType::IP_V4);
         ip6_address = netInfo.detect_ip_address_by_type(piutils::netinfo::IpType::IP_V6);
     }
@@ -38,8 +40,10 @@ public:
 
 class HttpTestWebSet : public http::web::WebSettings {
 public:
-    HttpTestWebSet() : http::web::WebSettings(8080) {}
-    ~HttpTestWebSet() {}
+    HttpTestWebSet() {
+        set_flag_html_post_processing(true);
+    }
+    virtual ~HttpTestWebSet() {}
 
     virtual const std::string html_post_processing(const std::string& page_name, const std::string& html) override;
 

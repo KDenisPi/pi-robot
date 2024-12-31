@@ -62,7 +62,7 @@ public:
 class WebSettings : public piutils::Threaded, public WebSettingsItf {
 
 public:
-    WebSettings(const uint16_t port){
+    WebSettings(const uint16_t port = 8080){
         std::string sport = (port == 0 ? "8080" : std::to_string(port));
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Port: " + sport);
 
@@ -155,7 +155,7 @@ public:
 
                 return srv->file_not_found(c, hm);
             }
-            else if(mg_match(hm->uri, mg_str("/static/*"), NULL)){ //STATIC files, located in /static
+            else if(mg_match(hm->uri, mg_str("/static/*"), NULL) || mg_match(hm->uri, mg_str("/*.ico"), NULL)){ //STATIC files, located in /static
                 const auto uri = mg_str2str(hm->uri);
                 logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Static request: " + uri);
                 if(srv->is_dir_map("static")){
@@ -471,7 +471,7 @@ public:
      */
     const std::string uri_file(const std::string& uri){
         auto pos = uri.find_last_of("/");
-        return (pos==0 ? std::string() : uri.substr(pos+1));
+        return (pos == std::string::npos || (pos==0 && uri.length()==1) ? std::string() : uri.substr(pos+1));
     }
 
     /**

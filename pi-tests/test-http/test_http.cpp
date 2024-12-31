@@ -10,8 +10,8 @@ using namespace std;
 int main (int argc, char* argv[])
 {
     bool success = true;
-    std::unique_ptr<http_test::HttpTestWebSet> web_srv = std::make_unique<http_test::HttpTestWebSet>();
-    std::shared_ptr<http_test::Context> app_context = std::make_shared<http_test::Context>();
+    auto web_srv = std::make_shared<http_test::HttpTestWebSet>();
+    auto app_context = std::make_shared<http_test::Context>();
 
 
     web_srv->set_web_root("/home/deniskudia/sources/pi-robot/pi-tests/test-http");
@@ -32,7 +32,7 @@ int main (int argc, char* argv[])
     std::cout << "Release Web server " << std::endl;
 
     web_srv->stop();
-    web_srv.release();
+    web_srv.reset();
 
     exit( (success ? EXIT_SUCCESS : EXIT_FAILURE));
 }
