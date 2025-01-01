@@ -26,7 +26,9 @@ add_library(libmosquitto SHARED IMPORTED)
 
 IF(REAL_HARDWARE)
     add_library(libpi-utils SHARED IMPORTED)
+IF(USE_SQL_STORAGE)
     add_library(libpi-sql SHARED IMPORTED)
+ENDIF()
     add_library(libpi-library SHARED IMPORTED)
     add_library(libpi-smachine SHARED IMPORTED)
     add_library(libpi-mqtt SHARED IMPORTED)
@@ -56,7 +58,10 @@ message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
 
-set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-env pi-http mosquitto pthread dl curl rt)
+set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-library pi-smachine pi-mqtt pi-env pi-http mosquitto pthread dl curl rt)
+IF(USE_SQL_STORAGE)
+set(EXTRA_LIBS ${EXTRA_LIBS} pi-sql)
+ENDIF()
 
 IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
     message(STATUS "Support for 64")
@@ -73,7 +78,7 @@ include_directories(BEFORE
     ${CJSON}
     ${PROJECT_SOURCE_DIR}/../pi-utils
     ${PROJECT_SOURCE_DIR}/../pi-main
-IF(USE_SQL_STORAGE)    
+IF(USE_SQL_STORAGE)
     ${PROJECT_SOURCE_DIR}/../pi-sql
 ENDIF
     ${PROJECT_SOURCE_DIR}/../pi-mqtt
@@ -113,7 +118,7 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto (>= 1.6.8), libpi-robot (>=1.1.0)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto1 (>= 1.6.8), libpi-robot (>=1.1.0)")
 
 # package information
 set(CPACK_PACKAGE_VENDOR ${PROJECT_VENDOR})
