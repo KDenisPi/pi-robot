@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 
 #project name
-project(weather VERSION 1.2.0)
+project(weather VERSION 1.2.1)
 
 set(DAEMON ${PROJECT_NAME}d)
 
@@ -113,7 +113,7 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "mosquitto (>= 1.6.8), libpi-robot (>=1.1.0)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto (>= 1.6.8), libpi-robot (>=1.1.0)")
 
 # package information
 set(CPACK_PACKAGE_VENDOR ${PROJECT_VENDOR})
