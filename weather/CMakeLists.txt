@@ -30,6 +30,7 @@ IF(REAL_HARDWARE)
     add_library(libpi-library SHARED IMPORTED)
     add_library(libpi-smachine SHARED IMPORTED)
     add_library(libpi-mqtt SHARED IMPORTED)
+    add_library(libpi-env SHARED IMPORTED)
     add_library(libpi-http SHARED IMPORTED)
 ELSE()
     link_directories("${PROJECT_SOURCE_DIR}/../build")
@@ -55,7 +56,7 @@ message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
 
-set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http mosquitto pthread dl curl rt)
+set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-env pi-http mosquitto pthread dl curl rt)
 
 IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
     message(STATUS "Support for 64")
@@ -72,10 +73,13 @@ include_directories(BEFORE
     ${CJSON}
     ${PROJECT_SOURCE_DIR}/../pi-utils
     ${PROJECT_SOURCE_DIR}/../pi-main
+IF(USE_SQL_STORAGE)    
     ${PROJECT_SOURCE_DIR}/../pi-sql
+ENDIF
+    ${PROJECT_SOURCE_DIR}/../pi-mqtt
+    ${PROJECT_SOURCE_DIR}/../pi-env
     ${PROJECT_SOURCE_DIR}/../pi-library
     ${PROJECT_SOURCE_DIR}/../pi-smachine
-    ${PROJECT_SOURCE_DIR}/../pi-mqtt
     ${PROJECT_SOURCE_DIR}/../pi-http
     ${PROJECT_SOURCE_DIR}/../pi-data
     ${MONGOOSE_HOME}

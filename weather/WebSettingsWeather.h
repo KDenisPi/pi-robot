@@ -72,7 +72,7 @@ public:
 
         if(piutils::chkfile(result)){
             logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__) + " Found. Page: " + result);
-            return std::make_pair(std::string(http::web::mime_html), result);
+            return std::make_pair(std::string(http::web::WebSettings::mime_html), result);
         }
 
         logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__) + " Page not found: " + result);
