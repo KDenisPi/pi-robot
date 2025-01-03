@@ -33,6 +33,10 @@
         "tls_version": "tlsv1"
     },
 
+    "http": {
+        "web_pages" : "/opt/web"
+    },
+
     "providers": [
         {"type": "MCP23008", "name": "MCP23008_1", "i2c_addr" : 34}
     ],

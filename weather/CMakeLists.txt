@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 
 #project name
-project(weather VERSION 1.2.1)
+project(weather VERSION 1.2.2)
 
 set(DAEMON ${PROJECT_NAME}d)
 
@@ -179,5 +179,12 @@ install(DIRECTORY DESTINATION /var/data/pi-robot/data
         GROUP_EXECUTE GROUP_WRITE GROUP_READ
         WORLD_EXECUTE WORLD_WRITE WORLD_READ
     )
+
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/../web DESTINATION /opt/pi-robot/web
+DIRECTORY_PERMISSIONS
+    OWNER_EXECUTE OWNER_WRITE OWNER_READ
+    GROUP_EXECUTE GROUP_WRITE GROUP_READ
+    WORLD_EXECUTE WORLD_READ
+)
 
 include(CPack)
