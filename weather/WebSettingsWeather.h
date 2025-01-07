@@ -81,12 +81,13 @@ public:
 
 
     /**
-     * @brief 
-     * 
-     * @param html 
-     * @return const std::string 
+     * @brief
+     *
+     * @param html
+     * @return const std::string
      */
     virtual const std::string html_post_processing(const std::string& page_name, const std::string& html) override{
+        logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__) + " Page:" + page_name);
 
         if(page_name.find("default") != std::string::npos || page_name.find("status") != std::string::npos ){
             auto ctxt = GET_ENV(weather::Context);

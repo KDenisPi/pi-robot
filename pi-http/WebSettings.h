@@ -64,14 +64,14 @@ class WebSettings : public piutils::Threaded, public WebSettingsItf {
 public:
     WebSettings(const uint16_t port = 8080){
         std::string sport = (port == 0 ? "8080" : std::to_string(port));
-        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Port: " + sport);
+        logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Port: " + sport);
 
         init();
 
         initialize();
 
         const std::string url = "http://0.0.0.0:" + sport;
-        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Listener: " + url);
+        logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Listener: " + url);
         mg_http_listen(&mgr, url.c_str(), WebSettings::html_pages, NULL);
     }
 
@@ -90,7 +90,7 @@ public:
      * @return false
      */
     bool init() {
-        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__));
+        logger::log(logger::LLOG::INFO, "WEB", std::string(__func__));
         mg_mgr_init(&mgr);  // Initialise event manager
         mgr.userdata = (void*)this;
         return true;
@@ -101,7 +101,7 @@ public:
      *
      */
     virtual ~WebSettings() {
-        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__));
+        logger::log(logger::LLOG::INFO, "WEB", std::string(__func__));
         mg_mgr_free(&mgr);
     }
 
@@ -111,10 +111,12 @@ public:
     *
     */
     virtual void start() override{
+        logger::log(logger::LLOG::INFO, "WEB", std::string(__func__));
         piutils::Threaded::start<http::web::WebSettings>(this);
     }
 
     virtual void stop() override {
+        logger::log(logger::LLOG::INFO, "WEB", std::string(__func__));
         piutils::Threaded::stop();
     }
 
@@ -136,17 +138,18 @@ public:
      * @param ev_data
      */
     static void html_pages(struct mg_connection *c, int ev, void *ev_data) {
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Event: " + std::to_string(ev));
 
         if (ev == MG_EV_HTTP_MSG) {
             struct mg_http_message *hm = (struct mg_http_message *) ev_data;
             const auto srv = static_cast<WebSettings*>(c->mgr->userdata);
 
-            logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Request: " +  mg_addr2str(c->loc));
+            logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Request: " +  mg_addr2str(c->loc));
 
             //data files JSON or CSV, located in /data folder
             if(mg_match(hm->uri, mg_str("/data/*"), NULL)){
                 const auto uri = mg_str2str(hm->uri);
-                logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Data request: " + uri);
+                logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Data request: " + uri);
 
                 if(uri.find(".csv")>0 && srv->is_dir_map("data"))
                     return srv->data_files(c, hm, "data");
@@ -157,7 +160,7 @@ public:
             }
             else if(mg_match(hm->uri, mg_str("/static/*"), NULL) || mg_match(hm->uri, mg_str("/*.ico"), NULL)){ //STATIC files, located in /static
                 const auto uri = mg_str2str(hm->uri);
-                logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Static request: " + uri);
+                logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Static request: " + uri);
                 if(srv->is_dir_map("static")){
                     return srv->data_files(c, hm, "static");
                 }
@@ -177,8 +180,9 @@ public:
                         else{
                             return send_string(c, 200, page_info.first.c_str(), page);
                         }
-                    else //404 or 503 or something else
+                    else{ //404 or 503 or something else
                         return srv->file_not_found(c, hm);
+                    }
                 }
                 else{
                     return send_string(c, 200, mime_html.c_str(), page_info.second + " is directory.");
@@ -244,6 +248,7 @@ public:
      * @return const std::string
      */
     virtual const std::string html_post_processing(const std::string& page_name, const std::string& html){
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__));
         return html;
     }
 
@@ -280,7 +285,11 @@ public:
      * @param hm
      */
     static void file_not_found(struct mg_connection *conn, const struct mg_http_message *hm){
-        auto body = prepare_output("Page not found!<br> Requested URI is [%s], query string is [%s]\n", mg_str2str(hm->uri).c_str(), (hm->query.len == 0 ? "None" : mg_str2str(hm->query).c_str()));
+        auto uri = mg_str2str(hm->uri);
+        auto body = prepare_output("Page not found!<br> Requested URI is [%s], query string is [%s]\n", uri.c_str(), (hm->query.len == 0 ? "None" : mg_str2str(hm->query).c_str()));
+
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " URI: " + uri);
+
         mg_http_reply(conn, 404, mime_html.c_str(), "%s", body.c_str());
     }
 
@@ -334,6 +343,8 @@ public:
     const std::string prepare_ip_list(){
         piutils::netinfo::NetInfo netInfo;
         std::string result;
+
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__));
 
         netInfo.load_ip_list();
 
@@ -449,6 +460,8 @@ public:
      * @param root
      */
     void set_web_root(const std::string& root){
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Root: " + root);
+
         if(!root.empty()){
             web_root = root;
         }
@@ -470,6 +483,8 @@ public:
      * @return const std::string
      */
     const std::string uri_file(const std::string& uri){
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " URI: " + uri);
+
         auto pos = uri.find_last_of("/");
         return (pos == std::string::npos || (pos==0 && uri.length()==1) ? std::string() : uri.substr(pos+1));
     }
@@ -490,6 +505,7 @@ public:
      * @return false
      */
     const bool if_html_post_processing() const {
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " flag_html_post_processing: " + std::to_string(flag_html_post_processing));
         return flag_html_post_processing;
     }
 
@@ -500,6 +516,7 @@ public:
      * @param page
      */
     void set_default_page(const std::string& page){
+        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Page: " + page);
         default_page = page;
     }
 
