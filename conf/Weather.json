@@ -34,7 +34,7 @@
     },
 
     "http": {
-        "web_pages" : "/opt/web"
+        "web_pages" : "/opt/pi-robot/web"
     },
 
     "providers": [
