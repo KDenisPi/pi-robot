@@ -32,8 +32,7 @@ void StInitializeSensors::OnEntry(){
     lcd->write_string_at(0,0, ctxt->get_str(StrID::Warming), true);
 
     //load initial data
-    std::string data_file = "./initial.json";
-    ctxt->load_initial_data(data_file);
+    ctxt->load_initial_data(ctxt->get_initial_data_file());
 
     //make measurement using Si7021 and then use this values for SGP30
     auto si7021 = GET_ITEM(pirobot::item::Si7021, "SI7021");

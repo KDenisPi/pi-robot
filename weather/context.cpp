@@ -30,7 +30,7 @@ bool Context::load_initial_data(const std::string& filename){
     }
 
     try{
-        version = cjson->get_attr_string_def(cjson->get(), "version", "0.9");
+        version = cjson->get_attr_string_def(cjson->get(), "version", "1.0");
 
         //
         // This values used for Spg30 calibration

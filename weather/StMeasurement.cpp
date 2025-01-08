@@ -400,8 +400,8 @@ void StMeasurement::save_data_and_finish(){
     sgp30->stop();
 
     sgp30->get_baseline(ctxt->data.spg30_base_co2, ctxt->data.spg30_base_tvoc);
-    std::string data_file = "./initial.json";
-    ctxt->save_initial_data(data_file);
+
+    ctxt->save_initial_data(ctxt->get_initial_data_file());
 
     lcd->clear_display();
     lcd->Off();
