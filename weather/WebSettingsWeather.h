@@ -45,37 +45,27 @@ public:
     * Detect page location
     */
     const http::web::pinfo get_page_by_URI(const std::string& uri) {
-        logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__) + " URI:" + uri );
-
         const auto file = uri_file(uri);
-
         auto ctxt = GET_ENV(weather::Context);
         std::string lang = ctxt->get_language();
         std::string page_path = get_web_root();
         std::string result;
 
-        if(file.empty() || (file == "/index.html") || (file == "default.html")){
-            if(lang == "en"){
-                result = page_path + "/en/default.html";
-            }
-            else if(lang == "ru")
-            {
-                result = page_path + "/ru/default.html";
-            }
+        logger::log(logger::LLOG::INFO, "WebW", std::string(__func__) + " URI:" + uri + " File: " + file + " Lng: " + lang);
+
+        if(file.empty() || (file == "index.html") || (file == "default.html")){
+            result = page_path + "/" + lang + "/default.html";
         }
-        else if((file == "/status.html") || (file == "graph.html")){
-            if(lang == "en")
-                result = page_path + "/en" + uri;
-            else if(lang == "ru")
-                result = page_path + "/ru" + uri;
+        else if((file == "status.html") || (file == "graph.html")){
+            result = page_path + "/" + lang + "/" + file;
         }
 
         if(piutils::chkfile(result)){
-            logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__) + " Found. Page: " + result);
+            logger::log(logger::LLOG::INFO, "WebW", std::string(__func__) + " Found. Page: " + result);
             return std::make_pair(std::string(http::web::WebSettings::mime_html), result);
         }
 
-        logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__) + " Page not found: " + result);
+        logger::log(logger::LLOG::INFO, "WebW", std::string(__func__) + " Page not found: " + result);
         return std::make_pair(std::string(), std::string());
     }
 
