@@ -147,7 +147,18 @@ public:
             logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Request: " +  mg_addr2str(c->loc) + " URI: " + mg_str2str(hm->uri));
 
             //data files JSON or CSV, located in /data folder
-            if(mg_match(hm->uri, mg_str("/data/#"), NULL)){
+            if(mg_match(hm->uri, mg_str("/data/*"), NULL)){
+                const auto uri = mg_str2str(hm->uri);
+                logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Data request: " + uri);
+
+                if(uri.find(".csv")>0 && srv->is_dir_map("data"))
+                    return srv->data_files(c, hm, "data", "/data");
+                else if(uri.find(".json")>0 && srv->is_dir_map("json"))
+                    return srv->data_files(c, hm, "json", "/data");
+
+                return srv->file_not_found(c, hm);
+            }
+            else if(mg_match(hm->uri, mg_str("/data/#"), NULL)){
                 const auto uri = mg_str2str(hm->uri);
                 logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Data request: " + uri);
 
