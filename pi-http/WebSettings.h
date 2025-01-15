@@ -138,7 +138,7 @@ public:
      * @param ev_data
      */
     static void html_pages(struct mg_connection *c, int ev, void *ev_data) {
-        logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Event: " + std::to_string(ev));
+        //logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " Event: " + std::to_string(ev));
 
         if (ev == MG_EV_HTTP_MSG) {
             struct mg_http_message *hm = (struct mg_http_message *) ev_data;
@@ -152,7 +152,7 @@ public:
                 logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Data request: " + uri);
 
                 if(uri.find(".csv")>0 && srv->is_dir_map("data"))
-                    return srv->data_files(c, hm, "data", "/data");
+                    return srv->data_files(c, hm, "data", "");
                 else if(uri.find(".json")>0 && srv->is_dir_map("json"))
                     return srv->data_files(c, hm, "json", "/data");
 
@@ -264,7 +264,10 @@ public:
 
         std::string uri = std::string(hm->uri.buf, hm->uri.len);
         auto full_path = uri;
-        full_path.replace(0, fld_patern.length(), dmaps[dir_patern]);
+        if(fld_patern.length()>0)
+            full_path.replace(0, fld_patern.length(), dmaps[dir_patern]);
+        else
+            full_path = dmaps[dir_patern] + uri;
 
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " URI: " + uri + " File: " + full_path);
 
