@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 
 #project name
-project(pi-robot VERSION 1.3.6)
+project(pi-robot VERSION 1.3.7)
 enable_testing()
 
 set(PI_VER ${PROJECT_VERSION})

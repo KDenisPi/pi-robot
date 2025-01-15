@@ -144,25 +144,25 @@ public:
             struct mg_http_message *hm = (struct mg_http_message *) ev_data;
             const auto srv = static_cast<WebSettings*>(c->mgr->userdata);
 
-            logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Request: " +  mg_addr2str(c->loc));
+            logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Request: " +  mg_addr2str(c->loc) + " URI: " + mg_str2str(hm->uri));
 
             //data files JSON or CSV, located in /data folder
-            if(mg_match(hm->uri, mg_str("/data/*"), NULL)){
+            if(mg_match(hm->uri, mg_str("/data/#"), NULL)){
                 const auto uri = mg_str2str(hm->uri);
                 logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Data request: " + uri);
 
                 if(uri.find(".csv")>0 && srv->is_dir_map("data"))
-                    return srv->data_files(c, hm, "data");
+                    return srv->data_files(c, hm, "data", "/data");
                 else if(uri.find(".json")>0 && srv->is_dir_map("json"))
-                    return srv->data_files(c, hm, "json");
+                    return srv->data_files(c, hm, "json", "/data");
 
                 return srv->file_not_found(c, hm);
             }
-            else if(mg_match(hm->uri, mg_str("/static/*"), NULL) || mg_match(hm->uri, mg_str("/*.ico"), NULL)){ //STATIC files, located in /static
+            else if(mg_match(hm->uri, mg_str("/static/#"), NULL) || mg_match(hm->uri, mg_str("/*.ico"), NULL)){ //STATIC files, located in /static
                 const auto uri = mg_str2str(hm->uri);
                 logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Static request: " + uri);
                 if(srv->is_dir_map("static")){
-                    return srv->data_files(c, hm, "static");
+                    return srv->data_files(c, hm, "static", "/static");
                 }
 
                 return srv->file_not_found(c, hm);
@@ -257,14 +257,14 @@ public:
      *
      * @param conn
      */
-    virtual void data_files(struct mg_connection *conn, struct mg_http_message *hm, const std::string& dir){
+    virtual void data_files(struct mg_connection *conn, struct mg_http_message *hm, const std::string& dir_patern, const std::string& fld_patern){
         struct mg_http_serve_opts opts;
         memset(&opts, 0, sizeof(mg_http_serve_opts));
         opts.mime_types = "html=text/html,htm=text/html,css=text/css,csv=text/csv,json=application/json,jpg=image/jpeg,png=image/png,js=application/javascript";
 
-        const std::string uri = std::string(hm->uri.buf, hm->uri.len);
-        const auto file = uri_file(uri);
-        const auto full_path = dmaps[dir] + "/" + file;
+        std::string uri = std::string(hm->uri.buf, hm->uri.len);
+        auto full_path = uri;
+        full_path.replace(0, fld_patern.length(), dmaps[dir_patern]);
 
         logger::log(logger::LLOG::DEBUG, "WEB", std::string(__func__) + " URI: " + uri + " File: " + full_path);
 
@@ -274,8 +274,6 @@ public:
         else{
             file_not_found(conn, hm);
         }
-
-        //mg_http_reply(conn, 200, mime_plain, "No such files\n");
     }
 
     /**
