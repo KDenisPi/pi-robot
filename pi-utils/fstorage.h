@@ -27,31 +27,39 @@
 namespace piutils {
 namespace fstor {
 
-//
-// Simple implemnetation for file based data storage
-//
+/**
+ * @brief Simple implemnetation for file based data storage
+ *
+ */
 class FStorage {
 public:
-    //
-    //
-    //
+
+    /**
+     * @brief Construct a new FStorage object
+     *
+     */
     FStorage() :
         _dpath(""), _local_time(false), _fd(-1)
     {
         logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Path: " + _dpath + " Local time: " + std::to_string(_local_time));
     }
 
-    //
-    //
-    //
+    /**
+     * @brief Destroy the FStorage object
+     *
+     */
     virtual ~FStorage() {
         logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__));
         close_file();
     }
 
-    //
-    // Create initial infrastructure
-    //
+    /**
+     * @brief Prepare initial infrastructure
+     *
+     * @param dpath
+     * @param use_local_time
+     * @return error code
+     */
     int initilize(const std::string& dpath = "/var/data/pi-robot/data", const bool use_local_time = false){
         logger::log(logger::LLOG::INFO, "fstor", std::string(__func__) + " Path: " + _dpath + " Local time: " + std::to_string(_local_time));
 
@@ -82,9 +90,13 @@ public:
         return res;
     }
 
-    //
-    // Write data to file
-    //
+    /**
+     * @brief Write data to file
+     *
+     * @param data
+     * @param dsize
+     * @return * const int
+     */
     const int write_data(const char* data, size_t dsize) {
         int res = 0;
 
@@ -126,35 +138,56 @@ public:
         return res;
     }
 
-
-    //
-    // Stop
-    //
+    /**
+     * @brief
+     *
+     */
     void stop(){
         logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__));
         close_file();
     }
 
+    /**
+     * @brief Set the first line object
+     *
+     * @param fline
+     */
     void set_first_line(const std::string& fline){
         _first_line = fline;
     }
 
-    /*
-    * Collect list of files in a directory
-    */
-    static void collect_data_files(const std::string dir){
+    /**
+     * @brief Collect list of files in a directory
+     *
+     * @param dir
+     * @return * void
+     */
+    static bool collect_data_files(const std::string dir){
         int flags = 0;
         dfiles.clear();
 
         int res = nftw(dir.c_str(), finfo, 20, flags);
         if(res == -1){
+            logger::log(logger::LLOG::ERROR, "fstor", std::string(__func__) + " Error: " + std::to_string(errno));
             dfiles.clear();
+            return false;
         }
+
+        dfiles.sort();
+
+        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + "  Detected folders: " + std::to_string(dfiles.size()));
+        return true;
     }
 
-    /*
-    *
-    */
+    /**
+     * @brief Fill file information
+     *
+     * @param fpath
+     * @param sb
+     * @param tflag
+     * @param ftwbuf
+     * @return int
+     */
     static int finfo(const char *fpath, const struct stat *sb, int tflag, struct FTW *ftwbuf){
         //add files only
         if(tflag == FTW_F){
@@ -163,15 +196,16 @@ public:
         return 0;
     }
 
-    /*
-    * Prepare file with list of available data files
-    *
-    * @parameters
-    * fstor_path        - folder where data files are located
-    * data_list_file    - full file name for list of files
-    * first_line        - CSV header
-    *
-    */
+    /**
+     * @brief Prepare file with list of available data files
+     *
+     * @param fstor_path - folder where data files are located
+     * @param root_path
+     * @param data_list_file - full file name for list of files
+     * @param first_line - CSV header
+     * @return true
+     * @return false
+     */
     bool prepare_data_files_list(const std::string fstor_path, const std::string root_path, const std::string data_list_file, const std::string first_line) {
         int res = 0;
         ssize_t wr_bytes;
@@ -206,9 +240,13 @@ public:
         return true;
     }
 
-    /*
-    *
-    */
+    /**
+     * @brief
+     *
+     * @param dfl
+     * @param root_path
+     * @return std::string
+     */
     std::string prepare_string_for_file_list(const std::string dfl, const std::string root_path){
         std::string::size_type offset = dfl.rfind("/");
         std::string ffile = dfl.substr(offset+1);
@@ -223,8 +261,12 @@ public:
         return fdata;
     }
 
-    /*
-    * Append file with a line
+   /**
+    * @brief Add record about a new file to the file with file list
+    *
+    * @param dfl
+    * @return true
+    * @return false
     */
     bool append_data_files_list(const std::string dfl){
         int res = 0;
@@ -250,6 +292,12 @@ public:
 
     static std::list<std::string> dfiles;
 
+    /**
+     * @brief Check if we have active file for writing
+     *
+     * @return true
+     * @return false
+     */
     const bool is_fd() const {
         return (_fd > 0);
     }
@@ -269,9 +317,11 @@ private:
     std::string _first_line;  //For CSV there are column headers
     int _fd;
 
-    //
-    // Close
-    //
+    /**
+     * @brief Close current file object
+     *
+     * @return int
+     */
     inline int close_file(){
         logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__));
 
@@ -285,24 +335,33 @@ private:
         return res;
     }
 
-    //
-    //
-    //
+    /**
+     * @brief Create a filename base on current date
+     *
+     */
     inline void create_filename(){
-        _file_path = _curr_path + "/" + std::to_string(1900 + _time.tm_year) + "_" + std::to_string(_time.tm_mon + 1) + "_" + std::to_string(_time.tm_mday) + _fext;
+        _file_path = _curr_path + "/" + std::to_string(1900 + _time.tm_year) + "_"
+            + std::to_string(_time.tm_mon + 1) + "_" + (_time.tm_mday<10 ? "0" : "") + std::to_string(_time.tm_mday) + _fext;
     }
 
-    //
-    //
-    //
+    /**
+     * @brief Create directory for some particular month
+     *
+     * @param year
+     * @param month
+     * @param mdir
+     * @return int
+     */
     int create_month_dir(const int year, const int month, std::string& mdir){
         mdir = _dpath + "/" + std::to_string(year) + "_" + std::to_string(month);
         return create_folder(mdir);
     }
 
-    //
-    //
-    //
+    /**
+     * @brief Create a file object
+     *
+     * @return int
+     */
     inline int create_file(){
         int res  = 0;
         bool new_file = false;
@@ -333,9 +392,12 @@ private:
         return res;
     }
 
-    //
-    //
-    //
+    /**
+     * @brief Create folder include all parend folders
+     *
+     * @param dpath
+     * @return int
+     */
     int check_path(const std::string& dpath){
         logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Path: " + dpath);
 
@@ -355,9 +417,12 @@ private:
         return res;
     }
 
-    //
-    //
-    //
+    /**
+     * @brief Create a folder object
+     *
+     * @param sub_path
+     * @return int
+     */
     int create_folder(const std::string& sub_path){
         logger::log(logger::LLOG::INFO, "fstor", std::string(__func__) + " Folder: " + sub_path);
 
