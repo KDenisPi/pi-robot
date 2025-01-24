@@ -15,6 +15,7 @@
 #include <thread>
 #include <mutex>
 #include <sstream>
+#include <atomic>
 
 
 namespace piutils {
@@ -55,14 +56,8 @@ public:
     }
 
     inline void wait(){
-        //std::cout <<  "Threaded::wait " << get_thread_id_str() << " is_stopped " << is_stopped() << std::endl;
-
         if( !is_stopped() ){
             this->m_thread.join();
-            //std::cout <<  "Threaded::wait " << get_thread_id_str() << " join() finished " << std::endl;
-        }
-        else{
-            //std::cout <<  "Threaded::wait Thread: " << get_thread_id_str() << " Finished already. " << std::endl;
         }
     }
 
@@ -75,7 +70,6 @@ public:
 
         if( is_stopped() ){
             m_thread = std::thread(T::worker, owner);
-            //std::cout <<  "Threaded::start " << owner->clname() << " "  << get_thread_id_str() << std::endl;
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
 
@@ -91,7 +85,7 @@ public:
     *
     */
     inline const bool is_stop_signal(){
-        return m_stopSignal;
+        return m_stopSignal.load();
     }
 
     /*
@@ -113,7 +107,7 @@ public:
 
 private:
     std::thread m_thread;
-    bool m_stopSignal;
+    std::atomic_bool m_stopSignal;
     std::string m_thread_id_str;
     unsigned int m_loop_delay;
 

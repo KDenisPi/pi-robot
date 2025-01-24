@@ -7,6 +7,7 @@
 #ifndef PI_MQTT_SERVER_INFO_H_
 #define PI_MQTT_SERVER_INFO_H_
 
+#include <string>
 #include "MqttDefines.h"
 
 namespace mqtt {

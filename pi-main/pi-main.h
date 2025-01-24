@@ -18,16 +18,18 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 
-#include "WebSettings.h"
-#include "StateMachine.h"
 #include "logger.h"
+#include "WebSettings.h"
 #include "timers.h"
+#include "StateMachine.h"
 
 #define BD_MAX_CLOSE  8192
 
+using Rob = pirobot::PiRobot;
+
 namespace pimain {
 
-template<class F, class W>
+template<class F, class E, class W>
 class PiMain {
 public:
     PiMain(const std::string& project_name, const std::string& logs_dir = "/var/log") : _proj_name(project_name), _log_folder(logs_dir) {
@@ -203,26 +205,21 @@ public:
 
     }
 
-    void create_factory(const std::string& firstState) {
-        if(!_factory)
-            _factory = std::make_shared<F>(firstState);
-    }
-
-    const std::shared_ptr<smachine::StateFactory> factory(){
+    const std::shared_ptr<F> factory(){
         return _factory;
     }
 
-    /*
-    *
-    */
-   void create_web(const uint16_t port, std::shared_ptr<smachine::StateMachineItf> itf){
-       if(!_web)
-           _web = std::shared_ptr<W>();
-   }
-
-   const std::shared_ptr<http::web::WebSettingsItf> web(){
+   const std::shared_ptr<W> web(){
        return _web;
    }
+
+    std::shared_ptr<E> environment(){
+        return _env;
+    }
+
+    std::shared_ptr<Rob> robot(){
+        return _pirobot;
+    }
 
 private:
 
@@ -255,13 +252,13 @@ private:
             logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " After fork (daemon)");
 
             //Initialize and run
-            initilize_and_run();
+            if(initilize_and_run()){
+                //Initilize signal handlers
+                initialize_signal_handlers();
 
-            //Initilize signal handlers
-            initialize_signal_handlers();
-
-            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
-            _stm->wait();
+                logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
+                _stm->wait();
+            }
 
             finish();
 
@@ -334,20 +331,21 @@ private:
         logger::log_init(get_log_filename());
 
         //Initialize and run
-        initilize_and_run();
+        if(initilize_and_run()){
+            //Initilize signal handlers
+            initialize_signal_handlers();
 
-        //Initilize signal handlers
-        initialize_signal_handlers();
+            _stmPid = getpid();
 
-        _stmPid = getpid();
+            sleep(5); //start State Machine
+            //_stm->run();
+            //send command to start
+            kill(_stmPid, SIGUSR1);
 
-        sleep(5); //start State Machine
-        //_stm->run();
-        //send command to start
-        kill(_stmPid, SIGUSR1);
+            logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
+            _stm->wait();
 
-        logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
-        _stm->wait();
+        }
 
         finish();
 
@@ -358,40 +356,53 @@ private:
     /*
     * Initialize objects and wait
     */
-   void initilize_and_run(){
+   bool initilize_and_run(){
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Create child. LLEVEL: " + std::to_string(_llevel));
         logger::set_level(_llevel);
         /*
         * Create PI Robot instance
         */
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create hardware support");
-        _pirobot = std::make_shared<pirobot::PiRobot>();
+        _pirobot = std::make_shared<Rob>();
         _pirobot->set_configuration(_robot_conf);
 
         //Create State factory for State Machine
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create State Factory support");
-        create_factory(_firstState);
-        factory()->set_configuration(_robot_conf);
+        _factory = std::make_shared<F>(_firstState);
+        _factory->set_configuration(_robot_conf);
+
+        //Create Environment
+        _env = std::make_shared<E>();
 
         /*
         * Create State machine
         */
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create state machine.");
-        _stm = std::make_shared<smachine::StateMachine>(_factory, _pirobot);
+        _stm = std::make_shared<smachine::StateMachine>();
 
-        ////std::cout  "--- initilize_and_run Create state machine ---" << std::endl;
+        _stm->get_robot = std::bind(&PiMain<F,E,W>::robot, this);
 
+        _stm->getfirststate = std::bind(&F::get_first_state, _factory);
+        _stm->get_state = std::bind(&F::get_state, _factory, std::placeholders::_1);
+        _stm->configure_environment = std::bind(&E::configure, _env, std::placeholders::_1);
+
+        _stm->init();
 
         /*
         * Web interface for settings and status
         */
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Created Web interface. Use HTTP: " + std::to_string(use_http()));
         if(use_http()){
-            create_web(web_port, _stm);
-            if(web()){
-                web()->http::web::WebSettingsItf::start();
-            }
+           _web = std::make_shared<W>(_env->get_web_port());
+           _web->set_web_root(_env->get_web_root());
+           _web->add_dir_map("data", _env->get_csv_data());
+           _web->add_dir_map("json", _env->get_json_data());
+           _web->add_dir_map("static", _env->get_web_root() + "/static");
+
+           _web->start();
         }
+
+        return true;
    }
 
     /*
@@ -555,6 +566,13 @@ private:
     */
     static std::shared_ptr<smachine::StateMachine> _stm;
 
+    /**
+     * @brief
+     *
+     */
+    static std::shared_ptr<E> _env;
+
+
     /*
     * State Machine process ID
     */
@@ -605,9 +623,9 @@ private:
     }
 
 protected:
-    std::shared_ptr<pirobot::PiRobot> _pirobot;
-    std::shared_ptr<smachine::StateFactory> _factory;
-    std::shared_ptr<http::web::WebSettingsItf> _web;
+    std::shared_ptr<Rob> _pirobot;
+    std::shared_ptr<F> _factory;
+    std::shared_ptr<W> _web;
 
     const std::string log_folder = "/var/log/pi-robot/";
     const std::string log_single = "async_log";
@@ -615,11 +633,14 @@ protected:
     const std::string log_daemon = "async_daemon_log";
 };
 
-template<class F, class W>
-pid_t pimain::PiMain<F, W>::_stmPid;
+template<class F, class E, class W>
+pid_t pimain::PiMain<F, E, W>::_stmPid;
 
-template<class F, class W>
-std::shared_ptr<smachine::StateMachine> pimain::PiMain<F, W>::_stm;
+template<class F, class E, class W>
+std::shared_ptr<smachine::StateMachine> pimain::PiMain<F, E, W>::_stm;
+
+template<class F, class E, class W>
+std::shared_ptr<E> pimain::PiMain<F, E, W>::_env;
 
 } //namespace pimain
 #endif

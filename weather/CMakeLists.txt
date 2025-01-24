@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 #project name
-project(weather VERSION 0.9.7)
+project(weather VERSION 1.2.8)
 
 set(DAEMON ${PROJECT_NAME}d)
 
@@ -14,7 +14,7 @@ ENDIF(REAL_HARDWARE)
 
 message( STATUS "THIRD_PARTY_HOME: ${THIRD_PARTY_HOME}")
 
-set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
+set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose")
 set(CJSON "${THIRD_PARTY_HOME}/cJSON")
 
 message( STATUS "THIRD_PARTY_HOME ${THIRD_PARTY_HOME}")
@@ -26,25 +26,28 @@ add_library(libmosquitto SHARED IMPORTED)
 
 IF(REAL_HARDWARE)
     add_library(libpi-utils SHARED IMPORTED)
+IF(USE_SQL_STORAGE)
     add_library(libpi-sql SHARED IMPORTED)
+ENDIF()
     add_library(libpi-library SHARED IMPORTED)
     add_library(libpi-smachine SHARED IMPORTED)
     add_library(libpi-mqtt SHARED IMPORTED)
+    add_library(libpi-env SHARED IMPORTED)
     add_library(libpi-http SHARED IMPORTED)
-ELSE(REAL_HARDWARE)
+ELSE()
     link_directories("${PROJECT_SOURCE_DIR}/../build")
-ENDIF(REAL_HARDWARE)
+ENDIF()
 
 #
 # C++ 11
 #
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("debug mode")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -g -std=c++11 -fexceptions -Wno-psabi -Og")
-ELSE(CMAKE_BUILD_TYPE NOT STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -std=c++17 -fexceptions -Wno-psabi -Og")
+ELSE()
     message("release with debug info mode")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_RELWITHDEBINFO} -std=c++11 -fexceptions -Wno-psabi")
-ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_RELWITHDEBINFO} -std=c++17 -fexceptions -Wno-psabi")
+ENDIF()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -55,16 +58,33 @@ message( STATUS "GCC is ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}" )
 
 
-set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-sql pi-library pi-smachine pi-mqtt pi-http mosquitto pthread dl curl rt)
+set(EXTRA_LIBS ${EXTRA_LIBS} pi-utils pi-library pi-smachine pi-mqtt pi-env pi-http mosquitto pthread dl curl rt)
+IF(USE_SQL_STORAGE)
+set(EXTRA_LIBS ${EXTRA_LIBS} pi-sql)
+ENDIF()
+
+IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+    message(STATUS "Support for 64")
+    find_package(fmt REQUIRED)
+    set(EXTRA_LIBS ${EXTRA_LIBS} fmt)
+ENDIF()
+
+IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
+    message(STATUS "Support for 64 ARM")
+    set(EXTRA_LIBS ${EXTRA_LIBS} fmt)
+ENDIF()
 
 include_directories(BEFORE
     ${CJSON}
     ${PROJECT_SOURCE_DIR}/../pi-utils
     ${PROJECT_SOURCE_DIR}/../pi-main
+IF(USE_SQL_STORAGE)
     ${PROJECT_SOURCE_DIR}/../pi-sql
+ENDIF
+    ${PROJECT_SOURCE_DIR}/../pi-mqtt
+    ${PROJECT_SOURCE_DIR}/../pi-env
     ${PROJECT_SOURCE_DIR}/../pi-library
     ${PROJECT_SOURCE_DIR}/../pi-smachine
-    ${PROJECT_SOURCE_DIR}/../pi-mqtt
     ${PROJECT_SOURCE_DIR}/../pi-http
     ${PROJECT_SOURCE_DIR}/../pi-data
     ${MONGOOSE_HOME}
@@ -98,7 +118,7 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "mosquitto (>= 1.6.8), libpi-robot (>=1.1.0)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto1 (>= 1.6.8), libpi-robot (>=1.1.0)")
 
 # package information
 set(CPACK_PACKAGE_VENDOR ${PROJECT_VENDOR})
@@ -114,9 +134,9 @@ set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
 IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
     set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
-ELSE(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+ELSE()
     set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "armhf")
-ENDIF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+ENDIF()
 set(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
 set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}-${CPACK_DEBIAN_PACKAGE_ARCHITECTURE})
 
@@ -159,5 +179,12 @@ install(DIRECTORY DESTINATION /var/data/pi-robot/data
         GROUP_EXECUTE GROUP_WRITE GROUP_READ
         WORLD_EXECUTE WORLD_WRITE WORLD_READ
     )
+
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/../web DESTINATION /opt/pi-robot
+DIRECTORY_PERMISSIONS
+    OWNER_EXECUTE OWNER_WRITE OWNER_READ
+    GROUP_EXECUTE GROUP_WRITE GROUP_READ
+    WORLD_EXECUTE WORLD_READ
+)
 
 include(CPack)

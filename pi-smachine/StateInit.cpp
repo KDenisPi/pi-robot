@@ -5,6 +5,9 @@
  *      Author: Denis Kudia
  */
 
+
+#include "StateMachine.h"
+#include "PiRobot.h"
 #include "StateInit.h"
 #include "logger.h"
 
@@ -20,22 +23,22 @@ void StateInit::OnEntry(){
 	 * Need to add hardware initialization there.
 	 * Also to check hardware state and configuration
 	 */
-	if( !get_robot()->configure("")){
+	if( !GET_ROBOT()->configure("")){
 		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Hardware configuration failed. Stop.");
-		finish(); //Generate FINISH Event
+		StateMachine::class_instance->finish(); //Generate FINISH Event
 	}
 
 	/*
 	 * Start Hardware components
 	 */
-	if( !get_robot()->start()){
+	if( !GET_ROBOT()->start()){
 		logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Hardware configuration failed. Stop.");
 		//Generate FINISH Event
-		finish();
+		STM_FINISH();
 	}
 
 	//temporal solution
-	state_change(get_first_state());
+	STM_STATE_CHANGE2FIRST();
 
 	logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnEntry finished");
 }

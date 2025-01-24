@@ -9,10 +9,15 @@ include_directories(AFTER
 
 aux_source_directory(${PROJECT_SOURCE_DIR} PI_CORE_SOURCES)
 add_library(pi-core SHARED ${PI_CORE_SOURCES})
-#add_library(pi-core-dev STATIC ${PI_CORE_SOURCES})
-
 add_library(PiRobot::pi-core ALIAS pi-core)
-#add_library(PiRobotStatic::pi-core-dev ALIAS pi-core-dev)
+
+if(MAKE_STATIC_LIB)
+add_library(pi-core-dev STATIC ${PI_CORE_SOURCES})
+endif(MAKE_STATIC_LIB)
+
+if(MAKE_DEV_LIB)
+add_library(PiRobotStatic::pi-core-dev ALIAS pi-core-dev)
+endif(MAKE_DEV_LIB)
 
 install(TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}-t

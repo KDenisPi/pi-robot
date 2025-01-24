@@ -38,10 +38,24 @@ namespace piutils {
 */
 void get_time(std::tm& result, std::time_t& time_now,const bool local_time = false);
 
-/*
-* Check if file exist and available
-*/
-bool chkfile(const std::string& fname);
+/**
+ * @brief Check if file exist and available
+ *
+ * @param fname
+ * @param file_only - true check if path is regular file
+ * @return true
+ * @return false
+ */
+bool chkfile(const std::string& fname, const bool file_only = false);
+
+/**
+ * @brief If the file is regular file
+ *
+ * @param fname
+ * @return true
+ * @return false
+ */
+bool is_regular_file(const std::string& fname);
 
 /*
 * Return time string with format 'Mon, 29 Aug 2018 16:00:00 +1100'

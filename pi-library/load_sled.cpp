@@ -29,7 +29,7 @@ bool PiRobot::load_sled(const std::shared_ptr<piutils::cjson_wrap::CJsonWrap>& c
                         (spi_channel == 0 ? spi::SPI_CHANNELS::SPI_0 : spi::SPI_CHANNELS::SPI_1)
                     ));
 
-        auto sledctrl = std::static_pointer_cast<pirobot::item::sledctrl::SLedCtrlSpi>(get_item(item_name));
+        auto sledctrl = get_item<pirobot::item::sledctrl::SLedCtrlSpi>(item_name);
 
         const auto json_sled = cjson->get_array(json_item, std::string("stripe"));
         auto stripe = cjson->get_first(json_sled);

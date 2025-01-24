@@ -12,103 +12,72 @@
 #include <pthread.h>
 
 #include "logger.h"
-#include "timers.h"
 #include "StateMachine.h"
 #include "StateInit.h"
-#include "Timers.h"
 
 namespace smachine {
 
 const char TAG[] = "smash";
 
-StateMachine::StateMachine(const std::shared_ptr<StateFactory> factory,
-    const std::shared_ptr<pirobot::PiRobot> pirobot) :
-        m_factory(factory),
-        m_pirobot(pirobot)
+
+StateMachine* StateMachine::class_instance = nullptr;
+
+StateMachine::StateMachine()
 {
+    class_instance = this;
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
 
     ////std::cout  "StateMachine::StateMachine started" << std::endl;
 
-    m_timers = std::make_shared<Timers>(this);
+    m_timers = std::make_shared<timer::Timers2>();
     m_states = std::make_shared<std::list<std::shared_ptr<state::State>>>();
 
-    /*
-    * Create project environment and load value for parameters
-    */
-    m_env = m_factory->get_environment();
-    bool ctxt_init = m_env->configure(m_factory->get_configuration());
-    if(!ctxt_init){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not load environment configuration");
-        ////std::cout  "StateMachine::StateMachine finish" << std::endl;
-		finish();
-    }
-
-    //Start timers
-    m_timers->start();
-
-    if( !start()){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " State machine could not start!");
-        //TODO: throw exception here?
-    }
-
-    //set callback function for hardware calls
-    if(pirobot){
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Created callback notification function");
-        pirobot->stm_notification = std::bind(&StateMachine::process_robot_notification, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-    }
 
     ////std::cout  "StateMachine::StateMachine finished" << std::endl;
 
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Finished");
 }
 
-/*
-* Start State machine execution from the beginning
-*/
-void StateMachine::run(){
-    //Add first event
-     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-     put_event(std::make_shared<Event>(EVT_CHANGE_STATE, "StateInit"));
-}
-
-const std::string StateMachine::get_first_state(){
-    return m_factory->get_first_state();
-}
-
-
-
-void StateMachine::state_push(const std::shared_ptr<state::State> state){
-    get_states()->push_front(state);
-
-    const std::string stack = print_state_stack();
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + stack);
-}
-
-/*
+/**
+ * @brief
  *
+ * @return true
+ * @return false
  */
-bool StateMachine::start(){
+const bool StateMachine::init(){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-    return piutils::Threaded::start<StateMachine>(this);
+
+    m_timers->put_event = std::bind(&StateMachine::add_event, this, std::placeholders::_1);
+    m_timers->init();
+
+    /*
+    * Create project environment and load value for parameters
+    */
+    bool ctxt_init = configure_environment(get_robot()->get_configuration());
+    if(!ctxt_init){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not load environment configuration");
+        ////std::cout  "StateMachine::StateMachine finish" << std::endl;
+		finish();
+        return false;
+    }
+
+    if( !start()){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " State machine could not start!");
+        return false;
+    }
+
+    //set callback function for hardware calls
+    if(get_robot()){
+        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Created callback notification function");
+        get_robot()->stm_notification = std::bind(&StateMachine::process_robot_notification, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    }
+
+    return true;
 }
 
-/*
- * Temporal: Wait for processing.
- */
-void StateMachine::wait(){
-    piutils::Threaded::wait();
-}
 
-/*
- *
- */
-void StateMachine::stop(){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started.");
-    piutils::Threaded::stop();
-}
-
-/*
+/**
+ * @brief Destroy the State Machine:: State Machine object
  *
  */
 StateMachine::~StateMachine() {
@@ -120,7 +89,7 @@ StateMachine::~StateMachine() {
     this->stop();
     // Stop Equipment
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Stopping PI Robot");
-    m_pirobot->stop();
+    get_robot()->stop();
 
     //Stop Timers support
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Stopping Timers");
@@ -150,68 +119,17 @@ const std::shared_ptr<Event> StateMachine::get_event(){
  *
  */
 void StateMachine::put_event(const std::shared_ptr<Event>& event, bool force){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Event:" + event->name() + " ID: " + std::to_string(event->id()));
-
-    ////std::cout  "put_event " << event->name() <<  std::endl;
-
+    //logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Event:" + event->name() + " ID: " + std::to_string(event->id()));
     {
         std::lock_guard<std::mutex> lock(mutex_sm);
-        ////std::cout  "put_event lock " << event->name() << std::endl;
         if(force){
             std::queue<std::shared_ptr<Event>> events_empty;
             m_events.swap(events_empty);
         }
         m_events.push(std::move(event));
     }
-
-    ////std::cout  "put_event notify " << event->name() << std::endl;
     cv.notify_one();
 }
-
-/*
- *
- */
-void StateMachine::finish(){
-    put_event(std::make_shared<Event>(EVENT_TYPE::EVT_FINISH, "Finish"));
-}
-
-/*
- *
- */
-void StateMachine::state_change(const std::string& new_state){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Generate event Change state to: " + new_state);
-    put_event(std::make_shared<EventChangeState>(new_state));
-}
-
-/*
- *
- */
-void StateMachine::state_pop(){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Pop State");
-    put_event(std::make_shared<Event>(EVENT_TYPE::EVT_POP_STATE, "PopState"));
-}
-
-/*
- *
- */
-bool StateMachine::timer_start(const int timer_id, const time_t interval, const bool interval_timer){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-    return this->m_timers->create_timer(std::make_shared<Timer>(timer_id, interval, 0, interval_timer));
-}
-
-/*
- *
- */
-bool StateMachine::timer_cancel(const int timer_id){
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Started");
-    return this->m_timers->cancel_timer(timer_id);
-}
-
-//check if timer is running
-bool StateMachine::timer_check(const int timer_id){
-    return m_timers->is_timer(timer_id);
-}
-
 
 /*
  *
@@ -306,7 +224,7 @@ void StateMachine::process_finish_event(){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " Process FINISH event");
 
     try{
-        m_pirobot->stop();
+        get_robot()->stop();
     }
     catch(...){
 
@@ -391,12 +309,7 @@ void StateMachine::process_change_state(const std::shared_ptr<Event>& event){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + cname);
 
         bool new_state = true;
-        auto newstate = (cname == "StateInit") ? std::make_shared<smachine::state::StateInit>(dynamic_cast<StateMachineItf*>(this)) : m_factory->get_state(cname, dynamic_cast<StateMachineItf*>(this));
-/*
-        auto newstate = (cname == "StateInit" ?
-            std::make_shared<smachine::state::StateInit>(std::shared_ptr<StateMachineItf>(dynamic_cast<StateMachineItf*>(this))) :
-            m_factory->get_state(cname, std::shared_ptr<StateMachineItf>(dynamic_cast<StateMachineItf*>(this))));
-*/
+        auto newstate = (cname == "StateInit") ? std::make_shared<smachine::state::StateInit>() : get_state(cname);
         if( !newstate ){
             logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Not supported state: " + cname);
             return;
@@ -500,6 +413,5 @@ void StateMachine::process_robot_notification(int itype, std::string& name, void
     }
 
 }
-
 
 } /* namespace smachine */

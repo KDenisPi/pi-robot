@@ -18,7 +18,7 @@ namespace weather {
 
 class StMeasurement : public smachine::state::State {
 public:
-    StMeasurement(smachine::StateMachineItf* itf) : smachine::state::State(itf, "StMeasurement") {}
+    StMeasurement() : smachine::state::State("StMeasurement") {}
     virtual ~StMeasurement(){}
 
     virtual void OnEntry() override;
@@ -28,7 +28,7 @@ public:
     //take measurement from all sensors
     void measure();
     //stop measurement and save current state
-    void finish();
+    void save_data_and_finish();
     //update information on LCD screen
     void update_lcd();
 

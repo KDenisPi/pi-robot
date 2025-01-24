@@ -7,16 +7,32 @@
  *      Author: Denis Kudia
  */
 
+#include <sys/stat.h>
 #include "smallthings.h"
+
 namespace piutils {
 
 /*
 * Check if file exist and available
 */
-bool chkfile(const std::string& fname){
+bool chkfile(const std::string& fname, const bool file_only/* = false*/){
     int res = access(fname.c_str(), F_OK);
+    if(res==0 && file_only){
+      return is_regular_file(fname);
+    }
     return (res == 0);
 }
+
+bool is_regular_file(const std::string& fname){
+  struct stat statbuf;
+  int i_res = stat(fname.c_str(), &statbuf);
+  if(i_res==0 && S_ISREG(statbuf.st_mode)){
+    return true;
+  }
+
+  return false;
+}
+
 
 //
 // Get current time on UTC or local

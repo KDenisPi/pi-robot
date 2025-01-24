@@ -1,5 +1,8 @@
 #!/bin/sh
 
+ #sudo apt-get install libraspberrypi-dev raspberrypi-kernel-headers
+
+
 if [ ! -d ../third-party ]
 then
   mkdir ../third-party

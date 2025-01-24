@@ -21,14 +21,7 @@ public:
 
 	virtual ~WeatherStFactory() {}
 
-	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& state_name, smachine::StateMachineItf* itf) override;
-
-	/*
-	 * Create Environment object
-	 */
-	virtual std::shared_ptr<smachine::Environment> get_environment() override {
-		return std::make_shared<Context>();
-	}
+	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& state_name) override;
 };
 
 } /* namespace weather */

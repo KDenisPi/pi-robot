@@ -23,25 +23,30 @@ public:
 
 	StateFactory(){}
 
+	/**
+	 * @brief Destroy the State Factory object
+	 *
+	 */
 	virtual ~StateFactory() {
 	    //std::cout <<  "StateFactory::~StateFactory finished" << std::endl;
 	}
 
-	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& state_name, smachine::StateMachineItf* itf){
-		logger::log(logger::LLOG::DEBUG, "StFact", std::string(__func__) + " State:" + state_name);
-		return std::make_shared<smachine::state::State>(itf, state_name);
-	}
-
-	/*
-	 * Create Environment object
+	/**
+	 * @brief Get the state object
+	 *
+	 * @param state_name
+	 * @return const std::shared_ptr<smachine::state::State>
 	 */
-	virtual std::shared_ptr<smachine::Environment> get_environment(){
-		return std::make_shared<smachine::Environment>();
+	virtual const std::shared_ptr<smachine::state::State> get_state(const std::string& state_name = ""){
+		logger::log(logger::LLOG::DEBUG, "StFact", std::string(__func__) + " State:" + state_name);
+		return std::make_shared<smachine::state::State>(state_name.empty() ? _firstState : state_name);
 	}
 
-	/*
-	* Return the first state of State Machine
-	*/
+	/**
+	 * @brief Return the first state of State Machine
+	 *
+	 * @return const std::string
+	 */
 	const std::string get_first_state() const {
 		return _firstState;
 	}

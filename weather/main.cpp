@@ -14,10 +14,11 @@
 
 using namespace std;
 
+using tm_type = pimain::PiMain<weather::WeatherStFactory,weather::Context, weather::web::WebWeather>;
+
 int main (int argc, char* argv[])
 {
-  std::shared_ptr<pimain::PiMain<weather::WeatherStFactory,weather::web::WebWeather>> pmain =
-      std::make_shared<pimain::PiMain<weather::WeatherStFactory,weather::web::WebWeather>>("weather");
+  std::shared_ptr<tm_type> pmain = std::make_shared<tm_type>("weather");
 
   pmain->load_configuration(argc, argv);
   pmain->run();

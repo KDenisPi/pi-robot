@@ -10,12 +10,13 @@
 
 #include "StateMachine.h"
 #include "defines.h"
+#include "Context.h"
 
 namespace tmain {
 
 class StInit : public smachine::state::State {
 public:
-    StInit(smachine::StateMachineItf* itf) : smachine::state::State(itf, "StInit") {
+    StInit() : smachine::state::State("StInit") {
         ////std::cout  "StInit::StInit" << std::endl;
     }
 
@@ -24,29 +25,38 @@ public:
     }
 
     virtual void OnEntry() override {
-        ////std::cout  "StInit OnEntry()" << std::endl;
+        logger::log(logger::LLOG::DEBUG, "StInit", std::string(__func__));
 
-        timer_create(TIMER_1, 7);
-        timer_create(TIMER_2, 3);
+        const auto ctx = GET_ENV(tmain::Context);
+        auto name = ctx->name();
+        logger::log(logger::LLOG::DEBUG, "StInit", std::string(__func__) + " Name: " + name);
+
+
+        init_timer(TIMER_1, 10, 0, false);
+        init_timer(TIMER_2, 2, 0, true);
+        init_timer(TIMER_3, 1, 0, false);
     }
 
     virtual bool OnTimer(const int id) override {
-        logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " OnTimer ID: " + std::to_string(id));
-
-        ////std::cout  "Timer " << std::to_string(id) << std::endl;
+        logger::log(logger::LLOG::DEBUG, "StInit", std::string(__func__) + " OnTimer ID: " + std::to_string(id));
 
         switch(id){
             case TIMER_1:
             {
-                finish();
+                STM_FINISH();
                 return true;
             }
             case TIMER_2:
             {
-                timer_create(TIMER_3, 3);
+                init_timer(TIMER_4, 1, 0, false);
                 return true;
             }
             case TIMER_3:
+            {
+                STM_STATE_CHANGE("StNext")
+                return true;
+            }
+            case TIMER_4:
             {
                 return true;
             }
@@ -56,11 +66,12 @@ public:
     }
 
     virtual bool OnEvent(const std::shared_ptr<smachine::Event> event) override {
+        logger::log(logger::LLOG::DEBUG, "StInit", std::string(__func__));
         return true;
     }
 
     virtual void OnSubstateExit(const std::string substate_name) override {
-
+        logger::log(logger::LLOG::DEBUG, "StInit", std::string(__func__) + " " + substate_name);
     }
 
 };

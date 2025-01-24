@@ -20,7 +20,7 @@ add_executable(testDma test_dma.cpp)
 add_executable(testPwm test_pwm.cpp)
 add_executable(testMBox test_mbox.cpp)
 
-set(TEST_DMA_LIBS pi-utils pi-library pi-core pthread crypt rt)
+set(TEST_DMA_LIBS pi-utils pi-library pi-core pthread crypt rt ${EXTRA_LIBS})
 
 if(REAL_HARDWARE)
     find_library(BCM_HOST_LIB bcm_host PATH "/opt/vc/lib")

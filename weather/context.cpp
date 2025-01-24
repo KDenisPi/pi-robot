@@ -18,7 +18,7 @@ bool Context::load_initial_data(const std::string& filename){
 
     const std::unique_ptr<piutils::floader::Floader> fl = std::unique_ptr<piutils::floader::Floader>(new piutils::floader::Floader(filename));
     if(!fl->is_success()){
-        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + "Could not load file " + fl->get_name() + " Error: " + std::to_string(fl->get_err()));
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Could not load file " + fl->get_name() + " Error: " + std::to_string(fl->get_err()));
         return false;
     }
 
@@ -30,7 +30,7 @@ bool Context::load_initial_data(const std::string& filename){
     }
 
     try{
-        version = cjson->get_attr_string_def(cjson->get(), "version", "0.9");
+        version = cjson->get_attr_string_def(cjson->get(), "version", "1.0");
 
         //
         // This values used for Spg30 calibration

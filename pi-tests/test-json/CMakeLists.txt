@@ -11,7 +11,7 @@ include_directories(BEFORE
 
 add_executable(test_cjson test_cjson.cpp)
 
-set(TEST_JSON_LIBS  ${TEST_LIBS})
+set(TEST_JSON_LIBS  pi-utils pthread crypt rt ${EXTRA_LIBS})
 
 target_link_libraries(test_cjson ${TEST_JSON_LIBS})
 

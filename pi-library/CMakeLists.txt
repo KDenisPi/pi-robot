@@ -14,10 +14,15 @@ aux_source_directory(${PROJECT_SOURCE_DIR} PI_LIBRARY_SOURCES)
 configure_file(version.h.in ${PROJECT_SOURCE_DIR}/version.h)
 
 add_library(pi-library SHARED ${PI_LIBRARY_SOURCES})
-add_library(pi-library-dev STATIC ${PI_LIBRARY_SOURCES})
-
 add_library(PiRobot::pi-library ALIAS pi-library)
+
+if(MAKE_STATIC_LIB)
+add_library(pi-library-dev STATIC ${PI_LIBRARY_SOURCES})
+endif(MAKE_STATIC_LIB)
+
+if(MAKE_DEV_LIB)
 add_library(PiRobotStatic::pi-library-dev ALIAS pi-library-dev)
+endif(MAKE_DEV_LIB)
 
 install(TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}-t

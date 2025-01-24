@@ -19,7 +19,7 @@ add_executable(test_gpio test_gpio_simple.cpp)
 add_executable(test_gpio_pull test_gpio_simple_pull.cpp)
 add_executable(test_gpio_edge test_gpio_simple_edge.cpp)
 
-set(TEST_GPIO_LIBS pi-library ${TEST_LIBS})
+set(TEST_GPIO_LIBS pi-library pi-utils pthread crypt rt ${EXTRA_LIBS})
 
 if(REAL_HARDWARE)
     find_library(BCM_HOST_LIB bcm_host PATH "/opt/vc/lib")

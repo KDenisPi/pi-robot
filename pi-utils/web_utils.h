@@ -19,9 +19,12 @@ using PageContent = std::string;
 class WebUtils {
 
 public:
-    //
-    // Load page content
-    //
+    /**
+     * @brief Load page content
+     *
+     * @param filename
+     * @return const PageContent
+     */
     static const PageContent load_page(const std::string& filename){
         PageContent page;
         std::ifstream istrm(filename, std::ios::binary);
@@ -33,9 +36,15 @@ public:
         return page;
     }
 
-    //
-    //Replace field by value
-    //
+    /**
+     * @brief Replace field by value
+     *
+     * @param src
+     * @param values
+     * @param v_start
+     * @param v_end
+     * @return const std::string
+     */
     static const std::string replace_values(const std::string& src, const std::map<std::string, std::string>& values,
         const std::string& v_start = "<!--{", const std::string& v_end = "}-->"){
 

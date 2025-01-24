@@ -230,9 +230,7 @@ bool PiRobot::configure(const std::string& cfile){
                         auto value_diff_for_event  =  cjson->get_attr_def<int>(json_item, "value_diff_for_event", 0);
 
                         items_add(item_name, std::make_shared<pirobot::anlglightmeter::AnalogLightMeter>(
-                                std::static_pointer_cast<pirobot::analogdata::AnalogDataProviderItf>(
-                                    std::static_pointer_cast<pirobot::mcp320x::MCP320X>(get_item(ad_convertor))
-                                ),
+                                std::static_pointer_cast<pirobot::analogdata::AnalogDataProviderItf>(get_item<pirobot::mcp320x::MCP320X>(ad_convertor)),
                                 item_name,
                                 item_comment,
                                 analog_input_index,
@@ -253,12 +251,12 @@ bool PiRobot::configure(const std::string& cfile){
                         logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Item: " + item_name + " AD conv: " + ad_convertor);
 
                         items_add(item_name, std::make_shared<pirobot::analogmeter::AnalogMeterSimple>(
-                                std::static_pointer_cast<pirobot::analogdata::AnalogDataProviderItf>(std::static_pointer_cast<pirobot::mcp320x::MCP320X>(get_item(ad_convertor))),
+                                std::static_pointer_cast<pirobot::analogdata::AnalogDataProviderItf>(get_item<pirobot::mcp320x::MCP320X>(ad_convertor)),
                                 item_name,
                                 item_comment
                             ));
 
-                        auto ameter = std::static_pointer_cast<pirobot::analogmeter::AnalogMeterSimple>(get_item(item_name));
+                        auto ameter = get_item<pirobot::analogmeter::AnalogMeterSimple>(item_name);
 
                         const auto json_pins = cjson->get_array(json_item, std::string("pins"));
                         auto meter = cjson->get_first(json_pins);

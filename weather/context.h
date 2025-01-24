@@ -18,9 +18,9 @@
 
 namespace weather {
 
-class Context : public smachine::Environment {
+class Context : public smachine::env::Environment {
 public:
-    Context() : version("0.9"), ip4_address(""), ip6_address(""), _CO2_level(0), _TVOC_level(0) {
+    Context() : version("1.0"), ip4_address(""), ip6_address(""), _CO2_level(0), _TVOC_level(0) {
 
     }
 
@@ -46,12 +46,22 @@ public:
     */
     std::string _db_name = _data_path + "/weather.db";
     std::string _data_list_file = _data_path + "/datafiles.csv";
+    std::string initial_data = _data_path + "/initial.json";
+
+    /**
+     * @brief Get the initial data file object
+     * 
+     * @return const std::string 
+     */
+    const std::string get_initial_data_file() const {
+        return initial_data;
+    }
 
     // Measurement data
     Measurement data;
 
     int light_off_on_diff = 600; //difference between light OFF and lights ON
-    int light_low_level = 10;
+    int light_low_level = 30;
 
     const bool show_temperature_in_celcius() const {
         return _temp_C;

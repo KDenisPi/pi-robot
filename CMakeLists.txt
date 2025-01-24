@@ -1,27 +1,41 @@
 cmake_minimum_required(VERSION 3.12)
 
 #project name
-set(VER_MJR 1)
-set(VER_MIN 2.5)
+project(pi-robot VERSION 1.4.0)
 
-project(pi-robot VERSION ${VER_MJR}.${VER_MIN})
 enable_testing()
 
 set(PI_VER ${PROJECT_VERSION})
 
+set(MAKE_STATIC_LIB 0)
+message( STATUS "MAKE_STATIC_LIB: ${MAKE_STATIC_LIB}")
+set(MAKE_DEV_LIB 0)
+message( STATUS "MAKE_DEV_LIB: ${MAKE_DEV_LIB}")
+
+#
+# Let's exclude not used now type of storages
+#
+# USE_SQL_STORAGE
+# USE_WEB_SERVER
+# USE_DATA_MQTT
+#
+
 message( STATUS "REAL_HARDWARE:  ${REAL_HARDWARE}" )
 IF(REAL_HARDWARE)
     set(THIRD_PARTY_HOME "${CMAKE_SOURCE_DIR}/../third-party")
-ELSE(REAL_HARDWARE)
-    set(REAL_HARDWARE 0)
+ELSE()
     set(THIRD_PARTY_HOME "$ENV{HOME}/third-party")
-ENDIF(REAL_HARDWARE)
+ENDIF()
 
 message( STATUS "THIRD_PARTY_HOME: ${THIRD_PARTY_HOME}")
 
-set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose-5.1")
+set(MONGOOSE_HOME "${THIRD_PARTY_HOME}/mongoose")
 set(MONGOOSE_SRC "${MONGOOSE_HOME}/mongoose.c")
+
+IF(USE_SQL_STORAGE)
 set(SQLITE3_HOME "${THIRD_PARTY_HOME}/sqlite-amalgamation-3240000")
+ENDIF(USE_SQL_STORAGE)
+
 set(CJSON "${THIRD_PARTY_HOME}/cJSON")
 
 message( STATUS "CJSON: ${CJSON}")
@@ -43,11 +57,11 @@ endif()
 #
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("debug mode")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -g -std=c++17 -fexceptions -Wno-psabi -Og")
-ELSE(CMAKE_BUILD_TYPE NOT STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -std=c++17 -fexceptions -Wno-psabi -Og")
+ELSE()
     message("release with debug info mode")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS_RELWITHDEBINFO} -std=c++17 -fexceptions -Wno-psabi")
-ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+ENDIF()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -67,19 +81,31 @@ message( STATUS "CMAKE_C_FLAGS:  ${CMAKE_C_FLAGS}" )
 add_library(libmosquitto SHARED IMPORTED)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} mosquitto)
-message( STATUS "EXTRA_LIBS:  ${EXTRA_LIBS}")
 
-#include_directories(BEFORE
-#    /usr/include
-#)
+message( STATUS "CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
 
-#get_directory_property (INC_DIRS INCLUDE_DIRECTORIES)
-#message( STATUS "INCLUDE_DIRECTORIES:  ${INC_DIRS}")
+IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+    message(STATUS "Support for 64")
+    find_package(fmt REQUIRED)
+    set(EXTRA_LIBS  ${EXTRA_LIBS} fmt)
+ENDIF()
+
+IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
+    message(STATUS "Support for 64 ARM")
+    set(EXTRA_LIBS  ${EXTRA_LIBS} fmt)
+ENDIF()
+
+message( STATUS "EXTRA_LIBS: ${EXTRA_LIBS}")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-utils)
-#add_subdirectory(${PROJECT_SOURCE_DIR}/pi-core)
-add_subdirectory(${PROJECT_SOURCE_DIR}/pi-sql)
+add_subdirectory(${PROJECT_SOURCE_DIR}/pi-core)
+
+IF(USE_SQL_STORAGE)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/pi-sql)
+ENDIF()
+
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-mqtt)
+add_subdirectory(${PROJECT_SOURCE_DIR}/pi-env)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-http)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-library)
 add_subdirectory(${PROJECT_SOURCE_DIR}/pi-smachine)
@@ -105,7 +131,7 @@ set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_NAME lib${PROJECT_NAME})
 
 #libspdlog
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "mosquitto (>= 1.6.8)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmosquitto1 (>= 1.6.8)")
 
 # package information
 set(CPACK_PACKAGE_VENDOR ${PROJECT_VENDOR})
@@ -119,13 +145,15 @@ set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
-message( STATUS "CMAKE_SYSTEM_PROCESSOR:  ${CMAKE_SYSTEM_PROCESSOR}" )
-
-IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
-    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
-ELSE(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+IF(TCHAIN)
     set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "armhf")
-ENDIF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+ELSE()
+    IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+        set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+    ELSE(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+        set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "armhf")
+    ENDIF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+ENDIF()
 
 set(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
 set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}-${CPACK_DEBIAN_PACKAGE_ARCHITECTURE})
@@ -133,8 +161,12 @@ set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPA
 message( STATUS "CPACK_DEBIAN_PACKAGE_ARCHITECTURE:  ${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}" )
 
 install(EXPORT pi-utils-t NAMESPACE PiRobot DESTINATION lib)
-#install(EXPORT pi-core-t NAMESPACE PiRobot DESTINATION lib)
-install(EXPORT pi-sql-t NAMESPACE PiRobot DESTINATION lib)
+install(EXPORT pi-core-t NAMESPACE PiRobot DESTINATION lib)
+
+IF(USE_SQL_STORAGE)
+    install(EXPORT pi-sql-t NAMESPACE PiRobot DESTINATION lib)
+ENDIF(USE_SQL_STORAGE)
+
 install(EXPORT pi-mqtt-t NAMESPACE PiRobot DESTINATION lib)
 install(EXPORT pi-http-t NAMESPACE PiRobot DESTINATION lib)
 install(EXPORT pi-library-t NAMESPACE PiRobot DESTINATION lib)
