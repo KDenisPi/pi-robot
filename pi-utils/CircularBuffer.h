@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <mutex>
+#include <atomic>
 
 #include <iostream>
 
@@ -76,18 +77,17 @@ public:
     /*
     *
     */
-    const T& get(){
+    T get(){
         ////std::cout << "CircularBuffer " + std::string(__func__) + " Get started" << " Size: " << std::to_string(m_size)<< std::endl;
         std::lock_guard<std::mutex> lk(cv_m);
 
         const int ptail = tail_;
         if(!is_empty()){
             tail_ = (tail_ + 1 >= max_size_ ? 0 : tail_+1);
+            m_size--;
         }
-        m_size--;
 
-        const T& item = std::move(buffer[ptail]);
-        return item;
+        return std::move(buffer[ptail]);
     }
 
     /*
@@ -95,8 +95,8 @@ public:
     */
     const void empty(){
         std::lock_guard<std::mutex> lk(cv_m);
-        //TODO: Delete elements
         tail_ = head_;
+        m_size = 0;
     }
 
     /*
@@ -108,7 +108,7 @@ public:
 
 private:
     T* buffer;
-    int m_size;
+    std::atomic<int> m_size;
 
     //T m_last_value;
     int tail_ = 0;

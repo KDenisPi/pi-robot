@@ -139,7 +139,7 @@ public:
     /*
     *
     */
-    const std::shared_ptr<MqttObject>& get(){
+    std::shared_ptr<MqttObject> get(){
         return m_messages->get();
     }
 
@@ -207,7 +207,7 @@ public:
             while(owner->is_connected() && !owner->is_empty() && !owner->is_stop_signal()){
 
                 //Publish message here
-                const std::shared_ptr<MqttObject>& item = owner->get();
+                const std::shared_ptr<MqttObject> item = owner->get();
                 owner->put(item);
 
                 logger::log(logger::LLOG::DEBUG, TAG_CL, std::string(__func__) + " Message sent ");

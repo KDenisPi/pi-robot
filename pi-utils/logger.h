@@ -55,7 +55,7 @@ public:
         return !m_buff->is_empty();
     }
 
-    const log_message_type& get(){
+    log_message_type get(){
         return m_buff->get();
     }
 
