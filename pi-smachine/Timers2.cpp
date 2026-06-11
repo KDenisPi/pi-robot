@@ -66,16 +66,13 @@ void Timers2::stop(){
  */
 const bool Timers2::init(){
     struct sigaction sa;
-    struct sigevent sev;
-    sigset_t new_set, org_set;
+    sigset_t new_set;
 
     logger::log(logger::LLOG::INFO, TAG, std::string(__func__));
 
-    /* Unblock processing for TIMER_SIG signal*/
-    sigemptyset (&new_set);
-    sigaddset (&new_set, TIMER_SIG);
-    sigprocmask(SIG_UNBLOCK, &new_set, &org_set);
-    pthread_sigmask(SIG_BLOCK, &new_set, &org_set);
+    sigemptyset(&new_set);
+    sigaddset(&new_set, TIMER_SIG);
+    pthread_sigmask(SIG_UNBLOCK, &new_set, nullptr);
 
     sa.sa_flags = SA_SIGINFO;
     sa.sa_sigaction = Timers2::handler;
