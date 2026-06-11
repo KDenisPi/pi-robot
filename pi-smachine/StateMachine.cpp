@@ -271,24 +271,24 @@ bool StateMachine::process_event(const std::shared_ptr<Event>& event){
  */
 void StateMachine::process_pop_state(const std::shared_ptr<Event>& event){
     logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " pop state");
-    auto state =  get_states()->front();
+
+    if(get_states()->empty()){
+        logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " State stack is empty");
+        return;
+    }
+
+    auto state = get_states()->front();
     const std::string substate_name = state->get_name();
     try{
-        /*
-         *
-         */
         state->OnExit();
-
-        /*
-         * Remove the first element
-         */
         get_states()->pop_front();
 
         const std::string stack = print_state_stack();
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + stack);
 
-        auto front_state = get_states()->front();
-        front_state->OnSubstateExit(substate_name);
+        if(!get_states()->empty()){
+            get_states()->front()->OnSubstateExit(substate_name);
+        }
     }
     catch(std::exception& exc){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + exc.what());
@@ -309,37 +309,33 @@ void StateMachine::process_change_state(const std::shared_ptr<Event>& event){
         logger::log(logger::LLOG::NECECCARY, TAG, std::string(__func__) + " state name: " + cname);
 
         bool new_state = true;
-        auto newstate = (cname == "StateInit") ? std::make_shared<smachine::state::StateInit>() : get_state(cname);
-        if( !newstate ){
-            logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Not supported state: " + cname);
-            return;
-        }
-
-
         for (const auto& state : *(get_states())) {
-            if(state == newstate){
+            if(state->get_name() == cname){
                 new_state = false;
                 break;
             }
         }
-        /*
-         *
-         */
-        if(!new_state){
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " state with name present : " + cname);
 
-            while(get_states()->front() != newstate){
+        if(!new_state){
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " state already in stack, rolling back to: " + cname);
+
+            while(!get_states()->empty() && get_states()->front()->get_name() != cname){
+                get_states()->front()->OnExit();
                 get_states()->pop_front();
             }
-            newstate.reset();
         }
         else{
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " no such state, add : " + newstate->get_name());
+            auto newstate = (cname == "StateInit") ? std::make_shared<smachine::state::StateInit>() : get_state(cname);
+            if( !newstate ){
+                logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + " Not supported state: " + cname);
+                return;
+            }
+
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " no such state, add: " + newstate->get_name());
             get_states()->push_front(newstate);
 
-            auto front_state = get_states()->front();
-            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Front state. call OnEntry for : " + front_state->get_name());
-            front_state->OnEntry();
+            logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + " Front state. call OnEntry for: " + newstate->get_name());
+            newstate->OnEntry();
         }
 
     }
