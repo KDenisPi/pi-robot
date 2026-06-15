@@ -320,7 +320,7 @@ public:
         std::string result = "SPI\n";
         result += " Channels: " + std::to_string(m_channels);
         for(int i = 0; i < m_channels; i++){
-            result += " Channel: " + std::to_string(i+1) = " Speed: " + std::to_string(m_speed[i]) + " Mode: " + std::to_string(m_mode[i]) + "\n";
+            result += " Channel: " + std::to_string(i+1) + " Speed: " + std::to_string(m_speed[i]) + " Mode: " + std::to_string(m_mode[i]) + "\n";
         }
         return result;
     }

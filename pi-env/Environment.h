@@ -43,8 +43,11 @@ public:
     */
    virtual const std::string get_start_time(const bool utc = false) const {
         char buff[128];
+        std::tm tm_buf;
         std::time_t time_now = std::chrono::system_clock::to_time_t(_start_time);
-        std::strftime(buff, sizeof(buff), "%T %Y-%m-%d", (utc ? std::gmtime(&time_now) : std::localtime(&time_now)));
+        if (utc) gmtime_r(&time_now, &tm_buf);
+        else localtime_r(&time_now, &tm_buf);
+        std::strftime(buff, sizeof(buff), "%T %Y-%m-%d", &tm_buf);
 
         return std::string(buff);
    }

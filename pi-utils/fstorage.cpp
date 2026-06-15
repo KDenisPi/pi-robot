@@ -3,7 +3,7 @@
 namespace piutils {
 namespace fstor {
 
-std::list<std::string> FStorage::dfiles;
+thread_local std::list<std::string> FStorage::dfiles;
 
 }
 }

@@ -42,9 +42,8 @@ void get_time(std::tm& result, std::time_t& time_now, const bool local_time){
     tp = std::chrono::system_clock::now();
     time_now = std::chrono::system_clock::to_time_t(tp);
 
-    //TODO Add semaphore
-    std::tm* tm = (local_time ? std::localtime(&time_now) : std::gmtime(&time_now));
-    std::memcpy(&result, tm, sizeof(std::tm));
+    if (local_time) localtime_r(&time_now, &result);
+    else gmtime_r(&time_now, &result);
 }
 
 //
@@ -57,7 +56,10 @@ const std::string get_time_string(const bool local_time){
 
   tp = std::chrono::system_clock::now();
   std::time_t time_now = std::chrono::system_clock::to_time_t(tp);
-  if(std::strftime(mtime, sizeof(mtime), "%a, %d %b %Y %H:%M:%S %z", (local_time ? std::localtime(&time_now) : std::gmtime(&time_now))))
+  std::tm tm_buf;
+  if (local_time) localtime_r(&time_now, &tm_buf);
+  else gmtime_r(&time_now, &tm_buf);
+  if(std::strftime(mtime, sizeof(mtime), "%a, %d %b %Y %H:%M:%S %z", &tm_buf))
     return std::string(mtime);
 
   //Exception?

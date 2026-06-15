@@ -157,7 +157,10 @@ const uint16_t MCP320X::get_value(const int pin){
 
         uint16_t value = 0xFFFF;
         if(m_receivers[pin]->before()){
-            value = fn_read_data_mcp32xx(buff, (unsigned char)pin);
+            if(_dev_type == MCP3XXX_DEVICE_TYPE::MCP3208 || _dev_type == MCP3XXX_DEVICE_TYPE::MCP3204)
+                value = fn_read_data_mcp32xx(buff, (unsigned char)pin);
+            else
+                value = fn_read_data_mcp30xx(buff, (unsigned char)pin);
             m_receivers[pin]->after();
         }
 

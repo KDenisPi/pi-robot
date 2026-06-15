@@ -46,12 +46,13 @@ public:
         const std::shared_ptr<pirobot::gpio::Gpio> gpio,
         const std::string& name,
         const std::string& comment = "",
-        MCP3XXX_DEVICE_TYPE _dev_type = MCP3XXX_DEVICE_TYPE::MCP3208,
+        MCP3XXX_DEVICE_TYPE dev_type = MCP3XXX_DEVICE_TYPE::MCP3208,
         spi::SPI_CHANNELS channel = spi::SPI_CHANNELS::SPI_0,
         const unsigned int loop_delay = 5) :
             item::Item(gpio, name, comment, item::ItemTypes::AnlgDgtConvertor),
             m_spi(spi),
-            m_channel(channel)
+            m_channel(channel),
+            _dev_type(dev_type)
     {
         assert(get_gpio() != NULL);
         assert(get_gpio()->getMode() ==  gpio::GPIO_MODE::OUT);

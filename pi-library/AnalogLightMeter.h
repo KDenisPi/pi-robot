@@ -22,7 +22,8 @@
 namespace pirobot {
 namespace anlglightmeter {
 
-class AnalogLightMeter : public item::Item, public piutils::Threaded, public analogdata::AnalogDataReceiverItf{
+class AnalogLightMeter : public item::Item, public piutils::Threaded, public analogdata::AnalogDataReceiverItf,
+    public std::enable_shared_from_this<AnalogLightMeter>{
 public:
     AnalogLightMeter(
         const std::shared_ptr<pirobot::analogdata::AnalogDataProviderItf> provider,
@@ -45,10 +46,6 @@ public:
 
         set_idx(analog_input_index);
         m_buff = std::shared_ptr<piutils::circbuff::CircularBuffer<unsigned short>>(new piutils::circbuff::CircularBuffer<unsigned short>(20));
-
-        if(m_provider){
-            m_provider->register_data_receiver(get_idx(), std::shared_ptr<pirobot::analogdata::AnalogDataReceiverItf>(this));
-        }
 
         if(debug_mode)
             activate_debug();
@@ -104,6 +101,9 @@ public:
     *
     */
     virtual bool initialize() override{
+        if(m_provider){
+            m_provider->register_data_receiver(get_idx(), shared_from_this());
+        }
         return piutils::Threaded::start<AnalogLightMeter>(this);
     }
 

@@ -16,7 +16,7 @@ namespace analogdata {
 
 class AnalogDataReceiverItf {
 public:
-    AnalogDataReceiverItf(const std::string& name, const int idx) : _name(name), m_idx(idx), _data(0) {}
+    AnalogDataReceiverItf(const std::string& name, const int idx) : _name(name), m_idx(idx), _data(0), m_active(false) {}
     virtual ~AnalogDataReceiverItf() {}
 
     /*

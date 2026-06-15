@@ -290,7 +290,7 @@ public:
         return true;
     }
 
-    static std::list<std::string> dfiles;
+    static thread_local std::list<std::string> dfiles;
 
     /**
      * @brief Check if we have active file for writing
