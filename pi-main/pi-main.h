@@ -12,9 +12,12 @@
 
 #include <fstream>
 #include <iostream>
+#include <thread>
+#include <cerrno>
 #include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <pthread.h>
 #include <sys/wait.h>
 #include <fcntl.h>
 
@@ -41,25 +44,9 @@ public:
 
     virtual ~PiMain() {}
 
-    /*
-    * Singnal handler for State Machine
-    */
-    static void sigHandlerStateMachine(int sign){
-        ////std::cout  "Detected signal " << sign  << std::endl;
-        //
-        // Stop state machine
-        //
-        if(sign == SIGUSR2  || sign == SIGTERM || sign == SIGQUIT || sign == SIGINT) {
-            _stm->finish();
-        }
-        else if( sign == SIGHUP ){//Reload configuration - debug level only for now
-            logger::set_update_conf();
-        }
-        else if (sign == SIGUSR1){// Start state machine
-            ////std::cout  "Detected signal. Run service " << sign  << std::endl;
-            _stm->run();
-        }
-    }
+    // Minimal handler: prevents SIGALRM default action (termination).
+    // Actual timer dispatching is done by the timer subsystem.
+    static void sigHandlerAlarm(int) {}
 
     /*
     * Singnal handler for parent
@@ -459,60 +446,41 @@ private:
     * Initilize handlers
     */
    void initialize_signal_handlers() {
-        /*
-        * Add handler for SIGALARM signal (used for State Machine Timers)
-        */
+        // SIGALRM: prevent default termination; timer subsystem does the real work
+        if (signal(SIGALRM, PiMain::sigHandlerAlarm) == SIG_ERR)
+            _exit(EXIT_FAILURE);
 
-       /*
-        Unhandled stop signals can generate EINTR for some Linux system calls
-        On Linux, certain blocking system calls can return EINTR even in the absence of a
-        signal handler. This can occur if the system call is blocked and the process is
-        stopped by a signal (SIGSTOP, SIGTSTP, SIGTTIN, or SIGTTOU), and then resumed by delivery of a SIGCONT signal.
-        The following system calls and functions exhibit this behavior: epoll_pwait(),
-        epoll_wait(), read() from an inotify file descriptor, semop(), semtimedop(), sigtimedwait(),
-        and sigwaitinfo().
-        */
+        // Block app signals in all threads — delivered only via sigwaitinfo()
+        sigset_t sigset;
+        sigemptyset(&sigset);
+        sigaddset(&sigset, SIGUSR1);
+        sigaddset(&sigset, SIGUSR2);
+        sigaddset(&sigset, SIGTERM);
+        sigaddset(&sigset, SIGINT);
+        sigaddset(&sigset, SIGQUIT);
+        sigaddset(&sigset, SIGHUP);
+        pthread_sigmask(SIG_BLOCK, &sigset, nullptr);
 
-        if (signal(SIGALRM, PiMain::sigHandlerStateMachine) == SIG_ERR ){
-          _exit(EXIT_FAILURE);
-        }
-
-
-        //std::function<void(int)> hnd = std::bind(&PiMain::sigHandlerStateMachine, this, std::placeholders::_1);
-        /*
-        * Add handler  for SIGUSR2 signal - Used for State Machine finishing
-        */
-        if (signal(SIGUSR2, PiMain::sigHandlerStateMachine) == SIG_ERR ){
-          _exit(EXIT_FAILURE);
-        }
-
-        /*
-        * Add handler for SIGTERM signal - Used for State Machine finishing
-        */
-        if (signal(SIGTERM, PiMain::sigHandlerStateMachine) == SIG_ERR ){
-          _exit(EXIT_FAILURE);
-        }
-
-        /*
-        * Add handler for SIGINT signal - Used for State Machine finishing
-        */
-        if (signal(SIGINT, PiMain::sigHandlerStateMachine) == SIG_ERR ){
-          _exit(EXIT_FAILURE);
-        }
-
-        /*
-        * Add handler for SIGQUIT signal - Used for State Machine finishing
-        */
-        if (signal(SIGQUIT, PiMain::sigHandlerStateMachine) == SIG_ERR ){
-          _exit(EXIT_FAILURE);
-        }
-
-        /*
-        * Add handler  for SIGUSR1 signal. This signal will be used for State Machine start.
-        */
-        if( signal(SIGUSR1, PiMain::sigHandlerStateMachine) == SIG_ERR){
-          _exit(EXIT_FAILURE);
-        }
+        // Dedicated thread: calls sigwaitinfo() and dispatches — safe to call anything
+        _signal_thread = std::thread([sigset]() {
+            sigset_t wait_set = sigset;
+            while (true) {
+                siginfo_t info;
+                int sig = sigwaitinfo(&wait_set, &info);
+                if (sig < 0) {
+                    if (errno == EINTR) continue;
+                    break;
+                }
+                if (sig == SIGUSR2 || sig == SIGTERM || sig == SIGQUIT || sig == SIGINT) {
+                    if (_stm) _stm->finish();
+                    break;
+                } else if (sig == SIGHUP) {
+                    logger::set_update_conf();
+                } else if (sig == SIGUSR1) {
+                    if (_stm) _stm->run();
+                }
+            }
+        });
     }
 
     /*
@@ -522,7 +490,11 @@ private:
 
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "State machine finished");
 
-        ////std::cout  "--- main finish---" << std::endl;
+        // Stop the signal thread before releasing _stm
+        if (_signal_thread.joinable()) {
+            pthread_kill(_signal_thread.native_handle(), SIGUSR2);
+            _signal_thread.join();
+        }
 
         if(_web)
             _web->http::web::WebSettingsItf::stop();
@@ -614,6 +586,8 @@ private:
     int _fd_log;
     int _fd_null;
     int _fd_err;
+
+    std::thread _signal_thread;
 
     const std::string get_log_filename() const {
         if(_debug_mode) return log_folder + log_single;
