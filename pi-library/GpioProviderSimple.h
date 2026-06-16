@@ -238,7 +238,7 @@ public:
                 }
 
 
-                int res = poll(pfd, fd_cnt, fd_timeout);
+                int res = poll(pfd, nfd, fd_timeout);
                 if(res == 0){ //nothing happened or timeout
                     continue;
                 }
