@@ -6,6 +6,8 @@
  */
 
 #include <iostream>
+#include <fstream>
+#include <string>
 
 #include "GpioProviderSimple.h"
 #include "timers.h"
@@ -17,13 +19,24 @@ namespace gpio {
 const char TAG[] = "PrvSmpl";
 
 #define GPIO_MODE_SELECT_BY_REG    10
+
+static bool detect_bcm2711() {
+    std::ifstream model("/proc/device-tree/model");
+    if (model) {
+        std::string line;
+        std::getline(model, line);
+        return line.find("Pi 4") != std::string::npos;
+    }
+    return false;
+}
 /*
 *
 */
 GpioProviderSimple::GpioProviderSimple(const std::string name, const int pins) : _gctrl(nullptr), _fd_count(0),
-        GpioProvider(name, pins)
+        _is_bcm2711(detect_bcm2711()), GpioProvider(name, pins)
 {
-    logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + std::string(" pins: ") + std::to_string(pins));
+    logger::log(logger::LLOG::INFO, TAG, std::string(__func__) + std::string(" pins: ") + std::to_string(pins) +
+        (_is_bcm2711 ? " BCM2711" : " BCM2835"));
     _gctrl = piutils::map_memory<gpio_ctrl>(0x00200000, "/dev/gpiomem");
     if(!_gctrl){
         logger::log(logger::LLOG::ERROR, TAG, std::string(__func__) + std::string(" Could not map GPIO control registers"));
@@ -156,35 +169,53 @@ const GPIO_MODE GpioProviderSimple::getmode(const int pin){
 }
 
 /*
-BCM2835 ARM Peripheral Section 6.1
+BCM2835 ARM Peripheral Section 6.1 — 6-step GPPUD/GPPUDCLK sequence.
 GPIO Pull-up/down Register (GPPUD) & GPIO Pull-up/down Clock Registers (GPPUDCLKn)
-
-1. Write to GPPUD to set the required control signal (i.e. Pull-up or Pull-Down or neither
-to remove the current Pull-up/down)
+1. Write to GPPUD to set the required control signal (i.e. Pull-up or Pull-Down or neither to remove the current Pull-up/down)
 2. Wait 150 cycles – this provides the required set-up time for the control signal
 3. Write to GPPUDCLK0/1 to clock the control signal into the GPIO pads you wish to
-modify – NOTE only the pads which receive a clock will be modified, all others will
-retain their previous state.
+modify – NOTE only the pads which receive a clock will be modified, all others will retain their previous state.
 4. Wait 150 cycles – this provides the required hold time for the control signal
 5. Write to GPPUD to remove the control signal
 6. Write to GPPUDCLK0/1 to remove the clock
+
+BCM2711 (Pi 4) — direct 2-bit field write to GPIO_PUP_PDN_CNTRL_REGn;
+  encoding: 00=off, 01=pull-up, 10=pull-down (16 GPIOs per register).
 */
 void GpioProviderSimple::pullUpDownControl(const int pin, const PULL_MODE pumode){
     logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" for pin: ") + std::to_string(pin) + " UP mode: " + std::to_string(pumode));
 
     int phpin = phys_pin(pin);
-    int idx = (phpin/32); // 32 GPIO by register
-    const uint32_t mask = (1 << (phpin%32));
 
-    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" ph pin: ") + std::to_string(phpin) + " Idx: " + std::to_string(idx) + " Mask: " + std::to_string(mask));
+    logger::log(logger::LLOG::DEBUG, TAG, std::string(__func__) + std::string(" ph pin: ") + std::to_string(phpin));
 
     std::lock_guard<std::mutex> lock(_mx_gpio);
-    _gctrl->_GPPUD = (uint32_t)pumode;          //step 1
-    piutils::timers::Timers::delay(150);   //step 2
-    _gctrl->_GPPUDCLK[idx] = mask;              //step 3
-    piutils::timers::Timers::delay(150);   //step 4
-    _gctrl->_GPPUD = 0;                         //step 5
-    _gctrl->_GPPUDCLK[idx] = 0;                 //step 6
+
+    if (_is_bcm2711) {
+        // BCM2711: 2 bits per GPIO, 16 GPIOs per register
+        const int reg_idx = phpin / 16;
+        const int shift   = (phpin % 16) * 2;
+        uint32_t pud_val;
+        switch (pumode) {
+            case PULL_UP:   pud_val = 1; break;
+            case PULL_DOWN: pud_val = 2; break;
+            default:        pud_val = 0; break;
+        }
+        uint32_t val = _gctrl->_GPIO_PUP_PDN_CNTRL_REG[reg_idx];
+        val &= ~(0x3u << shift);
+        val |=  (pud_val << shift);
+        _gctrl->_GPIO_PUP_PDN_CNTRL_REG[reg_idx] = val;
+    } else {
+        // BCM2835/BCM2836/BCM2837: 6-step GPPUD + GPPUDCLK sequence
+        const int idx          = phpin / 32;
+        const uint32_t mask    = (1u << (phpin % 32));
+        _gctrl->_GPPUD         = (uint32_t)pumode;  // step 1
+        piutils::timers::Timers::delay(150);          // step 2
+        _gctrl->_GPPUDCLK[idx] = mask;               // step 3
+        piutils::timers::Timers::delay(150);          // step 4
+        _gctrl->_GPPUD         = 0;                  // step 5
+        _gctrl->_GPPUDCLK[idx] = 0;                  // step 6
+    }
 }
 
 void GpioProviderSimple::setPulse(const int pin, const uint16_t pulselen){

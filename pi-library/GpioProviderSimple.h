@@ -66,10 +66,17 @@ using gpio_ctrl = struct __attribute__((packed, aligned(4))) gpio_ctrl {
 
     /* Useless end */
 
-    uint32_t _GPPUD;    //GPIO Pin Pull-up/down Enable
+    uint32_t _GPPUD;    //GPIO Pin Pull-up/down Enable (BCM2835 only)
 
-    uint32_t _GPPUDCLK[2];// GPIO Pin Pull-up/down Enable Clock 0,1
+    uint32_t _GPPUDCLK[2];// GPIO Pin Pull-up/down Enable Clock 0,1 (BCM2835 only)
     uint32_t _reserved12;
+
+    // 0xA4–0xE0: padding to BCM2711 registers
+    uint32_t _reserved13[16];
+
+    // 0xE4: BCM2711 (Pi 4) GPIO pull-up/down control — 2 bits per GPIO,
+    //       16 GPIOs per register: 00=off, 01=up, 10=down
+    uint32_t _GPIO_PUP_PDN_CNTRL_REG[4];
 };
 
 class Gpio;
@@ -312,6 +319,7 @@ protected:
     }
 
     int _fd_count = 0;
+    bool _is_bcm2711 = false;
 
     /*
     * Some GPIO providers supoprt level detection through interrupt
