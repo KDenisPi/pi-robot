@@ -127,7 +127,7 @@ public:
      * @return const std::string
      */
     static const std::string mg_addr2str(const struct mg_addr& addr){
-        return piutils::netinfo::NetUtils::ip2str(addr.ip, addr.is_ip6) + ":" + std::to_string(ntohs(addr.port));
+        return piutils::netinfo::NetUtils::ip2str(addr.addr.ip, addr.is_ip6) + ":" + std::to_string(ntohs(addr.port));
     }
 
     /**
