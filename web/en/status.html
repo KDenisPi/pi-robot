@@ -3,101 +3,30 @@
     <head>
         <meta charset="UTF-8">
         <meta name="author" content="Denis Kudia">
-
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <!-- Bootstrap CSS -->
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-
-        <style>
-            .row_first {
-                margin-top: 10px;
-                margin-bottom: 10px;
-                font-size: 4em;
-                color:dodgerblue;
-            }
-
-            .row_links {
-                margin-bottom: 10px;
-                text-align: center;
-                font-size: 2em;
-            }
-
-            .row_links_font {
-                font-size: 1.2em;
-                /*background-color: lightblue;*/
-            }
-
-            .col {
-                background-color: lightblue;
-            }
-
-            .row_data_current {
-                margin-bottom: 10px;
-                font-size: 1.5em;
-            }
-
-            .text_center {
-                text-align: center;
-            }
-
-            .my_col {
-                margin-right: 10px;
-                background-color: lightblue;
-            }
-
-            .my_col_last {
-                background-color: lightblue;
-            }
-
-            .my_col_data {
-                margin-right: 10px;
-                background-color: lightblue;
-                /*
-                border-right: 1px solid grey;
-                background-color: lightblue;*/
-            }
-
-            .my_col_data_last {
-                background-color: lightblue;
-                /*
-                border-right: 1px solid grey;
-                background-color: lightblue;
-                row-eq-height
-                */
-            }
-
-        </style>
-
+        <link rel="stylesheet" href="/static/css/weather.css">
     </head>
 
     <body>
         <div class="container">
-            <div class="row row_first align-items-center">
-                <div class="col text_center">
-                        <span>Status</span>
-                </div>
-            </div>
+            <h1 class="page_title">Status</h1>
 
-            <div class="row row_links align-items-center">
-                <div class="col-sm my_col">
-                    <a href="status.html">status</a>
-                </div>
-                <div class="col-sm my_col">
-                    <a href="default.html">current measurement</a>
-                </div>
-                <div class="col-sm my_col_last">
-                    <a href="graph.html">measurements</a>
-                </div>
-            </div>
+            <nav class="nav_links">
+                <a href="status.html" class="active">status</a>
+                <a href="default.html">current measurement</a>
+                <a href="graph.html">measurements</a>
+            </nav>
 
-            <div class="row row_data_current align-items-center">
-                <div class="col-sm my_col_data">
-                    <span>Network information: <!--{NetInfo}--></span>
+            <div class="data_grid">
+                <div class="data_card">
+                    <span class="label">Network information:</span>
+                    <span class="value"><!--{NetInfo}--></span>
                 </div>
-                <div class="col-sm my_col_data_last">
-                    <span>Up time: <!--{Uptime}--></span>
+                <div class="data_card">
+                    <span class="label">Up time:</span>
+                    <span class="value"><!--{Uptime}--></span>
                 </div>
             </div>
-            </div>
+        </div>
     </body>
 </html>
