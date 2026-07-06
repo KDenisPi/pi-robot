@@ -3,94 +3,38 @@
     <head>
         <meta charset="UTF-8">
         <meta name="author" content="Denis Kudia">
+        <!-- refresh page each 5 minutes -->
+        <meta http-equiv="refresh" content="300">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="/static/css/weather.css">
     </head>
-    <style>
-        .bg_color {
-            background-color: lightblue;
-        }
-        .info_header {
-            font-size: 1.2em;
-            font-weight: bold;
-            text-align: left;
-        }
-        .param_name {
-            font-weight: bold;
-            text-align: left;
-        }
-        .left_column {
-            background-color: lightblue;
-            width: 200pt;
-        }
-        .top_header {
-            background-color: lightblue;
-            height: 90pt;
-        }
-        .top_text {
-            font-size: 4em;
-            text-align: center;
-        }
-        .table_1 {
-            border: 0;
-        }
-        .info_text {
-            font-size: 4em;
-        }
-        .info_value {
-            font-size: 5em;
-            color: blue;
-        }
-        .comment_text {
-            font-size: 1.5em;
-        }
-    </style>
+
     <body>
-            <table class="table_1" width="100%" cellspacing="0">
-            <tr class="top_header">
-                    <td width="10"></td>
-                    <td class="top_text">Текущие значения</td>
-                    <td></td>
-                    <td></td>
-            </tr>
-            <tr>
-                <td class="left_column"></td>
-                <td>
-                    <span class="info_text">Температура: </span>
-                    <span class="info_value"><!--{Temperature}--></span>
-                    <span class="info_text"><!--{TempUnits}--></span>
-                </td>
-            </tr>
-            <tr>
-                <td class="left_column"></td>
-                <td>
-                    <span class="info_text">Влажность: </span>
-                    <span class="info_value"><!--{Humidity}--></span>
-                    <span class="info_text"> %</span>
-                </td>
-            </tr>
-            <tr>
-                <td class="left_column"></td>
-                <td>
-                    <span class="info_text">Атмосферное давление: </span>
-                    <span class="info_value"><!--{Pressure}--></span>
-                    <span class="info_text"> мм рт.ст.</span>
-                </td>
-            </tr>
-            <tr>
-                <td class="left_column"></td>
-                <td>
-                    <span class="info_text">CO2: </span>
-                    <span class="info_value"><!--{CO2}--></span>
-                    <span class="info_text">[ <!--{CO2_Level}--> ]</span>
-                </td>
-            </tr>
-            <tr>
-                <td class="left_column"></td>
-                <td>
-                    <span class="info_text">Загрязненность: </span>
-                    <span class="info_value"><!--{TVOC}--></span>
-                    <span class="info_text">[ <!--{TVOC_Level}--> ]</span>
-                </td>
-            </tr>
-        </table>
+        <div class="container">
+            <h1 class="page_title">Текущие значения</h1>
+
+            <div class="data_grid">
+                <div class="data_card">
+                    <span class="label">Температура:</span>
+                    <span class="value"><!--{Temperature}--></span> <!--{TempUnits}-->
+                </div>
+                <div class="data_card">
+                    <span class="label">Влажность:</span>
+                    <span class="value"><!--{Humidity}--></span> %
+                </div>
+                <div class="data_card">
+                    <span class="label">Атмосферное давление:</span>
+                    <span class="value"><!--{Pressure}--></span> мм рт.ст.
+                </div>
+                <div class="data_card">
+                    <span class="label">CO2:</span>
+                    <span class="value"><!--{CO2}--></span> [ <!--{CO2_Level}--> ]
+                </div>
+                <div class="data_card">
+                    <span class="label">Загрязненность:</span>
+                    <span class="value"><!--{TVOC}--></span> [ <!--{TVOC_Level}--> ]
+                </div>
+            </div>
+        </div>
     </body>
 </html>

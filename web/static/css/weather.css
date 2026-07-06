@@ -1,51 +1,162 @@
-.bg_color {
-    background-color: lightblue;
+/*
+ * weather.css - shared styles for the weather application pages.
+ *
+ * Self-contained (no external CSS framework) so the pages work on a Pi with
+ * no internet access. Keeps the original lightblue look while reflowing for
+ * both small (phone) and big (desktop / wall display) screens.
+ */
+
+:root {
+    --accent: dodgerblue;
+    --accent-dark: #1565c0;
+    --card-bg: lightblue;
+    --card-bg-hover: #9fcfe6;
+    --page-bg: #eef4f8;
+    --text: #1c2733;
+    --value: #0b4a8f;
+    --radius: 10px;
+    --gap: 12px;
+    --maxw: 1100px;
 }
 
-.info_header {
-    font-size: 1.2em;
-    font-weight: bold;
-    text-align: left;
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--page-bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.4;
 }
 
-.param_name {
-    font-weight: bold;
-    text-align: left;
+/* Page wrapper - centered, never wider than --maxw, fluid padding */
+.container {
+    width: 100%;
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: clamp(12px, 3vw, 28px);
 }
 
-.left_column {
-    background-color: lightblue;
-    width: 200pt;
+/* Page title - fluid size so it never overflows a narrow screen */
+.page_title {
+    margin: 0 0 var(--gap);
+    text-align: center;
+    color: var(--accent);
+    font-weight: 700;
+    line-height: 1.1;
+    font-size: clamp(1.6rem, 6vw, 3.4rem);
 }
 
-.top_header {
-    background-color: lightblue;
-    height: 90pt;
+/* Top navigation - wraps on small screens, single row on wide ones */
+.nav_links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--gap);
+    margin-bottom: calc(var(--gap) * 1.5);
 }
 
-tr {
-    background-color: lightblue;
-    height: 90pt;
+.nav_links a {
+    flex: 1 1 auto;
+    min-width: 120px;
+    text-align: center;
+    text-decoration: none;
+    background: var(--card-bg);
+    color: var(--accent-dark);
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    font-size: clamp(1rem, 2.5vw, 1.35rem);
+    transition: background .15s ease;
 }
 
-.top_text {
-    font-size: 4em;
+.nav_links a:hover,
+.nav_links a:focus { background: var(--card-bg-hover); }
+
+.nav_links a.active {
+    background: var(--accent);
+    color: #fff;
+}
+
+/*
+ * Data cards.
+ * auto-fit + minmax => as many columns as fit; on a phone it collapses to a
+ * single column, on a desktop it lays out multiple cards per row.
+ */
+.data_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--gap);
+    margin-bottom: var(--gap);
+}
+
+.data_card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: clamp(14px, 3vw, 22px);
+    font-size: clamp(1.1rem, 3vw, 1.6rem);
+}
+
+.data_card .label { font-weight: 600; }
+
+.data_card .value {
+    color: var(--value);
+    font-weight: 700;
+}
+
+/* ---- Graph page ---- */
+
+/* Section heading above each chart */
+.section_title {
+    margin: calc(var(--gap) * 1.5) 0 var(--gap);
+    text-align: center;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+}
+
+/* Chart container - lightblue card, scrolls horizontally if a chart is wide */
+.graph_card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: var(--gap);
+    margin-bottom: var(--gap);
+    overflow-x: auto;
+}
+
+/* List of available data files. Wrapped so a wide table scrolls on phones. */
+.table_scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: var(--gap);
+}
+
+.table_scroll table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table_scroll td {
+    padding: 6px 8px;
     text-align: center;
 }
 
-table {
-    border: 0;
+.my_link {
+    display: inline-block;
+    text-decoration: none;
+    color: var(--accent-dark);
+    padding: 4px 8px;
+    border-radius: 6px;
 }
 
-.info_text {
-    font-size: 1.5em;
+.my_link:hover,
+.my_link:focus {
+    background: var(--card-bg);
+    text-decoration: underline;
 }
 
-.info_value {
-    font-size: 2em;
-    color: blue;
-}
-
-.comment_text {
-    font-size: 1.5em;
-}
+/* metricsgraphics draws an svg; keep it from overflowing its card */
+.graph_card svg { max-width: 100%; }
