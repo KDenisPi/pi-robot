@@ -27,3 +27,11 @@ if(NOT CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 11)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
+
+#bcm_host.h
+git clone https://github.com/raspberrypi/userland.git
+cd userland
+sudo ./buildme
+
+
+https://github.com/DaveGamble/cJSON.git
