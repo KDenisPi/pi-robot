@@ -8,7 +8,12 @@
 #define HTTP_WEB_SETTINGS_H
 
 #include <utility>
+#include <cstdio>
+#include <cstring>
+#include <cerrno>
 #include <arpa/inet.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
 #include "mongoose.h"
 
@@ -127,7 +132,7 @@ public:
      * @return const std::string
      */
     static const std::string mg_addr2str(const struct mg_addr& addr){
-        return piutils::netinfo::NetUtils::ip2str(addr.ip, addr.is_ip6) + ":" + std::to_string(ntohs(addr.port));
+        return piutils::netinfo::NetUtils::ip2str(addr.addr.ip, addr.is_ip6) + ":" + std::to_string(ntohs(addr.port));
     }
 
     /**
@@ -145,6 +150,29 @@ public:
             const auto srv = static_cast<WebSettings*>(c->mgr->userdata);
 
             logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Request: " +  mg_addr2str(c->loc) + " URI: " + mg_str2str(hm->uri));
+
+            //file management API located in /files: list, download, delete files from the data folder
+            if(mg_match(hm->uri, mg_str("/files/#"), NULL)){
+                const auto method = mg_str2str(hm->method);
+                const auto uri = mg_str2str(hm->uri);
+                logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Files request: " + method + " " + uri);
+
+                if(!srv->is_dir_map("data")){
+                    return srv->file_not_found(c, hm);
+                }
+
+                if(method == "GET" && (uri == "/files/list" || uri == "/files/list/")){
+                    return srv->files_list(c, hm);
+                }
+                else if(method == "GET"){
+                    return srv->files_download(c, hm);
+                }
+                else if(method == "DELETE"){
+                    return srv->files_delete(c, hm);
+                }
+
+                return send_string(c, 405, mime_plain.c_str(), "Method not allowed");
+            }
 
             //data files JSON or CSV, located in /data folder
             if(mg_match(hm->uri, mg_str("/data/*"), NULL)){
@@ -287,6 +315,147 @@ public:
         }
         else{
             file_not_found(conn, hm);
+        }
+    }
+
+    /**
+     * @brief Extract a safe file name from a /files/<name> URI.
+     *
+     * Only the base name (part after the last '/') is used and any name
+     * containing a ".." sequence is rejected. This prevents path traversal
+     * outside of the data folder.
+     *
+     * @param uri request URI, e.g. "/files/data.csv"
+     * @return const std::string safe file name, or empty string if invalid
+     */
+    static const std::string files_safe_name(const std::string& uri){
+        auto pos = uri.find_last_of('/');
+        std::string name = (pos == std::string::npos ? uri : uri.substr(pos + 1));
+        if(name.empty() || name.find("..") != std::string::npos){
+            return std::string();
+        }
+        return name;
+    }
+
+    /**
+     * @brief Escape a string so it can be safely placed inside a JSON string literal.
+     *
+     * @param src source string
+     * @return const std::string escaped string
+     */
+    static const std::string json_escape(const std::string& src){
+        std::string res;
+        res.reserve(src.length());
+        for(char ch : src){
+            switch(ch){
+                case '\"': res += "\\\""; break;
+                case '\\': res += "\\\\"; break;
+                case '\n': res += "\\n"; break;
+                case '\r': res += "\\r"; break;
+                case '\t': res += "\\t"; break;
+                default:   res += ch; break;
+            }
+        }
+        return res;
+    }
+
+    /**
+     * @brief Handle GET /files/list - return a JSON list of files in the data folder.
+     *
+     * @param conn
+     * @param hm
+     */
+    virtual void files_list(struct mg_connection *conn, struct mg_http_message *hm){
+        const std::string dir = dmaps["data"];
+        logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Directory: " + dir);
+
+        DIR *pdir = opendir(dir.c_str());
+        if(pdir == NULL){
+            auto body = prepare_output("{\"error\":\"Cannot open data folder\",\"errno\":%d}", errno);
+            return send_string(conn, 500, mime_json.c_str(), body);
+        }
+
+        std::string json = "{\"path\":\"" + json_escape(dir) + "\",\"files\":[";
+
+        bool first = true;
+        struct dirent *dp;
+        while((dp = readdir(pdir)) != NULL){
+            if(strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0){
+                continue;
+            }
+
+            const std::string fpath = dir + "/" + dp->d_name;
+            struct stat st;
+            if(stat(fpath.c_str(), &st) != 0 || !S_ISREG(st.st_mode)){
+                continue; //list regular files only
+            }
+
+            if(!first){
+                json += ",";
+            }
+            first = false;
+
+            json += "{\"name\":\"" + json_escape(dp->d_name) + "\",\"size\":" + std::to_string((long long)st.st_size) + "}";
+        }
+        closedir(pdir);
+
+        json += "]}";
+        send_string(conn, 200, mime_json.c_str(), json);
+    }
+
+    /**
+     * @brief Handle GET /files/<name> - download a file from the data folder.
+     *
+     * @param conn
+     * @param hm
+     */
+    virtual void files_download(struct mg_connection *conn, struct mg_http_message *hm){
+        const std::string name = files_safe_name(mg_str2str(hm->uri));
+        if(name.empty()){
+            return file_not_found(conn, hm);
+        }
+
+        const std::string full_path = dmaps["data"] + "/" + name;
+        logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " File: " + full_path);
+
+        if(!piutils::is_regular_file(full_path)){
+            return file_not_found(conn, hm);
+        }
+
+        struct mg_http_serve_opts opts;
+        memset(&opts, 0, sizeof(mg_http_serve_opts));
+        opts.mime_types = "html=text/html,htm=text/html,css=text/css,csv=text/csv,json=application/json,txt=text/plain,jpg=image/jpeg,png=image/png,js=application/javascript";
+        opts.extra_headers = "Content-Disposition: attachment\r\n";
+
+        mg_http_serve_file(conn, hm, full_path.c_str(), &opts);
+    }
+
+    /**
+     * @brief Handle DELETE /files/<name> - remove a file from the data folder.
+     *
+     * @param conn
+     * @param hm
+     */
+    virtual void files_delete(struct mg_connection *conn, struct mg_http_message *hm){
+        const std::string name = files_safe_name(mg_str2str(hm->uri));
+        if(name.empty()){
+            return file_not_found(conn, hm);
+        }
+
+        const std::string full_path = dmaps["data"] + "/" + name;
+        logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Delete file: " + full_path);
+
+        if(!piutils::is_regular_file(full_path)){
+            return file_not_found(conn, hm);
+        }
+
+        if(::remove(full_path.c_str()) == 0){
+            auto body = prepare_output("{\"status\":\"deleted\",\"file\":\"%s\"}", json_escape(name).c_str());
+            send_string(conn, 200, mime_json.c_str(), body);
+        }
+        else{
+            auto body = prepare_output("{\"status\":\"error\",\"file\":\"%s\",\"errno\":%d}", json_escape(name).c_str(), errno);
+            send_string(conn, 500, mime_json.c_str(), body);
         }
     }
 
