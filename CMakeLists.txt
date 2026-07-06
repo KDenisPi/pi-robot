@@ -78,6 +78,8 @@ message( STATUS "CMAKE_C_FLAGS:  ${CMAKE_C_FLAGS}" )
 #libmosquitto-dev/focal 1.6.9-1 amd64
 #libmosquitto1/focal 1.6.9-1 amd64
 
+#libcurl4-openssl-dev
+
 add_library(libmosquitto SHARED IMPORTED)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} mosquitto)
