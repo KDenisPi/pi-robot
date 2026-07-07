@@ -342,16 +342,22 @@ public:
         }
 
         const std::string tmp_file = _data_list_file + ".tmp";
-        std::ofstream ofs(tmp_file, std::ios::trunc);
-        if(!ofs.is_open()){
+        int fd = open(tmp_file.c_str(), O_WRONLY|O_CREAT|O_TRUNC, file_mode);
+        if(fd == -1){
             logger::log(logger::LLOG::ERROR, "fstor", std::string(__func__) + " Failed create file: " + tmp_file + " Error: " + std::to_string(errno));
             return false;
         }
 
+        //open() applies file_mode through the process umask; re-assert it explicitly
+        //so the rewritten list keeps the same permissions as the original (group
+        //writable, matching every other file FStorage creates).
+        fchmod(fd, file_mode);
+
         for(const auto& l : lines){
-            ofs << l << "\n";
+            const std::string ldata = l + "\n";
+            write(fd, ldata.c_str(), ldata.length());
         }
-        ofs.close();
+        close(fd);
 
         if(rename(tmp_file.c_str(), _data_list_file.c_str()) != 0){
             logger::log(logger::LLOG::ERROR, "fstor", std::string(__func__) + " Failed rename file: " + tmp_file + " Error: " + std::to_string(errno));
