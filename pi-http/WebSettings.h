@@ -8,6 +8,8 @@
 #define HTTP_WEB_SETTINGS_H
 
 #include <utility>
+#include <vector>
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <cerrno>
@@ -319,19 +321,20 @@ public:
     }
 
     /**
-     * @brief Extract a safe file name from a /files/<name> URI.
+     * @brief Extract a safe file name (possibly with subfolders) from a /files/<name> URI.
      *
-     * Only the base name (part after the last '/') is used and any name
-     * containing a ".." sequence is rejected. This prevents path traversal
-     * outside of the data folder.
+     * Everything after the "/files/" prefix is kept, since FStorage nests dated
+     * files under month subfolders (e.g. "2026_7/2026_7_07.csv"). Any name that
+     * is empty, absolute, or contains a ".." sequence is rejected, to prevent
+     * path traversal outside of the data folder.
      *
-     * @param uri request URI, e.g. "/files/data.csv"
+     * @param uri request URI, e.g. "/files/2026_7/2026_7_07.csv"
      * @return const std::string safe file name, or empty string if invalid
      */
     static const std::string files_safe_name(const std::string& uri){
-        auto pos = uri.find_last_of('/');
-        std::string name = (pos == std::string::npos ? uri : uri.substr(pos + 1));
-        if(name.empty() || name.find("..") != std::string::npos){
+        auto pos = uri.find("/files/");
+        std::string name = (pos == std::string::npos ? uri : uri.substr(pos + 7));
+        if(name.empty() || name.front() == '/' || name.find("..") != std::string::npos){
             return std::string();
         }
         return name;
@@ -360,7 +363,45 @@ public:
     }
 
     /**
-     * @brief Handle GET /files/list - return a JSON list of files in the data folder.
+     * @brief Recursively collect regular files under `dir`, reporting paths relative to `base`.
+     *
+     * FStorage nests dated files under month subfolders, so the file listing/
+     * download/delete API needs to walk the tree rather than a single level.
+     *
+     * @param dir absolute directory to scan
+     * @param base root directory that relative paths are computed against
+     * @param out list of (relative_path, size) pairs, appended to
+     */
+    static void collect_files_recursive(const std::string& dir, const std::string& base, std::vector<std::pair<std::string, long long>>& out){
+        DIR *pdir = opendir(dir.c_str());
+        if(pdir == NULL){
+            return;
+        }
+
+        struct dirent *dp;
+        while((dp = readdir(pdir)) != NULL){
+            if(strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0){
+                continue;
+            }
+
+            const std::string fpath = dir + "/" + dp->d_name;
+            struct stat st;
+            if(stat(fpath.c_str(), &st) != 0){
+                continue;
+            }
+
+            if(S_ISDIR(st.st_mode)){
+                collect_files_recursive(fpath, base, out);
+            }
+            else if(S_ISREG(st.st_mode)){
+                out.push_back(std::make_pair(fpath.substr(base.length() + 1), (long long)st.st_size));
+            }
+        }
+        closedir(pdir);
+    }
+
+    /**
+     * @brief Handle GET /files/list - return a JSON list of files in the data folder (recursive).
      *
      * @param conn
      * @param hm
@@ -374,30 +415,23 @@ public:
             auto body = prepare_output("{\"error\":\"Cannot open data folder\",\"errno\":%d}", errno);
             return send_string(conn, 500, mime_json.c_str(), body);
         }
+        closedir(pdir);
+
+        std::vector<std::pair<std::string, long long>> files;
+        collect_files_recursive(dir, dir, files);
+        std::sort(files.begin(), files.end());
 
         std::string json = "{\"path\":\"" + json_escape(dir) + "\",\"files\":[";
 
         bool first = true;
-        struct dirent *dp;
-        while((dp = readdir(pdir)) != NULL){
-            if(strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0){
-                continue;
-            }
-
-            const std::string fpath = dir + "/" + dp->d_name;
-            struct stat st;
-            if(stat(fpath.c_str(), &st) != 0 || !S_ISREG(st.st_mode)){
-                continue; //list regular files only
-            }
-
+        for(const auto& f : files){
             if(!first){
                 json += ",";
             }
             first = false;
 
-            json += "{\"name\":\"" + json_escape(dp->d_name) + "\",\"size\":" + std::to_string((long long)st.st_size) + "}";
+            json += "{\"name\":\"" + json_escape(f.first) + "\",\"size\":" + std::to_string(f.second) + "}";
         }
-        closedir(pdir);
 
         json += "]}";
         send_string(conn, 200, mime_json.c_str(), json);
@@ -449,7 +483,14 @@ public:
             return file_not_found(conn, hm);
         }
 
+        if(is_file_delete_blocked(full_path, name)){
+            logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Delete blocked (file is active): " + full_path);
+            auto body = prepare_output("{\"status\":\"error\",\"file\":\"%s\",\"reason\":\"file is active\"}", json_escape(name).c_str());
+            return send_string(conn, 409, mime_json.c_str(), body);
+        }
+
         if(::remove(full_path.c_str()) == 0){
+            on_file_deleted(full_path, name);
             auto body = prepare_output("{\"status\":\"deleted\",\"file\":\"%s\"}", json_escape(name).c_str());
             send_string(conn, 200, mime_json.c_str(), body);
         }
@@ -711,6 +752,27 @@ public:
     }
 
  protected:
+    /**
+     * @brief Called after DELETE /files/<name> physically removes full_path.
+     *
+     * No-op by default; applications override to keep auxiliary state (e.g.
+     * FStorage's data files list CSV) in sync with the deleted file.
+     *
+     * @param full_path absolute path of the file that was just removed
+     * @param name the request-relative name/subpath that was deleted
+     */
+    virtual void on_file_deleted(const std::string& full_path, const std::string& name) {}
+
+    /**
+     * @brief Called before DELETE /files/<name> removes full_path, to allow a
+     * subclass to veto the deletion (e.g. the file is currently open for writing).
+     *
+     * @param full_path absolute path of the file about to be removed
+     * @param name the request-relative name/subpath about to be deleted
+     * @return true to block the deletion (returns 409 Conflict), false to allow it
+     */
+    virtual bool is_file_delete_blocked(const std::string& full_path, const std::string& name) { return false; }
+
     struct mg_mgr mgr;  // Mongoose event manager. Holds all connections
 
     /*

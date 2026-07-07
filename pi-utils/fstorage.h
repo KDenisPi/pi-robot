@@ -16,6 +16,9 @@
 #include <fcntl.h>
 #include <ftw.h>
 #include <list>
+#include <vector>
+#include <mutex>
+#include <fstream>
 
 #include <chrono>
 #include <ctime>
@@ -217,6 +220,8 @@ public:
         //Prepare list of files
         piutils::fstor::FStorage::collect_data_files(fstor_path);
 
+        std::lock_guard<std::mutex> lock(_list_mutex);
+
         // Override previous file
         int fd = open(data_list_file.c_str(), O_WRONLY|O_CREAT|O_APPEND|O_TRUNC, file_mode);
         if(fd == -1){
@@ -274,6 +279,8 @@ public:
 
         logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__)+ " Add file: " + dfl);
 
+        std::lock_guard<std::mutex> lock(_list_mutex);
+
         int fd = open(_data_list_file.c_str(), O_WRONLY|O_APPEND, file_mode);
         if(fd == -1){
             res = errno;
@@ -290,6 +297,71 @@ public:
         return true;
     }
 
+    /**
+     * @brief Remove the record for a previously added file from the file with the file list
+     *
+     * @param dfl - full path (or already root-relative path) of a file previously
+     *              added via append_data_files_list()
+     * @return true if the list was successfully rewritten (an entry not found in
+     *         the list is not an error), false on I/O error
+     */
+    bool remove_data_files_list(const std::string& dfl){
+        logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Remove file: " + dfl);
+
+        std::string rel = dfl;
+        if(rel.compare(0, _root_path.length(), _root_path) == 0){
+            rel = rel.substr(_root_path.length() + 1);
+        }
+
+        std::lock_guard<std::mutex> lock(_list_mutex);
+
+        std::ifstream ifs(_data_list_file);
+        if(!ifs.is_open()){
+            logger::log(logger::LLOG::ERROR, "fstor", std::string(__func__) + " Failed open file: " + _data_list_file + " Error: " + std::to_string(errno));
+            return false;
+        }
+
+        std::vector<std::string> lines;
+        std::string line;
+        bool found = false;
+        while(std::getline(ifs, line)){
+            //each line has the format "<label>,<root-relative path>"
+            std::string::size_type pos = line.find(',');
+            std::string line_rel = (pos == std::string::npos ? line : line.substr(pos + 1));
+            if(line_rel == rel){
+                found = true;
+                continue;
+            }
+            lines.push_back(line);
+        }
+        ifs.close();
+
+        if(!found){
+            logger::log(logger::LLOG::DEBUG, "fstor", std::string(__func__) + " Entry not found: " + rel);
+            return true;
+        }
+
+        const std::string tmp_file = _data_list_file + ".tmp";
+        std::ofstream ofs(tmp_file, std::ios::trunc);
+        if(!ofs.is_open()){
+            logger::log(logger::LLOG::ERROR, "fstor", std::string(__func__) + " Failed create file: " + tmp_file + " Error: " + std::to_string(errno));
+            return false;
+        }
+
+        for(const auto& l : lines){
+            ofs << l << "\n";
+        }
+        ofs.close();
+
+        if(rename(tmp_file.c_str(), _data_list_file.c_str()) != 0){
+            logger::log(logger::LLOG::ERROR, "fstor", std::string(__func__) + " Failed rename file: " + tmp_file + " Error: " + std::to_string(errno));
+            return false;
+        }
+
+        logger::log(logger::LLOG::INFO, "fstor", std::string(__func__) + " Removed entry: " + rel);
+        return true;
+    }
+
     static thread_local std::list<std::string> dfiles;
 
     /**
@@ -300,6 +372,15 @@ public:
      */
     const bool is_fd() const {
         return (_fd > 0);
+    }
+
+    /**
+     * @brief Get the path of the file currently open for writing
+     *
+     * @return const std::string
+     */
+    const std::string current_file_path() const {
+        return _file_path;
     }
 
 private:
@@ -316,6 +397,8 @@ private:
 
     std::string _first_line;  //For CSV there are column headers
     int _fd;
+
+    std::mutex _list_mutex;  //guards concurrent access to _data_list_file
 
     /**
      * @brief Close current file object

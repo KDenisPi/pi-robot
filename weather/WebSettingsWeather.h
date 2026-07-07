@@ -127,6 +127,28 @@ public:
         return html;
     }
 
+protected:
+    /*
+    * Refuse to delete the file FStorage currently has open for writing -
+    * removing it from under an open fd would silently drop future writes
+    * until the next daily rollover.
+    */
+    virtual bool is_file_delete_blocked(const std::string& full_path, const std::string& name) override {
+        auto ctxt = GET_ENV(weather::Context);
+        return ctxt->use_file_storage() && ctxt->_fstorage &&
+               full_path == ctxt->_fstorage->current_file_path();
+    }
+
+    /*
+    * Keep FStorage's data files list CSV in sync with files removed via the Web API.
+    */
+    virtual void on_file_deleted(const std::string& full_path, const std::string& name) override {
+        auto ctxt = GET_ENV(weather::Context);
+        if(ctxt->use_file_storage() && ctxt->_fstorage){
+            ctxt->_fstorage->remove_data_files_list(full_path);
+        }
+    }
+
 private:
     const std::string prepare_level_name(const std::string& level_name, const int level){
         logger::log(logger::LLOG::DEBUG, "Web", std::string(__func__) + " Level:" + std::to_string(level));
