@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 #project name
-project(weather VERSION 1.2.9)
+project(weather VERSION 1.3.0)
 
 set(DAEMON ${PROJECT_NAME}d)
 
