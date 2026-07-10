@@ -141,9 +141,10 @@ void Logger::worker(Logger* owner){
 /*
 *
 */
-void log_init(const std::string& filename){
+void log_init(const std::string& filename, const bool debug = false){
     if(!plog){
-        ////std::cout <<  "--- Logger::log_init---" << std::endl;
+        if(debug)
+            std::cout <<  "--- Logger::log_init---" << std::endl;
         plog = std::make_shared<Logger>(filename);
     }
 }
