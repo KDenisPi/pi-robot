@@ -481,9 +481,11 @@ private:
         sigaddset(&sigset, SIGHUP);
         pthread_sigmask(SIG_BLOCK, &sigset, nullptr);
 
+	const bool dmode=debug_mode();
         // Dedicated thread: calls sigwaitinfo() and dispatches — safe to call anything
-        _signal_thread = std::thread([sigset]() {
+        _signal_thread = std::thread([sigset, dmode]() {
             sigset_t wait_set = sigset;
+	    const bool debug = dmode;
             while (true) {
                 siginfo_t info;
                 int sig = sigwaitinfo(&wait_set, &info);
@@ -491,13 +493,23 @@ private:
                     if (errno == EINTR) continue;
                     break;
                 }
+
+		if(dmode) {
+		   std::cout << " Signal : " << std::to_string(sig) << std::endl;
+		}
+
                 if (sig == SIGUSR2 || sig == SIGTERM || sig == SIGQUIT || sig == SIGINT) {
                     if (_stm) _stm->finish();
                     break;
                 } else if (sig == SIGHUP) {
                     logger::set_update_conf();
                 } else if (sig == SIGUSR1) {
-                    if (_stm) _stm->run();
+                    if (_stm){
+                       if(dmode) {
+                           std::cout << " Stm run : " << std::to_string(sig) << std::endl;
+                       }
+                       _stm->run();
+                   }
                 }
             }
         });
