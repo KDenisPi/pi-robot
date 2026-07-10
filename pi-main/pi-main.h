@@ -185,6 +185,15 @@ public:
     * Run application
     */
     void run(){
+        // Block application signals in the main thread BEFORE any worker thread
+        // (logger, state machine, web, MQTT) is created — this also covers threads
+        // created in the child across fork(). pthread_sigmask() only affects the
+        // calling thread and threads spawned afterwards, so establishing the block
+        // here lets every subsequent thread inherit it. Without this, a
+        // process-directed kill(pid, SIGUSR1) may be delivered to a worker thread
+        // whose default disposition terminates the process.
+        block_app_signals();
+
         if(debug_mode()){
             run_single();
         }
@@ -463,6 +472,29 @@ private:
    }
 
     /*
+    * Block application signals process-wide.
+    *
+    * MUST be called in the main thread BEFORE any other thread is created
+    * (logger, state machine, web server, MQTT). pthread_sigmask() only affects
+    * the calling thread and threads spawned afterwards, so blocking here lets
+    * every subsequent thread inherit the block (this includes threads created in
+    * the child across fork(), which preserves the signal mask). This guarantees a
+    * process-directed kill(pid, SIGUSR1) stays pending until the dedicated signal
+    * thread consumes it via sigwaitinfo(), instead of being delivered to some
+    * worker thread whose default disposition would terminate the process.
+    */
+   void block_app_signals() {
+        sigemptyset(&_app_sigset);
+        sigaddset(&_app_sigset, SIGUSR1);
+        sigaddset(&_app_sigset, SIGUSR2);
+        sigaddset(&_app_sigset, SIGTERM);
+        sigaddset(&_app_sigset, SIGINT);
+        sigaddset(&_app_sigset, SIGQUIT);
+        sigaddset(&_app_sigset, SIGHUP);
+        pthread_sigmask(SIG_BLOCK, &_app_sigset, nullptr);
+   }
+
+    /*
     * Initilize handlers
     */
    void initialize_signal_handlers() {
@@ -470,22 +502,15 @@ private:
         if (signal(SIGALRM, PiMain::sigHandlerAlarm) == SIG_ERR)
             _exit(EXIT_FAILURE);
 
-        // Block app signals in all threads — delivered only via sigwaitinfo()
-        sigset_t sigset;
-        sigemptyset(&sigset);
-        sigaddset(&sigset, SIGUSR1);
-        sigaddset(&sigset, SIGUSR2);
-        sigaddset(&sigset, SIGTERM);
-        sigaddset(&sigset, SIGINT);
-        sigaddset(&sigset, SIGQUIT);
-        sigaddset(&sigset, SIGHUP);
-        pthread_sigmask(SIG_BLOCK, &sigset, nullptr);
-
-	const bool dmode=debug_mode();
+        // App signals were already blocked process-wide by block_app_signals()
+        // (called before any thread was created), so they stay pending until the
+        // waiter below consumes them. Reuse that same set for sigwaitinfo().
+        const sigset_t sigset = _app_sigset;
+        const bool dmode=debug_mode();
         // Dedicated thread: calls sigwaitinfo() and dispatches — safe to call anything
         _signal_thread = std::thread([sigset, dmode]() {
             sigset_t wait_set = sigset;
-	    const bool debug = dmode;
+            const bool debug = dmode;
             while (true) {
                 siginfo_t info;
                 int sig = sigwaitinfo(&wait_set, &info);
@@ -494,9 +519,9 @@ private:
                     break;
                 }
 
-		if(dmode) {
-		   std::cout << " Signal : " << std::to_string(sig) << std::endl;
-		}
+                if(dmode) {
+                    std::cout << " Signal : " << std::to_string(sig) << std::endl;
+                }
 
                 if (sig == SIGUSR2 || sig == SIGTERM || sig == SIGQUIT || sig == SIGINT) {
                     if (_stm) _stm->finish();
@@ -620,6 +645,10 @@ private:
     int _fd_err;
 
     std::thread _signal_thread;
+
+    // Set of application signals blocked process-wide by block_app_signals()
+    // and consumed by the dedicated signal thread via sigwaitinfo().
+    sigset_t _app_sigset;
 
     const std::string get_log_filename() const {
         if(_debug_mode) return log_folder + log_single;
