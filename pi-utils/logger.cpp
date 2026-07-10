@@ -46,6 +46,12 @@ Logger::Logger(const std::string& filename, const LLOG level) : m_flush(false), 
     log->set_level(spdlog::level::debug);
     log->set_pattern("%H:%M:%S.%e %z|%t|%L|%v");
     //log->set_pattern("%v");
+    // Flush after every message so log lines reach disk immediately: they are
+    // visible during a run and survive an abnormal termination (e.g. the process
+    // being killed by a signal), instead of being lost in spdlog's file buffer.
+    // Logging is already async via the circular buffer + worker thread, so the
+    // per-message flush cost is acceptable here.
+    log->flush_on(spdlog::level::debug);
 
     m_buff = std::make_shared<log_type>(_q_size);
     piutils::Threaded::start<Logger>(this);
