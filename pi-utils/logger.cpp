@@ -141,7 +141,7 @@ void Logger::worker(Logger* owner){
 /*
 *
 */
-void log_init(const std::string& filename, const bool debug = false){
+void log_init(const std::string& filename, const bool debug/* = false*/){
     if(!plog){
         if(debug)
             std::cout <<  "--- Logger::log_init---" << std::endl;

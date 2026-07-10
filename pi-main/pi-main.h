@@ -175,9 +175,9 @@ public:
         }
     }
 
-    void print_debug(const std::cstr& fn, const std::cstr& msg){
+    void print_debug(const std::string& fn, const std::string& msg){
         if(debug_mode()){
-            std::cout  << fn << " " << msg << std::endl;            
+            std::cout  << fn << " " << msg << std::endl;
         }
     }
 
@@ -321,12 +321,12 @@ private:
 
     void run_single() {
 
-        print_debug("run_single()", "start")
+        print_debug("run_single()", "start");
         logger::log_init(get_log_filename(), debug_mode());
 
         //Initialize and run
         if(initilize_and_run()){
-            print_debug("run_single()", "initilize_and_run")
+            print_debug("run_single()", "initilize_and_run");
 
             //Initilize signal handlers
             initialize_signal_handlers();
@@ -336,17 +336,17 @@ private:
             sleep(5); //start State Machine
             //_stm->run();
             //send command to start
-            print_debug("run_single()", "send command to start")
+            print_debug("run_single()", "send command to start");
             kill(_stmPid, SIGUSR1);
 
             logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Waiting for State Machine finishing");
 
-            print_debug("run_single()", "Waiting for State Machine finishing")
+            print_debug("run_single()", "Waiting for State Machine finishing");
             _stm->wait();
 
         }
 
-        print_debug("run_single()", "finish()")
+        print_debug("run_single()", "finish()");
         finish();
 
         logger::finish();
@@ -357,20 +357,20 @@ private:
     * Initialize objects and wait
     */
     bool initilize_and_run(){
-        print_debug("initilize_and_run()", "start")
+        print_debug("initilize_and_run()", "start");
 
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + " Create child. LLEVEL: " + std::to_string(_llevel));
         logger::set_level(_llevel);
         /*
         * Create PI Robot instance
         */
-        print_debug("initilize_and_run()", "Create hardware support")
+        print_debug("initilize_and_run()", "Create hardware support");
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create hardware support");
         _pirobot = std::make_shared<Rob>();
         _pirobot->set_configuration(_robot_conf);
 
         //Create State factory for State Machine
-        print_debug("initilize_and_run()", "Create State Factory support")
+        print_debug("initilize_and_run()", "Create State Factory support");
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create State Factory support");
         _factory = std::make_shared<F>(_firstState);
         _factory->set_configuration(_robot_conf);
@@ -381,7 +381,7 @@ private:
         /*
         * Create State machine
         */
-        print_debug("initilize_and_run()", "Create state machine")
+        print_debug("initilize_and_run()", "Create state machine");
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Create state machine.");
         _stm = std::make_shared<smachine::StateMachine>();
 
@@ -392,14 +392,14 @@ private:
         _stm->configure_environment = std::bind(&E::configure, _env, std::placeholders::_1);
 
         const bool res = _stm->init();
-        print_debug("initilize_and_run()", "_stm->init() " + std::to_string(res))
+        print_debug("initilize_and_run()", "_stm->init() " + std::to_string(res));
 
         /*
         * Web interface for settings and status
         */
         logger::log(logger::LLOG::INFO, "main", std::string(__func__) + "Created Web interface. Use HTTP: " + std::to_string(use_http()));
         if(use_http()){
-           print_debug("initilize_and_run()", "Created Web interface.")
+           print_debug("initilize_and_run()", "Created Web interface.");
            _web = std::make_shared<W>(_env->get_web_port());
            _web->set_web_root(_env->get_web_root());
            _web->add_dir_map("data", _env->get_csv_data());

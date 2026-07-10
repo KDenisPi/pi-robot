@@ -27,7 +27,7 @@ namespace logger {
     };
 
 void log(const LLOG level, const std::string& pattern, const std::string& message);
-void log_init(const std::string& filename);
+void log_init(const std::string& filename, const bool debug=false);
 void release();
 void set_level(const LLOG level);
 void set_update_conf();
