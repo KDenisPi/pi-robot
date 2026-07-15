@@ -27,10 +27,16 @@ add_custom_command(TARGET test_http POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_CURRENT_SOURCE_DIR}/default.html
         $<TARGET_FILE_DIR:test_http>/default.html
+    COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../web/en/files.html
+        $<TARGET_FILE_DIR:test_http>/files.html
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/../../conf
         $<TARGET_FILE_DIR:test_http>/conf
-    COMMENT "Copying test-http runtime resources (default.html, conf) next to the binary"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../web/static
+        $<TARGET_FILE_DIR:test_http>/static
+    COMMENT "Copying test-http runtime resources (default.html, files.html, conf, static) next to the binary"
 )
 
 add_test(NAME Http_test COMMAND test_http)

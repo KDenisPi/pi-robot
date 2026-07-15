@@ -57,7 +57,7 @@ int main (int argc, char* argv[])
     web_srv->set_web_root(".");
     web_srv->set_default_page("default.html");
 
-    web_srv->add_dir_map("statis", "./static");
+    web_srv->add_dir_map("static", "./static");
     web_srv->add_dir_map("data", "./conf");
     web_srv->add_dir_map("json", "./conf");
 
