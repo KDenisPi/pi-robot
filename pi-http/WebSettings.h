@@ -63,6 +63,17 @@ public:
      * @return const std::pair<std::string, std::string>
      */
     virtual const pinfo get_page_by_URI(const std::string& uri) {return std::make_pair("", "");}
+
+    /**
+     * @brief Return application status data as a JSON document.
+     *
+     * Served by the GET /api/status endpoint. The base implementation returns
+     * an empty JSON object; applications override this to expose their runtime
+     * status (sensor readings, network info, etc.).
+     *
+     * @return const std::string JSON document
+     */
+    virtual const std::string get_status_json() { return "{}"; }
 };
 
 
@@ -174,6 +185,17 @@ public:
                 }
 
                 return send_string(c, 405, mime_plain.c_str(), "Method not allowed");
+            }
+
+            //application status data as JSON, located in /api
+            if(mg_match(hm->uri, mg_str("/api/status"), NULL)){
+                logger::log(logger::LLOG::INFO, "WEB", std::string(__func__) + " Status request: " + mg_str2str(hm->method));
+
+                if(mg_str2str(hm->method) != "GET"){
+                    return send_string(c, 405, mime_plain.c_str(), "Method not allowed");
+                }
+
+                return send_string(c, 200, mime_json.c_str(), srv->get_status_json());
             }
 
             //data files JSON or CSV, located in /data folder

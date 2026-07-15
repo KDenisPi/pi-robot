@@ -127,6 +127,65 @@ public:
         return html;
     }
 
+    /**
+     * @brief Return the current weather status as a JSON document.
+     *
+     * Exposes the same runtime data used to render the HTML pages (network
+     * info, uptime, latest sensor measurement, CO2/TVOC air-quality levels)
+     * through the GET /api/status endpoint.
+     *
+     * @return const std::string JSON document
+     */
+    virtual const std::string get_status_json() override {
+        logger::log(logger::LLOG::DEBUG, "WebW", std::string(__func__));
+
+        auto ctxt = GET_ENV(weather::Context);
+        Measurement data = ctxt->data;
+        std::string lang = ctxt->get_language();
+        const bool celcius = ctxt->show_temperature_in_celcius();
+
+        const int co2_level = ctxt->get_CO2_level();
+        const int tvoc_level = ctxt->get_TVOC_level();
+
+        return prepare_output(
+            "{"
+                "\"version\":\"%s\","
+                "\"language\":\"%s\","
+                "\"uptime\":\"%s\","
+                "\"net\":{\"ip4\":\"%s\",\"ip6\":\"%s\"},"
+                "\"temperature_unit\":\"%c\","
+                "\"measurement\":{"
+                    "\"temperature\":%.2f,"
+                    "\"humidity\":%.2f,"
+                    "\"pressure\":%.2f,"
+                    "\"luximity\":%u,"
+                    "\"co2\":%u,"
+                    "\"tvoc\":%u,"
+                    "\"altitude\":%.2f"
+                "},"
+                "\"levels\":{"
+                    "\"co2\":{\"value\":%d,\"label\":\"%s\"},"
+                    "\"tvoc\":{\"value\":%d,\"label\":\"%s\"}"
+                "}"
+            "}",
+            json_escape(ctxt->version).c_str(),
+            json_escape(lang).c_str(),
+            json_escape(ctxt->get_uptime()).c_str(),
+            json_escape(ctxt->ip4_address).c_str(),
+            json_escape(ctxt->ip6_address).c_str(),
+            (celcius ? 'C' : 'F'),
+            data.temp(celcius),
+            data.si7021_humidity,
+            data.bmp280_pressure,
+            (unsigned)data.tsl2651_lux,
+            (unsigned)data.spg30_co2,
+            (unsigned)data.spg30_tvoc,
+            data.bmp280_altitude,
+            co2_level, json_escape(ctxt->get_level_label(co2_level, lang)).c_str(),
+            tvoc_level, json_escape(ctxt->get_level_label(tvoc_level, lang)).c_str()
+        );
+    }
+
 protected:
     /*
     * Refuse to delete the file FStorage currently has open for writing -
