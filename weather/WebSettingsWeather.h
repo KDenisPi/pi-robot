@@ -56,7 +56,7 @@ public:
         if(file.empty() || (file == "index.html") || (file == "default.html")){
             result = page_path + "/" + lang + "/default.html";
         }
-        else if((file == "status.html") || (file == "graph.html")){
+        else if((file == "status.html") || (file == "graph.html") || (file == "files.html")){
             result = page_path + "/" + lang + "/" + file;
         }
 

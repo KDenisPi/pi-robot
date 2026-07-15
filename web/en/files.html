@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="author" content="Denis Kudia">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="/static/css/weather.css">
+    </head>
+
+    <body>
+        <div class="container">
+            <h1 class="page_title">Data files</h1>
+
+            <nav class="nav_links">
+                <a href="status.html">status</a>
+                <a href="default.html">current measurement</a>
+                <a href="graph.html">measurements</a>
+                <a href="files.html" class="active">files</a>
+            </nav>
+
+            <div class="data_card" id="data_path">Loading&hellip;</div>
+
+            <div id="message"></div>
+
+            <div class="table_scroll">
+                <table id="files_table" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left">File</th>
+                            <th style="text-align:right">Size</th>
+                            <th style="text-align:center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="files_body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <script>
+            // Build a "/files/<name>" URL, keeping the sub-folder separators but
+            // encoding each path segment so names with spaces/special chars work.
+            function files_url(name) {
+                var parts = name.split('/').map(encodeURIComponent);
+                return '/files/' + parts.join('/');
+            }
+
+            function human_size(bytes) {
+                if (bytes < 1024) return bytes + ' B';
+                var units = ['KB', 'MB', 'GB'];
+                var val = bytes;
+                var i = -1;
+                do {
+                    val = val / 1024;
+                    i++;
+                } while (val >= 1024 && i < units.length - 1);
+                return val.toFixed(1) + ' ' + units[i];
+            }
+
+            function show_message(text, is_error) {
+                var box = document.getElementById('message');
+                box.className = 'data_card';
+                box.style.color = is_error ? 'crimson' : 'green';
+                box.textContent = text;
+            }
+
+            function clear_message() {
+                var box = document.getElementById('message');
+                box.className = '';
+                box.textContent = '';
+            }
+
+            function delete_file(name, row) {
+                if (!confirm('Delete "' + name + '" ?')) {
+                    return;
+                }
+
+                clear_message();
+                fetch(files_url(name), { method: 'DELETE' })
+                    .then(function(resp) {
+                        return resp.json().then(function(body) {
+                            return { ok: resp.ok, status: resp.status, body: body };
+                        });
+                    })
+                    .then(function(res) {
+                        if (res.ok && res.body.status === 'deleted') {
+                            row.parentNode.removeChild(row);
+                            show_message('Deleted: ' + name, false);
+                        }
+                        else if (res.status === 409) {
+                            show_message('Cannot delete "' + name + '": file is active', true);
+                        }
+                        else {
+                            var reason = res.body.reason || res.body.errno || res.status;
+                            show_message('Failed to delete "' + name + '": ' + reason, true);
+                        }
+                    })
+                    .catch(function(err) {
+                        show_message('Failed to delete "' + name + '": ' + err, true);
+                    });
+            }
+
+            function render(data) {
+                document.getElementById('data_path').textContent = 'Data folder: ' + data.path;
+
+                var body = document.getElementById('files_body');
+                body.innerHTML = '';
+
+                if (!data.files || data.files.length === 0) {
+                    var empty = document.createElement('tr');
+                    empty.innerHTML = '<td colspan="3" style="text-align:center">No files</td>';
+                    body.appendChild(empty);
+                    return;
+                }
+
+                data.files.forEach(function(f) {
+                    var row = document.createElement('tr');
+
+                    var name_td = document.createElement('td');
+                    name_td.style.textAlign = 'left';
+                    name_td.textContent = f.name;
+
+                    var size_td = document.createElement('td');
+                    size_td.style.textAlign = 'right';
+                    size_td.textContent = human_size(f.size);
+
+                    var act_td = document.createElement('td');
+                    act_td.style.textAlign = 'center';
+
+                    var dl = document.createElement('a');
+                    dl.className = 'my_link';
+                    dl.href = files_url(f.name);
+                    dl.setAttribute('download', '');
+                    dl.textContent = 'download';
+
+                    var del = document.createElement('a');
+                    del.className = 'my_link';
+                    del.href = '#';
+                    del.style.color = 'crimson';
+                    del.textContent = 'delete';
+                    del.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        delete_file(f.name, row);
+                    });
+
+                    act_td.appendChild(dl);
+                    act_td.appendChild(del);
+
+                    row.appendChild(name_td);
+                    row.appendChild(size_td);
+                    row.appendChild(act_td);
+                    body.appendChild(row);
+                });
+            }
+
+            function load_files() {
+                clear_message();
+                fetch('/files/list')
+                    .then(function(resp) {
+                        if (!resp.ok) {
+                            throw new Error('HTTP ' + resp.status);
+                        }
+                        return resp.json();
+                    })
+                    .then(render)
+                    .catch(function(err) {
+                        document.getElementById('data_path').textContent = '';
+                        show_message('Failed to load file list: ' + err, true);
+                    });
+            }
+
+            load_files();
+        </script>
+    </body>
+</html>
